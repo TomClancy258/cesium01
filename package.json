@@ -12,11 +12,19 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
-    "lint": "eslint . --fix --cache",
+    "lint": "eslint src --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --cache",
     "format": "prettier --write --experimental-cli src/",
     "prepare": "husky"
   },
   "dependencies": {
+    "@element-plus/icons-vue": "^2.3.2",
+    "@turf/turf": "^7.3.1",
+    "@vueuse/core": "^14.1.0",
+    "axios": "^1.13.2",
+    "cesium": "^1.136.0",
+    "echarts": "^6.0.0",
+    "element-plus": "^2.13.0",
+    "lodash-es": "^4.17.22",
     "pinia": "^3.0.4",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4"
@@ -35,7 +43,10 @@
     "lint-staged": "^16.2.7",
     "npm-run-all2": "^8.0.4",
     "prettier": "3.7.4",
+    "sass-embedded": "^1.97.1",
     "typescript": "~5.9.3",
+    "unplugin-auto-import": "^20.3.0",
+    "unplugin-vue-components": "^30.0.0",
     "vite": "^7.3.0",
     "vite-plugin-vue-devtools": "^8.0.5",
     "vue-tsc": "^3.2.1"

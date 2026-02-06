@@ -1,0 +1,30 @@
+// src/styles/mixins.scss
+@mixin map-tooltip {
+  position: absolute;
+  background: rgba(34, 40, 50, 0.9); // 暗色背景，透明度为0.9
+  color: #FFFFFF; // 白色文字
+  padding: 12px 16px; // 增加内边距
+  left: 0;
+  top: 0;
+
+  // 美化样式
+  border-radius: 8px; // 较大的圆角半径
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); // 更深的阴影
+  font-size: 14px; // 字体稍大一点
+  line-height: 1.4; // 行高稍微宽松一些
+  z-index: 1000;
+
+  // 添加过渡效果
+  transition: opacity 0.3s ease, transform 0.3s ease;
+
+  // 如果需要箭头指向触发元素，可以使用伪元素
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -10px; // 定位在 tooltip 下方
+    left: 20px; // 调整位置
+    border-width: 10px;
+    border-style: solid;
+    border-color: rgba(34, 40, 50, 0.9) transparent transparent transparent; // 箭头颜色与背景一致
+  }
+}

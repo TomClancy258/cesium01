@@ -1,0 +1,48 @@
+<script lang="ts" setup>
+import { inject, reactive, ref } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
+import type {AirportFilterForm} from "@/views/aviation-situation/types/airport"
+const filterAirports = inject('filterAirports')
+const airportFilterForm = reactive<AirportFilterForm>({
+  icao: '',
+  country: '',
+  name: '',
+})
+
+const airportFilterFormRef = ref<FormInstance>()
+
+const onAirportSubmit = () => {
+  filterAirports(airportFilterForm)
+}
+
+const resetAirportForm = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  formEl.resetFields()
+  onAirportSubmit()
+}
+</script>
+
+<template>
+
+  <el-form :model="airportFilterForm"
+           ref="airportFilterFormRef"
+           label-width="auto" style="max-width: 600px">
+    <el-form-item label="icao" prop="icao">
+      <el-input v-model="airportFilterForm.icao" />
+    </el-form-item>
+    <el-form-item label="机场名称" prop="name">
+      <el-input v-model="airportFilterForm.name" />
+    </el-form-item>
+    <el-form-item label="机场国家" prop="country">
+      <el-input v-model="airportFilterForm.country" />
+    </el-form-item>
+    <el-form-item>
+      <el-button type="primary" @click="onAirportSubmit(airportFilterFormRef)">确认</el-button>
+      <el-button @click="resetAirportForm(airportFilterFormRef)">重置</el-button>
+    </el-form-item>
+  </el-form>
+</template>
+
+<style scoped lang="scss">
+
+</style>
