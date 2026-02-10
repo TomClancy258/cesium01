@@ -11,10 +11,13 @@ import type {
 import { isValidCoordinate,updateTooltip } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
-import airportYellowSvgRaw from '@/assets/img/airport/svg/airport-yellow.svg?raw'
+import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?raw'
+const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHoveredSvgRaw)}`
+import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
+const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
+
 import type{ AirportFilterForm, } from '@/views/aviation-situation/types/aircraft'
-const airportYellowSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportYellowSvgRaw)}`
-import { highlightBillboard } from './useHighlightManager'
+import { highlightBillboardHover, highlightBillboardSelect, clearHoveredHighlight,clearSelectedHighlight } from './useHighlightManager'
 
 interface AirportPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -30,7 +33,6 @@ interface AirportGraphic {
 
 export function useAirports(viewer) {
   let airports: Airport[] = []
-  let hoveredBillboard:null|Cesium.Billboard=null
 
   const airportGraphic: AirportGraphic = {
     primitiveContainer: null,
@@ -57,6 +59,10 @@ export function useAirports(viewer) {
 
   const hideAirportTooltip = (): void => {
     tooltip.visible = false
+  }
+
+  const toggleAirportsVisibility = (): void => {
+    airportGraphic.primitiveContainer.show=!airportGraphic.primitiveContainer.show
   }
 
   const initAirports = () => {
@@ -211,9 +217,13 @@ export function useAirports(viewer) {
         matchedBillboard=billboard
       }
 
-      billboard.color = billboard.properties.originalColor.withAlpha(alpha)
+      // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
+      // const label:Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
+      // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+
+      billboard.show = match
       const label:Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
-      label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+      label.show = match
     })
 
     if (matchedNum === 1) {
@@ -230,16 +240,11 @@ export function useAirports(viewer) {
   }
 
   const highlightAirportOnHover=(billboard:Cesium.Billboard):void=>{
-    hoveredBillboard=billboard
-    billboard.image=airportYellowSvgRawDataUrl
-
-    highlightBillboard(billboard, airportYellowSvgRawDataUrl)
+    highlightBillboardHover(billboard, airportHoveredSvgRawDataUrl)
   }
-  const resetAirportHighlight=():void=>{
-    if (hoveredBillboard !== null) {
-      hoveredBillboard.image=hoveredBillboard.properties.originalImage
-      hoveredBillboard=null
-    }
+
+  const highlightAirportOnSelect=(billboard:Cesium.Billboard):void=>{
+    highlightBillboardSelect(billboard, airportSelectedSvgRawDataUrl)
   }
 
   return {
@@ -250,7 +255,11 @@ export function useAirports(viewer) {
     tooltip,
 
     filterAirports,
+
     highlightAirportOnHover,
-    resetAirportHighlight
+
+    highlightAirportOnSelect,
+
+    toggleAirportsVisibility
   }
 }

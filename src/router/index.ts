@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 const AviationSituation = () =>
   import('@/views/aviation-situation/AviationSituation.vue')
-const AAA = () => import('@/views/aaa/AAA.vue')
+const User = () => import('@/views/user/User.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -16,9 +16,9 @@ const router = createRouter({
       component: AviationSituation,
     },
     {
-      path: '/AAA',
-      name: 'AAA',
-      component: AAA,
+      path: '/User',
+      name: 'User',
+      component: User,
     },
   ],
 })

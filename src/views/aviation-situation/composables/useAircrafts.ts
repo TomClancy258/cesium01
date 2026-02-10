@@ -11,30 +11,18 @@ import {
 } from '../types/aircraft'
 import { isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
 import type { AircraftFilterForm } from '@/views/aviation-situation/types/aircraft'
-import { highlightBillboard } from './useHighlightManager'
+import { highlightBillboardHover, highlightBillboardSelect } from './useHighlightManager'
 import airplaneBlueSvgRaw from '@/assets/img/airplane/svg/airplane-blue.svg?raw'
 
 const airplaneBlueSvgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneBlueSvgRaw)}`
 
-import airplaneDarkSvgRaw from '@/assets/img/airplane/svg/airplane-dark.svg?raw'
+import airplaneHoveredSvgRaw from '@/assets/img/airplane/svg/airplane-hovered.svg?raw'
 
-const airplaneDarkSvgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneDarkSvgRaw)}`
+const airplaneHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneHoveredSvgRaw)}`
 
-import airplaneGreenSvgRaw from '@/assets/img/airplane/svg/airplane-green.svg?raw'
+import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.svg?raw'
 
-const airplaneGreenSvgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneGreenSvgRaw)}`
-
-import airplanePurpleSvgRaw from '@/assets/img/airplane/svg/airplane-purple.svg?raw'
-
-const airplanePurpleSvgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplanePurpleSvgRaw)}`
-
-import airplaneRedSvgRaw from '@/assets/img/airplane/svg/airplane-red.svg?raw'
-
-const airplaneRedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneRedSvgRaw)}`
-
-import airplaneYellowSvgRaw from '@/assets/img/airplane/svg/airplane-yellow.svg?raw'
-
-const airplaneYellowSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneYellowSvgRaw)}`
+const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
 
 interface AircraftPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -50,8 +38,6 @@ interface AircraftGraphic {
 
 export function useAircrafts(viewer) {
   let aircrafts: Aircraft[] = []
-
-  let hoveredBillboard:null|Cesium.Billboard=null
 
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
@@ -82,8 +68,8 @@ export function useAircrafts(viewer) {
     tooltip.visible = false
   }
 
-  const hideAircrafts = (): void => {
-    // aircraftGraphic.primitiveContainer.
+  const toggleAircraftsVisibility = (): void => {
+    aircraftGraphic.primitiveContainer.show=!aircraftGraphic.primitiveContainer.show
   }
 
   const initAircrafts = () => {
@@ -259,9 +245,13 @@ export function useAircrafts(viewer) {
         matchedBillboard=billboard
       }
 
-      billboard.color = billboard.properties.originalColor.withAlpha(alpha)
+      // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
+      // const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
+      // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+
+      billboard.show = match
       const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
-      label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+      label.show = match
     })
 
     if (matchedNum === 1) {
@@ -283,19 +273,12 @@ export function useAircrafts(viewer) {
   }
 
   const highlightAircraftOnHover=(billboard:Cesium.Billboard):void=>{
-    hoveredBillboard=billboard
-    billboard.image=airplaneYellowSvgRawDataUrl
-
-    highlightBillboard(billboard, airplaneYellowSvgRawDataUrl)
-  }
-  const resetAircraftHighlight=():void=>{
-    if (hoveredBillboard !== null) {
-      hoveredBillboard.image=hoveredBillboard.properties.originalImage
-      hoveredBillboard=null
-    }
+    highlightBillboardHover(billboard, airplaneHoveredSvgRawDataUrl)
   }
 
-  const resetHighlight = ():void => {}
+  const highlightAircraftOnSelect=(billboard:Cesium.Billboard):void=>{
+    highlightBillboardSelect(billboard, airplaneSelectedSvgRawDataUrl)
+  }
 
   return {
     initAircrafts,
@@ -306,9 +289,11 @@ export function useAircrafts(viewer) {
     tooltip,
 
     filterAircrafts,
-    resetHighlight,
 
     highlightAircraftOnHover,
-    resetAircraftHighlight
+
+    highlightAircraftOnSelect,
+
+    toggleAircraftsVisibility
   }
 }

@@ -2,13 +2,13 @@
 import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
-import DrawAndMeasure from './tools/DrawAndMeasure.vue'
-import AircraftsFilter from './tools/AircraftsFilter.vue'
-import AirportsFilter from './tools/AirportsFilter.vue'
+import DrawAndMeasure from '@/views/aviation-situation/components/map-tools/panels/DrawAndMeasure.vue'
+import AircraftsFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftsFilter.vue'
+import AirportsFilter from '@/views/aviation-situation/components/map-tools/panels/AirportsFilter.vue'
 
 import { Fold, Filter, PriceTag, Share } from '@element-plus/icons-vue'
 
-const drawer = ref(true)
+const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('rtl')
 
 const handleOpen = (key: string, keyPath: string[]) => {

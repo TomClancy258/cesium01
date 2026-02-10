@@ -2,14 +2,19 @@ import * as Cesium from 'cesium'
 import { useDebounceFn,useThrottleFn } from '@vueuse/core'
 import {
   AirportBaseProperties,
-  AirportBillboardProperties, AirportLabelProperties
+  AirportBillboardProperties,
+  AirportLabelProperties,
+  AirportClickData,
 } from '../types/airport'
 import type {
   AircraftBaseProperties,
   AircraftBillboardProperties,
+  AircraftLabelProperties,
+  AircraftClickData,
 } from '../types/aircraft'
 import { onUnmounted, shallowRef } from 'vue'
-import { clearHighlight } from './useHighlightManager'
+import { clearHoveredHighlight } from './useHighlightManager'
+
 export function useCesiumEvents(
   viewer: ShallowRef<Cesium.Viewer | null>,
   options?: {
@@ -45,34 +50,24 @@ export function useCesiumEvents(
   const setLeftClickAction = (): void => {
     handler.value.setInputAction((click): void => {
       const pickedObject = viewer.value.scene.pick(click.position)
-      console.log('pickedObject', pickedObject)
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if (pickedObject.id instanceof Cesium.Entity) {
           const entity: Cesium.Entity = pickedObject.id
         } else if (pickedObject.primitive instanceof Cesium.Billboard) {
-          const properties: AircraftBillboardProperties = pickedObject.primitive.properties
-          if (
-            properties.sourceType === 'airport' &&
-            properties.type === 'billboard'
-          ) {
-            options?.onAirportLeftClick()?.(properties)
-          } else if(
-            properties.sourceType === 'aircraft' &&
-            properties.type === 'billboard'){
-
-            const baseProperties: AircraftBaseProperties = {
-              type: properties.type,
+          const properties: AircraftBillboardProperties|AircraftLabelProperties|AirportBillboardProperties|AirportLabelProperties = pickedObject.primitive.properties
+          if (properties.type !== 'billboard') return;
+          if (properties.sourceType === 'airport') {
+            const airportClickData: AirportClickData = {
               sourceType: properties.sourceType,
-              icao24: properties.icao24,
-              origin_country: properties.origin_country,
-              callsign: properties.callsign,
-              longitude: properties.longitude,
-              latitude: properties.latitude,
-              baro_altitude: properties.baro_altitude,
-              heading: properties.heading,
-            }
-
-            options?.onAircraftLeftClick()?.(baseProperties)
+              icao: properties.icao
+            };
+            options?.onAirportLeftClick?.(airportClickData,pickedObject.primitive)
+          } else if(properties.sourceType === 'aircraft'){
+            const aircraftClickData: AircraftClickData = {
+              sourceType: properties.sourceType,
+              icao24: properties.icao24
+            };
+            options?.onAircraftLeftClick?.(aircraftClickData,pickedObject.primitive)
           }
         }
       }
@@ -102,9 +97,7 @@ export function useCesiumEvents(
             position
           )
         if (properties.type !== 'billboard') return;
-        if (
-          properties.sourceType === 'airport'
-        ) {
+        if (properties.sourceType === 'airport') {
           const baseProperties: AirportBaseProperties = {
             type: properties.type, // 'billboard' —— 注意：这里保留原值，或可设为 'aircraft'
             sourceType: properties.sourceType,
@@ -116,8 +109,7 @@ export function useCesiumEvents(
           }
 
           options?.onAirportHover?.(baseProperties, screenPosition,pickedObject.primitive)
-        } else if(
-          properties.sourceType === 'aircraft'){
+        } else if(properties.sourceType === 'aircraft'){
           // ✅ 提取 AircraftBaseProperties 部分（剥离 originalColor 等渲染属性）
           const baseProperties: AircraftBaseProperties = {
             type: properties.type, // 'billboard' —— 注意：这里保留原值，或可设为 'aircraft'
@@ -134,7 +126,7 @@ export function useCesiumEvents(
         }
       }
     }else {
-      clearHighlight()
+      clearHoveredHighlight()
       options?.onAirportLeave?.()
       options?.onAircraftLeave?.()
     }

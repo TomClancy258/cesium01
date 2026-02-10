@@ -9,8 +9,3 @@ export interface TooltipState<T> {
   properties: T
 }
 
-export type PrimitiveProperties =
-  | AircraftBillboardProperties
-  | AircraftLabelProperties
-  | AirportBillboardProperties
-  | AirportLabelProperties;

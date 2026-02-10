@@ -32,3 +32,8 @@ export interface AircraftFilterForm {
   origin_country: string
   callsign: string
 }
+
+export interface AircraftClickData {
+  sourceType: 'aircraft';
+  icao24: string;
+}
