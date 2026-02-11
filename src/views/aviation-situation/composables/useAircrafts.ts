@@ -2,7 +2,6 @@ import { reactive } from 'vue'
 import * as Cesium from 'cesium'
 import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/type.ts'
-import { parseAircraftStates } from '@/network/aircraft/type.ts'
 import {
   AircraftBaseProperties,
   AircraftBillboardProperties,
@@ -87,9 +86,9 @@ export function useAircrafts(viewer) {
   const loadAndDrawAircrafts = async () => {
     try {
       const res: AircraftStatesResponse = await getAircrafts()
-      if (Array.isArray(res.states) && res.states.length > 0) {
-        aircrafts = parseAircraftStates(res)
-        // console.log("res", res);
+      if (Array.isArray(res) && res.length > 0) {
+        aircrafts = res
+        console.log("res", res);
         drawAircrafts()
       } else {
         console.warn('飞机数据为空或格式错误:', data)
