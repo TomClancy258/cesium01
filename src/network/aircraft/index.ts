@@ -25,10 +25,10 @@ export const getAircrafts = async (): Promise<AircraftStatesResponse> => {
   return parseAircraftStates(states)
 }
 
-/**
- * 获取航迹数据（已解析为 RoutePoint[]）
- */
-export const getAircraftRouteFull = async (): Promise<RouteFullResponse> => {
-  const rawData = await request01.get<RoutePointTuple[]>(API.ROUTE_FULL)
-  return parseRouteFull(rawData) // ✅ 在 API 层完成解析
+export const getAircraftRouteFull = async (icao24:string): Promise<RouteFullResponse> => {
+  const response = await request01.get<RoutePointTuple[]>(API.ROUTE_FULL,{
+    params:{ icao24 }
+  })
+  const trace=response?.trace??[]
+  return parseRouteFull(trace) // ✅ 在 API 层完成解析
 }

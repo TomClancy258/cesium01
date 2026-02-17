@@ -1,44 +1,42 @@
 <script lang="ts" setup>
-import { ref, defineEmits,computed } from 'vue'
+import { ref, computed } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
-import type { AircraftClickData } from '@/views/aviation-situation/types/aircraft'
-import type { AirportClickData } from '@/views/aviation-situation/types/airport'
 
-import AircraftDetail from "./AircraftDetail.vue"
-import AirportDetail from "./AirportDetail.vue"
+import AircraftDetail from './AircraftDetail.vue'
+import AirportDetail from './AirportDetail.vue'
 
-const drawer = ref<boolean>(false)
+import { useHighlightStore } from '@/stores/highlight'
+const highlightStore = useHighlightStore()
+
 const direction = ref<DrawerProps['direction']>('ltr')
+
 // const emit = defineEmits(['close'])
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
-const currentClickData = ref<AircraftClickData | AirportClickData | null>(null)
-
-const detailComponents = {
-  aircraft: AircraftDetail,
-  airport: AirportDetail
-} as const
-
-const showDrawer = (clickData: AircraftClickData|AirportClickData): void => {
-  drawer.value = true
-  currentClickData.value=clickData
-}
-const handleClose = ():void => {
+const handleClose = (): void => {
   emit('close')
-  currentClickData.value = null
 }
 
-const currentDetailComponent = computed(() => {
-  if (!currentClickData.value) return null
-  const sourceType = currentClickData.value.sourceType // 确保你的数据有 sourceType 字段
-  return detailComponents[sourceType]
+const selectedSourceType = computed(() => {
+  if (highlightStore.selected !== null) {
+    return highlightStore.selected.sourceType
+  }else{
+    return ''
+  }
 })
 
-defineExpose({
-  showDrawer,
+// 优化：用computed替代watch控制抽屉显隐（更简洁）
+const drawer = computed({
+  get: () => highlightStore.selected !== null,
+  set: (value) => {
+    // 处理抽屉手动关闭的逻辑（v-model需要双向绑定）
+    if (!value) {
+      emit('close')
+    }
+  },
 })
 </script>
 <template>
@@ -52,11 +50,8 @@ defineExpose({
     @close="handleClose"
   >
     <div class="drawer-body">
-      <component
-        :is="currentDetailComponent"
-        v-if="currentDetailComponent"
-        :data="currentClickData"
-      />
+      <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
+      <AirportDetail v-show="selectedSourceType === 'airport'" />
     </div>
   </el-drawer>
 </template>

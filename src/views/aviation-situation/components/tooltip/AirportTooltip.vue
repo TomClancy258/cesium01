@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import { computed } from 'vue'
 import type {AirportTooltipState} from "@/views/aviation-situation/types/airport.ts"
 
 const props = defineProps<{ tooltip: AirportTooltipState }>()

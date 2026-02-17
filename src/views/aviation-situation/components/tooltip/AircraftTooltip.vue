@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, computed } from 'vue'
+import {computed} from "vue"
 import type {AircraftTooltipState} from "@/views/aviation-situation/types/aircraft"
 
 const props = defineProps<{ tooltip: AircraftTooltipState }>()
@@ -23,7 +23,7 @@ const tooltipStyle = computed(() => {
     <div>origin_country : {{ props.tooltip.properties.origin_country }}</div>
     <div>longitude : {{ props.tooltip.properties.longitude }}</div>
     <div>latitude : {{ props.tooltip.properties.latitude }}</div>
-    <div>baro_altitude : {{ props.tooltip.properties.baro_altitude }}</div>
+    <div>baroAltitude : {{ props.tooltip.properties.baroAltitude }}</div>
     <div>heading : {{ props.tooltip.properties.heading }}</div>
   </div>
 </template>

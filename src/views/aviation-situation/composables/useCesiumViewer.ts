@@ -16,6 +16,7 @@ export function useCesiumViewer(containerId = 'cesium-container') {
     })
 
     viewer.value.scene.debugShowFramesPerSecond = true
+    // viewer.value.scene.postProcessStages.fxaa.enabled = false;
     viewer.value._cesiumWidget._creditContainer.style.display = 'none'
 
     // 设置初始视角

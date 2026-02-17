@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import {defineProps} from "vue"
-import type { AircraftClickData } from '@/views/aviation-situation/types/aircraft'
+import { useHighlightStore } from '@/stores/highlight'
 
-const props = defineProps<{
-  data: AircraftClickData
-}>()
+const highlightStore=useHighlightStore()
+
 </script>
 
 <template>
-  <h3>飞机详情</h3>
-  <p>ICAO24: {{ props.data.icao24 }}</p>
+  <div>
+    <h3>飞机详情</h3>
+    <p>ICAO24: {{ highlightStore.selected?.icao24 }}</p>
+  </div>
 </template>
 
 <style scoped lang="scss">

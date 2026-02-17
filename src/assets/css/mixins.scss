@@ -6,13 +6,14 @@
   padding: 12px 16px; // 增加内边距
   left: 0;
   top: 0;
+  transform: translate(20px, 0);
 
   // 美化样式
   border-radius: 8px; // 较大的圆角半径
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2); // 更深的阴影
   font-size: 14px; // 字体稍大一点
   line-height: 1.4; // 行高稍微宽松一些
-  z-index: 1000;
+  //z-index: 1000;
 
   // 添加过渡效果
   transition: opacity 0.3s ease, transform 0.3s ease;

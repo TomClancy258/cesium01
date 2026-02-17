@@ -4,13 +4,13 @@ import {
   AirportBaseProperties,
   AirportBillboardProperties,
   AirportLabelProperties,
-  AirportClickData,
+  AirportSelectedData,
 } from '../types/airport'
 import type {
   AircraftBaseProperties,
   AircraftBillboardProperties,
   AircraftLabelProperties,
-  AircraftClickData,
+  AircraftSelectedData,
 } from '../types/aircraft'
 import { onUnmounted, shallowRef } from 'vue'
 import { clearHoveredHighlight } from './useHighlightManager'
@@ -18,20 +18,12 @@ import { clearHoveredHighlight } from './useHighlightManager'
 export function useCesiumEvents(
   viewer: ShallowRef<Cesium.Viewer | null>,
   options?: {
-    onAirportHover?: (
-      properties: AirportProperties,
-      position: Cesium.Cartesian2,
-      billboard: Cesium.Billboard,
-    ) => void
-    onAirportLeftClick?: (properties: AirportProperties) => void
+    onAirportHover?: (properties:AirportBaseProperties, position: Cesium.Cartesian2,billboard:Cesium.Billboard) => void
+    onAirportLeftClick?: (airportSelectedData:AirportSelectedData,billboard:Cesium.Billboard) => void
     onAirportLeave?: () => void
 
-    onAircraftHover?: (
-      properties: AircraftBaseProperties,
-      position: Cesium.Cartesian2,
-      billboard: Cesium.Billboard,
-    ) => void
-    onAircraftLeftClick?: (properties: AircraftBaseProperties) => void
+    onAircraftHover?: (properties:AircraftBaseProperties, position: Cesium.Cartesian2,billboard:Cesium.Billboard) => void
+    onAircraftLeftClick?: (aircraftSelectedData:AircraftSelectedData,billboard:Cesium.Billboard) => void
     onAircraftLeave?: () => void
   }
 ) {
@@ -57,17 +49,17 @@ export function useCesiumEvents(
           const properties: AircraftBillboardProperties|AircraftLabelProperties|AirportBillboardProperties|AirportLabelProperties = pickedObject.primitive.properties
           if (properties.type !== 'billboard') return;
           if (properties.sourceType === 'airport') {
-            const airportClickData: AirportClickData = {
+            const airportSelectedData: AirportSelectedData = {
               sourceType: properties.sourceType,
               icao: properties.icao
             };
-            options?.onAirportLeftClick?.(airportClickData,pickedObject.primitive)
+            options?.onAirportLeftClick?.(airportSelectedData,pickedObject.primitive)
           } else if(properties.sourceType === 'aircraft'){
-            const aircraftClickData: AircraftClickData = {
+            const aircraftSelectedData: AircraftSelectedData = {
               sourceType: properties.sourceType,
               icao24: properties.icao24
             };
-            options?.onAircraftLeftClick?.(aircraftClickData,pickedObject.primitive)
+            options?.onAircraftLeftClick?.(aircraftSelectedData,pickedObject.primitive)
           }
         }
       }
@@ -81,9 +73,9 @@ export function useCesiumEvents(
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
   }
 
+
   const mouseMove = useThrottleFn((movement:Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
     const pickedObject = viewer.value.scene.pick(movement.endPosition)
-
     if (Cesium.defined(pickedObject) && pickedObject.id) {
       if (pickedObject.id instanceof Cesium.Entity) {
         const entity: Cesium.Entity = pickedObject.id
@@ -119,7 +111,7 @@ export function useCesiumEvents(
             callsign: properties.callsign,
             longitude: properties.longitude,
             latitude: properties.latitude,
-            baro_altitude: properties.baro_altitude,
+            baroAltitude: properties.baroAltitude,
             heading: properties.heading,
           }
           options?.onAircraftHover?.(baseProperties, screenPosition,pickedObject.primitive)

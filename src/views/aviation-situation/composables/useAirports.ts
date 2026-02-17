@@ -5,7 +5,7 @@ import type { Airport } from '@/network/airport/type.ts'
 import type {
   AirportBaseProperties,
   AirportBillboardProperties,
-  AirportLabelProperties,
+  AirportLabelProperties, AirportSelectedData,
   AirportTooltipState
 } from '../types/airport'
 import { isValidCoordinate,updateTooltip } from '@/utils/geoUtils'
@@ -17,7 +17,7 @@ import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
 
 import type{ AirportFilterForm, } from '@/views/aviation-situation/types/aircraft'
-import { highlightBillboardHover, highlightBillboardSelect, clearHoveredHighlight,clearSelectedHighlight } from './useHighlightManager'
+import { highlightBillboardOnHover, highlightBillboardAndSetSelected } from './useHighlightManager'
 
 interface AirportPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -108,7 +108,7 @@ export function useAirports(viewer) {
       //   continue
       // }
 
-      if (!isValidCoordinate(longitude, latitude)) {
+      if (!isValidCoordinate(longitude, latitude,0)) {
         continue
       }
 
@@ -240,11 +240,11 @@ export function useAirports(viewer) {
   }
 
   const highlightAirportOnHover=(billboard:Cesium.Billboard):void=>{
-    highlightBillboardHover(billboard, airportHoveredSvgRawDataUrl)
+    highlightBillboardOnHover(billboard, airportHoveredSvgRawDataUrl)
   }
 
-  const highlightAirportOnSelect=(billboard:Cesium.Billboard):void=>{
-    highlightBillboardSelect(billboard, airportSelectedSvgRawDataUrl)
+  const highlightAirportOnSelect=(airportSelectedData:AirportSelectedData,billboard:Cesium.Billboard):void=>{
+    highlightBillboardAndSetSelected(airportSelectedData,billboard, airportSelectedSvgRawDataUrl)
   }
 
   return {

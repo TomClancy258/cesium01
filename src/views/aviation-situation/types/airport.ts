@@ -31,7 +31,7 @@ export interface AirportFilterForm {
   name: string
 }
 
-export interface AirportClickData {
+export interface AirportSelectedData {
   sourceType: 'airport';
   icao: string;
 }

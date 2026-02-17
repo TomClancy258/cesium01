@@ -3,15 +3,19 @@ import type { TooltipState } from '@/views/aviation-situation/types/shared'
 
 export function isValidCoordinate(
   longitude: unknown,
-  latitude: unknown
+  latitude: unknown,
+  altitude: unknown,
 ): boolean {
   return (
     longitude != null &&
     latitude != null &&
+    altitude != null &&
     typeof longitude === 'number' &&
     typeof latitude === 'number' &&
+    typeof altitude === 'number' &&
     isFinite(longitude) &&
-    isFinite(latitude)
+    isFinite(latitude) &&
+    isFinite(altitude)
   )
 }
 

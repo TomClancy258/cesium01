@@ -9,7 +9,7 @@ export interface AircraftBaseProperties {
   callsign: string
   longitude: number
   latitude: number
-  baro_altitude: number
+  baroAltitude: number
   heading: number
 }
 
@@ -33,7 +33,7 @@ export interface AircraftFilterForm {
   callsign: string
 }
 
-export interface AircraftClickData {
+export interface AircraftSelectedData {
   sourceType: 'aircraft';
   icao24: string;
 }

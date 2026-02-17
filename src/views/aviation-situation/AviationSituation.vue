@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted,provide,ref } from 'vue'
+import { onMounted,provide,ref,onUnmounted } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import * as Cesium from 'cesium'
@@ -12,8 +12,8 @@ import { useCesiumEvents } from './composables/useCesiumEvents'
 
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
-import type{ AircraftBaseProperties,AircraftClickData } from '@/views/aviation-situation/types/aircraft'
-import type{ AirportBaseProperties,AirportClickData } from '@/views/aviation-situation/types/airport'
+import type{ AircraftBaseProperties,AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
+import type{ AirportBaseProperties,AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
 import {clearHoveredHighlight,clearSelectedHighlight} from "./composables/useHighlightManager"
 
@@ -23,6 +23,7 @@ const { viewer:cesiumViewer, initViewer: initCesiumViewer } =
 const {
   initAircrafts,
   loadAndDrawAircrafts,
+  updateAircrafts,
 
   tooltip: aircraftTooltip,
   showAircraftTooltip,
@@ -34,6 +35,8 @@ const {
   highlightAircraftOnHover,
 
   highlightAircraftOnSelect,
+
+  loadAndDrawAircraftRouteFull,
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -64,9 +67,8 @@ const { initEvents: initCesiumEvents } = useCesiumEvents(cesiumViewer, {
     hideAircraftTooltip()
     clearHoveredHighlight()
   },
-  onAircraftLeftClick: (aircraftClickData:AircraftClickData,billboard:Cesium.Billboard) => {
-    detailDrawerRef.value.showDrawer(aircraftClickData)
-    highlightAircraftOnSelect(billboard)
+  onAircraftLeftClick: (aircraftSelectedData:AircraftSelectedData,billboard:Cesium.Billboard) => {
+    highlightAircraftOnSelect(aircraftSelectedData,billboard)
   },
 
   onAirportHover: (properties:AirportBaseProperties, position: Cesium.Cartesian2,billboard:Cesium.Billboard) => {
@@ -77,12 +79,11 @@ const { initEvents: initCesiumEvents } = useCesiumEvents(cesiumViewer, {
     hideAirportTooltip()
     clearHoveredHighlight()
   },
-  onAirportLeftClick: (airportClickData:AirportClickData,billboard:Cesium.Billboard) => {
-    detailDrawerRef.value.showDrawer(airportClickData)
-    highlightAirportOnSelect(billboard)
+  onAirportLeftClick: (airportSelectedData:AirportSelectedData,billboard:Cesium.Billboard) => {
+    highlightAirportOnSelect(airportSelectedData,billboard)
   },
 })
-
+let aircraftsTimer=null
 onMounted(async () => {
   initCesiumViewer()
 
@@ -90,10 +91,25 @@ onMounted(async () => {
   await loadAndDrawAirports()
 
   initAircrafts()
-  await loadAndDrawAircrafts()
-
   initCesiumEvents()
 
+  // let aircraftsIndex:number=0
+  loadAndDrawAircrafts()
+  // aircraftsTimer= setInterval(async ()=>{
+  //   aircraftsIndex++
+  //   await loadAndDrawAircrafts(aircraftsIndex)
+  // },2000)
+
+
+  let aircraftsIndex:number=0
+  aircraftsTimer= setInterval(async ()=>{
+    aircraftsIndex++
+    await updateAircrafts(aircraftsIndex)
+  },5000)
+})
+
+onUnmounted(()=>{
+  clearTimeout(aircraftsTimer)
 })
 
 provide('filterAircrafts', filterAircrafts)
@@ -105,6 +121,9 @@ provide('toggleAirportsVisibility', toggleAirportsVisibility)
 
 <template>
   <div>
+<!--    值{{useHighlightStore().selectedBillboard}} |-->
+<!--    是否为null：{{useHighlightStore().selectedBillboard===null}} |-->
+<!--    typeof：{{typeof useHighlightStore().selectedBillboard}}-->
     <div id="cesium-container"></div>
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />

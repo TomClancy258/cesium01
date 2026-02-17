@@ -1,30 +1,32 @@
 import * as Cesium from 'cesium'
+import { useHighlightStore } from '@/stores/highlight'
 
 // 全局状态：hover 高亮（临时）、select 选中（持久）
-let currentHoveredBillboard: Cesium.Billboard | null = null
-let currentSelectedBillboard: Cesium.Billboard | null = null
+let hoveredBillboard: Cesium.Billboard | null = null
+let selectedBillboard: Cesium.Billboard | null = null
 
+const highlightStore=useHighlightStore()
 /**
  * 高亮 hover 状态（临时，鼠标离开重置）
  * @param billboard 目标 Billboard
  * @param highlightImage hover 图片
  */
-export function highlightBillboardHover(
+export function highlightBillboardOnHover(
   billboard: Cesium.Billboard,
   highlightImage: string
 ): void {
   // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
-  if (currentSelectedBillboard === billboard) return
+  if (selectedBillboard === billboard) return
 
-  if (currentHoveredBillboard === billboard) return
+  if (hoveredBillboard === billboard) return
   // 还原上一个 hover 项
-  if (currentHoveredBillboard) {
+  if (hoveredBillboard) {
     // 若上一个 hover 项未被选中，才恢复默认
-    if (currentHoveredBillboard !== currentSelectedBillboard) {
-      currentHoveredBillboard.image = currentHoveredBillboard.properties.originalImage
+    if (hoveredBillboard !== selectedBillboard) {
+      hoveredBillboard.image = hoveredBillboard.properties.originalImage
     }
   }
-  currentHoveredBillboard = billboard
+  hoveredBillboard = billboard
   billboard.image = highlightImage
 }
 
@@ -33,29 +35,32 @@ export function highlightBillboardHover(
  * @param billboard 目标 Billboard
  * @param highlightImage 选中图片
  */
-export function highlightBillboardSelect(
+export function highlightBillboardAndSetSelected(
+  selectedData: AircraftSelectedData | AirportSelectedData | null,
   billboard: Cesium.Billboard,
   highlightImage: string
 ): void {
   // 还原上一个选中项
-  if (currentSelectedBillboard && currentSelectedBillboard !== billboard) {
-    currentSelectedBillboard.image = currentSelectedBillboard.properties.originalImage
+  if (selectedBillboard && selectedBillboard !== billboard) {
+    selectedBillboard.image = selectedBillboard.properties.originalImage
   }
   // 清除当前 hover 状态（选中优先级更高）
-  if (currentHoveredBillboard === billboard) {
-    currentHoveredBillboard = null
+  if (hoveredBillboard === billboard) {
+    hoveredBillboard = null
   }
-  currentSelectedBillboard = billboard
+  selectedBillboard = billboard
   billboard.image = highlightImage
+
+  highlightStore.setSelected(selectedData)
 }
 
 /**
  * 清除 hover 高亮（鼠标离开时调用）
  */
 export function clearHoveredHighlight(): void {
-  if (currentHoveredBillboard && currentHoveredBillboard !== currentSelectedBillboard) {
-    currentHoveredBillboard.image = currentHoveredBillboard.properties.originalImage
-    currentHoveredBillboard = null
+  if (hoveredBillboard && hoveredBillboard !== selectedBillboard) {
+    hoveredBillboard.image = hoveredBillboard.properties.originalImage
+    hoveredBillboard = null
   }
 }
 
@@ -63,9 +68,10 @@ export function clearHoveredHighlight(): void {
  * 清除 select 高亮（关闭抽屉/切换选中项时调用）
  */
 export function clearSelectedHighlight(): void {
-  if (currentSelectedBillboard) {
-    currentSelectedBillboard.image = currentSelectedBillboard.properties.originalImage
-    currentSelectedBillboard = null
+  if (selectedBillboard) {
+    selectedBillboard.image = selectedBillboard.properties.originalImage
+    selectedBillboard = null
+    highlightStore.clearSelected()
   }
 }
 

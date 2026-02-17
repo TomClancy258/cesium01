@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import {defineProps} from "vue"
-import type { AirportClickData } from '@/views/aviation-situation/types/airport'
+import { useHighlightStore } from '@/stores/highlight'
 
-const props = defineProps<{
-  data: AirportClickData
-}>()
+const highlightStore=useHighlightStore()
+
 </script>
 
 <template>
-  <h3>机场详情</h3>
-  <p>ICAO: {{ props.data.icao }}</p>
+  <div>
+    <h3>机场详情</h3>
+    <p>ICAO: {{ highlightStore.selected?.icao }}</p>
+  </div>
 </template>
 
 <style scoped lang="scss">
