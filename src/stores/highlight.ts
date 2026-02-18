@@ -8,13 +8,13 @@ import type { AirportSelectedData } from '@/views/aviation-situation/types/airpo
 export const useHighlightStore = defineStore('highlight', () => {
   const selected = ref<AircraftSelectedData | AirportSelectedData | null>(null)
 
-  const clearSelected = () => {
+  const clearSelected = ():void => {
     selected.value = null
   }
 
   const setSelected = (
     data: AircraftSelectedData | AirportSelectedData | null = null
-  ) => {
+  ):void => {
     selected.value = data
   }
 

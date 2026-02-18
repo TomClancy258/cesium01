@@ -36,7 +36,7 @@ const {
 
   highlightAircraftOnSelect,
 
-  loadAndDrawAircraftRouteFull,
+  setupHighlightWatch,
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -93,13 +93,13 @@ onMounted(async () => {
   initAircrafts()
   initCesiumEvents()
 
-  // let aircraftsIndex:number=0
   loadAndDrawAircrafts()
-  // aircraftsTimer= setInterval(async ()=>{
-  //   aircraftsIndex++
-  //   await loadAndDrawAircrafts(aircraftsIndex)
-  // },2000)
+  setupHighlightWatch()
 
+  // setTimeout(async () => {
+  //   initAirports() // 初始化机场配置（非数据加载）
+  //   await loadAndDrawAirports() // 加载并绘制机场
+  // }, 0)
 
   let aircraftsIndex:number=0
   aircraftsTimer= setInterval(async ()=>{
@@ -109,7 +109,7 @@ onMounted(async () => {
 })
 
 onUnmounted(()=>{
-  clearTimeout(aircraftsTimer)
+  clearInterval(aircraftsTimer)
 })
 
 provide('filterAircrafts', filterAircrafts)

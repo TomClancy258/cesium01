@@ -57,7 +57,12 @@ export function useCesiumEvents(
           } else if(properties.sourceType === 'aircraft'){
             const aircraftSelectedData: AircraftSelectedData = {
               sourceType: properties.sourceType,
-              icao24: properties.icao24
+              icao24: properties.icao24,
+              position:{
+                latitude: properties.latitude,
+                longitude: properties.longitude,
+                baroAltitude: properties.baroAltitude
+              }
             };
             options?.onAircraftLeftClick?.(aircraftSelectedData,pickedObject.primitive)
           }

@@ -36,4 +36,9 @@ export interface AircraftFilterForm {
 export interface AircraftSelectedData {
   sourceType: 'aircraft';
   icao24: string;
+  position:{
+    latitude: number,
+    longitude: number,
+    baroAltitude: number
+  }
 }
