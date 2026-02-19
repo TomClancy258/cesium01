@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted,provide,ref,onUnmounted } from 'vue'
+import { onMounted,provide,ref,onUnmounted,computed } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import * as Cesium from 'cesium'
@@ -14,11 +14,14 @@ import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import type{ AircraftBaseProperties,AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type{ AirportBaseProperties,AirportSelectedData } from '@/views/aviation-situation/types/airport'
+import { useHighlightStore } from '@/stores/highlight'
 
 import {clearHoveredHighlight,clearSelectedHighlight} from "./composables/useHighlightManager"
 
 const { viewer:cesiumViewer, initViewer: initCesiumViewer } =
   useCesiumViewer('cesium-container')
+
+const highlightStore = useHighlightStore()
 
 const {
   initAircrafts,
@@ -36,7 +39,6 @@ const {
 
   highlightAircraftOnSelect,
 
-  setupHighlightWatch,
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -87,14 +89,13 @@ let aircraftsTimer=null
 onMounted(async () => {
   initCesiumViewer()
 
-  initAirports()
-  await loadAndDrawAirports()
+  // initAirports()
+  // await loadAndDrawAirports()
 
   initAircrafts()
   initCesiumEvents()
 
   loadAndDrawAircrafts()
-  setupHighlightWatch()
 
   // setTimeout(async () => {
   //   initAirports() // 初始化机场配置（非数据加载）
@@ -107,6 +108,11 @@ onMounted(async () => {
     await updateAircrafts(aircraftsIndex)
   },5000)
 })
+
+const isAltitudeLegendVisible = computed(() => {
+  return highlightStore.selected && highlightStore.selected.sourceType === 'aircraft'
+})
+
 
 onUnmounted(()=>{
   clearInterval(aircraftsTimer)
@@ -121,10 +127,13 @@ provide('toggleAirportsVisibility', toggleAirportsVisibility)
 
 <template>
   <div>
-<!--    值{{useHighlightStore().selectedBillboard}} |-->
-<!--    是否为null：{{useHighlightStore().selectedBillboard===null}} |-->
-<!--    typeof：{{typeof useHighlightStore().selectedBillboard}}-->
     <div id="cesium-container"></div>
+    <img
+      v-show="isAltitudeLegendVisible"
+      src="@/assets/img/map/altitude-legend.svg"
+      class="altitude-legend"
+      alt="高度图例"
+    />
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <DetailDrawer ref="detailDrawerRef" @close="clearSelectedHighlight"/>
@@ -141,6 +150,15 @@ provide('toggleAirportsVisibility', toggleAirportsVisibility)
 body {
   margin: 0 !important;
 }
+
+.altitude-legend {
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  width: 50vw;
+  pointer-events: none; // 避免遮挡地图交互
+}
+
 </style>
 <style lang="scss">
 body {

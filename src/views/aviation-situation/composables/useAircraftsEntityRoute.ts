@@ -24,7 +24,6 @@ import airplaneHoveredSvgRaw from '@/assets/img/airplane/svg/airplane-hovered.sv
 const airplaneHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneHoveredSvgRaw)}`
 
 import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.svg?raw'
-import { RoutePoint } from '@/network/aircraft/types/route-full'
 
 const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
 
@@ -33,7 +32,8 @@ interface AircraftPrimitives {
   billboardMap: Map<string, Cesium.Billboard>
   labelMap: Map<string, Cesium.Label>
   labels: Cesium.LabelCollection | null
-  routePolylines: Cesium.PolylineCollection | null
+  // routePolyline: Cesium.PolylineCollection | null
+  routeEntity: Cesium.Entity | null
 }
 
 interface AircraftGraphic {
@@ -41,35 +41,8 @@ interface AircraftGraphic {
   primitives: AircraftPrimitives
 }
 
-// 高度-颜色映射配置（集中管理，可抽离为常量文件）
-const altitudeColorMap = [
-  { min: -Infinity, max: 0, color: "rgba(0, 255, 0, 1)" },           // 0 及以下：绿色
-  { min: 0, max: 1000, color: "rgba(173, 255, 47, 1)" },             // 0-1000：浅绿
-  { min: 1000, max: 3000, color: "rgba(255, 255, 0, 1)" },           // 1000-3000：黄色
-  { min: 3000, max: 5000, color: "rgba(255, 165, 0, 1)" },           // 3000-5000：橙色
-  { min: 5000, max: 8000, color: "rgba(255, 0, 0, 1)" },             // 5000-8000：红色
-  { min: 8000, max: 10000, color: "rgba(128, 0, 128, 1)" },          // 8000-10000：紫色
-  { min: 10000, max: Infinity, color: "rgba(128, 0, 128, 1)" },      // 10000+：紫色
-];
-/**
- * 根据高度值获取对应区间的固定颜色（优化版配置式）
- * @param altitude 高度（米）
- * @returns Cesium.Color
- */
-const getColorByAltitude = (altitude: number): Cesium.Color => {
-  // 处理 null/undefined/非数字高度
-  if (altitude === null || altitude === undefined || isNaN(altitude)) {
-    return "rgba(128, 128, 128, 0.8)"; // 灰色兜底
-  }
-
-  // 查找匹配的区间颜色
-  const matchItem = altitudeColorMap.find(item => altitude >= item.min && altitude < item.max);
-  return matchItem ? matchItem.color : "rgba(128, 128, 128, 0.8)";
-};
-
 export function useAircrafts(viewer) {
   let aircrafts: Aircraft[] = []
-  let lastSelectedIcao24:string | null = null
 
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
@@ -78,7 +51,8 @@ export function useAircrafts(viewer) {
       billboardMap: new Map(),
       labelMap: new Map(),
       labels: null,
-      routePolylines: null,
+      // routePolyline: null,
+      routeEntity: null,
     },
   }
   const tooltip = reactive<AircraftTooltipState>({
@@ -109,25 +83,25 @@ export function useAircrafts(viewer) {
     aircraftGraphic.primitiveContainer = new Cesium.PrimitiveCollection()
     aircraftGraphic.primitives.billboards = new Cesium.BillboardCollection()
     aircraftGraphic.primitives.labels = new Cesium.LabelCollection()
-    aircraftGraphic.primitives.routePolylines = new Cesium.PolylineCollection()
-
-    aircraftGraphic.primitiveContainer.id = 'aircrafts_container';
-    aircraftGraphic.primitives.billboards.id = 'aircrafts_billboards';
-    aircraftGraphic.primitives.labels.id = 'aircrafts_labels';
-    aircraftGraphic.primitives.routePolylines.id = 'aircrafts_routePolylines';
+    // aircraftGraphic.primitives.routePolyline = new Cesium.PolylineCollection()
 
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.billboards)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.labels)
-    aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.routePolylines)
-
-    aircraftGraphic.primitiveContainer.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.billboards.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.labels.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.routePolylines.properties = { type: 'aircraft_routePolylines' }
+    // aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.routePolyline)
+    aircraftGraphic.primitiveContainer.data = { type: 'aircrafts' }
 
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
 
-    setupHighlightWatch()
+    aircraftGraphic.primitives.routeEntity = viewer.value.entities.add({
+      id:'aircraftRoute',
+      show: false, // 默认隐藏
+      polyline: {
+        width: 3,
+        material: Cesium.Color.RED.withAlpha(0.8),
+        // clampToGround: false,
+        // positions: Cesium.Cartesian3.fromDegreesArrayHeights([]), // 空坐标
+      },
+    })
   }
 
   const loadAndDrawAircrafts = async (): void => {
@@ -147,30 +121,53 @@ export function useAircrafts(viewer) {
     }
   }
 
+  const loadAndDrawAircraftRoute = async (aircraftData: AircraftSelectedData):void => {
+    if (!aircraftGraphic.primitives.routeEntity) return
+
+    const routeData = await getAircraftRouteFull(aircraftData.icao24)
+
+    const positions = []
+    // 存储每个点的高度（用于后续计算颜色）
+    const altitudes = []
+
+    for (const point of routeData) {
+      if (!isValidCoordinate(point.longitude, point.latitude, point.baroAltitude)) {
+        continue
+      }
+      positions.push(point.longitude, point.latitude, point.baroAltitude)
+      altitudes.push(point.baroAltitude)
+    }
+    const selected=highlightStore.selected
+    positions.push(selected.position.longitude, selected.position.latitude, selected.position.baroAltitude)
+    altitudes.push(selected.position.baroAltitude)
+
+    // 第二步：更新坐标 + 控制显示
+    if (positions.length >= 2) {
+      const polyline = aircraftGraphic.primitives.routeEntity.polyline
+      // 1. 设置路径坐标
+      polyline.positions = Cesium.Cartesian3.fromDegreesArrayHeights(positions)
+      aircraftGraphic.primitives.routeEntity.show = true // 显示路径
+    } else {
+      aircraftGraphic.primitives.routeEntity.show = false // 无坐标则隐藏
+    }
+  }
+
   const setupHighlightWatch = () => {
     watch(
       () => highlightStore.selected,
       (newSelected) => {
-        // 1. 处理选中飞机的逻辑
+        // console.log("newSelected", newSelected);
         if (newSelected?.sourceType === 'aircraft') {
-          const currentIcao24 = newSelected.icao24
-          // 对比当前选中与上一次选中的icao24
-          if (currentIcao24 !== lastSelectedIcao24) {
-            // 不同则先清除原有路径
-            clearAircraftRoute()
-            // 绘制新选中飞机的路径
-            loadAndDrawAircraftRoute(currentIcao24)
-            // 更新上一次选中的icao24
-            lastSelectedIcao24 = currentIcao24
-          }
-          // 相同则不做操作（避免重复清除/绘制）
+          // 选中飞机：更新路径并显示
+          loadAndDrawAircraftRoute(newSelected as AircraftSelectedData)
         } else {
-          // 2. 未选中/非飞机：隐藏路径 + 重置lastSelectedIcao24
-          clearAircraftRoute()
-          lastSelectedIcao24 = null
+          // 未选中/非飞机：隐藏路径
+          if (aircraftGraphic.primitives.routeEntity) {
+            aircraftGraphic.primitives.routeEntity.show = false
+          }
         }
       },
-      // { immediate: true, deep: true } // 建议开启immediate，初始化时执行一次
+      // { immediate: true, deep: true }
     )
   }
 
@@ -219,7 +216,7 @@ export function useAircrafts(viewer) {
       const billboard = aircraftGraphic.primitives.billboardMap.get(aircraft.icao24)
       if (billboard) {
         // ✅ 更新现有飞机
-        const position:Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
+        const position = Cesium.Cartesian3.fromDegrees(
           aircraft.longitude,
           aircraft.latitude,
           aircraft.baroAltitude,
@@ -246,76 +243,36 @@ export function useAircrafts(viewer) {
     // 3. 原子性更新全局状态
     aircrafts = newAircrafts
   }
-
-  const drawAircraftRoute=(routeData:RoutePoint[],icao24:string):void=>{
-// 遍历路径点，逐段绘制（每两个点组成一条线段，按第二个点高度着色）
-    for (let i = 0; i < routeData.length - 1; i++) {
-      const startPoint:RoutePoint = routeData[i]
-      const endPoint:RoutePoint= routeData[i + 1]
-
-      // 校验坐标有效性
-      if (!isValidCoordinate(startPoint.longitude, startPoint.latitude, startPoint.baroAltitude) ||
-        !isValidCoordinate(endPoint.longitude, endPoint.latitude, endPoint.baroAltitude)) {
-        continue
-      }
-
-      // 构建线段坐标（两个点）
-      const positions:Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights([
-        startPoint.longitude, startPoint.latitude, startPoint.baroAltitude,
-        endPoint.longitude, endPoint.latitude, endPoint.baroAltitude
-      ])
-
-      // 按第二个点高度获取颜色
-      const segmentColor:string = getColorByAltitude(endPoint.baroAltitude)
-      // console.log("segmentColor", segmentColor);
-      // 添加单段线到集合
-      aircraftGraphic.primitives.routePolylines.add({
-        id: `aircraftRoute_${icao24}_segment_${i}`, // 唯一标识每段线
-        positions: positions,
-        width: 2,
-        material:  Cesium.Material.fromType('Color', {
-          color: Cesium.Color.fromCssColorString(segmentColor)
-        }),
-      })
-      aircraftGraphic.primitives.routePolylines.show = true
-    }
-  }
-
-  /**
-   * 加载并绘制飞机路径（核心优化版）
-   * @param icao24 飞机唯一标识
-   */
-  const loadAndDrawAircraftRoute = async (icao24: string): void => {
-    if (!icao24 || !aircraftGraphic.primitives.routePolylines) return
-    const selected:AircraftSelectedData=highlightStore.selected
-
+  const loadAndDrawAircraftRouteWithPolylineCollection = async (
+    aircraftSelectedData: AircraftSelectedData,
+    billboard: Cesium.Billboard,
+  ): void => {
     try {
-      const routeData:RoutePoint[] = await getAircraftRouteFull(icao24)
-      routeData.push({
-        latitude: selected.position.latitude,
-        longitude: selected.position.longitude,
-        baroAltitude: selected.position.baroAltitude   ,   // 英尺
+      const routeData = await getAircraftRouteFull(aircraftSelectedData.icao24)
+      clearAircraftRoute()
+
+      const positions = []
+      for (const point of routeData) {
+        if (!isValidCoordinate(point.longitude, point.latitude, point.baroAltitude)) {
+          continue
+        }
+        // if(point.baroAltitude == 'ground'){
+        //   point.baroAltitude = 0
+        // }
+        positions.push(point.longitude, point.latitude, point.baroAltitude)
+      }
+      aircraftGraphic.primitives.routePolyline.add({
+        id: `aircraft-route-full-aircraftSelectedData-${aircraftSelectedData.icao24}`,
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(positions),
+        width: 2,
       })
-
-      if (!Array.isArray(routeData) || routeData.length < 2) {
-        clearAircraftRoute()
-        return
-      }
-
-      // 性能优化：仅当切换飞机时清空路径，同飞机仅追加新线段
-      if (lastSelectedIcao24 !== icao24) {
-        clearAircraftRoute()
-        lastSelectedIcao24 = icao24
-      }
-      drawAircraftRoute(routeData,icao24)
     } catch (error) {
       console.error('绘制飞机路径失败:', error)
-      clearAircraftRoute()
     }
   }
 
   const clearAircraftRoute = (): void => {
-    aircraftGraphic.primitives.routePolylines.removeAll()
+    // aircraftGraphic.primitives.routePolyline.removeAll()
   }
 
   const getAircraftImageByAltitude = (altitude): string => {
@@ -333,15 +290,13 @@ export function useAircrafts(viewer) {
   const clearAircrafts = (): void => {
     aircraftGraphic.primitives.billboards.removeAll()
     aircraftGraphic.primitives.labels.removeAll()
-    aircraftGraphic.primitives.routePolylines.removeAll()
-
     aircraftGraphic.primitives.billboardMap.clear()
     aircraftGraphic.primitives.labelMap.clear()
   }
 
   const removeAircraft = (icao24: string): void => {
-    const billboard:Cesium.Billboard = aircraftGraphic.primitives.billboardMap.get(icao24)
-    const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
+    const billboard = aircraftGraphic.primitives.billboardMap.get(icao24)
+    const label = aircraftGraphic.primitives.labelMap.get(icao24)
 
     if (billboard && aircraftGraphic.primitives.billboards) {
       aircraftGraphic.primitives.billboards.remove(billboard)
@@ -371,7 +326,7 @@ export function useAircrafts(viewer) {
 
     // 添加 Billboard
     const billboard: Cesium.Billboard = aircraftGraphic.primitives.billboards.add({
-      id: 'aircraft_billboard_' + aircraft.icao24,
+      id: 'aircraft-billboard-' + aircraft.icao24,
       show: true,
       position: position,
       image: airplaneBlueSvgDataUrl,
@@ -403,7 +358,7 @@ export function useAircrafts(viewer) {
     // 添加 Label
     const label: Cesium.Label = aircraftGraphic.primitives.labels.add({
       show: true,
-      id: 'aircraft_label_' + aircraft.icao24,
+      id: 'aircraft-label-' + aircraft.icao24,
       position: position,
       text: aircraft.callsign,
       font: '14px sans-serif',
@@ -469,7 +424,7 @@ export function useAircrafts(viewer) {
       const p: AircraftBaseProperties = billboard.properties
       if (!p) return
 
-      const match:boolean =
+      const match =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || p.callsign.toLowerCase().includes(query.callsign)) &&
         (!query.origin_country || p.origin_country.toLowerCase().includes(query.origin_country))
@@ -490,7 +445,7 @@ export function useAircrafts(viewer) {
     })
 
     if (matchedNum === 1) {
-      const carto:Cesium.Cartographic = Cesium.Cartographic.fromCartesian(matchedBillboard.position)
+      const carto = Cesium.Cartographic.fromCartesian(matchedBillboard.position)
       // console.log("carto", carto);
       // let lat = Cesium.Math.toDegrees(carto.latitude);
       // let lng = Cesium.Math.toDegrees(carto.longitude);
@@ -498,7 +453,7 @@ export function useAircrafts(viewer) {
       // console.log("lng", lng);
 
       carto.height += 1000000
-      const destination:Cesium.Cartesian3 = Cesium.Cartographic.toCartesian(carto)
+      const destination = Cesium.Cartographic.toCartesian(carto)
 
       viewer.value.camera.flyTo({
         destination: destination,
@@ -518,6 +473,35 @@ export function useAircrafts(viewer) {
     highlightBillboardAndSetSelected(aircraftSelectedData, billboard, airplaneSelectedSvgRawDataUrl)
   }
 
+  /**
+   * 根据高度值获取对应区间的固定颜色（无渐变）
+   * @param altitude 高度（米）
+   * @returns Cesium.Color
+   */
+  const getColorByAltitude = (altitude: number): Cesium.Color => {
+    // 处理 null/undefined/非数字高度
+    if (!altitude || isNaN(altitude)) {
+      return Cesium.Color.GRAY.withAlpha(0.8) // 灰色兜底
+    }
+
+    // 匹配高度区间，返回固定颜色（无插值）
+    if (altitude <= 0) {
+      return new Cesium.Color(0 / 255, 255 / 255, 0 / 255, 1) // 0米及以下：绿色
+    } else if (altitude <= 1000) {
+      return new Cesium.Color(173 / 255, 255 / 255, 47 / 255, 1) // 0-1000米：浅绿
+    } else if (altitude <= 3000) {
+      return new Cesium.Color(255 / 255, 255 / 255, 0 / 255, 1) // 1000-3000米：黄色
+    } else if (altitude <= 5000) {
+      return new Cesium.Color(255 / 255, 165 / 255, 0 / 255, 1) // 3000-5000米：橙色
+    } else if (altitude <= 8000) {
+      return new Cesium.Color(255 / 255, 0 / 255, 0 / 255, 1) // 5000-8000米：红色
+    } else if (altitude <= 10000) {
+      return new Cesium.Color(128 / 255, 0 / 255, 128 / 255, 1) // 8000-10000米：紫色
+    } else {
+      return new Cesium.Color(128 / 255, 0 / 255, 128 / 255, 1) // 10000米以上：紫色（同最高区间）
+    }
+  }
+
   return {
     initAircrafts,
     loadAndDrawAircrafts,
@@ -534,6 +518,8 @@ export function useAircrafts(viewer) {
     highlightAircraftOnSelect,
 
     toggleAircraftsVisibility,
+
+    // loadAndDrawAircraftRouteWithPolylineCollection,
 
     setupHighlightWatch,
   }

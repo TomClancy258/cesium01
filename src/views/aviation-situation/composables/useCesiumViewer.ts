@@ -7,6 +7,8 @@ export function useCesiumViewer(containerId = 'cesium-container') {
   const viewer = shallowRef<Cesium.Viewer | null>(null)
   const initViewer = (): void => {
     viewer.value = new Cesium.Viewer(containerId, {
+      timeline: false,
+      animation: false,
       baseLayerPicker: false,
       baseLayer: Cesium.ImageryLayer.fromProviderAsync(
         new Cesium.UrlTemplateImageryProvider({
@@ -16,7 +18,6 @@ export function useCesiumViewer(containerId = 'cesium-container') {
     })
 
     viewer.value.scene.debugShowFramesPerSecond = true
-    // viewer.value.scene.postProcessStages.fxaa.enabled = false;
     viewer.value._cesiumWidget._creditContainer.style.display = 'none'
 
     // 设置初始视角
