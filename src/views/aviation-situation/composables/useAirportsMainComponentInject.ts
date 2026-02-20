@@ -1,5 +1,5 @@
 //useAirports.ts
-import { reactive,onUnmounted } from 'vue'
+import { reactive } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -16,10 +16,9 @@ import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?r
 const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHoveredSvgRaw)}`
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
-import { onCesiumEvent } from './useCesiumEvents'
 
 import type{ AirportFilterForm, } from '@/views/aviation-situation/types/aircraft'
-import { highlightBillboardOnHover, highlightBillboardAndSetSelected,clearHoveredHighlight } from './useHighlightManager'
+import { highlightBillboardOnHover, highlightBillboardAndSetSelected } from './useHighlightManager'
 
 interface AirportPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -124,6 +123,7 @@ export function useAirports(viewer) {
       const billboard: Cesium.Billboard =
         airportGraphic.primitives.billboards.add({
           id: 'airport-billboard-' + icao,
+          show: true,
           // show: false,
           position: position,
           image: airportGreenSvgRawDataUrl,
@@ -150,6 +150,7 @@ export function useAirports(viewer) {
 
       // 添加 Label
       const label: Cesium.Label = airportGraphic.primitives.labels.add({
+        show: true,
         // show: false,
         id: 'airport-label-' + icao,
         position: position,
@@ -249,40 +250,6 @@ export function useAirports(viewer) {
   const highlightAirportOnSelect=(airportSelectedData:AirportSelectedData,billboard:Cesium.Billboard):void=>{
     highlightBillboardAndSetSelected(airportSelectedData,billboard, airportSelectedSvgRawDataUrl)
   }
-
-  // ===== 新增：内部订阅机场事件 =====
-  let unsubAirportHover: () => void;
-  let unsubAirportLeave: () => void;
-  let unsubAirportLeftClick: () => void;
-
-  const subscribeAirportEvents = () => {
-    // 订阅机场hover事件
-    unsubAirportHover = onCesiumEvent('airportHover', (properties, position, billboard) => {
-      showAirportTooltip(position, properties);
-      highlightAirportOnHover(billboard);
-    });
-
-    // 订阅机场leave事件
-    unsubAirportLeave = onCesiumEvent('airportLeave', () => {
-      hideAirportTooltip();
-      clearHoveredHighlight();
-    });
-
-    // 订阅机场点击事件
-    unsubAirportLeftClick = onCesiumEvent('airportLeftClick', (data, billboard) => {
-      highlightAirportOnSelect(data, billboard);
-    });
-  };
-
-  // 初始化时自动订阅事件
-  subscribeAirportEvents();
-
-  // ===== 组件卸载时取消订阅 =====
-  onUnmounted(() => {
-    unsubAirportHover?.();
-    unsubAirportLeave?.();
-    unsubAirportLeftClick?.();
-  });
 
   return {
     initAirports,

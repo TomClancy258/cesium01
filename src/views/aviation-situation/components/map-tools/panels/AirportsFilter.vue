@@ -41,7 +41,7 @@ const showAirports=ref<boolean>(true)
     <el-form-item label="机场国家" prop="country">
       <el-input v-model="airportFilterForm.country" clearable/>
     </el-form-item>
-    <el-form-item label="显示飞机图标">
+    <el-form-item label="显示机场图标">
       <el-checkbox v-model="showAirports" @change="toggleAirportsVisibility">
       </el-checkbox>
     </el-form-item>

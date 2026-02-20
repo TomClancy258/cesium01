@@ -1,3 +1,6 @@
+import type {AircraftBillboardProperties,AircraftLabelProperties} from "./aircraft"
+import type {AirportBillboardProperties,AirportLabelProperties} from "./airport"
+
 interface TooltipPosition {
   left: number
   top: number
@@ -8,4 +11,10 @@ export interface TooltipState<T> {
   position: TooltipPosition
   properties: T
 }
+
+export type MapBillboardLabelProperties =
+  | AircraftBillboardProperties
+  | AircraftLabelProperties
+  | AirportBillboardProperties
+  | AirportLabelProperties;
 

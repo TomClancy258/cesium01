@@ -1,6 +1,5 @@
-import { reactive, watch,onUnmounted } from 'vue'
+import { reactive, watch } from 'vue'
 import * as Cesium from 'cesium'
-import { onCesiumEvent } from './useCesiumEvents'
 import { getAircrafts, getAircraftRouteFull } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import {
@@ -12,7 +11,7 @@ import {
 } from '../types/aircraft'
 import { isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
 import type { AircraftFilterForm } from '@/views/aviation-situation/types/aircraft'
-import { highlightBillboardOnHover, highlightBillboardAndSetSelected,clearHoveredHighlight } from './useHighlightManager'
+import { highlightBillboardOnHover, highlightBillboardAndSetSelected } from './useHighlightManager'
 import { useHighlightStore } from '@/stores/highlight'
 
 const highlightStore = useHighlightStore()
@@ -189,10 +188,6 @@ export function useAircrafts(viewer) {
       (newIndex: number, oldIndex: number) => {
         if (newIndex !== null) {
           syncAircrafts(newIndex)
-          // const billboardsLen=aircraftGraphic.primitives.billboards.length
-          // console.log("billboardsLen", billboardsLen);
-          // const routeLen=aircraftGraphic.primitives.routePolylines.length
-          // console.log("routeLen", routeLen);
         }
       },
       // { immediate: true } // 初始化时执行一次（保持原有逻辑）
@@ -571,41 +566,6 @@ export function useAircrafts(viewer) {
   ): void => {
     highlightBillboardAndSetSelected(aircraftSelectedData, billboard, airplaneSelectedSvgRawDataUrl)
   }
-
-  // ===== 新增：内部订阅飞机事件 =====
-  let unsubAircraftHover: () => void;
-  let unsubAircraftLeave: () => void;
-  let unsubAircraftLeftClick: () => void;
-
-  const subscribeAircraftEvents = () => {
-    // 订阅飞机hover事件
-    unsubAircraftHover = onCesiumEvent('aircraftHover', (properties, position, billboard) => {
-      // console.log("aircraftHover 事件触发了！");
-      showAircraftTooltip(position, properties);
-      highlightAircraftOnHover(billboard);
-    });
-
-    // 订阅飞机leave事件
-    unsubAircraftLeave = onCesiumEvent('aircraftLeave', () => {
-      hideAircraftTooltip();
-      clearHoveredHighlight();
-    });
-
-    // 订阅飞机点击事件
-    unsubAircraftLeftClick = onCesiumEvent('aircraftLeftClick', (data, billboard) => {
-      highlightAircraftOnSelect(data, billboard);
-    });
-  };
-
-  // 初始化时自动订阅事件
-  subscribeAircraftEvents();
-
-  // ===== 组件卸载时取消订阅 =====
-  onUnmounted(() => {
-    unsubAircraftHover?.();
-    unsubAircraftLeave?.();
-    unsubAircraftLeftClick?.();
-  });
 
   return {
     initAircrafts,
