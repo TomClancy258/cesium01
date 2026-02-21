@@ -15,6 +15,8 @@ import { clearHoveredHighlight } from '@/views/aviation-situation/composables/us
 import { useThrottleFn } from '@vueuse/core'
 
 import type {MapBillboardLabelProperties} from "../types/shared"
+import { useHighlightStore } from '@/stores/highlight'
+const highlightStore = useHighlightStore()
 
 // 定义事件类型
 type CesiumEventName =
@@ -23,7 +25,8 @@ type CesiumEventName =
   | 'aircraftLeftClick'
   | 'airportHover'
   | 'airportLeave'
-  | 'airportLeftClick';
+  | 'airportLeftClick'
+  | 'mouseWheel';
 
 // 定义事件回调类型
 type EventCallbackMap = {
@@ -33,6 +36,7 @@ type EventCallbackMap = {
   airportHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
+  mouseWheel: () => void;
 };
 
 // 订阅者存储
@@ -43,6 +47,7 @@ const eventSubscribers: Record<CesiumEventName, Array<EventCallbackMap[CesiumEve
   airportHover: [],
   airportLeave: [],
   airportLeftClick: [],
+  mouseWheel: [],
 };
 
 // 发布事件
@@ -109,7 +114,18 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
         }
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+    handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {
+      mouseWheel(event)
+    }, Cesium.ScreenSpaceEventType.WHEEL);
   };
+
+  const mouseWheel = useThrottleFn((event: Cesium.ScreenSpaceEventHandler.InputEvent): void => {
+    emitCesiumEvent(
+      'mouseWheel',
+    )
+  }, 500)
+
 
   const mouseMove = useThrottleFn((movement:Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
     const pickedObject:Cesium.PickedObject | undefined = viewer.value.scene.pick(movement.endPosition);
@@ -128,13 +144,16 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
           )
         if (properties.type !== 'billboard') return;
         if(properties.sourceType === 'aircraft'){
+          // emitCesiumEvent('airportLeave');
           handleAircraftHover(properties as AircraftBillboardProperties,screenPosition,pickedObject)
+          // console.log("highlightStore.hoveredBillboard", highlightStore.hoveredBillboard);
         } else if (properties.sourceType === 'airport') {
+          // emitCesiumEvent('aircraftLeave');
           handleAirportHover(properties as AirportBillboardProperties,screenPosition,pickedObject)
         }
       }
     }else {
-      clearHoveredHighlight()
+      // clearHoveredHighlight()
       emitCesiumEvent('aircraftLeave');
       emitCesiumEvent('airportLeave');
     }

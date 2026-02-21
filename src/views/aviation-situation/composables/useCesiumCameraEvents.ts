@@ -1,9 +1,9 @@
 // ============ useCesiumCameraEvents.ts ============
 import { ref, inject, provide, onUnmounted } from 'vue'
-import type { Viewer } from 'cesium'
+import type { ShallowRef, Viewer } from 'cesium'
 
 type CameraEventType = 'moveEnd' | 'flyEnd' | 'changed'
-type CameraEventCallback = () => void
+type CameraEventCallback = (camera: Viewer['camera']) => void // 传递camera参数，方便计算距离
 
 const CESIUM_CAMERA_EVENTS_KEY = Symbol('CESIUM_CAMERA_EVENTS')
 
@@ -12,7 +12,7 @@ interface CameraEvents {
   initCameraEvents: () => void
 }
 
-export function provideCesiumCameraEvents(viewer: Ref<Viewer | null>) {
+export function provideCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {
   const cameraEventCallbacks = ref<Record<CameraEventType, CameraEventCallback[]>>({
     moveEnd: [],
     flyEnd: [],
@@ -20,17 +20,19 @@ export function provideCesiumCameraEvents(viewer: Ref<Viewer | null>) {
   })
 
   let removeMoveEndListener: (() => void) | null = null
-  const removeFlyEndListener: (() => void) | null = null
+  // let removeFlyEndListener: (() => void) | null = null
 
   const initCameraEvents = () => {
     if (!viewer.value) return
 
+    // 监听moveEnd事件，传递camera参数
     removeMoveEndListener = viewer.value.camera.moveEnd.addEventListener(() => {
-      cameraEventCallbacks.value.moveEnd.forEach(cb => cb())
+      cameraEventCallbacks.value.moveEnd.forEach(cb => cb(viewer.value!.camera))
     })
 
+    // 补全flyEnd监听（相机飞行结束后触发）
     // removeFlyEndListener = viewer.value.camera.flyEnd.addEventListener(() => {
-    //   cameraEventCallbacks.value.flyEnd.forEach(cb => cb())
+    //   cameraEventCallbacks.value.flyEnd.forEach(cb => cb(viewer.value!.camera))
     // })
   }
 
@@ -47,7 +49,7 @@ export function provideCesiumCameraEvents(viewer: Ref<Viewer | null>) {
 
   onUnmounted(() => {
     removeMoveEndListener?.()
-    removeFlyEndListener?.()
+    // removeFlyEndListener?.()
     cameraEventCallbacks.value = { moveEnd: [], flyEnd: [], changed: [] }
   })
 

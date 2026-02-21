@@ -11,10 +11,14 @@ import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import { useHighlightStore } from '@/stores/highlight'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import {clearSelectedHighlight} from "./composables/useHighlightManager"
+import { provideCesiumCameraEvents } from './composables/useCesiumCameraEvents'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
 const highlightStore = useHighlightStore()
+
+// 2. 先执行 provide（关键：在 useAirports 之前）
+const { initCameraEvents, onCameraEvent } = provideCesiumCameraEvents(cesiumViewer)
 
 // 初始化飞机/机场模块（内部已自动订阅事件）
 const {
@@ -32,7 +36,7 @@ const {
   tooltip: airportTooltip,
   filterAirports,
   toggleAirportsVisibility,
-} = useAirports(cesiumViewer)
+} = useAirports(cesiumViewer,onCameraEvent)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
 const { initEvents: initCesiumEvents, destroyEvents } = useCesiumEvents(cesiumViewer)
@@ -42,6 +46,8 @@ const detailDrawerRef = ref(null)
 onMounted(async () => {
   initCesiumViewer() // 初始化Cesium Viewer
   initCesiumEvents() // 初始化事件监听（仅拾取和发布）
+
+  initCameraEvents()
 
   initAirports()
   await loadAndDrawAirports()
@@ -59,6 +65,7 @@ const isAltitudeLegendVisible = computed(() => {
 onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
+  highlightStore.clearSelected()
 })
 
 // 提供过滤/显隐方法（原有逻辑保留）

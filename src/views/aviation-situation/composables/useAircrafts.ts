@@ -156,9 +156,12 @@ export function useAircrafts(viewer) {
     }
   }
 
+  let unwatchHighlight: () => void
+  let unwatchSimulatedWebsocket: () => void
+
   const setupHighlightWatch = (): void => {
     // index 或 selected 变化时，执行飞机选中/路径逻辑
-    watch(
+    unwatchHighlight =watch(
       [() => simulatedWebSocketStore.index, () => highlightStore.selected],
       (newVals, oldVals) => {
         const selected: AircraftSelectedData | AirportSelectedData | null = highlightStore.selected
@@ -184,7 +187,7 @@ export function useAircrafts(viewer) {
   }
 
   const setupSimulatedWebsocketWatch = (): void => {
-    watch(
+    unwatchSimulatedWebsocket=watch(
       () => simulatedWebSocketStore.index,
       (newIndex: number, oldIndex: number) => {
         if (newIndex !== null) {
@@ -242,7 +245,7 @@ export function useAircrafts(viewer) {
           //   }
           // }
 
-          processAircraftsUpdate(data) // 核心更新逻辑
+          refreshAircraftsInScene(data) // 核心更新逻辑
         }
       } else {
         console.warn('飞机数据为空或格式错误:', data)
@@ -252,14 +255,14 @@ export function useAircrafts(viewer) {
       clearAircrafts()
     }
   }
-  const processAircraftsUpdate = (newAircrafts: Aircraft[]): void => {
+  const refreshAircraftsInScene = (newAircrafts: Aircraft[]): void => {
     const newIcaoSet = new Set<string>() // 存储新数据的所有 icao24
 
     // 1. 更新或添加飞机
     for (const aircraft of newAircrafts) {
       newIcaoSet.add(aircraft.icao24)
 
-      const billboard = aircraftGraphic.primitives.billboardMap.get(aircraft.icao24)
+      const billboard:Cesium.Billboard|undefined = aircraftGraphic.primitives.billboardMap.get(aircraft.icao24)
       if (billboard) {
         // ✅ 更新现有飞机
         const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
@@ -271,7 +274,7 @@ export function useAircrafts(viewer) {
         billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
 
         // 同步更新 label 位置（如果需要）
-        const label = aircraftGraphic.primitives.labelMap.get(aircraft.icao24)
+        const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(aircraft.icao24)
         if (label) label.position = position
       } else {
         // ✅ 添加新飞机
@@ -517,7 +520,7 @@ export function useAircrafts(viewer) {
     let matchedBillboard: null | Cesium.Billboard = null
 
     // 高亮匹配项
-    aircraftGraphic.primitives.billboardMap.forEach((billboard, icao24) => {
+    aircraftGraphic.primitives.billboardMap.forEach((billboard:Cesium.Billboard, icao24:string) => {
       const p: AircraftBaseProperties = billboard.properties
       if (!p) return
 
@@ -561,17 +564,6 @@ export function useAircrafts(viewer) {
     }
   }
 
-  const highlightAircraftOnHover = (billboard: Cesium.Billboard): void => {
-    highlightBillboardOnHover(billboard, airplaneHoveredSvgRawDataUrl)
-  }
-
-  const highlightAircraftOnSelect = (
-    aircraftSelectedData: AircraftSelectedData,
-    billboard: Cesium.Billboard,
-  ): void => {
-    highlightBillboardAndSetSelected(aircraftSelectedData, billboard, airplaneSelectedSvgRawDataUrl)
-  }
-
   // ===== 新增：内部订阅飞机事件 =====
   let unsubAircraftHover: () => void;
   let unsubAircraftLeave: () => void;
@@ -579,10 +571,10 @@ export function useAircrafts(viewer) {
 
   const subscribeAircraftEvents = () => {
     // 订阅飞机hover事件
-    unsubAircraftHover = onCesiumEvent('aircraftHover', (properties, position, billboard) => {
+    unsubAircraftHover = onCesiumEvent('aircraftHover', (properties:AircraftBaseProperties, position:Cesium.Cartesian2, billboard:Cesium.Billboard) => {
       // console.log("aircraftHover 事件触发了！");
       showAircraftTooltip(position, properties);
-      highlightAircraftOnHover(billboard);
+      highlightBillboardOnHover(billboard, airplaneHoveredSvgRawDataUrl)
     });
 
     // 订阅飞机leave事件
@@ -592,8 +584,8 @@ export function useAircrafts(viewer) {
     });
 
     // 订阅飞机点击事件
-    unsubAircraftLeftClick = onCesiumEvent('aircraftLeftClick', (data, billboard) => {
-      highlightAircraftOnSelect(data, billboard);
+    unsubAircraftLeftClick = onCesiumEvent('aircraftLeftClick', (data:AircraftSelectedData, billboard:Cesium.Billboard) => {
+      highlightBillboardAndSetSelected(data, billboard, airplaneSelectedSvgRawDataUrl)
     });
   };
 
@@ -605,6 +597,9 @@ export function useAircrafts(viewer) {
     unsubAircraftHover?.();
     unsubAircraftLeave?.();
     unsubAircraftLeftClick?.();
+
+    unwatchHighlight?.();
+    unwatchSimulatedWebsocket?.();
   });
 
   return {
@@ -617,10 +612,6 @@ export function useAircrafts(viewer) {
     tooltip,
 
     filterAircrafts,
-
-    highlightAircraftOnHover,
-
-    highlightAircraftOnSelect,
 
     toggleAircraftsVisibility,
   }
