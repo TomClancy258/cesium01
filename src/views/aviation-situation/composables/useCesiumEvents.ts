@@ -164,7 +164,7 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
       type: properties.type, // 'billboard' —— 注意：这里保留原值，或可设为 'aircraft'
       sourceType: properties.sourceType,
       icao24: properties.icao24,
-      origin_country: properties.origin_country,
+      originCountry: properties.originCountry,
       callsign: properties.callsign,
       longitude: properties.longitude,
       latitude: properties.latitude,

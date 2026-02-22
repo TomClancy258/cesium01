@@ -37,7 +37,7 @@ const activeName = ref('1')
           <el-collapse-item name="aircraftsFilter">
             <template #title="{ isActive }">
               <div :class="['title-wrapper', { 'is-active': isActive }]">
-                飞机过滤
+                飞机筛选
                 <el-icon class="header-icon">
                   <Filter />
                 </el-icon>
@@ -50,7 +50,7 @@ const activeName = ref('1')
           <el-collapse-item name="airportsFilter">
             <template #title="{ isActive }">
               <div :class="['title-wrapper', { 'is-active': isActive }]">
-                机场过滤
+                机场筛选
                 <el-icon class="header-icon">
                   <Filter />
                 </el-icon>

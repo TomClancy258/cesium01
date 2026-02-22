@@ -20,7 +20,7 @@ const tooltipStyle = computed(() => {
   >
     <div>icao24 : {{ props.tooltip.properties.icao24 }}</div>
     <div>callsign : {{ props.tooltip.properties.callsign }}</div>
-    <div>origin_country : {{ props.tooltip.properties.origin_country }}</div>
+    <div>originCountry : {{ props.tooltip.properties.originCountry }}</div>
     <div>longitude : {{ props.tooltip.properties.longitude }}</div>
     <div>latitude : {{ props.tooltip.properties.latitude }}</div>
     <div>baroAltitude : {{ props.tooltip.properties.baroAltitude }}</div>

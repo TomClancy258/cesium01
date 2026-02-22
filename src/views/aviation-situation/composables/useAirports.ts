@@ -1,5 +1,5 @@
 //useAirports.ts
-import { reactive,onUnmounted } from 'vue'
+import { reactive,onUnmounted,markRaw,ref } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -9,7 +9,7 @@ import type {
   AirportLabelProperties, AirportSelectedData,
   AirportTooltipState
 } from '../types/airport'
-import { isValidCoordinate,updateTooltip } from '@/utils/geoUtils'
+import { flyToPositionWithHeightOffset, isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?raw'
@@ -40,7 +40,9 @@ interface AirportGraphic {
 export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callback: CameraEventCallback) => () => void) {
   let airports: Airport[] = []
 
-  const airportGraphic: AirportGraphic = {
+  const airportsVisible=ref<boolean>(true)
+
+  const airportGraphic: AirportGraphic = markRaw({
     primitiveContainer: null,
     primitives: {
       billboards: null,
@@ -48,7 +50,7 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       labels: null,
       labelMap: new Map(),
     },
-  }
+  })
   const tooltip = reactive<AirportTooltipState>({
     visible: false,
     position: { left: 0, top: 0 },
@@ -64,21 +66,22 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
   })
 
   // 机场显示距离阈值（100km，可根据需求调整）
-  const AIRPORT_SHOW_DISTANCE = 500000; // 单位：米
+  const AIRPORT_SHOW_DISTANCE = 800000; // 单位：米
 
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
   let unsubCameraMoveEnd: () => void;
 
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
+    if (!airportsVisible.value) return;
     if (!airportGraphic.primitiveContainer) return;
-
     // 计算相机位置到地面的距离
     const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
     const cameraHeight = cartographic.height; // 相机高度（米）
     // 核心逻辑：高度小于阈值显示机场，大于则隐藏
     airportGraphic.primitiveContainer.show = cameraHeight <= AIRPORT_SHOW_DISTANCE;
   };
+
 
   // 订阅相机moveEnd事件（使用传递的 onCameraEvent）
   const subscribeCameraEvents = () => {
@@ -90,8 +93,10 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     tooltip.visible = false
   }
 
-  const toggleAirportsVisibility = (): void => {
-    airportGraphic.primitiveContainer.show=!airportGraphic.primitiveContainer.show
+  const toggleAirportsVisibility = (value:boolean): void => {
+    airportsVisible.value=value
+    airportGraphic.primitiveContainer.show=value
+    handleCameraMoveEnd(viewer.value.camera)
   }
 
   const initAirports = () => {
@@ -249,17 +254,15 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       const label:Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
       label.show = match
     })
-
-    if (matchedNum === 1) {
-      const carto:Cesium.Cartographic = Cesium.Cartographic.fromCartesian(matchedBillboard.position);
-
-      carto.height += 1000000;
-      const destination = Cesium.Cartographic.toCartesian(carto);
-
-      viewer.value.camera.flyTo({
-        destination: destination,
-        duration: 1.5
+    if (matchedNum === 0) {
+      ElNotification({
+        title: '提示',
+        message: '未查询到匹配的机场信息，请检查筛选条件后重试',
+        type: 'warning',
       });
+    } else if (matchedNum === 1) {
+      console.log("viewer.value", viewer.value);
+      flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);
     }
   }
 
@@ -315,6 +318,6 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     filterAirports,
 
     toggleAirportsVisibility,
-
+    airportsVisible
   }
 }

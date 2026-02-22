@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-import { inject, reactive, ref } from 'vue'
+//AirportsFilter.tsAirportsFilter.ts
+import { inject, reactive, ref ,computed} from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import type {AirportFilterForm} from "@/views/aviation-situation/types/airport"
 const filterAirports = inject('filterAirports')
 const toggleAirportsVisibility = inject('toggleAirportsVisibility')
+const airportsVisible = inject('airportsVisible')
 
 const airportFilterForm = reactive<AirportFilterForm>({
   icao: '',
@@ -23,7 +25,12 @@ const resetAirportForm = (formEl: FormInstance | undefined) => {
   onAirportSubmit()
 }
 
-const showAirports=ref<boolean>(true)
+const airportsVisibleComputed = computed({
+  get: () => airportsVisible.value,
+  set: (value) => {
+    toggleAirportsVisibility(value)
+  },
+})
 
 </script>
 
@@ -42,7 +49,7 @@ const showAirports=ref<boolean>(true)
       <el-input v-model="airportFilterForm.country" clearable/>
     </el-form-item>
     <el-form-item label="显示机场图标">
-      <el-checkbox v-model="showAirports" @change="toggleAirportsVisibility">
+      <el-checkbox v-model="airportsVisibleComputed" @change="toggleAirportsVisibility">
       </el-checkbox>
     </el-form-item>
     <el-form-item>

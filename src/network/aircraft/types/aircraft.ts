@@ -27,6 +27,7 @@ export type AircraftTuple = [
  */
 export interface Aircraft {
   icao24: string
+  originCountry: string
   latitude: number | null
   longitude: number | null
   baroAltitude: number | null
@@ -52,6 +53,7 @@ export function tupleToAircraft(tuple: AircraftTuple): Aircraft {
 
   return {
     icao24: tuple[0],
+    originCountry: tuple[2],
     latitude: tuple[6],          // ✅ 正确索引
     longitude: tuple[5],         // ✅ 正确索引
     baroAltitude: tuple[7],      // ✅ 正确索引

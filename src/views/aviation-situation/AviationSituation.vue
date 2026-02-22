@@ -28,6 +28,7 @@ const {
   tooltip: aircraftTooltip,
   filterAircrafts,
   toggleAircraftsVisibility,
+  matchedAircraftCount,
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -36,6 +37,7 @@ const {
   tooltip: airportTooltip,
   filterAirports,
   toggleAirportsVisibility,
+  airportsVisible,
 } = useAirports(cesiumViewer,onCameraEvent)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
@@ -73,6 +75,8 @@ provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
 provide('toggleAircraftsVisibility', toggleAircraftsVisibility)
 provide('toggleAirportsVisibility', toggleAirportsVisibility)
+provide('airportsVisible', airportsVisible)
+provide('matchedAircraftCount', matchedAircraftCount)
 </script>
 
 <template>

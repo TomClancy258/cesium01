@@ -1,4 +1,4 @@
-import { reactive, watch,onUnmounted } from 'vue'
+import { reactive, watch,onUnmounted,ref } from 'vue'
 import * as Cesium from 'cesium'
 import { onCesiumEvent } from './useCesiumEvents'
 import { getAircrafts, getAircraftRouteFull } from '@/network/aircraft'
@@ -30,10 +30,13 @@ import airplaneHoveredSvgRaw from '@/assets/img/airplane/svg/airplane-hovered.sv
 const airplaneHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneHoveredSvgRaw)}`
 
 import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.svg?raw'
+const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
+
 import { RoutePoint } from '@/network/aircraft/types/route-full'
+
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
-const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
+import {flyToPositionWithHeightOffset} from "@/utils/geoUtils"
 
 interface AircraftPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -79,6 +82,8 @@ export function useAircrafts(viewer) {
   let aircraftRoutes: RoutePoint[] = []
   let lastSelectedIcao24: string | null = null
 
+  const matchedAircraftCount=ref<number>(0)
+
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
     primitives: {
@@ -96,7 +101,7 @@ export function useAircrafts(viewer) {
       type: '',
       sourceType: 'aircraft',
       icao24: '',
-      origin_country: '',
+      originCountry: '',
       callsign: '',
       longitude: 0,
       latitude: 0,
@@ -247,8 +252,10 @@ export function useAircrafts(viewer) {
 
           refreshAircraftsInScene(data) // 核心更新逻辑
         }
+        matchedAircraftCount.value=aircraftGraphic.primitives.billboards.length
       } else {
         console.warn('飞机数据为空或格式错误:', data)
+        matchedAircraftCount.value=0
       }
     } catch (error) {
       console.error('加载飞机数据失败:', error)
@@ -325,6 +332,7 @@ export function useAircrafts(viewer) {
         id: `aircraftRoute_${icao24}_segment_${i}`, // 唯一标识每段线
         positions: positions,
         width: 2,
+        arcType: Cesium.ArcType.GEODESIC,
         material: Cesium.Material.fromType('Color', {
           color: Cesium.Color.fromCssColorString(segmentColor),
         }),
@@ -392,6 +400,8 @@ export function useAircrafts(viewer) {
 
     aircraftGraphic.primitives.billboardMap.clear()
     aircraftGraphic.primitives.labelMap.clear()
+
+    matchedAircraftCount.value=0
   }
 
   const removeAircraft = (icao24: string): void => {
@@ -445,7 +455,7 @@ export function useAircrafts(viewer) {
       type: 'billboard',
       sourceType: 'aircraft',
       icao24: aircraft.icao24,
-      origin_country: aircraft.origin_country,
+      originCountry: aircraft.originCountry,
       callsign,
       longitude,
       latitude,
@@ -476,7 +486,7 @@ export function useAircrafts(viewer) {
       type: 'label',
       sourceType: 'aircraft',
       icao24: aircraft.icao24,
-      origin_country: aircraft.origin_country,
+      originCountry: aircraft.originCountry,
       callsign,
       longitude,
       latitude,
@@ -513,10 +523,9 @@ export function useAircrafts(viewer) {
     const query: AircraftFilterForm = {
       icao24: form.icao24?.trim().toLowerCase(),
       callsign: form.callsign?.trim().toLowerCase(),
-      origin_country: form.origin_country?.trim().toLowerCase(),
+      originCountry: form.originCountry?.trim().toLowerCase(),
     }
 
-    let matchedNum: number = 0
     let matchedBillboard: null | Cesium.Billboard = null
 
     // 高亮匹配项
@@ -527,11 +536,11 @@ export function useAircrafts(viewer) {
       const match: boolean =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || p.callsign.toLowerCase().includes(query.callsign)) &&
-        (!query.origin_country || p.origin_country.toLowerCase().includes(query.origin_country))
+        (!query.originCountry || p.originCountry.toLowerCase().includes(query.originCountry))
 
       const alpha = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
-        matchedNum++
+        matchedAircraftCount.value++
         matchedBillboard = billboard
       }
 
@@ -543,24 +552,14 @@ export function useAircrafts(viewer) {
       const label: Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
       label.show = match
     })
-
-    if (matchedNum === 1) {
-      const carto: Cesium.Cartographic = Cesium.Cartographic.fromCartesian(
-        matchedBillboard.position,
-      )
-      // console.log("carto", carto);
-      // let lat = Cesium.Math.toDegrees(carto.latitude);
-      // let lng = Cesium.Math.toDegrees(carto.longitude);
-      // console.log("lat", lat);
-      // console.log("lng", lng);
-
-      carto.height += 1000000
-      const destination: Cesium.Cartesian3 = Cesium.Cartographic.toCartesian(carto)
-
-      viewer.value.camera.flyTo({
-        destination: destination,
-        duration: 1.5,
-      })
+    if (matchedAircraftCount.value === 0) {
+      ElNotification({
+        title: '提示',
+        message: '未查询到匹配的飞机信息，请检查筛选条件后重试',
+        type: 'warning',
+      });
+    } else if (matchedAircraftCount.value === 1) {
+      flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 1000000);
     }
   }
 
@@ -614,5 +613,6 @@ export function useAircrafts(viewer) {
     filterAircrafts,
 
     toggleAircraftsVisibility,
+    matchedAircraftCount
   }
 }

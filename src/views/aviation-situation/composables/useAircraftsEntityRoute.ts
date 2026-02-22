@@ -62,7 +62,7 @@ export function useAircrafts(viewer) {
       type: '',
       sourceType: 'aircraft',
       icao24: '',
-      origin_country: '',
+      originCountry: '',
       callsign: '',
       longitude: 0,
       latitude: 0,
@@ -345,7 +345,7 @@ export function useAircrafts(viewer) {
       type: 'billboard',
       sourceType: 'aircraft',
       icao24: aircraft.icao24,
-      origin_country: aircraft.origin_country,
+      originCountry: aircraft.originCountry,
       callsign,
       longitude,
       latitude,
@@ -376,7 +376,7 @@ export function useAircrafts(viewer) {
       type: 'label',
       sourceType: 'aircraft',
       icao24: aircraft.icao24,
-      origin_country: aircraft.origin_country,
+      originCountry: aircraft.originCountry,
       callsign,
       longitude,
       latitude,
@@ -413,7 +413,7 @@ export function useAircrafts(viewer) {
     const query: AircraftFilterForm = {
       icao24: form.icao24?.trim().toLowerCase(),
       callsign: form.callsign?.trim().toLowerCase(),
-      origin_country: form.origin_country?.trim().toLowerCase(),
+      originCountry: form.originCountry?.trim().toLowerCase(),
     }
 
     let matchedNum: number = 0
@@ -427,7 +427,7 @@ export function useAircrafts(viewer) {
       const match =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || p.callsign.toLowerCase().includes(query.callsign)) &&
-        (!query.origin_country || p.origin_country.toLowerCase().includes(query.origin_country))
+        (!query.originCountry || p.originCountry.toLowerCase().includes(query.originCountry))
 
       const alpha = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {

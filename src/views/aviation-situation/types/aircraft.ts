@@ -5,7 +5,7 @@ export interface AircraftBaseProperties {
   type: 'label' | 'billboard'
   sourceType: 'aircraft'
   icao24: string
-  origin_country: string
+  originCountry: string
   callsign: string
   longitude: number
   latitude: number
@@ -29,7 +29,7 @@ export type AircraftTooltipState = TooltipState<AircraftBaseProperties>
 
 export interface AircraftFilterForm {
   icao24: string
-  origin_country: string
+  originCountry: string
   callsign: string
 }
 
