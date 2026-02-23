@@ -261,8 +261,7 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       //   type: 'warning',
       // });
     } else if (matchedNum === 1) {
-      console.log("viewer.value", viewer.value);
-      flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);
+      // flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);
     }
   }
 

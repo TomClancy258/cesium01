@@ -1,5 +1,5 @@
-import type {AircraftBillboardProperties,AircraftLabelProperties} from "./aircraft"
-import type {AirportBillboardProperties,AirportLabelProperties} from "./airport"
+import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelectedData} from "./aircraft"
+import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
 
 interface TooltipPosition {
   left: number
@@ -18,3 +18,4 @@ export type MapBillboardLabelProperties =
   | AirportBillboardProperties
   | AirportLabelProperties;
 
+export type AviationSelectedData = AircraftSelectedData | AirportSelectedData | null

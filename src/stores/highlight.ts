@@ -1,14 +1,13 @@
 // stores/highlight.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
-import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
+import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
 
 export const useHighlightStore = defineStore('highlight', () => {
   // 选中数据（响应式，支撑UI联动）
-  const selected = ref<AircraftSelectedData | AirportSelectedData | null>(null)
+  const selected = ref<AviationSelectedData>(null)
   // hover数据（如果UI需要hover联动则加，否则可删除）
-  const hovered = ref<AircraftSelectedData | AirportSelectedData | null>(null)
+  const hovered = ref<AviationSelectedData>(null)
 
   // ========== 选中相关 ==========
   const clearSelected = (): void => {
@@ -16,7 +15,7 @@ export const useHighlightStore = defineStore('highlight', () => {
   }
 
   const setSelected = (
-    data: AircraftSelectedData | AirportSelectedData | null = null
+    data: AviationSelectedData = null
   ): void => {
     selected.value = data
   }
@@ -39,7 +38,7 @@ export const useHighlightStore = defineStore('highlight', () => {
   }
 
   const setHovered = (
-    data: AircraftSelectedData | AirportSelectedData | null = null
+    data: AviationSelectedData = null
   ): void => {
     hovered.value = data
   }
