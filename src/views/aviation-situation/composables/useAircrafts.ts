@@ -92,7 +92,7 @@ const getColorByAltitude = (altitude: number): Cesium.Color => {
   return matchItem ? matchItem.color : 'rgba(128, 128, 128, 0.8)'
 }
 
-export function useAircrafts(viewer) {
+export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callback: CameraEventCallback) => () => void) {
   let aircrafts: Aircraft[] = []
   let aircraftRoutes: RoutePoint[] = []
   let lastSelectedIcao24: string | null = null
@@ -125,6 +125,29 @@ export function useAircrafts(viewer) {
     },
   })
 
+  const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000000; // 单位：米
+
+  // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
+  let unsubCameraMoveEnd: () => void;
+
+  // 计算相机到地面的距离，控制机场显隐
+  const handleCameraMoveEnd = (camera: Cesium.Camera) => {
+    if (!aircraftStore.aircraftFilterForm.visible) return;
+    if (!aircraftGraphic.primitiveContainer) return;
+    // 计算相机位置到地面的距离
+    const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
+    const cameraHeight = cartographic.height; // 相机高度（米）
+    // 核心逻辑：高度小于阈值显示机场，大于则隐藏
+    aircraftGraphic.primitives.labels.show = cameraHeight <= AIRCRAFT_LABEL_SHOW_DISTANCE;
+  };
+
+
+  // 订阅相机moveEnd事件（使用传递的 onCameraEvent）
+  const subscribeCameraEvents = () => {
+    unsubCameraMoveEnd = onCameraEvent('moveEnd', handleCameraMoveEnd);
+  };
+  // ========== 相机事件修改结束 ==========
+
   const hideAircraftTooltip = (): void => {
     tooltip.visible = false
   }
@@ -152,12 +175,15 @@ export function useAircrafts(viewer) {
     aircraftGraphic.primitives.billboards.properties = { type: 'aircrafts' }
     aircraftGraphic.primitives.labels.properties = { type: 'aircrafts' }
     aircraftGraphic.primitives.routePolylines.properties = { type: 'aircraft_routePolylines' }
+    aircraftGraphic.primitives.labels.show=false
 
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
 
     setupHighlightWatch()
     setupSimulatedWebsocketWatch()
     setupAircraftFilterFormWatch()
+
+    subscribeCameraEvents()
   }
 
   const loadAndDrawAircrafts = async (): void => {
@@ -467,10 +493,6 @@ export function useAircrafts(viewer) {
       image: airplaneBlueSvgDataUrl,
       // image: aircraftImageByAltitude,
       rotation: -Cesium.Math.toRadians(heading), // 负数是因为Cesium的旋转方向
-      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-      //   0,
-      //   2000000
-      // ),
       width: 30,
       height: 30,
       // disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -502,7 +524,7 @@ export function useAircrafts(viewer) {
       verticalOrigin: Cesium.VerticalOrigin.TOP,
       horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
       pixelOffset: new Cesium.Cartesian2(0, 20),
-      distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 3000000),
+      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 3000000),
       outlineColor: Cesium.Color.BLACK,
       // disableDepthTestDistance: Number.POSITIVE_INFINITY,
     })
@@ -614,6 +636,7 @@ export function useAircrafts(viewer) {
   let unsubAircraftHover: () => void
   let unsubAircraftLeave: () => void
   let unsubAircraftLeftClick: () => void
+  let unsubMouseWheel: () => void;
 
   const subscribeAircraftEvents = () => {
     // 订阅飞机hover事件
@@ -643,6 +666,11 @@ export function useAircrafts(viewer) {
         highlightBillboardAndSetSelected(data, billboard, airplaneSelectedSvgRawDataUrl)
       },
     )
+
+    //订阅鼠标wheel事件
+    unsubMouseWheel= onCesiumEvent('mouseWheel', () => {
+      handleCameraMoveEnd(viewer.value.camera)
+    });
   }
 
   // 初始化时自动订阅事件
@@ -657,6 +685,9 @@ export function useAircrafts(viewer) {
     unwatchHighlight?.()
     unwatchSimulatedWebsocket?.()
     unwatchAircraftFilterForm?.()
+
+    unsubCameraMoveEnd?.(); // 取消相机事件订阅
+    unsubMouseWheel?.();
   })
 
   return {

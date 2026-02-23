@@ -66,7 +66,7 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
   })
 
   // 机场显示距离阈值（100km，可根据需求调整）
-  const AIRPORT_SHOW_DISTANCE = 800000; // 单位：米
+  const AIRPORT_SHOW_DISTANCE = 400000; // 单位：米
 
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
   let unsubCameraMoveEnd: () => void;
@@ -78,6 +78,7 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     // 计算相机位置到地面的距离
     const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
     const cameraHeight = cartographic.height; // 相机高度（米）
+    console.log("cartographic.height", cartographic.height);
     // 核心逻辑：高度小于阈值显示机场，大于则隐藏
     airportGraphic.primitiveContainer.show = cameraHeight <= AIRPORT_SHOW_DISTANCE;
   };
@@ -94,7 +95,7 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
   }
 
   const toggleAirportsVisibility = (value:boolean): void => {
-    airportsVisible.value=value
+    airportsVisible.value=value  //TODO这个好像要del
     airportGraphic.primitiveContainer.show=value
     handleCameraMoveEnd(viewer.value.camera)
   }
@@ -119,7 +120,8 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     try {
       const data: Airport[] = await getAirports()
       if (Array.isArray(data) && data.length > 0) {
-        airports = data.slice(0, 15000) // 限制数量
+        // airports = data.slice(0, 15000) // 限制数量
+        airports = data.slice(0, 20000) // 限制数量
         // airports = data
         drawAirports()
       } else {

@@ -29,7 +29,7 @@ const {
   filterAircrafts,
   toggleAircraftsVisibility,
   matchedAircraftCount,
-} = useAircrafts(cesiumViewer)
+} = useAircrafts(cesiumViewer,onCameraEvent)
 
 const {
   initAirports,
