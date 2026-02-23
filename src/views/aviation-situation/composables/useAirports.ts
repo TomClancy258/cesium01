@@ -255,11 +255,11 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       label.show = match
     })
     if (matchedNum === 0) {
-      ElNotification({
-        title: '提示',
-        message: '未查询到匹配的机场信息，请检查筛选条件后重试',
-        type: 'warning',
-      });
+      // ElNotification({
+      //   title: '提示',
+      //   message: '未查询到匹配的机场信息，请检查筛选条件后重试',
+      //   type: 'warning',
+      // });
     } else if (matchedNum === 1) {
       console.log("viewer.value", viewer.value);
       flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);

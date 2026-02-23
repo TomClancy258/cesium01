@@ -1,6 +1,6 @@
 import { reactive, watch,onUnmounted,ref } from 'vue'
 import * as Cesium from 'cesium'
-import { onCesiumEvent } from './useCesiumEvents'
+import { emitCesiumEvent, onCesiumEvent } from './useCesiumEvents'
 import { getAircrafts, getAircraftRouteFull } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import {
@@ -34,9 +34,18 @@ const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompon
 
 import { RoutePoint } from '@/network/aircraft/types/route-full'
 
-import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
+import {
+  AirportBillboardProperties,
+  AirportSelectedData
+} from '@/views/aviation-situation/types/airport'
 
 import {flyToPositionWithHeightOffset} from "@/utils/geoUtils"
+
+import { useAircraftStore } from '@/stores/aircraft'
+const aircraftStore = useAircraftStore()
+
+import { useDebounceFn, useThrottleFn } from '@vueuse/core'
+import type { MapBillboardLabelProperties } from '@/views/aviation-situation/types/shared'
 
 interface AircraftPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -142,6 +151,7 @@ export function useAircrafts(viewer) {
 
     setupHighlightWatch()
     setupSimulatedWebsocketWatch()
+    setupAircraftFilterFormWatch()
   }
 
   const loadAndDrawAircrafts = async (): void => {
@@ -163,6 +173,7 @@ export function useAircrafts(viewer) {
 
   let unwatchHighlight: () => void
   let unwatchSimulatedWebsocket: () => void
+  let unwatchAircraftFilterForm: () => void
 
   const setupHighlightWatch = (): void => {
     // index 或 selected 变化时，执行飞机选中/路径逻辑
@@ -206,6 +217,17 @@ export function useAircrafts(viewer) {
       // { immediate: true } // 初始化时执行一次（保持原有逻辑）
     )
   }
+
+  const setupAircraftFilterFormWatch = (): void => {
+    unwatchAircraftFilterForm=watch(
+      () => aircraftStore.aircraftFilterForm,
+      (newForm: AircraftFilterForm, oldForm: AircraftFilterForm) => {
+        filterAircrafts()
+      },
+      { deep: true }
+    )
+  }
+
 
   // 仅用于开发调试！生产环境应禁用
   const generateMockAircrafts = (count: number): Aircraft[] => {
@@ -252,10 +274,10 @@ export function useAircrafts(viewer) {
 
           refreshAircraftsInScene(data) // 核心更新逻辑
         }
-        matchedAircraftCount.value=aircraftGraphic.primitives.billboards.length
+        filterAircrafts()
       } else {
         console.warn('飞机数据为空或格式错误:', data)
-        matchedAircraftCount.value=0
+        clearAircrafts()
       }
     } catch (error) {
       console.error('加载飞机数据失败:', error)
@@ -516,52 +538,64 @@ export function useAircrafts(viewer) {
     // tooltip.visible = true
   }
 
-  const filterAircrafts = (form: AircraftFilterForm): void => {
-    const DEFAULT_ALPHA: number = 0.0
-    const HIGHLIGHT_ALPHA: number = 1.0
+  const filterAircrafts = useDebounceFn((): void => {
+      matchedAircraftCount.value=0
+      const form:AircraftFilterForm=aircraftStore.aircraftFilterForm
 
-    const query: AircraftFilterForm = {
-      icao24: form.icao24?.trim().toLowerCase(),
-      callsign: form.callsign?.trim().toLowerCase(),
-      originCountry: form.originCountry?.trim().toLowerCase(),
-    }
+      const DEFAULT_ALPHA: number = 0.0
+      const HIGHLIGHT_ALPHA: number = 1.0
 
-    let matchedBillboard: null | Cesium.Billboard = null
-
-    // 高亮匹配项
-    aircraftGraphic.primitives.billboardMap.forEach((billboard:Cesium.Billboard, icao24:string) => {
-      const p: AircraftBaseProperties = billboard.properties
-      if (!p) return
-
-      const match: boolean =
-        (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
-        (!query.callsign || p.callsign.toLowerCase().includes(query.callsign)) &&
-        (!query.originCountry || p.originCountry.toLowerCase().includes(query.originCountry))
-
-      const alpha = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
-      if (match) {
-        matchedAircraftCount.value++
-        matchedBillboard = billboard
+      const query: AircraftFilterForm = {
+        icao24: form.icao24?.trim().toLowerCase(),
+        callsign: form.callsign?.trim().toLowerCase(),
+        originCountry: form.originCountry?.trim().toLowerCase(),
       }
 
-      // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
-      // const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
-      // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+      let matchedBillboard: null | Cesium.Billboard = null
 
-      billboard.show = match
-      const label: Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
-      label.show = match
-    })
-    if (matchedAircraftCount.value === 0) {
-      ElNotification({
-        title: '提示',
-        message: '未查询到匹配的飞机信息，请检查筛选条件后重试',
-        type: 'warning',
-      });
-    } else if (matchedAircraftCount.value === 1) {
-      flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 1000000);
-    }
-  }
+      // 高亮匹配项
+      aircraftGraphic.primitives.billboardMap.forEach((billboard:Cesium.Billboard, icao24:string) => {
+        const p: AircraftBaseProperties = billboard.properties
+        if (!p) return
+
+        // if (p.callsign===null) {
+        //   console.log("p.callsign", p.callsign);
+        //   console.log("typeof p.callsign",typeof p.callsign);
+        // }
+        // if (p.originCountry===null) {
+        //   console.log("form.originCountry", p.originCountry);
+        //   console.log("typeof p.originCountry", typeof p.originCountry);
+        // }
+
+        const match: boolean =
+          (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
+          (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
+          (!query.originCountry || (p.originCountry ?? '').toLowerCase().includes(query.originCountry))
+
+        const alpha = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
+        if (match) {
+          matchedAircraftCount.value++
+          matchedBillboard = billboard
+        }
+
+        // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
+        // const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
+        // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
+
+        billboard.show = match
+        const label: Cesium.Label = aircraftGraphic.primitives.labelMap.get(icao24)
+        label.show = match
+      })
+      if (matchedAircraftCount.value === 0) {
+        // ElNotification({
+        //   title: '提示',
+        //   message: '未查询到匹配的飞机信息，请检查筛选条件后重试',
+        //   type: 'warning',
+        // });
+      } else if (matchedAircraftCount.value === 1) {
+        flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 1000000);
+      }
+    }, 300)
 
   // ===== 新增：内部订阅飞机事件 =====
   let unsubAircraftHover: () => void;
@@ -599,6 +633,7 @@ export function useAircrafts(viewer) {
 
     unwatchHighlight?.();
     unwatchSimulatedWebsocket?.();
+    unwatchAircraftFilterForm?.();
   });
 
   return {

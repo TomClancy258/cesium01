@@ -11,12 +11,9 @@ import {
   AirportSelectedData
 } from '@/views/aviation-situation/types/airport'
 import * as Cesium from 'cesium'
-import { clearHoveredHighlight } from '@/views/aviation-situation/composables/useHighlightManager'
 import { useThrottleFn } from '@vueuse/core'
 
 import type {MapBillboardLabelProperties} from "../types/shared"
-import { useHighlightStore } from '@/stores/highlight'
-const highlightStore = useHighlightStore()
 
 // 定义事件类型
 type CesiumEventName =
