@@ -1,0 +1,59 @@
+<script lang="ts" setup>
+//AirportsFilter.tsAirportsFilter.ts
+import { inject, ref } from 'vue'
+import type { FormInstance, FormRules } from 'element-plus'
+const filterAirports = inject('filterAirports')
+const matchedAirportCount = inject('matchedAirportCount')
+
+import { useAirportStore } from '@/stores/airport'
+const airportStore = useAirportStore()
+
+const airportFilterFormRef = ref<FormInstance>()
+
+const onAirportSubmit = () => {
+  filterAirports()
+}
+
+const resetAirportForm = (formEl: FormInstance | undefined) => {
+  if (!formEl) return
+  formEl.resetFields()
+}
+
+</script>
+
+<template>
+
+  <el-form :model="airportStore.airportFilterForm"
+           ref="airportFilterFormRef"
+           label-width="auto" style="max-width: 600px">
+    <el-form-item label="icao" prop="icao">
+      <el-input v-model="airportStore.airportFilterForm.icao" clearable/>
+    </el-form-item>
+    <el-form-item label="机场名称" prop="name">
+      <el-input v-model="airportStore.airportFilterForm.name" clearable/>
+    </el-form-item>
+    <el-form-item label="机场国家" prop="country">
+      <el-input v-model="airportStore.airportFilterForm.country" clearable/>
+    </el-form-item>
+
+    <el-form-item label="">
+      <el-col :span="12">
+        <el-form-item label="显示机场图标" prop="visible">
+          <el-checkbox v-model="airportStore.airportFilterForm.visible" />
+        </el-form-item>
+      </el-col>
+      <el-col :span="12">
+        已筛选出 {{matchedAirportCount}} 条数据
+      </el-col>
+    </el-form-item>
+
+    <el-form-item>
+      <el-button type="primary" @click="onAirportSubmit">确认</el-button>
+      <el-button @click="resetAirportForm(airportFilterFormRef)">重置</el-button>
+    </el-form-item>
+  </el-form>
+</template>
+
+<style scoped lang="scss">
+
+</style>

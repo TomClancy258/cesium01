@@ -3,8 +3,8 @@ import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
 import DrawAndMeasure from '@/views/aviation-situation/components/map-tools/panels/DrawAndMeasure.vue'
-import AircraftsFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftsFilter.vue'
-import AirportsFilter from '@/views/aviation-situation/components/map-tools/panels/AirportsFilter.vue'
+import AircraftsFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
+import AirportsFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 
 import { Fold, Filter, PriceTag, Share } from '@element-plus/icons-vue'
 

@@ -47,7 +47,6 @@ import {
 import { flyToPositionWithHeightOffset } from '@/utils/geoUtils'
 
 import { useAircraftStore } from '@/stores/aircraft'
-
 const aircraftStore = useAircraftStore()
 
 import { useDebounceFn, useThrottleFn } from '@vueuse/core'
@@ -125,13 +124,13 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     },
   })
 
-  const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000000; // 单位：米
-
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
   let unsubCameraMoveEnd: () => void;
 
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
+    const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000*1000; // 单位：米
+
     if (!aircraftStore.aircraftFilterForm.visible) return;
     if (!aircraftGraphic.primitiveContainer) return;
     // 计算相机位置到地面的距离
@@ -152,10 +151,6 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     tooltip.visible = false
   }
 
-  const toggleAircraftsVisibility = (): void => {
-    aircraftGraphic.primitiveContainer.show = !aircraftGraphic.primitiveContainer.show
-  }
-
   const initAircrafts = () => {
     aircraftGraphic.primitiveContainer = new Cesium.PrimitiveCollection()
     aircraftGraphic.primitives.billboards = new Cesium.BillboardCollection()
@@ -165,22 +160,24 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     aircraftGraphic.primitiveContainer.id = 'aircrafts_container'
     aircraftGraphic.primitives.billboards.id = 'aircrafts_billboards'
     aircraftGraphic.primitives.labels.id = 'aircrafts_labels'
-    aircraftGraphic.primitives.routePolylines.id = 'aircrafts_routePolylines'
+    aircraftGraphic.primitives.routePolylines.id = 'aircraft_routePolylines'
 
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.billboards)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.labels)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.routePolylines)
 
-    aircraftGraphic.primitiveContainer.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.billboards.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.labels.properties = { type: 'aircrafts' }
-    aircraftGraphic.primitives.routePolylines.properties = { type: 'aircraft_routePolylines' }
+    aircraftGraphic.primitiveContainer.properties = { sourceType: 'aircraft',type:'container' }
+    aircraftGraphic.primitives.billboards.properties = { sourceType: 'aircraft' ,type:'billboards'}
+    aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft',type:'labels' }
+    aircraftGraphic.primitives.routePolylines.properties = { sourceType:'aircraft',type: 'aircraft_routePolylines' }
+
     aircraftGraphic.primitives.labels.show=false
 
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
 
     setupHighlightWatch()
     setupSimulatedWebsocketWatch()
+
     setupAircraftFilterFormWatch()
 
     subscribeCameraEvents()
@@ -251,6 +248,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
       () => aircraftStore.aircraftFilterForm,
       (newForm: AircraftFilterForm, oldForm: AircraftFilterForm) => {
         filterAircrafts()
+        handleCameraMoveEnd(viewer.value.camera)
       },
       { deep: true },
     )
@@ -593,6 +591,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
         //   console.log("typeof p.originCountry", typeof p.originCountry);
         // }
 
+        //?? 是 ES2020 引入的空值合并操作符，作用是：当左侧值为 null 或 undefined 时，返回右侧默认值；否则返回左侧值。
         const match: boolean =
           (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
           (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
@@ -620,6 +619,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     )
 
     aircraftGraphic.primitives.routePolylines.show=isSelectedAircraftMatched
+    aircraftGraphic.primitiveContainer.show=form.visible
 
     if (matchedAircraftCount.value === 0) {
       // ElNotification({
@@ -688,6 +688,8 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
 
     unsubCameraMoveEnd?.(); // 取消相机事件订阅
     unsubMouseWheel?.();
+
+    aircraftStore.resetAircraftFilterForm()
   })
 
   return {
@@ -701,7 +703,6 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
 
     filterAircrafts,
 
-    toggleAircraftsVisibility,
     matchedAircraftCount,
   }
 }

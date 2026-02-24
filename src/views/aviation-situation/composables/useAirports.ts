@@ -1,5 +1,5 @@
 //useAirports.ts
-import { reactive,onUnmounted,markRaw,ref } from 'vue'
+import { reactive, onUnmounted, markRaw, ref, watch } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -18,8 +18,15 @@ import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
 import { onCesiumEvent } from './useCesiumEvents'
 
-import type{ AirportFilterForm, } from '@/views/aviation-situation/types/aircraft'
+import type {
+  AircraftFilterForm,
+  AirportFilterForm
+} from '@/views/aviation-situation/types/aircraft'
 import { highlightBillboardOnHover, highlightBillboardAndSetSelected,clearHoveredHighlight } from './useHighlightManager'
+
+import { useAirportStore } from '@/stores/airport'
+import { useDebounceFn } from '@vueuse/core'
+const airportStore = useAirportStore()
 
 // 新增：定义 CameraEventCallback 类型（和 useCesiumCameraEvents.ts 保持一致）
 type CameraEventType = 'moveEnd' | 'flyEnd' | 'changed'
@@ -41,6 +48,8 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
   let airports: Airport[] = []
 
   const airportsVisible=ref<boolean>(true)
+
+  const matchedAirportCount = ref<number>(0)
 
   const airportGraphic: AirportGraphic = markRaw({
     primitiveContainer: null,
@@ -65,15 +74,15 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     },
   })
 
-  // 机场显示距离阈值（100km，可根据需求调整）
-  const AIRPORT_SHOW_DISTANCE = 400000; // 单位：米
-
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
   let unsubCameraMoveEnd: () => void;
 
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
-    if (!airportsVisible.value) return;
+    // 机场显示距离阈值（100km，可根据需求调整）
+    const AIRPORT_SHOW_DISTANCE = 400*1000; // 单位：米
+
+    if (!airportStore.airportFilterForm.visible) return;
     if (!airportGraphic.primitiveContainer) return;
     // 计算相机位置到地面的距离
     const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
@@ -94,10 +103,8 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     tooltip.visible = false
   }
 
-  const toggleAirportsVisibility = (value:boolean): void => {
-    airportsVisible.value=value  //TODO这个好像要del
-    airportGraphic.primitiveContainer.show=value
-    handleCameraMoveEnd(viewer.value.camera)
+  const hideAirports = (): void => {
+    airportGraphic.primitiveContainer.show=false
   }
 
   const initAirports = () => {
@@ -105,12 +112,22 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     airportGraphic.primitives.billboards = new Cesium.BillboardCollection()
     airportGraphic.primitives.labels = new Cesium.LabelCollection()
 
+    airportGraphic.primitiveContainer.id = 'airports_container'
+    airportGraphic.primitives.billboards.id = 'airports_billboards'
+    airportGraphic.primitives.labels.id = 'airports_labels'
+
     airportGraphic.primitiveContainer.add(airportGraphic.primitives.billboards)
     airportGraphic.primitiveContainer.add(airportGraphic.primitives.labels)
-    airportGraphic.primitiveContainer.properties = { type: 'airports' }
+
+    airportGraphic.primitiveContainer.properties = { sourceType: 'airport',type:'container' }
+    airportGraphic.primitives.billboards.properties = { sourceType: 'airport' ,type:'billboards'}
+    airportGraphic.primitives.labels.properties = { sourceType: 'airport',type:'labels' }
+
     airportGraphic.primitiveContainer.show=false
 
     viewer.value.scene.primitives.add(airportGraphic.primitiveContainer)
+
+    setupAirportFilterFormWatch()
 
     // 初始化时订阅相机事件
     subscribeCameraEvents();
@@ -124,11 +141,14 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
         airports = data.slice(0, 20000) // 限制数量
         // airports = data
         drawAirports()
+        filterAirports()
       } else {
         console.warn('机场数据为空或格式错误:', data)
+        clearAirports()
       }
     } catch (error) {
       console.error('加载机场数据失败:', error)
+      clearAirports()
     }
   }
 
@@ -219,9 +239,12 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     updateTooltip<AirportBaseProperties>(tooltip, screenPosition, properties)
   }
 
-  const filterAirports = (form: AirportFilterForm): void => {
+  const filterAirports = useDebounceFn((): void => {
+    matchedAirportCount.value = 0
+
     const DEFAULT_ALPHA:number = 0.0
     const HIGHLIGHT_ALPHA:number = 1.0
+    const form: AirportFilterForm = airportStore.airportFilterForm
 
     const query: AirportFilterForm = {
       icao: form.icao?.trim().toLowerCase(),
@@ -229,7 +252,6 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       name: form.name?.trim().toLowerCase(),
     }
 
-    let matchedNum:number=0
     let matchedBillboard:null|Cesium.Billboard=null
 
     // 高亮匹配项
@@ -244,8 +266,8 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
 
       const alpha:number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
-        matchedNum++
-        matchedBillboard=billboard
+        matchedAirportCount.value++
+        // matchedBillboard=billboard
       }
 
       // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
@@ -256,16 +278,16 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
       const label:Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
       label.show = match
     })
-    if (matchedNum === 0) {
+    if (matchedAirportCount.value === 0) {
       // ElNotification({
       //   title: '提示',
       //   message: '未查询到匹配的机场信息，请检查筛选条件后重试',
       //   type: 'warning',
       // });
-    } else if (matchedNum === 1) {
+    } else if (matchedAirportCount.value === 1) {
       // flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);
     }
-  }
+  },300)
 
   // ===== 新增：内部订阅机场事件 =====
   let unsubAirportHover: () => void;
@@ -297,8 +319,33 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     });
   };
 
+  const clearAirports = (): void => {
+    airportGraphic.primitives.billboards.removeAll()
+    airportGraphic.primitives.labels.removeAll()
+
+    airportGraphic.primitives.billboardMap.clear()
+    airportGraphic.primitives.labelMap.clear()
+
+    matchedAirportCount.value = 0
+  }
+
   // 初始化时自动订阅事件
   subscribeAirportEvents();
+
+  let unwatchAirportFilterForm: () => void
+  const setupAirportFilterFormWatch = (): void => {
+    unwatchAirportFilterForm = watch(
+      () => airportStore.airportFilterForm,
+      (newForm: AirportFilterForm, oldForm: AirportFilterForm) => {
+        filterAirports()
+        handleCameraMoveEnd(viewer.value.camera)
+        if (!newForm.visible) {
+          hideAirports()
+        }
+      },
+      { deep: true },
+    )
+  }
 
   // ===== 组件卸载时取消订阅 =====
   onUnmounted(() => {
@@ -307,6 +354,10 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
     unsubAirportLeftClick?.();
     unsubCameraMoveEnd?.(); // 取消相机事件订阅
     unsubMouseWheel?.();
+
+    unwatchAirportFilterForm?.();
+
+    airportStore.resetAirportFilterForm()
   });
 
   return {
@@ -318,7 +369,6 @@ export function useAirports(viewer,onCameraEvent: (type: CameraEventType, callba
 
     filterAirports,
 
-    toggleAirportsVisibility,
-    airportsVisible
+    matchedAirportCount,
   }
 }

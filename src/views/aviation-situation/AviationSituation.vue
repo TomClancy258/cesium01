@@ -27,7 +27,6 @@ const {
   syncAircraftsData,
   tooltip: aircraftTooltip,
   filterAircrafts,
-  toggleAircraftsVisibility,
   matchedAircraftCount,
 } = useAircrafts(cesiumViewer,onCameraEvent)
 
@@ -36,8 +35,7 @@ const {
   loadAndDrawAirports,
   tooltip: airportTooltip,
   filterAirports,
-  toggleAirportsVisibility,
-  airportsVisible,
+  matchedAirportCount,
 } = useAirports(cesiumViewer,onCameraEvent)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
@@ -73,10 +71,8 @@ onUnmounted(() => {
 // 提供过滤/显隐方法（原有逻辑保留）
 provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
-provide('toggleAircraftsVisibility', toggleAircraftsVisibility)
-provide('toggleAirportsVisibility', toggleAirportsVisibility)
-provide('airportsVisible', airportsVisible)
 provide('matchedAircraftCount', matchedAircraftCount)
+provide('matchedAirportCount', matchedAirportCount)
 </script>
 
 <template>

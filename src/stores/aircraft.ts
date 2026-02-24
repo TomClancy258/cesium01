@@ -19,7 +19,7 @@ export const useAircraftStore = defineStore('aircraft', () => {
   })
 
   // 仅提供数据重置方法（纯数据操作）
-  const resetAircraftState = () => {
+  const resetAircraftFilterForm = () => {
     aircraftFilterForm.icao24 = ''
     aircraftFilterForm.originCountry = ''
     aircraftFilterForm.callsign = ''
@@ -28,6 +28,6 @@ export const useAircraftStore = defineStore('aircraft', () => {
 
   return {
     aircraftFilterForm,
-    resetAircraftState
+    resetAircraftFilterForm
   }
 })
