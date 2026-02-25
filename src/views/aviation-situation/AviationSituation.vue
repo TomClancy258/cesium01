@@ -28,6 +28,7 @@ const {
   tooltip: aircraftTooltip,
   filterAircrafts,
   matchedAircraftCount,
+  flyToMatchedAircrafts,
 } = useAircrafts(cesiumViewer,onCameraEvent)
 
 const {
@@ -73,6 +74,7 @@ provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
 provide('matchedAircraftCount', matchedAircraftCount)
 provide('matchedAirportCount', matchedAirportCount)
+provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
 </script>
 
 <template>

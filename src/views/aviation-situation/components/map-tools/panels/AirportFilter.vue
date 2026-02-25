@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 //AirportsFilter.tsAirportsFilter.ts
-import { inject, ref } from 'vue'
+import { inject, ref,watch } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
 const filterAirports = inject('filterAirports')
 const matchedAirportCount = inject('matchedAirportCount')
@@ -19,10 +19,20 @@ const resetAirportForm = (formEl: FormInstance | undefined) => {
   formEl.resetFields()
 }
 
+// 监听“显示机场图标”取消时，自动取消“机场图标常显”
+watch(
+  () => airportStore.airportFilterForm.visible,
+  (isVisible) => {
+    if (!isVisible && airportStore.airportFilterForm.alwaysVisible) {
+      airportStore.airportFilterForm.alwaysVisible = false
+    }
+  },
+)
+
 </script>
 
 <template>
-
+<div>
   <el-form :model="airportStore.airportFilterForm"
            ref="airportFilterFormRef"
            label-width="auto" style="max-width: 600px">
@@ -43,7 +53,10 @@ const resetAirportForm = (formEl: FormInstance | undefined) => {
         </el-form-item>
       </el-col>
       <el-col :span="12">
-        已筛选出 {{matchedAirportCount}} 条数据
+        <el-form-item label="机场图标常显" prop="alwaysVisible">
+          <el-checkbox v-model="airportStore.airportFilterForm.alwaysVisible"
+                       :disabled="!airportStore.airportFilterForm.visible"/>
+        </el-form-item>
       </el-col>
     </el-form-item>
 
@@ -52,6 +65,11 @@ const resetAirportForm = (formEl: FormInstance | undefined) => {
       <el-button @click="resetAirportForm(airportFilterFormRef)">重置</el-button>
     </el-form-item>
   </el-form>
+  <div>
+    已筛选出 {{matchedAirportCount}} 条数据
+  </div>
+</div>
+
 </template>
 
 <style scoped lang="scss">

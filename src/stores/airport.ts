@@ -7,6 +7,7 @@ interface AirportFilterForm {
   country: '',
   name: '',
   visible: boolean // 飞机显示状态
+  alwaysVisible: boolean
 }
 
 export const useAirportStore = defineStore('Airport', () => {
@@ -15,7 +16,8 @@ export const useAirportStore = defineStore('Airport', () => {
     icao: '',
     country: '',
     name: '',
-    visible: true // 飞机显示状态
+    visible: true, // 飞机显示状态
+    alwaysVisible: false // 飞机显示状态
   })
 
   // 仅提供数据重置方法（纯数据操作）
@@ -24,6 +26,7 @@ export const useAirportStore = defineStore('Airport', () => {
     airportFilterForm.country = ''
     airportFilterForm.name = ''
     airportFilterForm.visible = true
+    airportFilterForm.alwaysVisible = false
   }
 
   return {

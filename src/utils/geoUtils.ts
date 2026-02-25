@@ -69,3 +69,13 @@ export function flyToPositionWithHeightOffset(
     console.error('flyToPositionWithHeightOffset 执行出错:', error);
   }
 }
+
+/**
+ * 获取Cesium相机的海拔高度（米）
+ * @param camera - 相机实例（从viewer.camera获取）
+ * @returns 海拔高度（米）
+ */
+export const getCameraHeight = (camera: Cesium.Camera): number => {
+  const cartographic:Cesium.Cartographic = Cesium.Cartographic.fromCartesian(camera.position);
+  return cartographic.height || 0; // 兜底避免undefined
+};

@@ -10,7 +10,7 @@ import {
   AircraftLabelProperties,
   AircraftTooltipState,
 } from '../types/aircraft'
-import { isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
+import { getCameraHeight, isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
 import type { AircraftFilterForm } from '@/views/aviation-situation/types/aircraft'
 import {
   highlightBillboardOnHover,
@@ -92,9 +92,12 @@ const getColorByAltitude = (altitude: number): Cesium.Color => {
 }
 
 export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callback: CameraEventCallback) => () => void) {
+  const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000*1000; // 单位：米
+
   let aircrafts: Aircraft[] = []
   let aircraftRoutes: RoutePoint[] = []
   let lastSelectedIcao24: string | null = null
+  let matchedBillboards:Cesium.Billboard[]=[]
 
   const matchedAircraftCount = ref<number>(0)
 
@@ -129,16 +132,19 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
 
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
-    const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000*1000; // 单位：米
-
     if (!aircraftStore.aircraftFilterForm.visible) return;
     if (!aircraftGraphic.primitiveContainer) return;
+
     // 计算相机位置到地面的距离
-    const cartographic = Cesium.Cartographic.fromCartesian(camera.position);
-    const cameraHeight = cartographic.height; // 相机高度（米）
+    const cameraHeight:number = getCameraHeight(camera);
+
     // 核心逻辑：高度小于阈值显示机场，大于则隐藏
-    aircraftGraphic.primitives.labels.show = cameraHeight <= AIRCRAFT_LABEL_SHOW_DISTANCE;
+    setAircraftsLabelVisible(cameraHeight <= AIRCRAFT_LABEL_SHOW_DISTANCE)
   };
+
+  const setAircraftsLabelVisible=(isVisible):void=>{
+    aircraftGraphic.primitives.labels.show=isVisible
+  }
 
 
   // 订阅相机moveEnd事件（使用传递的 onCameraEvent）
@@ -171,7 +177,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft',type:'labels' }
     aircraftGraphic.primitives.routePolylines.properties = { sourceType:'aircraft',type: 'aircraft_routePolylines' }
 
-    aircraftGraphic.primitives.labels.show=false
+    setAircraftsLabelVisible(false)
 
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
 
@@ -562,6 +568,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
   }
 
   const filterAircrafts = useDebounceFn((): void => {
+    matchedBillboards=[]
     matchedAircraftCount.value = 0
     const form: AircraftFilterForm = aircraftStore.aircraftFilterForm
 
@@ -606,6 +613,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
               isSelectedAircraftMatched=true
             }
           }
+          matchedBillboards.push(billboard)
         }
 
         // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
@@ -631,6 +639,81 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
       // flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 1000000)
     }
   }, 300)
+
+  const flyToMatchedAircrafts=()=>{
+    // const b1=aircraftGraphic.primitives.billboardMap.get("7609f0")
+    // const b2=aircraftGraphic.primitives.billboardMap.get("adbef0")
+    // matchedBillboards=[b1,b2]
+    flyToMatchedBillboards(matchedBillboards)
+  }
+
+  /**
+   * 计算并让相机飞至刚好显示所有匹配billboard的视角
+   * @param matchedBillboards 匹配的飞机billboard数组
+   */
+  const flyToMatchedBillboards = (matchedBillboards: Cesium.Billboard[]) => {
+    if (!viewer.value || matchedBillboards.length === 0) return;
+
+    // 1. 提取所有billboard的坐标点
+    const positions: Cesium.Cartesian3[] = [];
+    matchedBillboards.forEach((billboard) => {
+      const position = billboard.position;
+      if (Cesium.defined(position)) {
+        positions.push(position);
+      }
+    });
+
+    if (positions.length === 0) return;
+
+    // 2. 计算包围盒（BoundingSphere）
+    const boundingSphere = Cesium.BoundingSphere.fromPoints(positions);
+
+    // 3. 处理单点特殊情况（避免相机无限近）
+    if (positions.length === 1) {
+      viewer.value.camera.flyTo({
+        destination: Cesium.Cartesian3.fromDegrees(
+          Cesium.Cartographic.fromCartesian(positions[0]).longitude,
+          Cesium.Cartographic.fromCartesian(positions[0]).latitude,
+          50000 // 单点时默认高度50公里
+        ),
+        orientation: {
+          heading: Cesium.Math.toRadians(0),
+          pitch: Cesium.Math.toRadians(-45), // 45度俯视
+          roll: 0.0
+        },
+        duration: 2.0, // 飞行时长
+        maximumHeight: 1000000, // 最大飞行高度限制
+      });
+      return;
+    }
+
+    // 4. 计算合适的相机视角（自动适配所有点）
+    const camera = viewer.value.camera;
+    const offset = new Cesium.HeadingPitchRange(
+      Cesium.Math.toRadians(0), // 朝向
+      Cesium.Math.toRadians(-60), // 俯仰角（60度俯视，可调整）
+      boundingSphere.radius * 2.5 // 距离包围盒中心的距离（适配视野）
+    );
+
+    // 5. 执行飞行
+    viewer.value.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(0, 0, 0), // 占位，会被target替换
+      target: boundingSphere, // 目标包围盒
+      offset: offset,
+      duration: 2.0, // 飞行过渡时间（秒）
+      maximumHeight: boundingSphere.radius * 5, // 限制最大高度
+      easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT, // 平滑过渡
+      complete: () => {
+        // 飞行完成后微调（可选）
+        camera.lookAt(
+          boundingSphere.center,
+          new Cesium.Cartesian3(0, -boundingSphere.radius * 2, boundingSphere.radius)
+        );
+      },
+      cancel: () => console.warn('相机飞行被取消'),
+      fail: (error) => console.error('相机飞行失败:', error)
+    });
+  };
 
   // ===== 新增：内部订阅飞机事件 =====
   let unsubAircraftHover: () => void
@@ -704,5 +787,6 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     filterAircrafts,
 
     matchedAircraftCount,
+    flyToMatchedAircrafts,
   }
 }

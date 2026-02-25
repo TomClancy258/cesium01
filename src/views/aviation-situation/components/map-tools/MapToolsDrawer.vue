@@ -3,8 +3,8 @@ import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
 import DrawAndMeasure from '@/views/aviation-situation/components/map-tools/panels/DrawAndMeasure.vue'
-import AircraftsFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
-import AirportsFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
+import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
+import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 
 import { Fold, Filter, PriceTag, Share } from '@element-plus/icons-vue'
 
@@ -22,7 +22,7 @@ const toggleDrawer = (): void => {
 }
 
 
-const activeName = ref('1')
+const activeName = ref('aircraftFilter')
 </script>
 <template>
   <div>
@@ -34,7 +34,7 @@ const activeName = ref('1')
     <el-drawer v-model="drawer" title="" size="20%" :direction="direction" :modal="false" :modal-penetrable="true">
       <div class="drawer-body">
         <el-collapse class="drawer-collapse" v-model="activeName">
-          <el-collapse-item name="aircraftsFilter">
+          <el-collapse-item name="aircraftFilter">
             <template #title="{ isActive }">
               <div :class="['title-wrapper', { 'is-active': isActive }]">
                 飞机筛选
@@ -44,10 +44,10 @@ const activeName = ref('1')
               </div>
             </template>
             <div>
-              <AircraftsFilter/>
+              <AircraftFilter/>
             </div>
           </el-collapse-item>
-          <el-collapse-item name="airportsFilter">
+          <el-collapse-item name="airportFilter">
             <template #title="{ isActive }">
               <div :class="['title-wrapper', { 'is-active': isActive }]">
                 机场筛选
@@ -57,7 +57,7 @@ const activeName = ref('1')
               </div>
             </template>
             <div>
-              <AirportsFilter/>
+              <AirportFilter/>
             </div>
           </el-collapse-item>
 
