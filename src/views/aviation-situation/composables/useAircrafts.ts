@@ -1,7 +1,7 @@
 import { reactive, watch, onUnmounted, ref } from 'vue'
 import * as Cesium from 'cesium'
 import { emitCesiumEvent, onCesiumEvent } from './useCesiumEvents'
-import { getAircrafts, getAircraftRouteFull } from '@/network/aircraft'
+import { getAircrafts, getAircraftRouteFull,getAircraftPlannedTrajectory } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import {
   AircraftBaseProperties,
@@ -58,6 +58,7 @@ interface AircraftPrimitives {
   labelMap: Map<string, Cesium.Label>
   labels: Cesium.LabelCollection | null
   routePolylines: Cesium.PolylineCollection | null
+  routeFullEntity: Cesium.Entity | null
 }
 
 interface AircraftGraphic {
@@ -109,6 +110,7 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
       labelMap: new Map(),
       labels: null,
       routePolylines: null,
+      routeFullEntity: null,
     },
   }
   const tooltip = reactive<AircraftTooltipState>({
@@ -177,9 +179,23 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft',type:'labels' }
     aircraftGraphic.primitives.routePolylines.properties = { sourceType:'aircraft',type: 'aircraft_routePolylines' }
 
-    setAircraftsLabelVisible(false)
-
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
+
+    aircraftGraphic.primitives.routeFullEntity = viewer.value.entities.add({
+      id: 'aircraftPlannedTrajectory',
+      show: false, // 默认隐藏
+      properties: {
+        sourceType: 'aircraft',
+        type:'aircraft_planned_trajectory'
+      },
+      polyline: {
+        width: 3,
+        material: Cesium.Color.RED.withAlpha(0.8),
+        clampToGround: false,
+      },
+    })
+
+    setAircraftsLabelVisible(false)
 
     setupHighlightWatch()
     setupSimulatedWebsocketWatch()
@@ -285,12 +301,14 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
           aircrafts = data
           drawAircrafts()
         } else {
+          // clearAircrafts()
           const offset: number = newIndex * 0.02
           for (const aircraft of data) {
             aircraft.longitude += offset
             aircraft.latitude += offset
           }
           aircrafts = data
+          // drawAircrafts()
 
           // const selected: AircraftSelectedData | AirportSelectedData | null = highlightStore.selected
           // if (selected !== null) {

@@ -6,7 +6,18 @@ interface AircraftFilterForm {
   icao24: string
   originCountry: string
   callsign: string
+  startAirport: string
+  endAirport: string
   visible: boolean // 飞机显示状态
+}
+
+export interface TrajectoryGroup {
+  trajectoryVisible: boolean   // 轨迹线
+  waypointsVisible: boolean    // 航路点
+}
+
+export interface AircraftTrajectoryOptions {
+  planned: TrajectoryGroup     // 计划类
 }
 
 export const useAircraftStore = defineStore('aircraft', () => {
@@ -15,6 +26,8 @@ export const useAircraftStore = defineStore('aircraft', () => {
     icao24: '',
     originCountry: '',
     callsign: '',
+    startAirport: '',
+    endAirport: '',
     visible: true
   })
 
@@ -23,11 +36,29 @@ export const useAircraftStore = defineStore('aircraft', () => {
     aircraftFilterForm.icao24 = ''
     aircraftFilterForm.originCountry = ''
     aircraftFilterForm.callsign = ''
+    aircraftFilterForm.startAirport = ''
+    aircraftFilterForm.endAirport = ''
     aircraftFilterForm.visible = true
+  }
+
+
+  const aircraftTrajectoryOptions = reactive<AircraftTrajectoryOptions>({
+    planned: {
+      trajectoryVisible: false,
+      waypointsVisible: false,
+    },
+  })
+
+  const resetAircraftTrajectoryOptions = () => {
+    aircraftTrajectoryOptions.planned.trajectoryVisible = false
+    aircraftTrajectoryOptions.planned.waypointsVisible = false
   }
 
   return {
     aircraftFilterForm,
-    resetAircraftFilterForm
+    resetAircraftFilterForm,
+
+    aircraftTrajectoryOptions,
+    resetAircraftTrajectoryOptions,
   }
 })

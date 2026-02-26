@@ -5,8 +5,9 @@ import type { DrawerProps } from 'element-plus'
 import DrawAndMeasure from '@/views/aviation-situation/components/map-tools/panels/DrawAndMeasure.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
+import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
-import { Fold, Filter, PriceTag, Share } from '@element-plus/icons-vue'
+import { Fold, Filter, Share } from '@element-plus/icons-vue'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('rtl')
@@ -22,7 +23,7 @@ const toggleDrawer = (): void => {
 }
 
 
-const activeName = ref('aircraftFilter')
+const activeName = ref('')
 </script>
 <template>
   <div>
@@ -58,6 +59,19 @@ const activeName = ref('aircraftFilter')
             </template>
             <div>
               <AirportFilter/>
+            </div>
+          </el-collapse-item>
+          <el-collapse-item name="trajectoryOption">
+            <template #title="{ isActive }">
+              <div :class="['title-wrapper', { 'is-active': isActive }]">
+                轨迹选项
+                <el-icon class="header-icon">
+                  <Share />
+                </el-icon>
+              </div>
+            </template>
+            <div>
+              <AircraftTrajectoryOptions/>
             </div>
           </el-collapse-item>
 

@@ -186,6 +186,7 @@ export function useAirports(
     for (const airport of airports) {
       const longitude: number = airport.longitude
       const latitude: number = airport.latitude
+      const elevation: number = airport.elevation
       const country: string = airport.country
       const icao: string = airport.icao
 
@@ -193,7 +194,7 @@ export function useAirports(
         continue
       }
 
-      const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude)
+      const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude,elevation)
 
       // 添加 Billboard
       const billboard: Cesium.Billboard = airportGraphic.primitives.billboards.add({

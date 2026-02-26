@@ -14,6 +14,7 @@ import {
 const API = {
   AIRCRAFTS: '/airplanes/data.json',
   ROUTE_FULL: '/airplanes/route-full.json', // ✅ 确保路径正确
+  PLANNED_TRAJECTORY: '/airplanes/planned-trajectory.json', // ✅ 确保路径正确
 } as const
 
 /**
@@ -27,6 +28,15 @@ export const getAircrafts = async (): Promise<AircraftStatesResponse> => {
 
 export const getAircraftRouteFull = async (icao24:string): Promise<RouteFullResponse> => {
   const response = await request01.get<RoutePointTuple[]>(API.ROUTE_FULL,{
+    params:{ icao24 }
+  })
+  const trace=response?.trace??[]
+  return parseRouteFull(trace) // ✅ 在 API 层完成解析
+}
+
+
+export const getAircraftPlannedTrajectory  = async (icao24:string): Promise<RouteFullResponse> => {
+  const response = await request01.get<RoutePointTuple[]>(API.PLANNED_TRAJECTORY,{
     params:{ icao24 }
   })
   const trace=response?.trace??[]

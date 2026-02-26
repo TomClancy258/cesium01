@@ -17,7 +17,7 @@ export const getAirports = (): Promise<Airport[]> => {
       name: airport.name,
       city: airport.city,
       country: airport.country,
-      elevation: airport.elevation,
+      elevation: parseFloat(airport.elevation),
       subd: airport.subd,
       tz: airport.tz,
       lid: airport.lid,

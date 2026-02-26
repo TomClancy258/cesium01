@@ -4,24 +4,28 @@
  * OpenSky 飞机原始元组（根据 data.json）
  */
 export type AircraftTuple = [
-  icao24: string,          // [0]
-  callsign: string | null, // [1]
-  originCountry: string,   // [2]
-  timePosition: number,    // [3]
-  lastContact: number,     // [4]
-  longitude: number | null,// [5]
-  latitude: number | null, // [6]
-  baroAltitude: number | null, // [7] (米)
-  onGround: boolean,           // [8]
-  velocity: number | null,     // [9] (m/s)
-  heading: number | null,      // [10] (度)
-  verticalRate: number | null,  // [11] (m/s)
-  sensors: null,               // [12] (通常为null)
-  geoAltitude: number | null,  // [13] (米)
-  squawk: string | null,       // [14]
-  spi: boolean,                // [15]
-  positionSource: number       // [16]
+  icao24: string,          // [0] ICAO 24位地址 (飞机的唯一硬件ID，如 "aa9f5c")
+  callsign: string | null, // [1] 航班呼号 (如 "CCA1501", "N78395")，通用航空可能为null
+  originCountry: string,   // [2] 注册国家名称 (如 "United States", "China")
+  timePosition: number,    // [3] 位置更新时间戳 (秒级 Unix 时间戳)
+  lastContact: number,     // [4] 最后通信联系时间戳 (秒级 Unix 时间戳)
+  longitude: number | null,// [5] 经度 (WGS84, 度)
+  latitude: number | null, // [6] 纬度 (WGS84, 度)
+  baroAltitude: number | null, // [7] 气压高度 (米，相对于标准海平面)
+  onGround: boolean,           // [8] 是否在地面 (true=地面滑行/停靠，false=空中飞行)
+  velocity: number | null,     // [9] 地速 (米/秒 m/s)
+  heading: number | null,      // [10] 航向角 (度，0-360，正北为0)
+  verticalRate: number | null, // [11] 垂直速率 (米/秒 m/s，正数表示爬升，负数表示下降)
+  sensors: null,               // [12] 传感器ID列表 (通常为null，用于多接收站定位)
+  geoAltitude: number | null,  // [13] 几何高度 (米，GPS测得的高度，通常比气压高度更准)
+  squawk: string | null,       // [14] 应答机代码 (四位八进制码，如 "7700" 紧急，"7600" 失联)
+  spi: boolean,                // [15] 特殊位置识别位 (SPI pulse)，通常用于雷达识别确认
+  positionSource: number       // [16] 位置源 (0=ADS-B, 1=AST, 2=MLAT等，指示定位技术来源)
+
+  // ⚠️ 注意：此原生数据中【不包含】出发机场 (origin) 和 到达机场 (destination)
+  // 如果你的系统能按机场筛选，说明后端已经通过 callsign 关联了航班计划数据。
 ]
+
 /**
  * 结构化飞机对象
  */

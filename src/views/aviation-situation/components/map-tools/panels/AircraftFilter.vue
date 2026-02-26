@@ -43,6 +43,12 @@ const resetAircraftForm = (formEl: FormInstance | undefined) => {
       <el-form-item label="航空器国家" prop="originCountry">
         <el-input v-model="aircraftStore.aircraftFilterForm.originCountry" clearable />
       </el-form-item>
+      <el-form-item label="起飞机场" prop="startAirport">
+        <el-input v-model="aircraftStore.aircraftFilterForm.startAirport" clearable placeholder="三/四字码"/>
+      </el-form-item>
+      <el-form-item label="目的机场" prop="endAirport">
+        <el-input v-model="aircraftStore.aircraftFilterForm.endAirport" clearable placeholder="三/四字码"/>
+      </el-form-item>
       <el-form-item label="显示飞机图标" prop="visible">
         <el-checkbox v-model="aircraftStore.aircraftFilterForm.visible" />
       </el-form-item>

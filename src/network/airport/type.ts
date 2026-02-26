@@ -20,7 +20,7 @@ export interface Airport {
   name: string
   city: string
   country: string
-  elevation: string
+  elevation: number
   subd: string
   tz: string
   lid: string

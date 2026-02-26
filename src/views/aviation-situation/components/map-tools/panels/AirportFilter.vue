@@ -40,7 +40,7 @@ watch(
       <el-input v-model="airportStore.airportFilterForm.icao" clearable/>
     </el-form-item>
     <el-form-item label="机场名称" prop="name">
-      <el-input v-model="airportStore.airportFilterForm.name" clearable/>
+      <el-input v-model="airportStore.airportFilterForm.name" clearable placeholder="三/四字码"/>
     </el-form-item>
     <el-form-item label="机场国家" prop="country">
       <el-input v-model="airportStore.airportFilterForm.country" clearable/>
