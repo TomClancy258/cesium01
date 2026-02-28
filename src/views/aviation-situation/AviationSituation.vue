@@ -4,21 +4,19 @@ import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
 import { useAirports } from './composables/useAirports'
-import { useAircrafts } from './composables/useAircrafts'
-import { useCesiumEvents } from './composables/useCesiumEvents' // 仅初始化事件监听
+import { useAircrafts } from './composables/aircraft/useAircrafts'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import { useHighlightStore } from '@/stores/highlight'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import {clearSelectedHighlight} from "./composables/useHighlightManager"
-import { provideCesiumCameraEvents } from './composables/useCesiumCameraEvents'
+
+import { useCesiumEvents } from './composables/useCesiumEvents' // 仅初始化事件监听
+import { initCesiumCameraEvents  } from './composables/useCesiumCameraEvents'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
 const highlightStore = useHighlightStore()
-
-// 2. 先执行 provide（关键：在 useAirports 之前）
-const { initCameraEvents, onCameraEvent } = provideCesiumCameraEvents(cesiumViewer)
 
 // 初始化飞机/机场模块（内部已自动订阅事件）
 const {
@@ -29,7 +27,7 @@ const {
   filterAircrafts,
   matchedAircraftCount,
   flyToMatchedAircrafts,
-} = useAircrafts(cesiumViewer,onCameraEvent)
+} = useAircrafts(cesiumViewer)
 
 const {
   initAirports,
@@ -37,7 +35,7 @@ const {
   tooltip: airportTooltip,
   filterAirports,
   matchedAirportCount,
-} = useAirports(cesiumViewer,onCameraEvent)
+} = useAirports(cesiumViewer)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
 const { initEvents: initCesiumEvents, destroyEvents } = useCesiumEvents(cesiumViewer)
@@ -48,7 +46,7 @@ onMounted(async () => {
   initCesiumViewer() // 初始化Cesium Viewer
   initCesiumEvents() // 初始化事件监听（仅拾取和发布）
 
-  initCameraEvents()
+  initCesiumCameraEvents(cesiumViewer)
 
   initAirports()
   await loadAndDrawAirports()

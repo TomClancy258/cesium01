@@ -1,65 +1,52 @@
-// ============ useCesiumCameraEvents.ts ============
-import { ref, inject, provide, onUnmounted } from 'vue'
+// src/views/aviation-situation/composables/useCesiumCameraEvents.ts
+import { onUnmounted } from 'vue'
 import type { ShallowRef, Viewer } from 'cesium'
+import mittBus, { CameraEvent, CameraEventType } from './mittBus'
 
-type CameraEventType = 'moveEnd' | 'flyEnd' | 'changed'
-type CameraEventCallback = (camera: Viewer['camera']) => void // 传递camera参数，方便计算距离
-
-const CESIUM_CAMERA_EVENTS_KEY = Symbol('CESIUM_CAMERA_EVENTS')
-
-interface CameraEvents {
-  onCameraEvent: (type: CameraEventType, callback: CameraEventCallback) => () => void
-  initCameraEvents: () => void
-}
-
-export function provideCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {
-  const cameraEventCallbacks = ref<Record<CameraEventType, CameraEventCallback[]>>({
-    moveEnd: [],
-    flyEnd: [],
-    changed: []
-  })
+// 初始化相机事件监听（发布到 mitt 总线）
+export function initCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {
+  if (!viewer.value) return
 
   let removeMoveEndListener: (() => void) | null = null
-  // let removeFlyEndListener: (() => void) | null = null
 
-  const initCameraEvents = () => {
-    if (!viewer.value) return
-
-    // 监听moveEnd事件，传递camera参数
-    removeMoveEndListener = viewer.value.camera.moveEnd.addEventListener(() => {
-      cameraEventCallbacks.value.moveEnd.forEach(cb => cb(viewer.value!.camera))
-    })
-
-    // 补全flyEnd监听（相机飞行结束后触发）
-    // removeFlyEndListener = viewer.value.camera.flyEnd.addEventListener(() => {
-    //   cameraEventCallbacks.value.flyEnd.forEach(cb => cb(viewer.value!.camera))
-    // })
-  }
-
-  const onCameraEvent = (type: CameraEventType, callback: CameraEventCallback) => {
-    if (!cameraEventCallbacks.value[type].includes(callback)) {
-      cameraEventCallbacks.value[type].push(callback)
+  // 监听 Cesium 相机 moveEnd 事件
+  removeMoveEndListener = viewer.value.camera.moveEnd.addEventListener(() => {
+    const cameraEvent: CameraEvent = {
+      type: 'moveEnd',
+      payload: viewer.value!.camera
     }
-    return () => {
-      cameraEventCallbacks.value[type] = cameraEventCallbacks.value[type].filter(cb => cb !== callback)
-    }
-  }
-
-  provide<CameraEvents>(CESIUM_CAMERA_EVENTS_KEY, { onCameraEvent, initCameraEvents })
-
-  onUnmounted(() => {
-    removeMoveEndListener?.()
-    // removeFlyEndListener?.()
-    cameraEventCallbacks.value = { moveEnd: [], flyEnd: [], changed: [] }
+    mittBus.emit('camera', cameraEvent) // 发布相机事件
   })
 
-  return { initCameraEvents, onCameraEvent }
+  // 组件卸载时清理
+  onUnmounted(() => {
+    removeMoveEndListener?.()
+    // 可选：清空相机事件订阅（按需）
+    mittBus.off('camera')
+  })
 }
 
-export function useCesiumCameraEvents() {
-  const cameraEvents = inject<CameraEvents | null>(CESIUM_CAMERA_EVENTS_KEY, null)
-  if (!cameraEvents) {
-    throw new Error('useCesiumCameraEvents must be used after provideCesiumCameraEvents')
+// 订阅相机事件（对外暴露）
+export function useCesiumCameraEvent(
+  type: CameraEventType,
+  callback: (camera: Cesium.Camera) => void
+) {
+  // 过滤指定类型的相机事件
+  const handler = (event: CameraEvent) => {
+    if (event.type === type) {
+      callback(event.payload)
+    }
   }
-  return cameraEvents
+
+  mittBus.on('camera', handler)
+
+  // 返回取消订阅函数
+  return () => {
+    mittBus.off('camera', handler)
+  }
+}
+
+// 对外暴露订阅方法（兼容原调用方式）
+export function onCameraEvent(type: CameraEventType, callback: (camera: Cesium.Camera) => void) {
+  return useCesiumCameraEvent(type, callback)
 }

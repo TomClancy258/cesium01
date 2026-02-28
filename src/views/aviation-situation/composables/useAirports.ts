@@ -20,7 +20,8 @@ const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponen
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
-import { onCesiumEvent } from './useCesiumEvents'
+import { useCesiumCameraEvent } from './useCesiumCameraEvents' // 替换原导入
+import { emitCesiumEvent, onCesiumEvent } from './useCesiumEvents'
 
 import type {
   AircraftFilterForm,
@@ -53,10 +54,7 @@ interface AirportGraphic {
   primitives: AirportPrimitives
 }
 
-export function useAirports(
-  viewer,
-  onCameraEvent: (type: CameraEventType, callback: CameraEventCallback) => () => void,
-) {
+export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
 
@@ -91,8 +89,7 @@ export function useAirports(
   let unsubCameraMoveEnd: () => void
 
   // 计算相机到地面的距离，控制机场显隐
-  const handleCameraMoveEnd = () => {
-    const camera=viewer.value.camera
+  const handleCameraMoveEnd = (camera: Cesium.Camera) => {
     const form:AirportFilterForm = airportStore.airportFilterForm;
 
     if (!form.visible) {
@@ -121,7 +118,7 @@ export function useAirports(
 
   // 订阅相机moveEnd事件（使用传递的 onCameraEvent）
   const subscribeCameraEvents = () => {
-    unsubCameraMoveEnd = onCameraEvent('moveEnd', handleCameraMoveEnd)
+    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', handleCameraMoveEnd)
   }
   // ========== 相机事件修改结束 ==========
 

@@ -1,6 +1,7 @@
+//useAircrafts.ts
 import { reactive, watch, onUnmounted, ref } from 'vue'
 import * as Cesium from 'cesium'
-import { emitCesiumEvent, onCesiumEvent } from './useCesiumEvents'
+import { emitCesiumEvent, onCesiumEvent } from '../useCesiumEvents'
 import { getAircrafts, getAircraftRouteFull,getAircraftPlannedTrajectory } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import {
@@ -9,14 +10,14 @@ import {
   AircraftSelectedData,
   AircraftLabelProperties,
   AircraftTooltipState,
-} from '../types/aircraft'
+} from '../../types/aircraft'
 import { getCameraHeight, isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
 import type { AircraftFilterForm } from '@/views/aviation-situation/types/aircraft'
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
-} from './useHighlightManager'
+} from '../useHighlightManager'
 import { useHighlightStore } from '@/stores/highlight'
 
 const highlightStore = useHighlightStore()
@@ -37,16 +38,9 @@ import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.
 
 const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
 
-import { RoutePoint } from '@/network/aircraft/types/route-full'
+import type { RoutePoint } from '@/network/aircraft/types/route-full'
 
-import {
-  AirportBillboardProperties,
-  AirportSelectedData,
-} from '@/views/aviation-situation/types/airport'
-
-import { flyToPositionWithHeightOffset } from '@/utils/geoUtils'
-
-import { useAircraftStore } from '@/stores/aircraft'
+import { type TrajectoryGroup, type AircraftTrajectoryOptions, useAircraftStore } from '@/stores/aircraft'
 const aircraftStore = useAircraftStore()
 
 import { useDebounceFn, useThrottleFn } from '@vueuse/core'
@@ -58,7 +52,8 @@ interface AircraftPrimitives {
   labelMap: Map<string, Cesium.Label>
   labels: Cesium.LabelCollection | null
   routePolylines: Cesium.PolylineCollection | null
-  routeFullEntity: Cesium.Entity | null
+  plannedTrajectoryEntity: Cesium.Entity | null
+  waypoints: Cesium.PointPrimitiveCollection | null
 }
 
 interface AircraftGraphic {
@@ -100,6 +95,9 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
   let lastSelectedIcao24: string | null = null
   let matchedBillboards:Cesium.Billboard[]=[]
 
+  const defaultTrajectoryPos:number[] = [0,0,0];
+  let aircraftPlannedTrajectoryPositions:number[]=[...defaultTrajectoryPos]
+
   const matchedAircraftCount = ref<number>(0)
 
   const aircraftGraphic: AircraftGraphic = {
@@ -110,7 +108,8 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
       labelMap: new Map(),
       labels: null,
       routePolylines: null,
-      routeFullEntity: null,
+      plannedTrajectoryEntity: null,
+      waypoints: null,
     },
   }
   const tooltip = reactive<AircraftTooltipState>({
@@ -164,37 +163,42 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     aircraftGraphic.primitives.billboards = new Cesium.BillboardCollection()
     aircraftGraphic.primitives.labels = new Cesium.LabelCollection()
     aircraftGraphic.primitives.routePolylines = new Cesium.PolylineCollection()
+    aircraftGraphic.primitives.waypoints = new Cesium.PointPrimitiveCollection()
 
     aircraftGraphic.primitiveContainer.id = 'aircrafts_container'
     aircraftGraphic.primitives.billboards.id = 'aircrafts_billboards'
     aircraftGraphic.primitives.labels.id = 'aircrafts_labels'
     aircraftGraphic.primitives.routePolylines.id = 'aircraft_routePolylines'
+    aircraftGraphic.primitives.waypoints.id = 'aircraft_plannedWaypoints'
 
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.billboards)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.labels)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.routePolylines)
+    aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.waypoints)
 
     aircraftGraphic.primitiveContainer.properties = { sourceType: 'aircraft',type:'container' }
     aircraftGraphic.primitives.billboards.properties = { sourceType: 'aircraft' ,type:'billboards'}
     aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft',type:'labels' }
     aircraftGraphic.primitives.routePolylines.properties = { sourceType:'aircraft',type: 'aircraft_routePolylines' }
+    aircraftGraphic.primitives.waypoints.properties = { sourceType:'aircraft',type: 'aircraft_plannedWaypoints' }
 
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
 
-    aircraftGraphic.primitives.routeFullEntity = viewer.value.entities.add({
-      id: 'aircraftPlannedTrajectory',
+    aircraftGraphic.primitives.plannedTrajectoryEntity = viewer.value.entities.add({
+      id: 'aircraft_plannedTrajectory',
       show: false, // 默认隐藏
+      // show:true,
       properties: {
         sourceType: 'aircraft',
-        type:'aircraft_planned_trajectory'
+        type:'aircraft_plannedTrajectory'
       },
       polyline: {
         width: 3,
         material: Cesium.Color.RED.withAlpha(0.8),
-        clampToGround: false,
+        positions: []
       },
     })
-
+    // console.log("aircraftGraphic.primitives.plannedTrajectoryEntity.polyline.positions", aircraftGraphic.primitives.plannedTrajectoryEntity.polyline.positions);
     setAircraftsLabelVisible(false)
 
     setupHighlightWatch()
@@ -222,6 +226,30 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
     }
   }
 
+  // 独立方法：初始化计划轨迹的 CallbackProperty
+  const initPlannedTrajectoryCallback = (): void => {
+    if (!aircraftGraphic.primitives.plannedTrajectoryEntity) return;
+
+    const plannedTrajectoryEntity:Cesium.Entity = aircraftGraphic.primitives.plannedTrajectoryEntity;
+    // 仅当不是 CallbackProperty 时才初始化（避免重复创建）
+    if (!(plannedTrajectoryEntity.polyline.positions instanceof Cesium.CallbackProperty)) {
+      plannedTrajectoryEntity.polyline.positions = new Cesium.CallbackProperty(() => {
+        console.log('CallbackProperty: 计划轨迹坐标更新');
+        return Cesium.Cartesian3.fromDegreesArrayHeights(aircraftPlannedTrajectoryPositions);
+      }, false);
+    }
+  };
+
+  const setAircraftPlannedTrajectoryVisible = (isVisible: boolean): void => {
+    aircraftGraphic.primitives.plannedTrajectoryEntity.show = isVisible;
+  }
+
+  const resetAircraftPlannedTrajectory = (): void => {
+    aircraftPlannedTrajectoryPositions = [...defaultTrajectoryPos];
+    aircraftGraphic.primitives.plannedTrajectoryEntity.polyline.positions=[]
+    setAircraftPlannedTrajectoryVisible(false);
+  };
+
   let unwatchHighlight: () => void
   let unwatchSimulatedWebsocket: () => void
   let unwatchAircraftFilterForm: () => void
@@ -229,21 +257,43 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
   const setupHighlightWatch = (): void => {
     // index 或 selected 变化时，执行飞机选中/路径逻辑
     unwatchHighlight = watch(
-      [() => simulatedWebSocketStore.index, () => highlightStore.selected],
+      [() => simulatedWebSocketStore.index, () => highlightStore.selected,()=>aircraftStore.aircraftTrajectoryOptions],
       (newVals, oldVals) => {
-        const selected: AircraftSelectedData | AirportSelectedData | null = highlightStore.selected
+        const selected: AviationSelectedData = highlightStore.selected
 
         if (selected === null) {
           clearAircraftRoute()
           lastSelectedIcao24 = null
+
+          setAircraftPlannedTrajectoryVisible(false)
+          resetAircraftPlannedTrajectory()
           return
         }
         if (selected?.sourceType === 'aircraft') {
           const currentIcao24: string = selected.icao24
           syncAircraftRoute(currentIcao24, selected)
+
+          const aircraftTrajectoryOptions:AircraftTrajectoryOptions = aircraftStore.aircraftTrajectoryOptions
+          const planned:TrajectoryGroup=aircraftTrajectoryOptions.planned
+          if (planned.trajectoryVisible) {
+            syncAircraftPlannedTrajectory(currentIcao24,selected)
+          }else{
+            setAircraftPlannedTrajectoryVisible(false)
+            resetAircraftPlannedTrajectory()
+          }
+
+          if (planned.waypointsVisible) {
+            // syncAircraftPlannedWaypoints()
+          }else{
+            // setAircraftPlannedWaypointsVisible(false)
+          }
+
         } else {
           clearAircraftRoute()
           lastSelectedIcao24 = null
+
+          setAircraftPlannedTrajectoryVisible(false)
+          resetAircraftPlannedTrajectory()
         }
       },
       {
@@ -447,6 +497,49 @@ export function useAircrafts(viewer,onCameraEvent: (type: CameraEventType, callb
       clearAircraftRoute()
     }
     lastSelectedIcao24 = icao24
+  }
+
+  const syncAircraftPlannedTrajectory = async (icao24: string, selected: AircraftSelectedData): void => {
+    if (!icao24 || !aircraftGraphic.primitives.plannedTrajectoryEntity) return
+    try {
+      const routeData: RoutePoint[] = await getAircraftPlannedTrajectory(icao24)
+      for(let i=0; i<simulatedWebSocketStore.index; i++) {
+        routeData.push({
+          latitude: selected.position.latitude+i*0.01,
+          longitude: selected.position.longitude+i*0.01,
+          baroAltitude: selected.position.baroAltitude+i*0.01, // 英尺
+        })
+      }
+
+      if (!Array.isArray(routeData) || routeData.length < 2) {
+        resetAircraftPlannedTrajectory()
+        return
+      }
+
+      initPlannedTrajectoryCallback()
+
+      drawAircraftPlannedTrajectory(routeData)
+    } catch (error) {
+      console.error('绘制计划轨迹失败:', error)
+      resetAircraftPlannedTrajectory()
+    }
+  }
+
+  const drawAircraftPlannedTrajectory = (routeData:RoutePoint[]): void => {
+    const plannedTrajectoryEntity:Cesium.Entity=aircraftGraphic.primitives.plannedTrajectoryEntity
+    const positions:number[]=[]
+
+    for (const point of routeData) {
+      if (isValidCoordinate(point.longitude, point.latitude, point.baroAltitude)) {
+        positions.push(point.longitude,
+          point.latitude,
+          point.baroAltitude)
+      }
+    }
+    if (positions.length >= 2) {
+      aircraftPlannedTrajectoryPositions=positions
+      plannedTrajectoryEntity.show=true
+    }
   }
 
   const clearAircraftRoute = (): void => {
