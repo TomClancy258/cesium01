@@ -30,7 +30,7 @@ const resetAircraftForm = (formEl: FormInstance | undefined) => {
     <el-form
       :model="aircraftStore.aircraftFilterForm"
       ref="aircraftFilterFormRef"
-      label-width="auto"
+      label-width="100px"
       style="max-width: 600px"
     >
       <!-- 原有表单项 -->

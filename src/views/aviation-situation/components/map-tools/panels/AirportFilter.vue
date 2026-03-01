@@ -35,7 +35,7 @@ watch(
 <div>
   <el-form :model="airportStore.airportFilterForm"
            ref="airportFilterFormRef"
-           label-width="auto" style="max-width: 600px">
+           label-width="100px" style="max-width: 600px">
     <el-form-item label="icao" prop="icao">
       <el-input v-model="airportStore.airportFilterForm.icao" clearable/>
     </el-form-item>
@@ -46,7 +46,7 @@ watch(
       <el-input v-model="airportStore.airportFilterForm.country" clearable/>
     </el-form-item>
 
-    <el-form-item label="">
+    <el-row>
       <el-col :span="12">
         <el-form-item label="显示机场图标" prop="visible">
           <el-checkbox v-model="airportStore.airportFilterForm.visible" />
@@ -58,7 +58,7 @@ watch(
                        :disabled="!airportStore.airportFilterForm.visible"/>
         </el-form-item>
       </el-col>
-    </el-form-item>
+    </el-row>
 
     <el-form-item>
       <el-button type="primary" @click="onAirportSubmit">确认</el-button>

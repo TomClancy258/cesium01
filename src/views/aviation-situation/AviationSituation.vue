@@ -8,6 +8,8 @@ import { useAircrafts } from './composables/aircraft/useAircrafts'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import { useHighlightStore } from '@/stores/highlight'
+import { useAircraftStore } from '@/stores/aircraft'
+import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import {clearSelectedHighlight} from "./composables/useHighlightManager"
 
@@ -17,6 +19,8 @@ import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCa
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
 const highlightStore = useHighlightStore()
+const aircraftStore = useAircraftStore()
+const airportStore = useAirportStore()
 
 // 初始化飞机/机场模块（内部已自动订阅事件）
 const {
@@ -67,6 +71,9 @@ onUnmounted(() => {
   highlightStore.clearSelected()
   highlightStore.clearHovered()
   highlightStore.clearLastSelectedIcao24()
+  aircraftStore.resetAircraftFilterForm()
+  aircraftStore.resetAircraftTrajectoryOptions()
+  airportStore.resetAirportFilterForm()
 })
 
 // 提供过滤/显隐方法（原有逻辑保留）
