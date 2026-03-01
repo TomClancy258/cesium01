@@ -11,8 +11,8 @@ import { useHighlightStore } from '@/stores/highlight'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import {clearSelectedHighlight} from "./composables/useHighlightManager"
 
-import { useCesiumEvents } from './composables/useCesiumEvents' // 仅初始化事件监听
-import { initCesiumCameraEvents  } from './composables/useCesiumCameraEvents'
+import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
+import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
@@ -38,7 +38,7 @@ const {
 } = useAirports(cesiumViewer)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
-const { initEvents: initCesiumEvents, destroyEvents } = useCesiumEvents(cesiumViewer)
+const { initEvents: initCesiumEvents, destroyEvents } = useCesiumMouseEvents(cesiumViewer)
 
 const detailDrawerRef = ref(null)
 
@@ -65,6 +65,8 @@ onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
   highlightStore.clearSelected()
+  highlightStore.clearHovered()
+  highlightStore.clearLastSelectedIcao24()
 })
 
 // 提供过滤/显隐方法（原有逻辑保留）

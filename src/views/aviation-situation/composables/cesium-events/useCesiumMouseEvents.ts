@@ -2,25 +2,29 @@
 import type { Viewer } from 'cesium'
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
-import mittBus, { CesiumEventName } from './mittBus'
-import type { MapBillboardLabelProperties } from "../types/shared"
+import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
+import type { MapBillboardLabelProperties } from "../../types/shared"
+import {
+  AircraftBaseProperties,
+  AircraftBillboardProperties, AircraftSelectedData
+} from '@/views/aviation-situation/types/aircraft'
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
-export const emitCesiumEvent = <T extends CesiumEventName>(
+export const emitCesiumEvent = <T extends CesiumMouseEventName>(
   eventName: T,
-  ...args: any[]
+  ...args:  EventCallbackMap[T]
 ) => {
   // 关键修改：把多参数作为「单个数组参数」emit（适配mitt的单参数规则）
   mittBus.emit(eventName, args);
 };
 
 // 订阅 Cesium 交互事件（替换原 onCesiumEvent）
-export const onCesiumEvent = <T extends CesiumEventName>(
+export const onCesiumEvent = <T extends CesiumMouseEventName>(
   eventName: T,
-  callback: (...args: any[]) => void
+  callback: (...args: EventCallbackMap[T]) => void
 ) => {
   // 关键修改：mitt的回调接收单个参数（多参数时是数组），手动解构后传给callback
-  const wrappedCallback = (args: any[] | any) => {
+  const wrappedCallback = (args: Parameters<EventCallbackMap[T]>) => {
     if (Array.isArray(args)) {
       callback(...args); // 多参数时解构数组
     } else {
@@ -35,7 +39,7 @@ export const onCesiumEvent = <T extends CesiumEventName>(
 };
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
-export const useCesiumEvents = (viewer: Viewer | null) => {
+export const useCesiumMouseEvents = (viewer: Viewer | null) => {
   let handler: Cesium.ScreenSpaceEventHandler | null = null
 
   const initEvents = () => {
@@ -106,8 +110,8 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
   }, 100)
 
   // 处理飞机 hover
-  const handleAircraftHover = (properties: any, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
-    const baseProperties = {
+  const handleAircraftHover = (properties: AircraftBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
+    const baseProperties:AircraftBaseProperties = {
       type: properties.type,
       sourceType: properties.sourceType,
       icao24: properties.icao24,
@@ -122,8 +126,8 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
   }
 
   // 处理机场 hover
-  const handleAirportHover = (properties: any, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
-    const baseProperties = {
+  const handleAirportHover = (properties: AirportBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
+    const baseProperties:AirportBaseProperties = {
       type: properties.type,
       sourceType: properties.sourceType,
       icao: properties.icao,
@@ -136,8 +140,8 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
   }
 
   // 处理飞机左键点击
-  const handleAircraftLeftClick = (properties: any, pickedObject: Cesium.PickedObject) => {
-    const aircraftSelectedData = {
+  const handleAircraftLeftClick = (properties: AircraftBillboardProperties, pickedObject: Cesium.PickedObject):void => {
+    const aircraftSelectedData:AircraftSelectedData = {
       sourceType: properties.sourceType,
       icao24: properties.icao24,
       position: {
@@ -150,8 +154,8 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
   }
 
   // 处理机场左键点击
-  const handleAirportLeftClick = (properties: any, pickedObject: Cesium.PickedObject) => {
-    const airportSelectedData = {
+  const handleAirportLeftClick = (properties: AirportBillboardProperties, pickedObject: Cesium.PickedObject):void => {
+    const airportSelectedData:AirportSelectedData = {
       sourceType: properties.sourceType,
       icao: properties.icao
     }
@@ -163,7 +167,7 @@ export const useCesiumEvents = (viewer: Viewer | null) => {
     if (handler) handler.destroy()
     handler = null
     // 清空所有 Cesium 交互事件订阅
-    const eventNames: CesiumEventName[] = [
+    const eventNames: CesiumMouseEventName[] = [
       'aircraftHover', 'aircraftLeave', 'aircraftLeftClick',
       'airportHover', 'airportLeave', 'airportLeftClick', 'mouseWheel'
     ]

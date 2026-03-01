@@ -2,21 +2,21 @@
 import * as Cesium from 'cesium'
 import { getAircraftRouteFull } from '@/network/aircraft'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
-import type { AircraftSelectedData } from '../../types/aircraft'
+import type { AircraftSelectedData,AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
-import { altitudeColorMap } from './aircraftConstants'
-
-// 类型声明（复用主文件的 AircraftGraphic）
-interface AircraftPrimitives {
-  routePolylines: Cesium.PolylineCollection | null
-}
-interface AircraftGraphic {
-  primitives: AircraftPrimitives
-}
+import { altitudeColorMap } from '../aircraftConstants'
+import {useHighlightStore} from '@/stores/highlight'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
-  let aircraftRoutes: RoutePoint[] = []
-  let lastSelectedIcao24: string | null = null
+  let aircraftRoutePoints: RoutePoint[] = []
+const highlightStore = useHighlightStore()
+
+  const initAircraftRoute=():void=>{
+    aircraftGraphic.primitives.selectedAircraft.routePolylines = new Cesium.PolylineCollection()
+    aircraftGraphic.primitives.selectedAircraft.routePolylines.id = 'aircraft_routePolylines'
+    aircraftGraphic.primitives.selectedAircraft.routePolylines.properties = { sourceType: 'aircraft', type: 'aircraft_routePolylines' }
+    aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.selectedAircraft.routePolylines)
+  }
 
   /**
    * 根据高度获取颜色
@@ -33,7 +33,7 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
    * 绘制飞机已飞航线
    */
   const drawAircraftRoute = (routeData: RoutePoint[], icao24: string): void => {
-    if (!aircraftGraphic.primitives.routePolylines) return
+    if (!aircraftGraphic.primitives.selectedAircraft.routePolylines) return
 
     // 逐段绘制航线
     for (let i = 0; i < routeData.length - 1; i++) {
@@ -49,7 +49,7 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
       }
 
       // 构建线段坐标
-      const positions = Cesium.Cartesian3.fromDegreesArrayHeights([
+      const positions:Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights([
         startPoint.longitude,
         startPoint.latitude,
         startPoint.baroAltitude,
@@ -59,11 +59,11 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
       ])
 
       // 按终点高度着色
-      const segmentColor = getColorByAltitude(endPoint.baroAltitude)
+      const segmentColor:string = getColorByAltitude(endPoint.baroAltitude)
 
       // 添加线段
-      aircraftGraphic.primitives.routePolylines.add({
-        id: `aircraftRoute_${icao24}_segment_${i}`,
+      aircraftGraphic.primitives.selectedAircraft.routePolylines.add({
+        id: `selectedAircraftRoute_${icao24}_segment_${i}`,
         positions,
         width: 2,
         arcType: Cesium.ArcType.GEODESIC,
@@ -72,19 +72,22 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
         }),
       })
     }
+    setSelectedAircraftRoutePolylinesVisible(true)
+  }
 
-    aircraftGraphic.primitives.routePolylines.show = true
+  const setSelectedAircraftRoutePolylinesVisible=(visible):void=>{
+    aircraftGraphic.primitives.selectedAircraft.routePolylines.show=visible
   }
 
   /**
    * 同步飞机已飞航线
    */
   const syncAircraftRoute = async (icao24: string, selected: AircraftSelectedData): Promise<void> => {
-    if (!icao24 || !aircraftGraphic.primitives.routePolylines) return
+    if (!icao24 || !aircraftGraphic.primitives.selectedAircraft.routePolylines) return
 
     try {
       // 请求航线数据
-      const routeData = await getAircraftRouteFull(icao24)
+      const routeData:RoutePoint[] = await getAircraftRouteFull(icao24)
       // 追加当前位置
       routeData.push({
         latitude: selected.position.latitude,
@@ -99,19 +102,20 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
       }
 
       // 绘制逻辑
-      if (aircraftRoutes.length === 0) {
+      if (aircraftRoutePoints.length === 0) {
         drawAircraftRoute(routeData, icao24)
-        aircraftRoutes = routeData
       } else {
-        if (icao24 !== lastSelectedIcao24) {
+        if (icao24 !== highlightStore.lastSelectedIcao24) {
           clearAircraftRoute()
           drawAircraftRoute(routeData, icao24)
+        }else{
+          // 航线增量更新逻辑可在此扩展
+          // refreshAircraftRouteInScene(routeData, icao24)
         }
-        // 航线增量更新逻辑可在此扩展
-        // processAircraftRouteUpdate(routeData, icao24)
       }
 
-      lastSelectedIcao24 = icao24
+      aircraftRoutePoints = routeData
+      highlightStore.setLastSelectedIcao24(icao24)
     } catch (error) {
       console.error('同步航线失败:', error)
       clearAircraftRoute()
@@ -122,12 +126,13 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
    * 清空航线
    */
   const clearAircraftRoute = (): void => {
-    aircraftGraphic.primitives.routePolylines?.removeAll()
-    aircraftRoutes = []
-    lastSelectedIcao24 = null
+    aircraftGraphic.primitives.selectedAircraft.routePolylines?.removeAll()
+    aircraftRoutePoints = []
+    highlightStore.clearLastSelectedIcao24()
   }
 
   return {
+    initAircraftRoute,
     syncAircraftRoute,
     clearAircraftRoute,
     drawAircraftRoute // 可选暴露，便于测试

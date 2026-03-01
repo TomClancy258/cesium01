@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/useCesiumCameraEvents.ts
 import { onUnmounted } from 'vue'
 import type { ShallowRef, Viewer } from 'cesium'
-import mittBus, { CameraEvent, CameraEventType } from './mittBus'
+import mittBus, { CameraEvent, CesiumCameraEventName } from '../mittBus'
 
 // 初始化相机事件监听（发布到 mitt 总线）
 export function initCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {
@@ -28,7 +28,7 @@ export function initCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {
 
 // 订阅相机事件（对外暴露）
 export function useCesiumCameraEvent(
-  type: CameraEventType,
+  type: CesiumCameraEventName,
   callback: (camera: Cesium.Camera) => void
 ) {
   // 过滤指定类型的相机事件
@@ -47,6 +47,6 @@ export function useCesiumCameraEvent(
 }
 
 // 对外暴露订阅方法（兼容原调用方式）
-export function onCameraEvent(type: CameraEventType, callback: (camera: Cesium.Camera) => void) {
+export function onCameraEvent(type: CesiumCameraEventName, callback: (camera: Cesium.Camera) => void) {
   return useCesiumCameraEvent(type, callback)
 }

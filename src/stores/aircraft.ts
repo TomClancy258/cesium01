@@ -1,26 +1,9 @@
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
-
-// 定义筛选表单类型（包含visible）
-interface AircraftFilterForm {
-  icao24: string
-  originCountry: string
-  callsign: string
-  startAirport: string
-  endAirport: string
-  visible: boolean // 飞机显示状态
-}
-
-export interface TrajectoryGroup {
-  trajectoryVisible: boolean   // 轨迹线
-  waypointsVisible: boolean    // 航路点
-}
-
-export interface AircraftTrajectoryOptions {
-  planned: TrajectoryGroup     // 计划类
-}
+import type {AircraftTrajectoryOptions,AircraftFilterForm} from '@/views/aviation-situation/types/aircraft'
 
 export const useAircraftStore = defineStore('aircraft', () => {
+
   // 仅存储筛选表单数据
   const aircraftFilterForm = reactive<AircraftFilterForm>({
     icao24: '',

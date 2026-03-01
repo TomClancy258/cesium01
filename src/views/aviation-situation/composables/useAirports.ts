@@ -20,13 +20,12 @@ const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponen
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
-import { useCesiumCameraEvent } from './useCesiumCameraEvents' // 替换原导入
-import { emitCesiumEvent, onCesiumEvent } from './useCesiumEvents'
+import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
+import { emitCesiumEvent, onCesiumEvent } from './cesium-events/useCesiumMouseEvents'
 
 import type {
-  AircraftFilterForm,
   AirportFilterForm,
-} from '@/views/aviation-situation/types/aircraft'
+} from '@/views/aviation-situation/types/airport'
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
@@ -37,10 +36,6 @@ import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
 
 const airportStore = useAirportStore()
-
-// 新增：定义 CameraEventCallback 类型（和 useCesiumCameraEvents.ts 保持一致）
-type CameraEventType = 'moveEnd' | 'flyEnd' | 'changed'
-type CameraEventCallback = (camera: Cesium.Camera) => void
 
 interface AirportPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -299,8 +294,10 @@ export function useAirports(viewer) {
       // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
 
       billboard.show = match
-      const label: Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
-      label.show = match
+      const label: Cesium.Label|null = airportGraphic.primitives.labelMap.get(icao)
+      if (label) {
+        label.show = match
+      }
     })
     if (matchedAirportCount.value === 0) {
       // ElNotification({
