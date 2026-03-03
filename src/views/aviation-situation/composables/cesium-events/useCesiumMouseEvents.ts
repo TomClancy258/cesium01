@@ -1,13 +1,19 @@
 // src/views/aviation-situation/composables/useCesiumEvents.ts
-import type { Viewer } from 'cesium'
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
 import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
 import type { MapBillboardLabelProperties } from "../../types/shared"
+import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
+
+import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/aircraft-interaction"
+import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/airport-interaction"
+
+import {useSpatialSelectStore} from "@/stores/spatialSelect"
+const spatialSelectStore=useSpatialSelectStore()
+
 import {
-  AircraftBaseProperties,
-  AircraftBillboardProperties, AircraftSelectedData
-} from '@/views/aviation-situation/types/aircraft'
+  useDistanceSurveying,
+} from "./event-handlers/useDistanceSurveying"
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
@@ -39,8 +45,14 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
 };
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
-export const useCesiumMouseEvents = (viewer: Viewer | null) => {
+export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
   let handler: Cesium.ScreenSpaceEventHandler | null = null
+
+  const {
+    distanceSurvey,
+    addTempPointLabelEntityToEntityContainer,
+    setupSpatialSelectFormWatch,
+  }=useDistanceSurveying(viewer)
 
   const initEvents = () => {
     if (!viewer?.value) return
@@ -51,14 +63,23 @@ export const useCesiumMouseEvents = (viewer: Viewer | null) => {
 
     // 鼠标移动
     handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
+      // console.log("MOUSE_MOVE");
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+        distanceSurvey(movement.endPosition)
+      }
       mouseMove(movement)
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
 
     // 左键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       const pickedObject = viewer.value.scene.pick(click.position)
+      console.log("pickedObject", pickedObject);
       if (Cesium.defined(pickedObject) && pickedObject.id) {
-        if (pickedObject.primitive instanceof Cesium.Billboard) {
+        if(pickedObject.id instanceof Cesium.Entity){
+          if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+            addTempPointLabelEntityToEntityContainer()
+          }
+        }else if (pickedObject.primitive instanceof Cesium.Billboard) {
           const properties = pickedObject.primitive.properties as MapBillboardLabelProperties
           if (properties.type !== 'billboard') return
           if (properties.sourceType === 'aircraft') {
@@ -74,6 +95,12 @@ export const useCesiumMouseEvents = (viewer: Viewer | null) => {
     handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {
       mouseWheel(event)
     }, Cesium.ScreenSpaceEventType.WHEEL)
+
+    handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {
+      console.log("LEFT_DOWN");
+    }, Cesium.ScreenSpaceEventType.LEFT_DOWN)
+
+    setupSpatialSelectFormWatch()
   }
 
   // 鼠标滚轮（节流）
@@ -108,59 +135,6 @@ export const useCesiumMouseEvents = (viewer: Viewer | null) => {
       emitCesiumEvent('airportLeave');
     }
   }, 100)
-
-  // 处理飞机 hover
-  const handleAircraftHover = (properties: AircraftBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
-    const baseProperties:AircraftBaseProperties = {
-      type: properties.type,
-      sourceType: properties.sourceType,
-      icao24: properties.icao24,
-      originCountry: properties.originCountry,
-      callsign: properties.callsign,
-      longitude: properties.longitude,
-      latitude: properties.latitude,
-      baroAltitude: properties.baroAltitude,
-      heading: properties.heading,
-    }
-    emitCesiumEvent('aircraftHover', baseProperties, screenPosition, pickedObject.primitive)
-  }
-
-  // 处理机场 hover
-  const handleAirportHover = (properties: AirportBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
-    const baseProperties:AirportBaseProperties = {
-      type: properties.type,
-      sourceType: properties.sourceType,
-      icao: properties.icao,
-      country: properties.country,
-      name: properties.name,
-      longitude: properties.longitude,
-      latitude: properties.latitude,
-    }
-    emitCesiumEvent('airportHover', baseProperties, screenPosition, pickedObject.primitive)
-  }
-
-  // 处理飞机左键点击
-  const handleAircraftLeftClick = (properties: AircraftBillboardProperties, pickedObject: Cesium.PickedObject):void => {
-    const aircraftSelectedData:AircraftSelectedData = {
-      sourceType: properties.sourceType,
-      icao24: properties.icao24,
-      position: {
-        latitude: properties.latitude,
-        longitude: properties.longitude,
-        baroAltitude: properties.baroAltitude
-      }
-    }
-    emitCesiumEvent('aircraftLeftClick', aircraftSelectedData, pickedObject.primitive)
-  }
-
-  // 处理机场左键点击
-  const handleAirportLeftClick = (properties: AirportBillboardProperties, pickedObject: Cesium.PickedObject):void => {
-    const airportSelectedData:AirportSelectedData = {
-      sourceType: properties.sourceType,
-      icao: properties.icao
-    }
-    emitCesiumEvent('airportLeftClick', airportSelectedData, pickedObject.primitive)
-  }
 
   // 销毁事件监听
   const destroyEvents = () => {

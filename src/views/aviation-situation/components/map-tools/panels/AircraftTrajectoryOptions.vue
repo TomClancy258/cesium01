@@ -10,7 +10,6 @@ const aircraftStore = useAircraftStore()
     <el-form
       :model="aircraftStore.aircraftTrajectoryOptions"
       label-width="85px"
-      style="max-width: 600px"
     >
       <el-row>
         <el-col :span="12">

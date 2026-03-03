@@ -35,7 +35,8 @@ watch(
 <div>
   <el-form :model="airportStore.airportFilterForm"
            ref="airportFilterFormRef"
-           label-width="100px" style="max-width: 600px">
+           label-width="100px"
+  >
     <el-form-item label="icao" prop="icao">
       <el-input v-model="airportStore.airportFilterForm.icao" clearable/>
     </el-form-item>

@@ -2,12 +2,12 @@
 import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
-import DrawAndMeasure from '@/views/aviation-situation/components/map-tools/panels/DrawAndMeasure.vue'
+import SpatialSelect from '@/views/aviation-situation/components/map-tools/panels/SpatialSelect.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
-import { Fold, Filter, Share } from '@element-plus/icons-vue'
+import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('rtl')
@@ -72,6 +72,19 @@ const activeName = ref('')
             </template>
             <div>
               <AircraftTrajectoryOptions/>
+            </div>
+          </el-collapse-item>
+          <el-collapse-item name="spatialSelect">
+            <template #title="{ isActive }">
+              <div :class="['title-wrapper', { 'is-active': isActive }]">
+                空间选择
+                <el-icon class="header-icon">
+                  <PictureRounded />
+                </el-icon>
+              </div>
+            </template>
+            <div>
+              <SpatialSelect/>
             </div>
           </el-collapse-item>
 

@@ -164,6 +164,7 @@ export function useAircrafts(viewer) {
     // 订阅事件
     subscribeCameraEvents()
     subscribeAircraftEvents()
+
   }
 
   // ========== 数据加载与渲染 ==========

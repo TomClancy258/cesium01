@@ -9,7 +9,6 @@ import type {
   SelectedAircraftPlanned,
 } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
-import { defaultTrajectoryPos } from '../aircraftConstants'
 import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
 import {useHighlightStore} from '@/stores/highlight'
@@ -19,7 +18,7 @@ const aircraftStore=useAircraftStore()
 export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) {
   const highlightStore = useHighlightStore()
 
-  let aircraftPlannedTrajectoryPositions: number[] = [...defaultTrajectoryPos]
+  let aircraftPlannedTrajectoryPositions: number[] = []
   let aircraftPlannedWaypoints: RoutePoint[] = []
 
   const initPlannedTrajectory=():void=>{
@@ -52,7 +51,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
       },
       polyline: {
         width: 3,
-        material: Cesium.Color.RED.withAlpha(0.8),
+        material: Cesium.Color.fromCssColorString('#1E40AF'),
         positions: []
       },
     })
@@ -92,6 +91,9 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
     if (!(plannedTrajectoryEntity.polyline.positions instanceof Cesium.CallbackProperty)) {
       plannedTrajectoryEntity.polyline.positions = new Cesium.CallbackProperty(() => {
         console.log('callback')
+        if (aircraftPlannedTrajectoryPositions.length === 0) {
+          return []
+        }
         return Cesium.Cartesian3.fromDegreesArrayHeights(aircraftPlannedTrajectoryPositions)
       }, false)
     }
@@ -123,7 +125,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
    * 重置计划轨迹
    */
   const resetAircraftPlannedTrajectory = (): void => {
-    aircraftPlannedTrajectoryPositions = [...defaultTrajectoryPos]
+    aircraftPlannedTrajectoryPositions = []
     const planned:SelectedAircraftPlanned=aircraftGraphic.primitives.selectedAircraft.planned
 
     if (planned.trajectoryPolylineEntity) {
