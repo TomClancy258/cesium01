@@ -21,6 +21,3 @@ export const altitudeColorMap = [
 
 // 标签显示距离阈值（米）
 export const AIRCRAFT_LABEL_SHOW_DISTANCE = 2000 * 1000
-
-// 计划轨迹默认坐标
-export const defaultTrajectoryPos: number[] = [0, 0, 0]

@@ -1,3 +1,4 @@
+//spatialSelect.ts
 import { defineStore } from 'pinia'
 import { reactive } from 'vue'
 
@@ -23,8 +24,18 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     spatialSelectForm.boxSelectionTarget = ''
   }
 
+  const setOperationType = (type: string) => {
+    // 可以在这里加一些逻辑，比如如果 type 是 'none'，自动清空其他子类型
+    if (type === 'none') {
+      spatialSelectForm.boxSelectionSubtype = ''
+      spatialSelectForm.boxSelectionTarget = ''
+    }
+    spatialSelectForm.operationType = type
+  }
+
   return {
     spatialSelectForm,
+    setOperationType,
     resetAirportFilterForm
   }
 })

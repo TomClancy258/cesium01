@@ -50,8 +50,9 @@ export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
 
   const {
     distanceSurvey,
-    addTempPointLabelEntityToEntityContainer,
+    addTempleToDataSourceAndPushCoordToPolyline,
     setupSpatialSelectFormWatch,
+    finishDistanceSurveying,
   }=useDistanceSurveying(viewer)
 
   const initEvents = () => {
@@ -77,7 +78,7 @@ export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
-            addTempPointLabelEntityToEntityContainer()
+            addTempleToDataSourceAndPushCoordToPolyline()
           }
         }else if (pickedObject.primitive instanceof Cesium.Billboard) {
           const properties = pickedObject.primitive.properties as MapBillboardLabelProperties
@@ -90,6 +91,12 @@ export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
         }
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+    // 右键点击
+    handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+        finishDistanceSurveying()
+      }
+    }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 
     // 鼠标滚轮
     handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {

@@ -2,194 +2,126 @@
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
-import { defaultTrajectoryPos } from '@/views/aviation-situation/composables/aircraft/aircraftConstants'
 import { generateBizUniqueId } from '@/utils/uuid'
+import { TemplePointLabelPositionLngLatAlt, useTemplePointLabel } from './useTemplePointLabel'
+import { TempleLabelPositionLngLatAlt, useTempleLabel } from './useTempleLabelOnLineSegment'
+import { useKeyboardEvents } from './useKeyboardEvents';
+import {calculateSurfaceDistance,getSurfaceMidpoint} from "@/utils/geoUtils"
 
-/** 线相关实体：折线 + 线段长度Label */
-interface DistanceSurveyingLine {
-  polylineEntity: Cesium.Entity | null
+interface PolylineState {
+  positions: number[]; // 经纬度+海拔数组（3个一组）
+  pointCount: number; // 坐标点数量（一组算一个）
 }
+
 
 /** 单条距离测绘的完整结构 */
 interface DistanceSurveyingGraphic {
-  entityContainer: Cesium.CustomDataSource|null
-  line: DistanceSurveyingLine
+  dataSource: Cesium.CustomDataSource|null
+  pointStack: Cesium.Entity[]
+  labelStack: Cesium.Entity[]
+  polylineEntity: Cesium.CustomDataSource|null
 }
 
 export const useDistanceSurveying = (viewer: ShallowRef<Cesium.Viewer | null>) => {
+
+  const {
+    templePointLabel,
+    addTempPointLabelEntityToViewer,
+    addTempPointLabelEntityToDataSource,
+    removeTempPointLabelEntity,
+    updateTemplePointLabel
+  } = useTemplePointLabel(viewer);
+
+  const {
+    templeLabel,
+    addTempLabelEntityToViewer,
+    addTempLabelEntityToDataSource,
+    removeTempLabelEntity,
+    updateTempleLabel
+  } = useTempleLabel(viewer);
+
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
-  const distanceSurveyingGraphics: Cesium.CustomDataSource[] = []
-  const distanceSurveyingGraphic: DistanceSurveyingGraphic = {
+  const distanceSurveyingDataSources: Cesium.CustomDataSource[] = []
+  const currentDistanceSurveying: DistanceSurveyingGraphic = {
     //该距离测绘折线的全部
-    entityContainer: null,
-    line: {
+    dataSource: null,
+    pointStack:[],
+    labelStack:[],
       //该距离测绘的折线
-      polylineEntity: null,
-    },
+    polylineEntity: null,
   }
 
-  //存放该距离测绘折线的全部坐标（初始值[...defaultTrajectoryPos]是防止Cesium.Cartesian3.fromDegreesArrayHeights([])空数组报错）
-  let polylinePositions: number[] = []
-  let positionNum:number=0
-
-  interface TemplePointLabelPositionLngLatAlt {
-    longitude: number
-    latitude: number
-    height: number
-  }
-
-  interface TemplePointLabelPosition {
-    cartesian3: Cesium.Cartesian3 | null | undefined
-    lngLatAlt: TemplePointLabelPositionLngLatAlt
-    lngLatAltFormat: TemplePointLabelPositionLngLatAlt
-  }
-
-  interface TemplePointLabel {
-    entity: Cesium.Entity | null // 单个点位的笛卡尔坐标（非数组！）
-    position: TemplePointLabelPosition
-  }
-
-  const templePointLabel: TemplePointLabel = {
-    entity: null,
-    position: {
-      cartesian3: null,
-      lngLatAlt: {
-        longitude: 0,
-        latitude: 0,
-        height: 0,
-      },
-      lngLatAltFormat: {
-        longitude: 0,
-        latitude: 0,
-        height: 0,
-      },
-    },
-  }
+  const polylineState: PolylineState = {
+    positions: [],
+    pointCount: 0
+  };
 
   const distanceSurvey = (position: Cesium.Cartesian2): void => {
     const ray: Cesium.Ray = viewer.value.camera.getPickRay(position)
-    templePointLabel.position.cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
-    if (!templePointLabel.position.cartesian3) {
+    const cartesian3 :Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
+    if (!cartesian3) {
       return
     }
 
-    if (!templePointLabel.entity) {
-      return
-    }
-    if (!templePointLabel.entity.show) {
-      templePointLabel.entity.show = true
-    }
+    // 复用抽离后的更新逻辑
+    updateTemplePointLabel(cartesian3);
 
-    const cartographic: Cesium.Cartographic = Cesium.Cartographic.fromCartesian(
-      templePointLabel.position.cartesian3,
-    )
-    // 第二步：弧度转角度（经纬度常用角度表示），海拔直接取（单位：米）
-    const longitude: number = Cesium.Math.toDegrees(cartographic.longitude) // 经度（°）
-    const latitude: number = Cesium.Math.toDegrees(cartographic.latitude) // 纬度（°）
-    const height: number = cartographic.height // 海拔（米）
+    const  lngLatAlt:TemplePointLabelPositionLngLatAlt  = templePointLabel.position.lngLatAlt;
 
-    const lngLatAlt: TemplePointLabelPositionLngLatAlt = templePointLabel.position.lngLatAlt
-    lngLatAlt.longitude = longitude
-    lngLatAlt.latitude = latitude
-    lngLatAlt.height = height
+    addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
+    updateTempleLabelEntity();
 
-    const lngLatAltFormat: TemplePointLabelPositionLngLatAlt = templePointLabel.position.lngLatAltFormat
-    // 可选：保留小数位数，提升显示可读性
-    lngLatAltFormat.longitude = longitude.toFixed(6) // 经度保留6位小数
-    lngLatAltFormat.latitude = latitude.toFixed(6) // 纬度保留6位小数
-    lngLatAltFormat.height = height.toFixed(2) // 海拔保留2位小数
-
-    addDynamicLineSegment(longitude,latitude,height)
   }
 
   const addDynamicLineSegment = (longitude:number,latitude:number,height:number) => {
-    if (polylinePositions.length>0) {
-      const baseIndex:number=positionNum*3
-      polylinePositions[baseIndex]=longitude
-      polylinePositions[baseIndex+1]=latitude
-      polylinePositions[baseIndex+2]=height
+    if (polylineState.positions.length>0) {
+      const lastPointIndex:number=polylineState.pointCount*3
+      polylineState.positions[lastPointIndex]=longitude
+      polylineState.positions[lastPointIndex+1]=latitude
+      polylineState.positions[lastPointIndex+2]=height
     }
   }
-  const updateTemplePointLabel = () => {}
 
-  const addTempPointLabelEntityToEntityContainer = () => {
-    const lngLatAlt: TemplePointLabelPositionLngLatAlt = templePointLabel.position.lngLatAlt
-    const lngLatAltFormat: TemplePointLabelPositionLngLatAlt = templePointLabel.position.lngLatAltFormat
-    const uniqueId:string = generateBizUniqueId('pointLabelEntity')
-    distanceSurveyingGraphic.entityContainer?.entities.add({
-      id: uniqueId,
-      show: true, // 默认隐藏
-      position: templePointLabel.position.cartesian3,
-      label: {
-        text: `经度：${lngLatAltFormat.longitude}°\n纬度：${lngLatAltFormat.latitude}°\n海拔：${lngLatAltFormat.height}m`,
-        font: '16px Verdana',
-        outlineColor: Cesium.Color.DARKSLATEGREY,
-        outlineWidth: 2,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cesium.Cartesian2(0, -45),
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      },
-      point: {
-        pixelSize: 10,
-        color: Cesium.Color.fromBytes(243, 242, 99),
-        outlineColor: Cesium.Color.fromBytes(219, 218, 111),
-        outlineWidth: 2,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      },
-    })
+  const updateTempleLabelEntity = () => {
+    if (polylineState.positions.length>=2) {
+      const lastPointIndex:number=polylineState.pointCount*3
+      const lastPositions:number[]=[
+        polylineState.positions[lastPointIndex],
+        polylineState.positions[lastPointIndex+1],
+        polylineState.positions[lastPointIndex+2],
+      ]
+      const lastButOnePointIndex:number=(polylineState.pointCount-1)*3
+      const lastButOnePositions:number[]=[
+        polylineState.positions[lastButOnePointIndex],
+        polylineState.positions[lastButOnePointIndex+1],
+        polylineState.positions[lastButOnePointIndex+2],
+      ]
 
-    polylinePositions.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
-    positionNum++
+      const distance=calculateSurfaceDistance(lastButOnePositions,lastPositions)
+      const position=getSurfaceMidpoint(lastButOnePositions,lastPositions)
+
+      updateTempleLabel(position,distance)
+    }
   }
 
-  // 计算两点间距离（米）
-  const calculateDistance = (pos1: number[], pos2: number[]): number => {
-    const cartesian1 = Cesium.Cartesian3.fromDegrees(pos1[0], pos1[1], pos1[2] || 0)
-    const cartesian2 = Cesium.Cartesian3.fromDegrees(pos2[0], pos2[1], pos2[2] || 0)
-    return Cesium.Cartesian3.distance(cartesian1, cartesian2)
-  }
+  const addTempleToDataSourceAndPushCoordToPolyline = () => {
+    const lngLatAlt: TemplePointLabelPositionLngLatAlt =addTempPointLabelEntityToDataSource(currentDistanceSurveying)
 
-  const addTempPointLabelEntityToViewer = () => {
-    const lngLatAltFormat: TemplePointLabelPositionLngLatAlt = templePointLabel.position.lngLatAltFormat
-    templePointLabel.entity = viewer.value?.entities.add({
-      id: 'tempPointLabelEntity',
-      show: false, // 默认隐藏
-      position: new Cesium.CallbackProperty((): Cesium.Cartesian3 => {
-        return templePointLabel.position.cartesian3
-      }, false),
-      label: {
-        text: new Cesium.CallbackProperty((): string => {
-          return `经度：${lngLatAltFormat.longitude}°\n纬度：${lngLatAltFormat.latitude}°\n海拔：${lngLatAltFormat.height}m`
-        }, false),
-        font: '16px Verdana',
-        outlineColor: Cesium.Color.DARKSLATEGREY,
-        outlineWidth: 2,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        pixelOffset: new Cesium.Cartesian2(0, -45),
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      },
-      point: {
-        pixelSize: 10,
-        color: Cesium.Color.fromBytes(243, 242, 99),
-        outlineColor: Cesium.Color.fromBytes(219, 218, 111),
-        outlineWidth: 2,
-        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-      },
-    })
-  }
+    polylineState.positions.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
+    polylineState.pointCount++
 
-  const clearTempPointLabelEntity = () => {
-    viewer.value?.entities.removeById('tempPointLabelEntity')
-    templePointLabel.entity = null
+    if (polylineState.pointCount >= 2) {
+      addTempLabelEntityToDataSource(currentDistanceSurveying)
+    }
   }
 
   const initDistanceSurveying = (): void => {
-    const uniqueId:string = generateBizUniqueId('distanceSurveyingGraphic')
-    distanceSurveyingGraphic.entityContainer=new Cesium.CustomDataSource(uniqueId)
+    const uniqueId:string = generateBizUniqueId('currentDistanceSurveyingPolyline')
+    currentDistanceSurveying.dataSource=new Cesium.CustomDataSource(uniqueId)
 
-    //distanceSurveyingGraphic.entityContainer的第一个位置是distanceSurveying_polyline，不能删除
-    distanceSurveyingGraphic.line.polylineEntity=distanceSurveyingGraphic.entityContainer.entities.add({
+    //currentDistanceSurveying.dataSource的第一个位置是distanceSurveying_polyline，不能删除
+    currentDistanceSurveying.polylineEntity=currentDistanceSurveying.dataSource.entities.add({
       id: uniqueId,
       show: true, // 默认隐藏
       // show:true,
@@ -202,11 +134,11 @@ export const useDistanceSurveying = (viewer: ShallowRef<Cesium.Viewer | null>) =
         material: Cesium.Color.fromCssColorString('#38BDF8'),
         positions: new Cesium.CallbackProperty(
           () => {
-            console.log('distanceSurveyingGraphicCallback')
-            if (polylinePositions.length === 0) {
+            console.log('currentDistanceSurveyingCallback')
+            if (polylineState.positions.length === 0) {
               return []
             }else{
-              return Cesium.Cartesian3.fromDegreesArrayHeights(polylinePositions)
+              return Cesium.Cartesian3.fromDegreesArrayHeights(polylineState.positions)
             }
           },
           false,
@@ -214,15 +146,44 @@ export const useDistanceSurveying = (viewer: ShallowRef<Cesium.Viewer | null>) =
       },
     })
 
-    viewer.value?.dataSources.add(distanceSurveyingGraphic.entityContainer)
+    viewer.value?.dataSources.add(currentDistanceSurveying.dataSource)
+  }
+
+  const cloneCurrentDistanceSurveyingPolylineEntity=(dataSource)=>{
+    const uniqueId:string = generateBizUniqueId('distanceSurveyingPolyline')
+
+    const polylinePositionsLenWhenMouseMove=polylineState.positions.length
+    const polylinePointNumCountWhenMouseMove=polylinePositionsLenWhenMouseMove/3
+    console.log("polylinePointNumCountWhenMouseMove", polylinePointNumCountWhenMouseMove);
+    console.log("polylineState.pointCount", polylineState.pointCount);
+    console.log("polylineState.positions前面", polylineState.positions);
+    if (polylinePointNumCountWhenMouseMove === polylineState.pointCount+1) {
+      polylineState.positions.splice(polylineState.pointCount*3,3)
+      console.log("polylineState.positions后面", polylineState.positions);
+    }
+
+    dataSource.entities.add({
+      id: uniqueId,
+      show: true, // 默认隐藏
+      // show:true,
+      properties: {
+        sourceType: 'distanceSurveying',
+        type: 'distanceSurveying_polyline',
+      },
+      polyline: {
+        width: 3,
+        material: Cesium.Color.fromCssColorString('#38BDF8'),
+        positions: Cesium.Cartesian3.fromDegreesArrayHeights(polylineState.positions)
+      },
+    })
   }
 
   /**
    * 重置计划轨迹
    */
-  const resetDistanceSurveyingPolyline = (): void => {
-    polylinePositions = []
-    positionNum=0
+  const resetPolylineState = (): void => {
+    polylineState.positions = [];
+    polylineState.pointCount = 0;
   }
 
   let unwatchSpatialSelectForm: () => void
@@ -233,9 +194,12 @@ export const useDistanceSurveying = (viewer: ShallowRef<Cesium.Viewer | null>) =
         if (newForm.operationType === 'distanceSurveying') {
           initDistanceSurveying()
           addTempPointLabelEntityToViewer()
+          addTempLabelEntityToViewer()
         } else {
-          resetDistanceSurveyingPolyline()
-          clearTempPointLabelEntity()
+          removeDistanceSurveyingDataSource()
+          resetPolylineState()
+          removeTempPointLabelEntity()
+          removeTempLabelEntity()
         }
       },
       {
@@ -244,13 +208,134 @@ export const useDistanceSurveying = (viewer: ShallowRef<Cesium.Viewer | null>) =
     )
   }
 
+  const finishDistanceSurveying=(): void => {
+    if (polylineState.pointCount < 2) {
+      return
+    }
+      const uniqueId:string = generateBizUniqueId('distanceSurveyingDataSource')
+      const newDataSource=new Cesium.CustomDataSource(uniqueId)
+      cloneCurrentDistanceSurveyingPolylineEntity(newDataSource)
+      for (let i = 0; i < currentDistanceSurveying.labelStack.length; i++) {
+        const oldPointEntity = currentDistanceSurveying.pointStack[i];
+        const oldLabelEntity = currentDistanceSurveying.labelStack[i];
+        const pointUniqueId = generateBizUniqueId('pointLabelEntity');
+        const labelUniqueId = generateBizUniqueId('LabelEntity');
+
+        // --- A. 克隆 Point (创建新对象) ---
+        if (oldPointEntity) {
+          newDataSource.entities.add({
+            id: pointUniqueId,
+            show: true,
+            position: oldPointEntity.position,
+            label: {
+              text: oldPointEntity.label?.text,
+              font: oldPointEntity.label?.font,
+              outlineColor: oldPointEntity.label?.outlineColor,
+              outlineWidth: oldPointEntity.label?.outlineWidth,
+              style: oldPointEntity.label?.style,
+              pixelOffset: oldPointEntity.label?.pixelOffset,
+              heightReference: oldPointEntity.label?.heightReference,
+            },
+            point: {
+              pixelSize: oldPointEntity.point.pixelSize,
+              color: oldPointEntity.point.color,
+              outlineColor: oldPointEntity.point.outlineColor,
+              outlineWidth: oldPointEntity.point.outlineWidth,
+              heightReference: oldPointEntity.point.heightReference,
+            },
+          });
+        }
+
+        // --- B. 克隆 Label (关键：固化 text) ---
+        if (oldLabelEntity) {
+          newDataSource.entities.add({
+            id: labelUniqueId,
+            show: true,
+            position: oldLabelEntity.position,
+            label: {
+              text: oldLabelEntity.label?.text,
+              font: oldLabelEntity.label?.font,
+              outlineColor: oldLabelEntity.label?.outlineColor,
+              outlineWidth: oldLabelEntity.label?.outlineWidth,
+              style: oldLabelEntity.label?.style,
+              pixelOffset: oldLabelEntity.label?.pixelOffset,
+              heightReference: oldLabelEntity.label?.heightReference,
+            },
+          });
+        }
+      }
+      const pointUniqueId = generateBizUniqueId('pointLabelEntity');
+      const lastPointEntity=currentDistanceSurveying.pointStack[polylineState.pointCount-1]
+      newDataSource.entities.add({
+        id: pointUniqueId,
+        show: true,
+        position: lastPointEntity.position,
+        label: {
+          text: lastPointEntity.label?.text,
+          font: lastPointEntity.label?.font,
+          outlineColor: lastPointEntity.label?.outlineColor,
+          outlineWidth: lastPointEntity.label?.outlineWidth,
+          style: lastPointEntity.label?.style,
+          pixelOffset: lastPointEntity.label?.pixelOffset,
+          heightReference: lastPointEntity.label?.heightReference,
+        },
+        point: {
+          pixelSize: lastPointEntity.point.pixelSize,
+          color: lastPointEntity.point.color,
+          outlineColor: lastPointEntity.point.outlineColor,
+          outlineWidth: lastPointEntity.point.outlineWidth,
+          heightReference: lastPointEntity.point.heightReference,
+        },
+      })
+      distanceSurveyingDataSources.push(newDataSource);
+      viewer.value?.dataSources.add(newDataSource)
+      spatialSelectStore.setOperationType('none');
+  }
+
+  const removeDistanceSurveyingDataSource=()=>{
+    currentDistanceSurveying.pointStack=[]
+    currentDistanceSurveying.labelStack=[]
+    viewer.value.dataSources.remove(currentDistanceSurveying.dataSource);
+  }
+
+  const handleEsc = () => {
+    console.log("ESC pressed - Resetting distance surveying");
+    spatialSelectStore.setOperationType('none');
+  };
+
+  const handleBackspace = () => {
+    console.log("Backspace pressed - Removing last point");
+
+    // 回退最后一个坐标点
+    if (polylineState.pointCount >= 2) {
+      const pointEntity:Cesium.Entity|undefined=currentDistanceSurveying.pointStack.pop()
+      const labelEntity:Cesium.Entity|undefined=currentDistanceSurveying.labelStack.pop()
+      currentDistanceSurveying.dataSource.entities.remove(pointEntity)
+      currentDistanceSurveying.dataSource.entities.remove(labelEntity)
+
+      polylineState.positions.splice((polylineState.pointCount-1) * 3, 3);
+      // 删除最后三个元素 (lon, lat, alt)
+      polylineState.pointCount--;
+      updateTempleLabelEntity();
+    }
+  };
+
+  // 仅在距离测绘模式下监听键盘事件
+  const { unbindKeyboardEvents } = useKeyboardEvents(
+    handleEsc,
+    handleBackspace,
+    () => spatialSelectStore.spatialSelectForm.operationType === 'distanceSurveying'
+  );
+
   onUnmounted(() => {
     unwatchSpatialSelectForm?.()
+    unbindKeyboardEvents();
   })
 
   return {
     distanceSurvey,
-    addTempPointLabelEntityToEntityContainer,
+    addTempleToDataSourceAndPushCoordToPolyline,
     setupSpatialSelectFormWatch,
+    finishDistanceSurveying,
   }
 }
