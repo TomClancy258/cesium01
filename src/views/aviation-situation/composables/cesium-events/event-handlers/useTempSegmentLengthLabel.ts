@@ -132,13 +132,13 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
   };
 
   // 更新临时坐标标签的位置和数据
-  const updateTempSegmentLengthLabel = (position,distance):void => {
-    if (!position) return;
-    const cartesian3:Cesium.Cartesian3=Cesium.Cartesian3.fromDegrees(position.longitude, position.latitude, position.height);
+  const updateTempSegmentLengthLabel = (lngLatAlt,distance):void => {
+    if (!lngLatAlt) return;
+    const cartesian3:Cesium.Cartesian3=Cesium.Cartesian3.fromDegrees(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
 
     tempSegmentLengthLabel.position.cartesian3 = cartesian3;
     // 转换坐标
-    tempSegmentLengthLabel.position.lngLatAlt = position;
+    tempSegmentLengthLabel.position.lngLatAlt = lngLatAlt;
     tempSegmentLengthLabel.lengthInfo.distance = distance;
     tempSegmentLengthLabel.lengthInfo.formattedDistanceStr = formatDistance(distance);
 

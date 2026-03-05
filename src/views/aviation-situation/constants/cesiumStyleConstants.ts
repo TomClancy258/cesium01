@@ -98,3 +98,15 @@ export const HIGHLIGHT_POINT_LABEL_STYLE: TempPointLabelStyle = {
     COLOR: Cesium.Color.RED // 红色点
   }
 } as const;
+
+
+type CesiumTotalLengthLabelStyle = Pick<CesiumLabelStyle, 'PIXEL_OFFSET'>;
+
+export type TempTotalLengthLabelStyle = {
+  LABEL: CesiumTotalLengthLabelStyle;
+};
+export const TEMP_TOTAL_LENGTH_LABEL_STYLE:TempTotalLengthLabelStyle = {
+  LABEL: {
+    PIXEL_OFFSET: new Cesium.Cartesian2(0, -60),
+  }
+};

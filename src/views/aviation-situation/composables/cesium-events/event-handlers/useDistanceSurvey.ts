@@ -4,9 +4,14 @@ import { onUnmounted, ShallowRef, watch } from 'vue'
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { TempPointLabelPositionLngLatAlt, useMouseFollowPointLabel } from './useMouseFollowPointLabel'
-import { TempLabelPositionLngLatAlt, useTempSegmentLengthLabel } from './useTempSegmentLengthLabel'
+import { useTempSegmentLengthLabel } from './useTempSegmentLengthLabel'
+import { useTempTotalLengthLabel } from './useTempTotalLengthLabel'
 import { useKeyboardEvents } from './useKeyboardEvents';
-import {calculateSurfaceDistance,getSurfaceMidpoint} from "@/utils/geoUtils"
+import {
+  calculatePolylineTotalLength,
+  calculateSurfaceDistance,
+  getSurfaceMidpoint
+} from '@/utils/geoUtils'
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
@@ -48,6 +53,37 @@ const createDynamicPolylineConfig = (
   return baseConfig;
 };
 
+// useDistanceSurvey.ts 中新增函数
+/**
+ * 计算总长度标签所需的参数（位置 + 总距离）
+ * @param polylineState 动态折线状态
+ * @returns 总长度标签参数 { midpoint: LngLatAlt, totalDistance: number }
+ */
+const calculateTotalLengthLabelParams = (polylineState: DynamicPolylineState): {
+  midLngLatAlt: LngLatAlt;
+  totalDistance: number;
+} => {
+  // 取最后两个确认点计算中点（总长度标签贴在最后一段线段中点）
+  const lastPointIndex = (polylineState.pointCount - 1) * 3;
+  const lastPositions = [
+    polylineState.lngLatAltArray[lastPointIndex],
+    polylineState.lngLatAltArray[lastPointIndex + 1],
+    polylineState.lngLatAltArray[lastPointIndex + 2],
+  ];
+  const lastButOnePointIndex = (polylineState.pointCount - 2) * 3;
+  const lastButOnePositions = [
+    polylineState.lngLatAltArray[lastButOnePointIndex],
+    polylineState.lngLatAltArray[lastButOnePointIndex + 1],
+    polylineState.lngLatAltArray[lastButOnePointIndex + 2],
+  ];
+
+  // 计算中点和总距离
+  const midLngLatAlt:LngLatAlt = getSurfaceMidpoint(lastButOnePositions, lastPositions);
+  const totalDistance:number = calculatePolylineTotalLength(polylineState.lngLatAltArray);
+
+  return { midLngLatAlt, totalDistance };
+};
+
 export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
 
   const {
@@ -65,6 +101,14 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
     removeTempSegmentLengthLabel,
     updateTempSegmentLengthLabel
   } = useTempSegmentLengthLabel(viewer);
+
+  const {
+    tempTotalLengthLabel,
+    addTempTotalLengthLabelToViewer,
+    addTempTotalLengthLabelToDataSource,
+    removeTempTotalLengthLabel,
+    updateTempTotalLengthLabel
+  } = useTempTotalLengthLabel(viewer);
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
@@ -93,7 +137,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
     // 复用抽离后的更新逻辑
     updateTempPointLabel(cartesian3);
 
-    const  lngLatAlt:TempPointLabelPositionLngLatAlt  = tempPointLabel.position.lngLatAlt;
+    const lngLatAlt:TempPointLabelPositionLngLatAlt  = tempPointLabel.position.lngLatAlt;
 
     addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
     updateSegmentLengthLabel();
@@ -125,9 +169,11 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
       ]
 
       const distance:number=calculateSurfaceDistance(lastButOnePositions,lastPositions)
-      const position:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
+      const totalDistance:number=calculatePolylineTotalLength(dynamicPolylineState.lngLatAltArray)
+      const lngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
 
-      updateTempSegmentLengthLabel(position,distance)
+      updateTempSegmentLengthLabel(lngLatAlt,distance)
+      updateTempTotalLengthLabel(lngLatAlt,totalDistance)
     }
   }
 
@@ -177,12 +223,6 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   const cloneDynamicPolylineToDataSource=(dataSource)=>{
     const uniqueId:string = generateBizUniqueId('distanceSurveyingPolyline')
 
-    const polylinePositionsLenWhenMouseMove=dynamicPolylineState.lngLatAltArray.length
-    const polylinePointNumCountWhenMouseMove=polylinePositionsLenWhenMouseMove/3
-    if (polylinePointNumCountWhenMouseMove === dynamicPolylineState.pointCount+1) {
-      dynamicPolylineState.lngLatAltArray.splice(dynamicPolylineState.pointCount*3,3)
-    }
-
     // 2. 创建动态位置的CallbackProperty
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
 
@@ -208,6 +248,19 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
     dynamicPolylineState.pointCount = 0;
   }
 
+  /**
+   * 清理鼠标移动时临时追加的坐标点（仅保留用户确认的点）
+   * @param polylineState 动态折线状态
+   */
+  const cleanTempMouseMovePoints = (polylineState: DynamicPolylineState): void => {
+    const polylinePositionsLen:number = polylineState.lngLatAltArray.length;
+    const polylinePointCount:number = polylinePositionsLen / 3;
+    // 若坐标数组长度 = 确认点数 +1（说明有鼠标移动的临时点），则删除最后3个元素
+    if (polylinePointCount === polylineState.pointCount + 1) {
+      polylineState.lngLatAltArray.splice(polylineState.pointCount * 3, 3);
+    }
+  };
+
   let unwatchSpatialSelectForm: () => void
   const setupSpatialSelectFormWatch = (): void => {
     unwatchSpatialSelectForm = watch(
@@ -217,11 +270,13 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
           initActiveDistanceSurvey()
           addTempPointLabelToViewer ()
           addTempSegmentLengthLabelToViewer()
+          addTempTotalLengthLabelToViewer()
         } else {
           cleanupActiveDistanceSurvey()
           resetDynamicPolylineState()
           removeTempPointLabel ()
           removeTempSegmentLengthLabel()
+          removeTempTotalLengthLabel()
         }
       },
       {
@@ -234,9 +289,16 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
     if (dynamicPolylineState.pointCount < 2) {
       return
     }
+
+    cleanTempMouseMovePoints(dynamicPolylineState);
+
     const uniqueId:string = generateBizUniqueId('distanceSurveyingDataSource')
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolylineToDataSource(newDataSource)
+
+    const { midLngLatAlt, totalDistance }:{ midLngLatAlt:LngLatAlt, totalDistance:number } = calculateTotalLengthLabelParams(dynamicPolylineState);
+    addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, totalDistance);
+
     cloneSurveyPointsAndLabelsToDataSource(newDataSource)
 
     distanceSurveyDataSources.push(newDataSource);
@@ -296,6 +358,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolylineState.pointCount--;
       updateSegmentLengthLabel();
+      updateTempTotalLengthLabel();
     }
   };
 
