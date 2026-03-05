@@ -21,8 +21,8 @@ export function useCesiumViewer(containerId = 'cesium-container') {
         })
       ),
       terrain: Cesium.Terrain.fromWorldTerrain({
-        // requestWaterMask: true,
-        // requestVertexNormals:true,
+        requestWaterMask: true,
+        requestVertexNormals:true,
       }),
     })
 

@@ -19,3 +19,9 @@ export type MapBillboardLabelProperties =
   | AirportLabelProperties;
 
 export type AviationSelectedData = AircraftSelectedData | AirportSelectedData | null
+
+export interface LngLatAlt {
+  longitude: number
+  latitude: number
+  height: number
+}

@@ -1,4 +1,4 @@
-// src/views/aviation-situation/composables/useCesiumEvents.ts
+//useCesiumMouseEvents.ts
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
 import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
@@ -12,8 +12,9 @@ import {useSpatialSelectStore} from "@/stores/spatialSelect"
 const spatialSelectStore=useSpatialSelectStore()
 
 import {
-  useDistanceSurveying,
-} from "./event-handlers/useDistanceSurveying"
+  useDistanceSurvey,
+} from "./event-handlers/useDistanceSurvey"
+import { ShallowRef } from 'cesium'
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
@@ -45,15 +46,15 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
 };
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
-export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
+export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   let handler: Cesium.ScreenSpaceEventHandler | null = null
 
   const {
     distanceSurvey,
-    addTempleToDataSourceAndPushCoordToPolyline,
+    confirmSurveyPoint,
     setupSpatialSelectFormWatch,
-    finishDistanceSurveying,
-  }=useDistanceSurveying(viewer)
+    finishDistanceSurvey,
+  }=useDistanceSurvey(viewer)
 
   const initEvents = () => {
     if (!viewer?.value) return
@@ -78,7 +79,7 @@ export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
-            addTempleToDataSourceAndPushCoordToPolyline()
+            confirmSurveyPoint()
           }
         }else if (pickedObject.primitive instanceof Cesium.Billboard) {
           const properties = pickedObject.primitive.properties as MapBillboardLabelProperties
@@ -94,7 +95,7 @@ export const useCesiumMouseEvents = (viewer: Cesium.Viewer | null) => {
     // 右键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
-        finishDistanceSurveying()
+        finishDistanceSurvey()
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 

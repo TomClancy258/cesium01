@@ -1,4 +1,5 @@
-import type { TooltipState } from '@/views/aviation-situation/types/shared'
+//geoUtils.ts
+import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
 
 export function isValidCoordinate(
@@ -135,25 +136,25 @@ export const calculateSurfaceDistance = (pos1: number[], pos2: number[]): number
  * @param pos2 [经度, 纬度, 高度]
  * @returns { lon: number, lat: number, height: number } 返回角度制的经纬度和平均高度
  */
-export const getSurfaceMidpoint = (pos1: number[], pos2: number[]) => {
+export const getSurfaceMidpoint = (pos1: number[], pos2: number[]):LngLatAlt => {
   if (!pos1 || !pos2) return null;
 
-  const ellipsoid = Cesium.Ellipsoid.WGS84;
+  const ellipsoid:Cesium.Ellipsoid = Cesium.Ellipsoid.WGS84;
 
   // 1. 转换为弧度制的 Cartographic
-  const start = Cesium.Cartographic.fromDegrees(pos1[0], pos1[1], pos1[2] || 0);
-  const end = Cesium.Cartographic.fromDegrees(pos2[0], pos2[1], pos2[2] || 0);
+  const start:Cesium.Cartographic = Cesium.Cartographic.fromDegrees(pos1[0], pos1[1], pos1[2] || 0);
+  const end:Cesium.Cartographic = Cesium.Cartographic.fromDegrees(pos2[0], pos2[1], pos2[2] || 0);
 
   // 2. 创建大地测量对象
-  const geodesic = new Cesium.EllipsoidGeodesic(start, end, ellipsoid);
+  const geodesic:Cesium.EllipsoidGeodesic = new Cesium.EllipsoidGeodesic(start, end, ellipsoid);
 
   // 3. 【修正】使用 interpolateUsingFraction 获取中间点
   // 参数 0.5 表示 50% 处 (起点是 0.0, 终点是 1.0)
   // 该方法返回的是 Cartographic (弧度制)
-  const midCartographic = geodesic.interpolateUsingFraction(0.5);
+  const midCartographic:Cesium.Cartographic = geodesic.interpolateUsingFraction(0.5);
 
   // 4. 处理高度 (取两点高度的平均值)
-  const avgHeight = ((pos1[2] || 0) + (pos2[2] || 0)) / 2;
+  const avgHeight:number = ((pos1[2] || 0) + (pos2[2] || 0)) / 2;
 
   // 覆盖高度，因为 interpolateUsingFraction 返回的高度通常是 0 (椭球面)
   midCartographic.height = avgHeight;
@@ -180,7 +181,7 @@ export const formatDistance = (distanceInMeters: number): string => {
   }
 
   // 2. 大于等于 1000 米：转换为千米
-  const km = distanceInMeters / 1000;
+  const km:number = distanceInMeters / 1000;
 
   // 3. 小于 10 千米：保留 2 位小数 (例如 1.25 km)
   if (km < 10) {
@@ -189,4 +190,32 @@ export const formatDistance = (distanceInMeters: number): string => {
 
   // 4. 大于等于 10 千米：保留 1 位小数 (例如 15.3 km)
   return `${km.toFixed(1)} km`;
+};
+
+
+/**
+ * 计算折线总长度（所有线段长度之和）
+ * @param lngLatAltArray 经纬度海拔数组（3个一组）
+ * @returns 总长度（单位和`calculateSurfaceDistance`保持一致）
+ */
+export const calculatePolylineTotalLength = (lngLatAltArray: number[]): number => {
+  let totalLength = 0;
+  // 至少2个点（6个元素）才计算长度
+  if (lngLatAltArray.length < 6) return totalLength;
+
+  // 遍历所有线段，累加长度
+  for (let i = 0; i < lngLatAltArray.length - 3; i += 3) {
+    const startPoint = [
+      lngLatAltArray[i],
+      lngLatAltArray[i + 1],
+      lngLatAltArray[i + 2],
+    ];
+    const endPoint = [
+      lngLatAltArray[i + 3],
+      lngLatAltArray[i + 4],
+      lngLatAltArray[i + 5],
+    ];
+    totalLength += calculateSurfaceDistance(startPoint, endPoint);
+  }
+  return totalLength;
 };
