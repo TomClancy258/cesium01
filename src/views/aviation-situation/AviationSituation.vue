@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { onMounted, provide, ref, onUnmounted, computed } from 'vue'
+import { onMounted, provide, ref, onUnmounted } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
+import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
+import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
 import { useAirports } from './composables/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
@@ -11,7 +13,7 @@ import { useHighlightStore } from '@/stores/highlight'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
-import {clearSelectedHighlight} from "./composables/useHighlightManager"
+import {clearSelectedHighlight} from "./composables/useBillboardHighlightManager"
 
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
@@ -61,9 +63,7 @@ onMounted(async () => {
   simulatedWebSocketStore.open()
 })
 
-const isAltitudeLegendVisible = computed(() => {
-  return highlightStore.selected && highlightStore.selected.sourceType === 'aircraft'
-})
+
 
 onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
@@ -88,12 +88,8 @@ provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
   <!-- 原有模板完全保留 -->
   <div>
     <div id="cesium-container"></div>
-    <img
-      v-show="isAltitudeLegendVisible"
-      src="@/assets/img/map/altitude-legend.svg"
-      class="altitude-legend"
-      alt="高度图例"
-    />
+    <DistanceSurveyHint/>
+    <AltitudeLegend/>
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <DetailDrawer ref="detailDrawerRef" @close="clearSelectedHighlight"/>
@@ -112,13 +108,6 @@ body {
   margin: 0 !important;
 }
 
-.altitude-legend {
-  position: fixed;
-  bottom: 20px;
-  right: 30px;
-  width: 50vw;
-  pointer-events: none;
-}
 </style>
 <style lang="scss">
 body {

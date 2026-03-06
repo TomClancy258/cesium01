@@ -30,7 +30,7 @@ import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
-} from './useHighlightManager'
+} from './useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'

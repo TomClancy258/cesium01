@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+//SpatialSelect.vue
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore = useSpatialSelectStore()
 const operationTypes = [
@@ -7,7 +8,7 @@ const operationTypes = [
     label: '无操作',
   },
   {
-    value: 'distanceSurveying',
+    value: 'distanceSurvey',
     label: '距离测绘',
   },
   {
@@ -45,7 +46,7 @@ const boxSelectionTargets = [
 ]
 
 const operationTypeChange = (val: string): void => {
-  if (val === 'distanceSurveying') {
+  if (val === 'distanceSurvey') {
 
   }
 }

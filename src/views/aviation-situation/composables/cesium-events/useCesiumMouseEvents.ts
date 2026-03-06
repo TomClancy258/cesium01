@@ -11,6 +11,9 @@ import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/airpor
 import {useSpatialSelectStore} from "@/stores/spatialSelect"
 const spatialSelectStore=useSpatialSelectStore()
 
+import {useHighlightStore} from "@/stores/highlight"
+const highlightStore=useHighlightStore()
+
 import {
   useDistanceSurvey,
 } from "./event-handlers/useDistanceSurvey"
@@ -66,7 +69,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 鼠标移动
     handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
       // console.log("MOUSE_MOVE");
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
         distanceSurvey(movement.endPosition)
       }
       mouseMove(movement)
@@ -78,7 +81,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       console.log("pickedObject", pickedObject);
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
-          if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+          if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
             confirmSurveyPoint()
           }
         }else if (pickedObject.primitive instanceof Cesium.Billboard) {
@@ -88,13 +91,19 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
             handleAircraftLeftClick(properties, pickedObject)
           } else if (properties.sourceType === 'airport') {
             handleAirportLeftClick(properties, pickedObject)
+          }else{
+            highlightStore.clearSelected()
+            highlightStore.clearLastSelectedIcao24()
           }
         }
+      }else{
+        highlightStore.clearSelected()
+        highlightStore.clearLastSelectedIcao24()
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
     // 右键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurveying'){
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
         finishDistanceSurvey()
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
@@ -116,12 +125,46 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('mouseWheel')
   }, 500)
 
+  const hovered={
+    sourceType:'',
+    type:'',
+    showEntities:[],
+    entity:null
+  }
   // 鼠标移动（节流）
   const mouseMove = useThrottleFn((movement:Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
     const pickedObject:Cesium.PickedObject | undefined = viewer.value.scene.pick(movement.endPosition);
     if (Cesium.defined(pickedObject) && pickedObject.id) {
       if (pickedObject.id instanceof Cesium.Entity) {
         const entity: Cesium.Entity = pickedObject.id
+        if (!entity.properties) {
+          return
+        }
+        const properties = entity.properties.getValue()
+
+        if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
+          const dataSourceName:string=properties.dataSourceName
+          const dataSources:Cesium.CustomDataSource[]=viewer.value.dataSources.getByName(dataSourceName)
+          if (dataSources.length === 0) {
+            return
+          }
+          const dataSource:Cesium.CustomDataSource=dataSources[0]
+          const values:Cesium.Entity[]=dataSource.entities.values
+          for (let i:number = 2; i < values.length; i++) {
+            values[i].show=true
+            hovered.showEntities[i-2]=values[i]
+          }
+          hovered.sourceType='distanceSurvey'
+          hovered.type='polyline'
+          // hovered.entity=entity
+          // hovered.entity.polyline.material=Cesium.Color.fromCssColorString('#A5F3FC')
+
+          highlightEntityOnHover(entity, {
+            components: [
+              { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
+            ]
+          })
+        }
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {
         const properties: MapBillboardLabelProperties = pickedObject.primitive.properties
         const position:Cesium.Cartesian3 = pickedObject.primitive.position
@@ -141,6 +184,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // clearHoveredHighlight()
       emitCesiumEvent('aircraftLeave');
       emitCesiumEvent('airportLeave');
+
     }
   }, 100)
 

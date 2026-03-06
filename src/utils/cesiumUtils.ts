@@ -14,7 +14,7 @@ export const cloneEntityStyle = (
   // ✅ 修复：使用具体的 Cesium 类型代替 any
   const cloneConfig: Cesium.Entity.ConstructorOptions = {
     id: newEntityId,
-    show: true,
+    show: false,
     position: sourceEntity.position,
   };
 

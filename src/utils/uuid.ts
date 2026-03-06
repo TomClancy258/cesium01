@@ -12,8 +12,8 @@ export const generateUUID = (): string => {
 };
 
 /**
- * 生成带业务前缀的唯一ID（如：distanceSurveying_polyline_1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed）
- * @param prefix 业务前缀（如 'distanceSurveying_polyline'）
+ * 生成带业务前缀的唯一ID（如：distanceSurvey_polyline_1b9d6bcd-bbfd-4b2d-9b5d-ab8dfbbd4bed）
+ * @param prefix 业务前缀（如 'distanceSurvey_polyline'）
  * @returns 带前缀的唯一ID
  */
 export const generateBizUniqueId = (prefix: string): string => {

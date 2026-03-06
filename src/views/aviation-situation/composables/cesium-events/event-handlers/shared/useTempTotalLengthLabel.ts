@@ -5,7 +5,7 @@ import { generateBizUniqueId } from '@/utils/uuid'
 import { calculatePolylineTotalLength, formatDistance } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import { TEMP_POINT_LABEL_STYLE,TEMP_TOTAL_LENGTH_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
-import type {DistanceSurveySession} from "./useDistanceSurvey"
+import type {DistanceSurveySession} from "../useDistanceSurvey"
 import type {TempSegmentLengthLabel} from "./useTempSegmentLengthLabel"
 
 // ========== 新增：线段长度Label通用配置函数 ==========

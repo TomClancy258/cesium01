@@ -5,7 +5,7 @@ import { generateBizUniqueId } from '@/utils/uuid'
 import { formatDistance } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import { TEMP_POINT_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
-import type {DistanceSurveySession} from "./useDistanceSurvey"
+import type {DistanceSurveySession} from "../useDistanceSurvey"
 
 export interface SegmentLengthInfo  {
   distance: number,

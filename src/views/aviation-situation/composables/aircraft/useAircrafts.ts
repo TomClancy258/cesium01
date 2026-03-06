@@ -20,7 +20,7 @@ import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
-} from '../useHighlightManager'
+} from '../useBillboardHighlightManager'
 import { useHighlightStore } from '@/stores/highlight'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
