@@ -25,3 +25,9 @@ export interface LngLatAlt {
   latitude: number
   height: number
 }
+
+export interface MeasurementSelectedData {
+  id:string,
+  type:string,
+  sourceType:string
+}

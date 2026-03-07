@@ -19,11 +19,17 @@ const spatialSelectStore=useSpatialSelectStore()
 import {useHighlightStore} from "@/stores/aviationSelection"
 const highlightStore=useHighlightStore()
 
+import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
+const measurementSelectionStore=useMeasurementSelectionStore()
+
 import {
   useDistanceSurvey,
 } from "./event-handlers/useDistanceSurvey"
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import {
+  clearSelectedEntityHighlight
+} from '@/views/aviation-situation/composables/useEntityHighlightManager'
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
@@ -97,6 +103,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           const properties = entity.properties.getValue() as EntityProperties
           if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
             handleDistanceSurveyLeftClick(viewer,entity,properties)
+          }else{
+            measurementSelectionStore.clearSelected()
+            clearSelectedEntityHighlight()
           }
 
         }else if (pickedObject.primitive instanceof Cesium.Billboard) {
@@ -114,6 +123,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       }else{
         highlightStore.clearSelected()
         highlightStore.clearLastSelectedIcao24()
+
+        measurementSelectionStore.clearSelected()
+        clearSelectedEntityHighlight()
       }
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
     // 右键点击

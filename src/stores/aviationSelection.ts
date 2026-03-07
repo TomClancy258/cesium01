@@ -1,4 +1,4 @@
-// stores/highlight.ts
+// stores/aviationSelection.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'

@@ -7,7 +7,10 @@ import {
   highlightEntityAndSetSelected
 } from '@/views/aviation-situation/composables/useEntityHighlightManager.ts'
 import { ShallowRef } from 'vue'
-// 处理机场 hover
+import type { MeasurementSelectedData } from '@/views/aviation-situation/types/shared'
+import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
+const measurementSelectionStore=useMeasurementSelectionStore()
+
 let showEntities:Cesium.Entity[]=[]
 
 /**
@@ -55,6 +58,10 @@ const showDistanceSurveyEntities = (
 }
 
 export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
+  if (measurementSelectionStore.selected) {
+    return
+  }
+
   showDistanceSurveyEntities(viewer, properties)
 
   highlightEntityOnHover(entity, {
@@ -65,6 +72,9 @@ export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>
 }
 
 export const handleDistanceSurveyLeave = ():void => {
+  if (measurementSelectionStore.selected) {
+    return
+  }
   clearHoveredEntityHighlight()
   for (let i:number = 0; i < showEntities.length; i++) {
     // showEntities[i].show=false
@@ -78,13 +88,18 @@ export const handleDistanceSurveyLeave = ():void => {
     }
   }
 }
-// 处理机场左键点击
+// 处理机场左键点击 TODO selected的showEntities要新建一个，不能和hover的共用
 export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
   showDistanceSurveyEntities(viewer, properties)
-
   highlightEntityAndSetSelected(entity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }
     ]
   })
+  const selected:MeasurementSelectedData={
+    id:entity.id,
+    type:properties.type,
+    sourceType:properties.sourceType,
+  }
+  measurementSelectionStore.setSelected(selected)
 }
