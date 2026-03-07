@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useHighlightStore } from '@/stores/highlight'
+import { useHighlightStore } from '@/stores/aviationSelection'
 
 const highlightStore=useHighlightStore()
 

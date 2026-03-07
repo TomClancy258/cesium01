@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useHighlightStore } from '@/stores/highlight'
+import { useHighlightStore } from '@/stores/aviationSelection'
 const highlightStore = useHighlightStore()
 
 const isAltitudeLegendVisible = computed(() => {

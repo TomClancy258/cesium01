@@ -9,7 +9,7 @@ import { useAirports } from './composables/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
-import { useHighlightStore } from '@/stores/highlight'
+import { useHighlightStore } from '@/stores/aviationSelection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'

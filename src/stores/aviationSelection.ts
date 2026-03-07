@@ -8,8 +8,6 @@ export const useHighlightStore = defineStore('highlight', () => {
 
   // 选中数据（响应式，支撑UI联动）
   const selected = ref<AviationSelectedData>(null)
-  // hover数据（如果UI需要hover联动则加，否则可删除）
-  const hovered = ref<AviationSelectedData>(null)
 
   // ========== 选中相关 ==========
   const clearSelected = (): void => {
@@ -44,29 +42,14 @@ export const useHighlightStore = defineStore('highlight', () => {
     }
   }
 
-  // ========== hover相关（可选，仅UI联动时用） ==========
-  const clearHovered = (): void => {
-    hovered.value = null
-  }
-
-  const setHovered = (
-    data: AviationSelectedData = null
-  ): void => {
-    hovered.value = data
-  }
-
   return {
     // 响应式状态
     selected,
-    hovered,
     lastSelectedIcao24,
     // 方法
     clearSelected,
     setSelected,
     setSelectedPosition,
-
-    clearHovered,
-    setHovered,
 
     clearLastSelectedIcao24,
     setLastSelectedIcao24,

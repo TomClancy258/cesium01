@@ -1,4 +1,4 @@
-//useCesiumMouseEvents.ts
+//src/views/aviation-situation/composables/cesium-events/useCesiumMouseEvents.ts
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
 import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
@@ -7,17 +7,23 @@ import { AircraftBillboardProperties } from '@/views/aviation-situation/types/ai
 
 import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/aircraft-interaction"
 import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/airport-interaction"
+import {
+  handleDistanceSurveyHover,
+  handleDistanceSurveyLeave,
+  handleDistanceSurveyLeftClick
+} from './event-handlers/distanceSurvey-interaction'
 
 import {useSpatialSelectStore} from "@/stores/spatialSelect"
 const spatialSelectStore=useSpatialSelectStore()
 
-import {useHighlightStore} from "@/stores/highlight"
+import {useHighlightStore} from "@/stores/aviationSelection"
 const highlightStore=useHighlightStore()
 
 import {
   useDistanceSurvey,
 } from "./event-handlers/useDistanceSurvey"
 import { ShallowRef } from 'cesium'
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
@@ -78,12 +84,21 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 左键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       const pickedObject = viewer.value.scene.pick(click.position)
-      console.log("pickedObject", pickedObject);
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
             confirmSurveyPoint()
           }
+          const entity: Cesium.Entity = pickedObject.id
+          if (!entity.properties) {
+            return
+          }
+
+          const properties = entity.properties.getValue() as EntityProperties
+          if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
+            handleDistanceSurveyLeftClick(viewer,entity,properties)
+          }
+
         }else if (pickedObject.primitive instanceof Cesium.Billboard) {
           const properties = pickedObject.primitive.properties as MapBillboardLabelProperties
           if (properties.type !== 'billboard') return
@@ -125,12 +140,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('mouseWheel')
   }, 500)
 
-  const hovered={
-    sourceType:'',
-    type:'',
-    showEntities:[],
-    entity:null
-  }
   // 鼠标移动（节流）
   const mouseMove = useThrottleFn((movement:Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
     const pickedObject:Cesium.PickedObject | undefined = viewer.value.scene.pick(movement.endPosition);
@@ -140,30 +149,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         if (!entity.properties) {
           return
         }
-        const properties = entity.properties.getValue()
-
+        const properties = entity.properties.getValue() as EntityProperties
         if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
-          const dataSourceName:string=properties.dataSourceName
-          const dataSources:Cesium.CustomDataSource[]=viewer.value.dataSources.getByName(dataSourceName)
-          if (dataSources.length === 0) {
-            return
-          }
-          const dataSource:Cesium.CustomDataSource=dataSources[0]
-          const values:Cesium.Entity[]=dataSource.entities.values
-          for (let i:number = 2; i < values.length; i++) {
-            values[i].show=true
-            hovered.showEntities[i-2]=values[i]
-          }
-          hovered.sourceType='distanceSurvey'
-          hovered.type='polyline'
-          // hovered.entity=entity
-          // hovered.entity.polyline.material=Cesium.Color.fromCssColorString('#A5F3FC')
-
-          highlightEntityOnHover(entity, {
-            components: [
-              { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
-            ]
-          })
+          handleDistanceSurveyHover(viewer,entity,properties)
         }
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {
         const properties: MapBillboardLabelProperties = pickedObject.primitive.properties
@@ -184,7 +172,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // clearHoveredHighlight()
       emitCesiumEvent('aircraftLeave');
       emitCesiumEvent('airportLeave');
-
+      handleDistanceSurveyLeave()
     }
   }, 100)
 

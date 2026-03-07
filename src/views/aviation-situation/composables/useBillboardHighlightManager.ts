@@ -1,6 +1,6 @@
 // src/views/aviation-situation/composables/useHighlightManager.ts
 import * as Cesium from 'cesium'
-import { useHighlightStore } from '@/stores/highlight'
+import { useHighlightStore } from '@/stores/aviationSelection'
 import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
@@ -25,24 +25,21 @@ export function highlightBillboardOnHover(
   highlightImage: string,
   hoverData: AircraftSelectedData | AirportSelectedData | null = null
 ): void {
-  // 第一步：先恢复上一个hover的图片（无论当前目标是不是选中态，都要清旧hover）
-  if (hoveredBillboard && hoveredBillboard !== selectedBillboard) {
-    restoreBillboardImage(hoveredBillboard)
-    hoveredBillboard = null // 清空旧hover实例
+  // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
+  if (selectedBillboard === billboard) return
+
+  if (hoveredBillboard === billboard) return
+
+  // 还原上一个 hover 项
+  if (hoveredBillboard) {
+    // 若上一个 hover 项未被选中，才恢复默认
+    if (hoveredBillboard !== selectedBillboard) {
+      restoreBillboardImage(hoveredBillboard)
+    }
   }
 
-  // 第二步：判断选中态/重复hover，直接返回（无需设置新hover）
-  if (selectedBillboard === billboard || hoveredBillboard === billboard) {
-    // 同步清空Pinia的hover状态（如果用了的话）
-    // highlightStore.clearHovered()
-    return
-  }
-
-  // 第三步：设置新hover（只有非选中、非重复hover才执行）
   hoveredBillboard = billboard
   billboard.image = highlightImage
-  // 同步Pinia（如果UI需要hover响应式）
-  // highlightStore.setHovered(hoverData)
 }
 
 /**

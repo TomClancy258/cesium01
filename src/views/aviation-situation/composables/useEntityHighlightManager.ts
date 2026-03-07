@@ -54,21 +54,25 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   const props = entity.properties.getValue() as EntityProperties
 
   // 1. 恢复整体显隐状态
-  if (props.originalShow !== undefined) {
-    entity.show = props.originalShow
-  }
+  // if (props.originalShow !== undefined) {
+  //   entity.show = props.originalShow
+  // }
 
   // 2. 恢复所有可能的子组件原始状态（按需扩展，无需频繁改代码）
   const allPossibleComponents: EntityComponent[] = [
-    { type: 'polyline', prop: 'material', value: Cesium.Color.WHITE },
-    { type: 'label', prop: 'fillColor', value: Cesium.Color.WHITE },
-    { type: 'point', prop: 'color', value: Cesium.Color.WHITE },
-    { type: 'polygon', prop: 'material', value: Cesium.Color.WHITE }
+    { type: 'polyline', prop: 'material', value: props.originalPolylineMaterial },
+    { type: 'label', prop: 'fillColor', value: props.originalLabelFillColor },
+    { type: 'point', prop: 'color', value: props.originalPointColor },
+    { type: 'polygon', prop: 'material', value:props.originalPolygonMaterial}
   ]
 
   allPossibleComponents.forEach(component => {
     restoreComponentOriginalState(entity, component)
   })
+
+  // if (props.type === 'polyline') {
+  //   entity.polyline.material=props.originalMaterial
+  // }
 }
 
 /**
@@ -76,16 +80,16 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
  */
 const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightConfig) => {
   if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
+  // const props = entity.properties.getValue() as EntityProperties
 
   // 1. 设置整体显隐
-  if (config.show !== undefined) {
-    // 首次设置时保存原始显隐状态
-    if (props.originalShow === undefined) {
-      props.originalShow = entity.show
-    }
-    entity.show = config.show
-  }
+  // if (config.show !== undefined) {
+  //   // 首次设置时保存原始显隐状态
+  //   if (props.originalShow === undefined) {
+  //     props.originalShow = entity.show
+  //   }
+  //   entity.show = config.show
+  // }
 
   // 2. 设置子组件高亮样式（逐个处理）
   if (config.components && config.components.length > 0) {
@@ -93,7 +97,7 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightC
       // 先保存原始状态（首次高亮时）
       saveComponentOriginalState(entity, component)
       // 设置高亮值
-      const entityComponent = (entity as any)[component.type]
+      const entityComponent = (entity as Cesium.Entity)[component.type]
       if (entityComponent) {
         (entityComponent as any)[component.prop] = component.value
       }
@@ -110,15 +114,17 @@ export function highlightEntityOnHover(
   entity: Cesium.Entity,
   highlightConfig: EntityHighlightConfig
 ): void {
-  // 恢复上一个hover的Entity
-  if (hoveredEntity && hoveredEntity !== selectedEntity) {
-    restoreEntityOriginalState(hoveredEntity)
-    hoveredEntity = null
-  }
+  // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
+  if (selectedEntity === entity) return
 
-  // 选中态/重复hover，直接返回
-  if (selectedEntity === entity || hoveredEntity === entity) {
-    return
+  if (hoveredEntity === entity) return
+
+  // 还原上一个 hover 项
+  if (hoveredEntity) {
+    // 若上一个 hover 项未被选中，才恢复默认
+    if (hoveredEntity !== selectedEntity) {
+      restoreEntityOriginalState(hoveredEntity)
+    }
   }
 
   // 设置新hover高亮

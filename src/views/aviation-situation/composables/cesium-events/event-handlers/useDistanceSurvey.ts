@@ -1,4 +1,4 @@
-// useDistanceSurveying.ts
+// src/views/aviation-situation/composables/cesium-events/event-handlers/useDistanceSurvey.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
@@ -15,6 +15,7 @@ import {
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 interface DynamicPolylineState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
@@ -215,7 +216,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
         sourceType: 'distanceSurvey',
         type: 'polyline',
         dataSourceName: dataSourceUniqueId,
-        originalMaterial:polylineConfig.polyline?.material
+        originalPolylineMaterial:polylineConfig.polyline?.material
       },
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
@@ -239,8 +240,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
         sourceType: 'distanceSurvey',
         type: 'polyline',
         dataSourceName: dataSourceName,
-        originalMaterial:polylineConfig.polyline?.material
-      },
+        originalPolylineMaterial:polylineConfig.polyline?.material
+      } as EntityProperties,
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
   }
@@ -321,12 +322,23 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
         const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId);
+        pointCloneConfig.properties={
+          type:'surveyPoint',
+          sourceType:'distanceSurvey'
+        }
+        pointCloneConfig.label.show=false
+        pointCloneConfig.point.show=false
         dataSource.entities.add(pointCloneConfig);
       }
 
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
         const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId);
+        labelCloneConfig.properties={
+          type:'segmentLengthLabel',
+          sourceType:'distanceSurvey'
+        }
+        labelCloneConfig.label.show=false
         dataSource.entities.add(labelCloneConfig);
       }
     }
@@ -334,6 +346,12 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>) => {
     const lastPointEntity:Cesium.Entity=activeDistanceSurvey.surveyPoints[dynamicPolylineState.pointCount-1]
     if (lastPointEntity) {
       const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId);
+      lastPointCloneConfig.properties={
+        type:'surveyPoint',
+        sourceType:'distanceSurvey'
+      }
+      lastPointCloneConfig.label.show=false
+      lastPointCloneConfig.point.show=false
       dataSource.entities.add(lastPointCloneConfig);
     }
   }

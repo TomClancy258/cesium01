@@ -11,7 +11,7 @@ import type {
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
-import {useHighlightStore} from '@/stores/highlight'
+import {useHighlightStore} from '@/stores/aviationSelection'
 
 const aircraftStore=useAircraftStore()
 

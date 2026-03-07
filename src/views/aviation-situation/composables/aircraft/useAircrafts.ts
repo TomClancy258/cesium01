@@ -21,7 +21,7 @@ import {
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
 } from '../useBillboardHighlightManager'
-import { useHighlightStore } from '@/stores/highlight'
+import { useHighlightStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
 import { useAircraftStore } from '@/stores/aircraft'
