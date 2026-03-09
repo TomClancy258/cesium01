@@ -18,6 +18,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 interface DynamicPolylineState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
   pointCount: number; // 坐标点数量（一组算一个）
+  positions:Cesium.Cartesian3[]
 }
 
 /** 单条距离测绘的完整结构 */
@@ -99,7 +100,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
   const dynamicPolylineState: DynamicPolylineState = {
     lngLatAltArray: [],
-    pointCount: 0
+    pointCount: 0,
+    positions:[]
   };
 
   const distanceSurvey = (position: Cesium.Cartesian2): void => {
@@ -125,6 +127,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       dynamicPolylineState.lngLatAltArray[lastPointIndex]=longitude
       dynamicPolylineState.lngLatAltArray[lastPointIndex+1]=latitude
       dynamicPolylineState.lngLatAltArray[lastPointIndex+2]=height
+
+      dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
     }
   }
 
@@ -156,6 +160,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource (activeDistanceSurvey)
 
     dynamicPolylineState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
+    dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
     dynamicPolylineState.pointCount++
 
     if (dynamicPolylineState.pointCount >= 2) {
@@ -170,11 +175,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     // 2. 创建动态位置的CallbackProperty
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
-        if (dynamicPolylineState.lngLatAltArray.length === 0) {
-          return []
-        }else{
-          return Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
-        }
+          return dynamicPolylineState.positions
       },
       false,
     );
@@ -225,6 +226,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
    */
   const resetDynamicPolylineState = (): void => {
     dynamicPolylineState.lngLatAltArray = [];
+    dynamicPolylineState.positions=[]
     dynamicPolylineState.pointCount = 0;
   }
 
@@ -359,6 +361,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       activeDistanceSurvey.dataSource.entities.remove(labelEntity)
 
       dynamicPolylineState.lngLatAltArray.splice((dynamicPolylineState.pointCount-1) * 3, 3);
+      dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolylineState.pointCount--;
       updateSegmentLengthLabel();

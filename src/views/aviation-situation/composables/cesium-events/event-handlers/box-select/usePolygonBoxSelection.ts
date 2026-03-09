@@ -20,7 +20,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
   pointCount: number; // 坐标点数量（一组算一个）
-  positions: Cesium.Cartesian3[]; // 坐标点数量（一组算一个）
+  polygonHierarchy: Cesium.PolygonHierarchy;
 }
 
 /** 单条距离测绘的完整结构 */
@@ -102,7 +102,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   const dynamicPolygonState: DynamicPolygonState = {
     lngLatAltArray: [],
     pointCount: 0,
-    positions:[]
+    polygonHierarchy:new Cesium.PolygonHierarchy([])
   };
 
   const polygonBoxSelection = (cartesian2: Cesium.Cartesian2): void => {
@@ -128,7 +128,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       dynamicPolygonState.lngLatAltArray[lastPointIndex+1]=latitude
       dynamicPolygonState.lngLatAltArray[lastPointIndex+2]=height
 
-      dynamicPolygonState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+      dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
     }
   }
 
@@ -160,7 +161,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonBoxSelection)
 
     dynamicPolygonState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
-    dynamicPolygonState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+    const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+    dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
     dynamicPolygonState.pointCount++
 
     if (dynamicPolygonState.pointCount >= 2) {
@@ -177,12 +179,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     // 2. 创建动态位置的CallbackProperty
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
-        if (dynamicPolygonState.lngLatAltArray.length === 0) {
-          return new Cesium.PolygonHierarchy([])
-        }else{
-          // 必须返回 PolygonHierarchy 对象
-          return new Cesium.PolygonHierarchy(dynamicPolygonState.positions);
-        }
+          return dynamicPolygonState.polygonHierarchy;
       },
       false,
     );
@@ -233,7 +230,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
    */
   const resetDynamicPolygonState = (): void => {
     dynamicPolygonState.lngLatAltArray = [];
-    dynamicPolygonState.positions = [];
+    dynamicPolygonState.polygonHierarchy = null;
     dynamicPolygonState.pointCount = 0;
   }
 
@@ -358,7 +355,9 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       activePolygonBoxSelection.dataSource.entities.remove(labelEntity)
 
       dynamicPolygonState.lngLatAltArray.splice((dynamicPolygonState.pointCount-1) * 3, 3);
-      dynamicPolygonState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+      dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolygonState.pointCount--;
       updateSegmentLengthLabel();
