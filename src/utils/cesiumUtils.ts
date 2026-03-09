@@ -51,3 +51,14 @@ export const cloneEntityStyle = (
   return cloneConfig;
 };
 
+export const showEntities=(entities:Cesium.Entity[])=>{
+  for (const entity of entities){
+    entity.show = true;
+  }
+}
+
+export const hideEntities=(entities:Cesium.Entity[])=>{
+  for (const entity of entities){
+    entity.show = false;
+  }
+}

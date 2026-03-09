@@ -1,6 +1,6 @@
-// src/views/aviation-situation/constants/cesiumStyleConstants.ts
 import * as Cesium from 'cesium'
 
+// ===================== 通用基础类型（抽离复用） =====================
 /**
  * Label 基础样式类型
  */
@@ -26,15 +26,7 @@ export type CesiumPointStyle = {
 };
 
 /**
- * 临时点标签样式类型
- */
-export type TempPointLabelStyle = {
-  LABEL: CesiumLabelStyle;
-  POINT: CesiumPointStyle;
-};
-
-/**
- * Polyline 基础样式类型（新增：折线样式类型）
+ * Polyline 基础样式类型
  */
 export type CesiumPolylineStyle = {
   WIDTH: number;
@@ -44,12 +36,72 @@ export type CesiumPolylineStyle = {
 };
 
 /**
- * 距离测绘折线样式类型（新增：专属折线样式）
+ * Polygon 基础样式类型（新增：框选多边形专属）
+ */
+export type CesiumPolygonStyle = {
+  OUTLINE_WIDTH: number;
+  OUTLINE_COLOR: Cesium.Color;
+  MATERIAL: Cesium.Color;
+  CLAMP_TO_GROUND: boolean;
+  ARC_TYPE: Cesium.ArcType;
+};
+
+/**
+ * Ellipse（圆形）基础样式类型（新增：框选圆形专属）
+ */
+export type CesiumEllipseStyle = {
+  OUTLINE_WIDTH: number;
+  OUTLINE_COLOR: Cesium.Color;
+  MATERIAL: Cesium.Color;
+  CLAMP_TO_GROUND: boolean;
+  HEIGHT_REFERENCE: Cesium.HeightReference;
+  ARC_TYPE: Cesium.ArcType;
+};
+
+/**
+ * Rectangle（矩形）基础样式类型（新增：框选矩形专属）
+ */
+export type CesiumRectangleStyle = {
+  OUTLINE_WIDTH: number;
+  OUTLINE_COLOR: Cesium.Color;
+  MATERIAL: Cesium.Color;
+  CLAMP_TO_GROUND: boolean;
+  ARC_TYPE: Cesium.ArcType;
+};
+
+// ===================== 业务组合类型（按场景划分） =====================
+/**
+ * 临时点标签样式类型
+ */
+export type TempPointLabelStyle = {
+  LABEL: CesiumLabelStyle;
+  POINT: CesiumPointStyle;
+};
+
+/**
+ * 距离测绘折线样式类型（单一业务场景）
  */
 export type DistanceSurveyPolylineStyle = {
   POLYLINE: CesiumPolylineStyle;
 };
 
+/**
+ * 框选样式类型（包含多图形类型的组合）
+ */
+export type BoxSelectionStyle = {
+  POLYGON: CesiumPolygonStyle;    // 多边形框选
+  RECTANGLE: CesiumRectangleStyle;// 矩形框选
+  ELLIPSE: CesiumEllipseStyle;    // 圆形框选
+};
+
+/**
+ * 总长度标签样式类型（精简复用）
+ */
+export type TempTotalLengthLabelStyle = {
+  LABEL: Pick<CesiumLabelStyle, 'PIXEL_OFFSET'>;
+};
+
+// ===================== 样式常量（独立维护，语义清晰） =====================
 /**
  * 临时点标签样式常量
  */
@@ -73,40 +125,69 @@ export const TEMP_POINT_LABEL_STYLE: TempPointLabelStyle = {
 } as const;
 
 /**
- * 距离测绘折线样式常量（新增：核心折线样式）
+ * 距离测绘折线样式常量（独立维护）
  */
 export const DISTANCE_SURVEY_POLYLINE_STYLE: DistanceSurveyPolylineStyle = {
   POLYLINE: {
-    WIDTH: 3, // 折线宽度
-    MATERIAL: Cesium.Color.fromCssColorString('#38BDF8'), // 折线颜色
-    CLAMP_TO_GROUND: true, // 贴地
-    ARC_TYPE: Cesium.ArcType.GEODESIC // 大地线（贴合地球曲率）
+    WIDTH: 3,
+    MATERIAL: Cesium.Color.fromCssColorString('#38BDF8'),
+    CLAMP_TO_GROUND: true,
+    ARC_TYPE: Cesium.ArcType.GEODESIC
   }
 } as const;
 
+/**
+ * 框选样式常量（独立维护，包含多图形）
+ */
+export const BOX_SELECTION_STYLE: BoxSelectionStyle = {
+  // 多边形框选样式（实时绘制态）
+  POLYGON: {
+    OUTLINE_WIDTH: 2,
+    OUTLINE_COLOR: Cesium.Color.BLUE,
+    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.5),
+    CLAMP_TO_GROUND: true,
+    ARC_TYPE: Cesium.ArcType.GEODESIC
+  },
+  // 矩形框选样式
+  RECTANGLE: {
+    OUTLINE_WIDTH: 2,
+    OUTLINE_COLOR: Cesium.Color.BLUE,
+    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
+    CLAMP_TO_GROUND: true,
+    ARC_TYPE: Cesium.ArcType.GEODESIC
+  },
+  // 圆形框选样式
+  ELLIPSE: {
+    OUTLINE_WIDTH: 2,
+    OUTLINE_COLOR: Cesium.Color.BLUE,
+    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
+    CLAMP_TO_GROUND: true,
+    HEIGHT_REFERENCE: Cesium.HeightReference.CLAMP_TO_GROUND,
+    ARC_TYPE: Cesium.ArcType.GEODESIC
+  }
+} as const;
 
-// 扩展示例：其他样式常量（复用子类型）
+/**
+ * 高亮点标签样式常量（复用基础样式）
+ */
 export const HIGHLIGHT_POINT_LABEL_STYLE: TempPointLabelStyle = {
   LABEL: {
     ...TEMP_POINT_LABEL_STYLE.LABEL,
-    FONT: '16px Verdana', // 放大字体
-    OUTLINE_COLOR: Cesium.Color.RED // 红色描边
+    FONT: '16px Verdana',
+    OUTLINE_COLOR: Cesium.Color.RED
   },
   POINT: {
     ...TEMP_POINT_LABEL_STYLE.POINT,
-    PIXEL_SIZE: 12, // 放大点尺寸
-    COLOR: Cesium.Color.RED // 红色点
+    PIXEL_SIZE: 12,
+    COLOR: Cesium.Color.RED
   }
 } as const;
 
-
-type CesiumTotalLengthLabelStyle = Pick<CesiumLabelStyle, 'PIXEL_OFFSET'>;
-
-export type TempTotalLengthLabelStyle = {
-  LABEL: CesiumTotalLengthLabelStyle;
-};
-export const TEMP_TOTAL_LENGTH_LABEL_STYLE:TempTotalLengthLabelStyle = {
+/**
+ * 临时总长度标签样式常量
+ */
+export const TEMP_TOTAL_LENGTH_LABEL_STYLE: TempTotalLengthLabelStyle = {
   LABEL: {
     PIXEL_OFFSET: new Cesium.Cartesian2(0, -60),
   }
-};
+} as const;

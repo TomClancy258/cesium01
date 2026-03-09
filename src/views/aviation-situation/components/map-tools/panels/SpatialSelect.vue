@@ -12,11 +12,15 @@ const operationTypes = [
     label: '距离测绘',
   },
   {
-    value: 'boxSelect',
+    value: 'boxSelection',
     label: '框选',
   },
 ]
 const boxSelectionSubtypes = [
+  {
+    value: 'none',
+    label: '无操作',
+  },
   {
     value: 'polygon',
     label: '多边形',
@@ -74,7 +78,7 @@ const boxSelectionTargetChange = (): void => {}
           />
         </el-select>
       </el-form-item>
-      <div v-show="spatialSelectStore.spatialSelectForm.operationType === 'boxSelect'">
+      <div v-show="spatialSelectStore.spatialSelectForm.operationType === 'boxSelection'">
         <el-form-item label="框选子类型" prop="boxSelectionSubtype">
           <el-select
             v-model="spatialSelectStore.spatialSelectForm.boxSelectionSubtype"

@@ -9,11 +9,10 @@ import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/airc
 import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/airport-interaction"
 import {
   handleDistanceSurveyHover,
-  handleDistanceSurveyLeave,
   handleDistanceSurveyLeftClick
 } from './event-handlers/distanceSurvey-interaction'
 
-import {useSpatialSelectStore} from "@/stores/spatialSelect"
+import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore=useSpatialSelectStore()
 
 import {useHighlightStore} from "@/stores/aviationSelection"
@@ -25,11 +24,30 @@ const measurementSelectionStore=useMeasurementSelectionStore()
 import {
   useDistanceSurvey,
 } from "./event-handlers/useDistanceSurvey"
+import {
+  usePolygonBoxSelection,
+} from "./event-handlers/box-select/usePolygonBoxSelection.ts"
+
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
+  clearHoveredEntityHighlight,
   clearSelectedEntityHighlight
 } from '@/views/aviation-situation/composables/useEntityHighlightManager'
+
+import {
+  useMouseFollowPointLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useMouseFollowPointLabel'
+
+import {
+  useTempSegmentLengthLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempSegmentLengthLabel'
+
+import {
+  useTempTotalLengthLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempTotalLengthLabel'
+
+import { onUnmounted, watch } from 'vue'
 
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
@@ -63,16 +81,29 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   let handler: Cesium.ScreenSpaceEventHandler | null = null
+  const mouseFollowPointLabelManager = useMouseFollowPointLabel(viewer);
+  const segmentLengthLabelManager = useTempSegmentLengthLabel(viewer);
+  const totalLengthLabelManager = useTempTotalLengthLabel(viewer);
 
   const {
     distanceSurvey,
-    confirmSurveyPoint,
-    setupSpatialSelectFormWatch,
+    confirmSurveyPoint:confirmDistanceSurveySurveyPoint,
+    setupSpatialSelectFormWatch:setupDistanceSurveySpatialFormWatch,
     finishDistanceSurvey,
-  }=useDistanceSurvey(viewer)
+  }=useDistanceSurvey(viewer,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager)
+
+  const {
+    polygonBoxSelection,
+    confirmSurveyPoint:confirmPolygonBoxSelectionSurveyPoint,
+    setupSpatialSelectFormWatch:setupPolygonBoxSelectionSpatialFormWatch,
+    finishPolygonBoxSelection,
+  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager)
 
   const initEvents = () => {
     if (!viewer?.value) return
+    mouseFollowPointLabelManager.addTempPointLabelToViewer()
+    segmentLengthLabelManager.addTempSegmentLengthLabelToViewer()
+    totalLengthLabelManager.addTempTotalLengthLabelToViewer()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -83,6 +114,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // console.log("MOUSE_MOVE");
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
         distanceSurvey(movement.endPosition)
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
+        polygonBoxSelection(movement.endPosition)
       }
       mouseMove(movement)
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
@@ -93,7 +126,10 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
-            confirmSurveyPoint()
+            confirmDistanceSurveySurveyPoint()
+          }
+          if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
+            confirmPolygonBoxSelectionSurveyPoint()
           }
           const entity: Cesium.Entity = pickedObject.id
           if (!entity.properties) {
@@ -132,6 +168,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
         finishDistanceSurvey()
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
+        finishPolygonBoxSelection()
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 
@@ -145,6 +183,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     }, Cesium.ScreenSpaceEventType.LEFT_DOWN)
 
     setupSpatialSelectFormWatch()
+    setupDistanceSurveySpatialFormWatch()
+    setupPolygonBoxSelectionSpatialFormWatch()
   }
 
   // 鼠标滚轮（节流）
@@ -184,7 +224,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // clearHoveredHighlight()
       emitCesiumEvent('aircraftLeave');
       emitCesiumEvent('airportLeave');
-      handleDistanceSurveyLeave()
+      clearHoveredEntityHighlight()
     }
   }, 100)
 
@@ -199,6 +239,32 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     ]
     eventNames.forEach(name => mittBus.off(name))
   }
+
+  let unwatchSpatialSelectForm: () => void
+  const setupSpatialSelectFormWatch = (): void => {
+    unwatchSpatialSelectForm = watch(
+      () => spatialSelectStore.spatialSelectForm,
+      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+        if (newForm.operationType === 'distanceSurvey'||
+          (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype === 'polygon')) {
+          mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
+          segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(true)
+          totalLengthLabelManager.setTempTotalLengthLabelVisibility(true)
+        } else {
+          mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
+          segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(false)
+          totalLengthLabelManager.setTempTotalLengthLabelVisibility(false)
+        }
+      },
+      {
+        deep: true,
+      },
+    )
+  }
+
+  onUnmounted(()=>{
+    unwatchSpatialSelectForm()
+  })
 
   return { initEvents, destroyEvents }
 }

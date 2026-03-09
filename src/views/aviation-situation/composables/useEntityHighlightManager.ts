@@ -1,9 +1,21 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
+import {showEntities,hideEntities} from "@/utils/cesiumUtils"
+
+interface EntityHighlightData{
+  entity:Cesium.Entity|null,
+  showEntities: Cesium.Entity[],
+}
 
 // 仅存储Entity实例（模块单例，非响应式）
-let hoveredEntity: Cesium.Entity | null = null
-let selectedEntity: Cesium.Entity | null = null
+const hovered:EntityHighlightData={
+  entity: null,
+  showEntities:[]
+}
+const selected:EntityHighlightData={
+  entity: null,
+  showEntities:[]
+}
 
 /**
  * 工具方法：生成原始属性的键名（如 polyline+material → originalPolylineMaterial）
@@ -112,24 +124,28 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightC
  */
 export function highlightEntityOnHover(
   entity: Cesium.Entity,
-  highlightConfig: EntityHighlightConfig
+  highlightConfig: EntityHighlightConfig,
+  entities:Cesium.Entity[]
 ): void {
   // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
-  if (selectedEntity === entity) return
+  if (selected.entity === entity) return
 
-  if (hoveredEntity === entity) return
+  if (hovered.entity === entity) return
 
   // 还原上一个 hover 项
-  if (hoveredEntity) {
+  if (hovered.entity) {
     // 若上一个 hover 项未被选中，才恢复默认
-    if (hoveredEntity !== selectedEntity) {
-      restoreEntityOriginalState(hoveredEntity)
+    if (hovered.entity !== selected.entity) {
+      restoreEntityOriginalState(hovered.entity)
+      hideEntities(hovered.showEntities)
     }
   }
 
   // 设置新hover高亮
-  hoveredEntity = entity
+  hovered.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
+  hovered.showEntities=entities
+  showEntities(hovered.showEntities)
 }
 
 /**
@@ -137,30 +153,39 @@ export function highlightEntityOnHover(
  */
 export function highlightEntityAndSetSelected(
   entity: Cesium.Entity,
-  highlightConfig: EntityHighlightConfig
+  highlightConfig: EntityHighlightConfig,
+  entities:Cesium.Entity[]
 ): void {
   // 恢复上一个选中的Entity
-  if (selectedEntity && selectedEntity !== entity) {
-    restoreEntityOriginalState(selectedEntity)
+  if (selected.entity && selected.entity !== entity) {
+    restoreEntityOriginalState(selected.entity)
+    hideEntities(selected.showEntities)
   }
 
   // 清除当前hover
-  if (hoveredEntity === entity) {
-    hoveredEntity = null
+  if (hovered.entity === entity) {
+    hovered.entity = null
+    hovered.showEntities=[]
   }
 
   // 设置选中高亮
-  selectedEntity = entity
+  selected.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
+
+  selected.showEntities=entities
+  showEntities(selected.showEntities)
 }
 
 /**
  * 清除Entity hover高亮
  */
 export function clearHoveredEntityHighlight(): void {
-  if (hoveredEntity && hoveredEntity !== selectedEntity) {
-    restoreEntityOriginalState(hoveredEntity)
-    hoveredEntity = null
+  if (hovered.entity && hovered.entity !== selected.entity) {
+    restoreEntityOriginalState(hovered.entity)
+    hovered.entity = null
+
+    hideEntities(hovered.showEntities)
+    hovered.showEntities=[]
   }
 }
 
@@ -168,9 +193,12 @@ export function clearHoveredEntityHighlight(): void {
  * 清除Entity选中高亮
  */
 export function clearSelectedEntityHighlight(): void {
-  if (selectedEntity) {
-    restoreEntityOriginalState(selectedEntity)
-    selectedEntity = null
+  if (selected.entity) {
+    restoreEntityOriginalState(selected.entity)
+    selected.entity = null
+
+    hideEntities(selected.showEntities)
+    selected.showEntities=[]
   }
 }
 
@@ -184,9 +212,9 @@ export function clearAllEntityHighlight(): void {
 
 // 暴露实例供外部校验
 export function getHoveredEntity(): Cesium.Entity | null {
-  return hoveredEntity
+  return hovered.entity
 }
 
 export function getSelectedEntity(): Cesium.Entity | null {
-  return selectedEntity
+  return selected.entity
 }

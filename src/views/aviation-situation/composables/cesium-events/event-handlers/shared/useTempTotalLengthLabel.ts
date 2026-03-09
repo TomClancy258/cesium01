@@ -127,11 +127,20 @@ export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>
     }
   };
 
+  const setTempTotalLengthLabelVisibility=(visibility:boolean)=>{
+    if(!tempTotalLengthLabel.entity){
+      return
+    }
+    tempTotalLengthLabel.entity.show=visibility
+  }
+
+
   return {
     tempTotalLengthLabel,
     addTempTotalLengthLabelToViewer,
     addTempTotalLengthLabelToDataSource,
     removeTempTotalLengthLabel,
     updateTempTotalLengthLabel,
+    setTempTotalLengthLabelVisibility,
   };
 };

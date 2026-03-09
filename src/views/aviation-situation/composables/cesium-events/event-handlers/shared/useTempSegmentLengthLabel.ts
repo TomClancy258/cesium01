@@ -148,11 +148,19 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
     }
   };
 
+  const setTempSegmentLengthLabelVisibility=(visibility:boolean)=>{
+    if(!tempSegmentLengthLabel.entity){
+      return
+    }
+    tempSegmentLengthLabel.entity.show=visibility
+  }
+
   return {
     tempSegmentLengthLabel,
     addTempSegmentLengthLabelToViewer,
     addTempSegmentLengthLabelToDataSource,
     removeTempSegmentLengthLabel,
     updateTempSegmentLengthLabel,
+    setTempSegmentLengthLabelVisibility,
   };
 };

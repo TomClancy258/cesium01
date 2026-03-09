@@ -91,6 +91,13 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
     });
   };
 
+  const setTempPointLabelVisibility=(visibility:boolean)=>{
+    if (!tempPointLabel.entity) {
+      return
+    }
+    tempPointLabel.entity.show=visibility;
+  }
+
   // 添加临时坐标标签到自定义数据源
   const addTempPointLabelToDataSource  = (
     currentDistanceSurveying
@@ -151,5 +158,6 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
     addTempPointLabelToDataSource ,
     removeTempPointLabel ,
     updateTempPointLabel,
+    setTempPointLabelVisibility,
   };
 };
