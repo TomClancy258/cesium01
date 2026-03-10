@@ -16,6 +16,9 @@ import {
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import * as turf from '@turf/turf';
+
+import {useDynamicSegmentLengthLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentLengthLabel'
 
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
@@ -61,31 +64,35 @@ const createDynamicPolygonConfig = (
  * @returns 总长度标签参数 { midpoint: LngLatAlt, totalDistance: number }
  */
 const calculateTotalLengthLabelParams = (polygonState: DynamicPolygonState): {
-  midLngLatAlt: LngLatAlt;
-  totalDistance: number;
+  centerCoord: any;
+  perimeter: number;
+  area: number;
 } => {
-  // 取最后两个确认点计算中点（总长度标签贴在最后一段线段中点）
-  const lastPointIndex = (polygonState.pointCount - 1) * 3;
-  const lastPositions = [
-    polygonState.lngLatAltArray[lastPointIndex],
-    polygonState.lngLatAltArray[lastPointIndex + 1],
-    polygonState.lngLatAltArray[lastPointIndex + 2],
-  ];
-  const lastButOnePointIndex = (polygonState.pointCount - 2) * 3;
-  const lastButOnePositions = [
-    polygonState.lngLatAltArray[lastButOnePointIndex],
-    polygonState.lngLatAltArray[lastButOnePointIndex + 1],
-    polygonState.lngLatAltArray[lastButOnePointIndex + 2],
-  ];
 
-  // 计算中点和总距离
-  const midLngLatAlt:LngLatAlt = getSurfaceMidpoint(lastButOnePositions, lastPositions);
-  const totalDistance:number = calculatePolylineTotalLength(polygonState.lngLatAltArray);
+  const perimeterLngLatAltArray:number[]=[...polygonState.lngLatAltArray,polygonState.lngLatAltArray[0],polygonState.lngLatAltArray[1],polygonState.lngLatAltArray[2]]
+  const perimeter:number = calculatePolylineTotalLength(perimeterLngLatAltArray);
 
-  return { midLngLatAlt, totalDistance };
+  const coords=[]
+  for (let i = 0; i < polygonState.pointCount; i++) {
+    const index=i*3
+    coords[i]=[polygonState.lngLatAltArray[index],polygonState.lngLatAltArray[index+1]]
+  }
+
+  const polygon = turf.polygon([coords]); // 注意嵌套：polygon([[...]])
+
+  const area = turf.area(polygon); // 单位：平方米
+
+// 获取 Label 位置（推荐 centerOfMass，避免 centroid 落在外面）
+  const center = turf.centerOfMass(polygon);
+  const centerCoord = center.geometry.coordinates;
+
+  return { centerCoord,perimeter,area};
 };
 
-export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager) => {
+export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,totalLengthLabelManager) => {
+
+  const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastButOnePolygonBoxSelectionDynamicSegmentLengthLabel')
+  const lastDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastPolygonBoxSelectionDynamicSegmentLengthLabel')
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
@@ -122,7 +129,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const addDynamicLineSegment = (longitude:number,latitude:number,height:number) => {
-    if (dynamicPolygonState.lngLatAltArray.length>0) {
+    if (dynamicPolygonState.pointCount>=2) {
       const lastPointIndex:number=dynamicPolygonState.pointCount*3
       dynamicPolygonState.lngLatAltArray[lastPointIndex]=longitude
       dynamicPolygonState.lngLatAltArray[lastPointIndex+1]=latitude
@@ -134,7 +141,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const updateSegmentLengthLabel = () => {
-    if (dynamicPolygonState.lngLatAltArray.length>=2) {
+    if (dynamicPolygonState.pointCount>=2) {
       const lastPointIndex:number=dynamicPolygonState.pointCount*3
       const lastPositions:number[]=[
         dynamicPolygonState.lngLatAltArray[lastPointIndex],
@@ -148,12 +155,24 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         dynamicPolygonState.lngLatAltArray[lastButOnePointIndex+2],
       ]
 
-      const distance:number=calculateSurfaceDistance(lastButOnePositions,lastPositions)
-      const totalDistance:number=calculatePolylineTotalLength(dynamicPolygonState.lngLatAltArray)
-      const lngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
+      const firstPositions:number[]=[
+        dynamicPolygonState.lngLatAltArray[0],
+        dynamicPolygonState.lngLatAltArray[1],
+        dynamicPolygonState.lngLatAltArray[2],
+      ]
 
-      segmentLengthLabelManager.updateTempSegmentLengthLabel(lngLatAlt,distance)
-      totalLengthLabelManager.updateTempTotalLengthLabel(lngLatAlt,totalDistance)
+      const lastButOneDistance:number=calculateSurfaceDistance(lastButOnePositions,lastPositions)
+      const lastButOneSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
+      lastButOneDynamicSegmentLengthLabel.updateTempSegmentLengthLabel(lastButOneSegmentMidLngLatAlt,lastButOneDistance)
+
+      const lastDistance:number=calculateSurfaceDistance(firstPositions,lastPositions)
+      const lastSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(firstPositions,lastPositions)
+      lastDynamicSegmentLengthLabel.updateTempSegmentLengthLabel(lastSegmentMidLngLatAlt,lastDistance)
+
+
+      const obj=calculateTotalLengthLabelParams(dynamicPolygonState)
+      totalLengthLabelManager.updateTempTotalLengthLabel(lngLatAlt,obj.perimeter)
+
     }
   }
 
@@ -166,7 +185,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     dynamicPolygonState.pointCount++
 
     if (dynamicPolygonState.pointCount >= 2) {
-      segmentLengthLabelManager.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection)
+      lastButOneDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection)
     }
   }
 

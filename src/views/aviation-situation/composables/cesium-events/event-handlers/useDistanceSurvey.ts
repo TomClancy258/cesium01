@@ -14,12 +14,7 @@ import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
-
-interface DynamicPolylineState {
-  lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
-  pointCount: number; // 坐标点数量（一组算一个）
-  positions:Cesium.Cartesian3[]
-}
+import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -59,10 +54,7 @@ const createDynamicPolylineConfig = (
  * @param polylineState 动态折线状态
  * @returns 总长度标签参数 { midpoint: LngLatAlt, totalDistance: number }
  */
-const calculateTotalLengthLabelParams = (polylineState: DynamicPolylineState): {
-  midLngLatAlt: LngLatAlt;
-  totalDistance: number;
-} => {
+const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): LngLatAlt=> {
   // 取最后两个确认点计算中点（总长度标签贴在最后一段线段中点）
   const lastPointIndex = (polylineState.pointCount - 1) * 3;
   const lastPositions = [
@@ -77,11 +69,9 @@ const calculateTotalLengthLabelParams = (polylineState: DynamicPolylineState): {
     polylineState.lngLatAltArray[lastButOnePointIndex + 2],
   ];
 
-  // 计算中点和总距离
   const midLngLatAlt:LngLatAlt = getSurfaceMidpoint(lastButOnePositions, lastPositions);
-  const totalDistance:number = calculatePolylineTotalLength(polylineState.lngLatAltArray);
 
-  return { midLngLatAlt, totalDistance };
+  return midLngLatAlt
 };
 
 export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager) => {
@@ -122,7 +112,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const addDynamicLineSegment = (longitude:number,latitude:number,height:number) => {
-    if (dynamicPolylineState.lngLatAltArray.length>0) {
+    if (dynamicPolylineState.pointCount>=1) {
       const lastPointIndex:number=dynamicPolylineState.pointCount*3
       dynamicPolylineState.lngLatAltArray[lastPointIndex]=longitude
       dynamicPolylineState.lngLatAltArray[lastPointIndex+1]=latitude
@@ -133,7 +123,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const updateSegmentLengthLabel = () => {
-    if (dynamicPolylineState.lngLatAltArray.length>=2) {
+    if (dynamicPolylineState.pointCount>=1) {
       const lastPointIndex:number=dynamicPolylineState.pointCount*3
       const lastPositions:number[]=[
         dynamicPolylineState.lngLatAltArray[lastPointIndex],
@@ -157,7 +147,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const confirmSurveyPoint = () => {
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource (activeDistanceSurvey)
+    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activeDistanceSurvey)
 
     dynamicPolylineState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
@@ -282,8 +272,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolylineToDataSource(newDataSource,uniqueId)
 
-    const { midLngLatAlt, totalDistance }:{ midLngLatAlt:LngLatAlt, totalDistance:number } = calculateTotalLengthLabelParams(dynamicPolylineState);
-    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, totalDistance,uniqueId);
+    const midLngLatAlt:LngLatAlt = getLastLineSegmentMidLngLatAlt(dynamicPolylineState);
+    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray);
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 

@@ -12,13 +12,18 @@ import { isValidCoordinate } from '@/utils/geoUtils'
 import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
 import {useHighlightStore} from '@/stores/aviationSelection'
+import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 
 const aircraftStore=useAircraftStore()
 
 export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) {
   const highlightStore = useHighlightStore()
 
-  let aircraftPlannedTrajectoryPositions: number[] = []
+  const aircraftPlannedTrajectoryState:DynamicPolylineState={
+    lngLatAltArray:[],
+    positions:[],
+    pointCount:0
+  }
   let aircraftPlannedWaypoints: RoutePoint[] = []
 
   const initPlannedTrajectory=():void=>{
@@ -90,11 +95,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
     // 避免重复创建
     if (!(plannedTrajectoryEntity.polyline.positions instanceof Cesium.CallbackProperty)) {
       plannedTrajectoryEntity.polyline.positions = new Cesium.CallbackProperty(() => {
-        console.log('callback')
-        if (aircraftPlannedTrajectoryPositions.length === 0) {
-          return []
-        }
-        return Cesium.Cartesian3.fromDegreesArrayHeights(aircraftPlannedTrajectoryPositions)
+        return aircraftPlannedTrajectoryState.positions
       }, false)
     }
   }
@@ -125,7 +126,8 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
    * 重置计划轨迹
    */
   const resetAircraftPlannedTrajectory = (): void => {
-    aircraftPlannedTrajectoryPositions = []
+    aircraftPlannedTrajectoryState.lngLatAltArray = []
+    aircraftPlannedTrajectoryState.positions=[]
     const planned:SelectedAircraftPlanned=aircraftGraphic.primitives.selectedAircraft.planned
 
     if (planned.trajectoryPolylineEntity) {
@@ -141,17 +143,18 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
     const entity:Cesium.Entity|null = aircraftGraphic.primitives.selectedAircraft.planned.trajectoryPolylineEntity
     if (!entity) return
 
-    const positions: number[] = []
+    const lngLatAltArray: number[] = []
     // 过滤有效坐标
     routeData.forEach(point => {
       if (isValidCoordinate(point.longitude, point.latitude, point.baroAltitude)) {
-        positions.push(point.longitude, point.latitude, point.baroAltitude)
+        lngLatAltArray.push(point.longitude, point.latitude, point.baroAltitude)
       }
     })
 
     // 更新坐标并显示
-    if (positions.length >= 6) { // 至少2个点（每个点3个值：经纬度高）
-      aircraftPlannedTrajectoryPositions = positions
+    if (lngLatAltArray.length >= 6) { // 至少2个点（每个点3个值：经纬度高）
+      aircraftPlannedTrajectoryState.lngLatAltArray = lngLatAltArray
+      aircraftPlannedTrajectoryState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(aircraftPlannedTrajectoryState.lngLatAltArray)
     } else {
       resetAircraftPlannedTrajectory()
     }

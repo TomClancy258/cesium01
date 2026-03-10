@@ -1,12 +1,32 @@
-// useTempTotalLengthLabel.ts
+// useTempPerimeterAndAreaLabel.ts
 import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { calculatePolylineTotalLength, formatDistance } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import { TEMP_POINT_LABEL_STYLE,TEMP_TOTAL_LENGTH_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
-import type {DistanceSurveySession} from "../useDistanceSurvey"
-import type {TempSegmentLengthLabel} from "./useTempSegmentLengthLabel"
+
+export interface PerimeterInfo {
+  perimeter: number;
+  formattedPerimeterStr: string;
+}
+
+export interface AreaInfo {
+  area: number;
+  formattedAreaStr: string;
+}
+
+export interface TempPerimeterAndAreaLabelPosition {
+  cartesian3: Cesium.Cartesian3 | null;
+  lngLatAlt: LngLatAlt;
+}
+
+export interface TempPerimeterAndAreaLabel {
+  entity: Cesium.Entity | null;
+  position: TempPerimeterAndAreaLabelPosition;
+  perimeterInfo: PerimeterInfo;
+  areaInfo: AreaInfo;
+}
 
 // ========== 新增：线段长度Label通用配置函数 ==========
 /**
@@ -39,46 +59,51 @@ const createTotalLengthLabelConfig = (
   return baseConfig;
 };
 
-export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
+export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   // 初始化临时坐标标签
-  const tempTotalLengthLabel: TempSegmentLengthLabel  = {
+  const tempPerimeterAndAreaLabel: TempPerimeterAndAreaLabel  = {
     entity: null,
     position: {
       cartesian3: null,
       lngLatAlt: { longitude: 0, latitude: 0, height: 0 },
     },
-    lengthInfo:{
-      distance:0,
-      formattedDistanceStr:'',
-    }
+    perimeterInfo:{
+      perimeter:0,
+      formattedPerimeterStr:'',
+    },
+    areaInfo:{
+      area:0,
+      formattedAreaStr:'',
+    },
   };
 
   // 添加临时坐标标签到 viewer
-  const addTempTotalLengthLabelToViewer = ():void => {
+  const addTempPerimeterAndAreaLabelToViewer = ():void => {
     if (!viewer.value) return;
 // 1. 创建动态文本的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
-      return `总长度：${tempTotalLengthLabel.lengthInfo.formattedDistanceStr}`;
+      return `周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n
+      面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
     }, false);
 
     // 2. 创建动态位置的CallbackProperty
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): Cesium.Cartesian3 => {
-      return tempTotalLengthLabel.position.cartesian3 as Cesium.Cartesian3;
+      return tempPerimeterAndAreaLabel.position.cartesian3 as Cesium.Cartesian3;
     }, false);
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
     const labelConfig:Cesium.Entity.ConstructorOptions = createTotalLengthLabelConfig(textCallback, positionCallback);
 
     // 4. 组装实体并添加
-    tempTotalLengthLabel.entity = viewer.value.entities.add({
-      id: 'tempTotalLengthLabel',
+    tempPerimeterAndAreaLabel.entity = viewer.value.entities.add({
+      id: 'tempPerimeterAndAreaLabel',
       show: false,
       ...labelConfig, // 复用通用样式，消除重复代码
     });
   };
 
   // 添加临时坐标标签到自定义数据源
-  const addTempTotalLengthLabelToDataSource = (
+  const addTempPerimeterAndAreaLabelToDataSource = (
     dataSource:Cesium.CustomDataSource,
     lngLatAlt:LngLatAlt,
     lngLatAltArray:number[],
@@ -86,7 +111,7 @@ export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>
     if (lngLatAltArray.length===0 || !lngLatAlt) return;
     const totalDistance:number = calculatePolylineTotalLength(lngLatAltArray);
 
-    const uniqueId:string = generateBizUniqueId('tempTotalLengthLabel');
+    const uniqueId:string = generateBizUniqueId('tempPerimeterAndAreaLabel');
     const formattedTotalDistanceStr:number=formatDistance(totalDistance)
 
     // 1. 生成静态文本
@@ -107,42 +132,42 @@ export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>
   };
 
   // 清除临时坐标标签
-  const removeTempTotalLengthLabel = ():void => {
-    viewer.value?.entities.removeById('tempTotalLengthLabel');
-    tempTotalLengthLabel.entity = null;
+  const removeTempPerimeterAndAreaLabel = ():void => {
+    viewer.value?.entities.removeById('tempPerimeterAndAreaLabel');
+    tempPerimeterAndAreaLabel.entity = null;
   };
 
   // 更新临时坐标标签的位置和数据
-  const updateTempTotalLengthLabel = (lngLatAlt,distance):void => {
+  const updateTempPerimeterAndAreaLabel = (lngLatAlt,distance):void => {
     if (!lngLatAlt) return;
     const cartesian3:Cesium.Cartesian3=Cesium.Cartesian3.fromDegrees(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
 
-    tempTotalLengthLabel.position.cartesian3 = cartesian3;
+    tempPerimeterAndAreaLabel.position.cartesian3 = cartesian3;
     // 转换坐标
-    tempTotalLengthLabel.position.lngLatAlt = lngLatAlt;
-    tempTotalLengthLabel.lengthInfo.distance = distance;
-    tempTotalLengthLabel.lengthInfo.formattedDistanceStr = formatDistance(distance);
+    tempPerimeterAndAreaLabel.position.lngLatAlt = lngLatAlt;
+    tempPerimeterAndAreaLabel.lengthInfo.distance = distance;
+    tempPerimeterAndAreaLabel.lengthInfo.formattedDistanceStr = formatDistance(distance);
 
     // 显示标签
-    if (tempTotalLengthLabel.entity && !tempTotalLengthLabel.entity.show) {
-      tempTotalLengthLabel.entity.show = true;
+    if (tempPerimeterAndAreaLabel.entity && !tempPerimeterAndAreaLabel.entity.show) {
+      tempPerimeterAndAreaLabel.entity.show = true;
     }
   };
 
-  const setTempTotalLengthLabelVisibility=(visibility:boolean)=>{
-    if(!tempTotalLengthLabel.entity){
+  const setTempPerimeterAndAreaLabelVisibility=(visibility:boolean)=>{
+    if(!tempPerimeterAndAreaLabel.entity){
       return
     }
-    tempTotalLengthLabel.entity.show=visibility
+    tempPerimeterAndAreaLabel.entity.show=visibility
   }
 
 
   return {
-    tempTotalLengthLabel,
-    addTempTotalLengthLabelToViewer,
-    addTempTotalLengthLabelToDataSource,
-    removeTempTotalLengthLabel,
-    updateTempTotalLengthLabel,
-    setTempTotalLengthLabelVisibility,
+    tempPerimeterAndAreaLabel,
+    addTempPerimeterAndAreaLabelToViewer,
+    addTempPerimeterAndAreaLabelToDataSource,
+    removeTempPerimeterAndAreaLabel,
+    updateTempPerimeterAndAreaLabel,
+    setTempPerimeterAndAreaLabelVisibility,
   };
 };

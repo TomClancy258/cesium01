@@ -97,7 +97,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmPolygonBoxSelectionSurveyPoint,
     setupSpatialSelectFormWatch:setupPolygonBoxSelectionSpatialFormWatch,
     finishPolygonBoxSelection,
-  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager)
+  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,totalLengthLabelManager)
 
   const initEvents = () => {
     if (!viewer?.value) return
