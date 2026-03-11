@@ -9,6 +9,7 @@ export type EntityComponent =
 
 // Entity属性类型（按组件分类保存原始值）
 export interface EntityProperties {
+  operationType:string,
   sourceType: string; // distanceSurvey/xxx
   type: string; // polyline/polygon/label/point （Entity整体类型）
   dataSourceName?: string;

@@ -144,7 +144,7 @@ export const BOX_SELECTION_STYLE: BoxSelectionStyle = {
   POLYGON: {
     OUTLINE_WIDTH: 2,
     OUTLINE_COLOR: Cesium.Color.BLUE,
-    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.5),
+    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
     CLAMP_TO_GROUND: true,
     ARC_TYPE: Cesium.ArcType.GEODESIC
   },

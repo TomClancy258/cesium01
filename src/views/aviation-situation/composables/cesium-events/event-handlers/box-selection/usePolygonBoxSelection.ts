@@ -6,7 +6,6 @@ import { generateBizUniqueId } from '@/utils/uuid'
 import { type TempPointLabelPositionLngLatAlt } from '../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../useKeyboardEvents';
 import {
-  calculatePolylineTotalLength,
   calculateSurfaceDistance,
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
@@ -14,9 +13,9 @@ import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
-import {cloneEntityStyle} from "@/utils/cesiumUtils"
+import { cloneEntityStyle } from '@/utils/cesiumUtils'
+import { getPolygon } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
-import * as turf from '@turf/turf';
 
 import {useDynamicSegmentLengthLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentLengthLabel'
 
@@ -57,39 +56,7 @@ const createDynamicPolygonConfig = (
   return baseConfig;
 };
 
-// usePolygonBoxSelection.ts 中新增函数
-/**
- * 计算总长度标签所需的参数（位置 + 总距离）
- * @param polygonState 动态折线状态
- * @returns 总长度标签参数 { midpoint: LngLatAlt, totalDistance: number }
- */
-const calculateTotalLengthLabelParams = (polygonState: DynamicPolygonState): {
-  centerCoord: any;
-  perimeter: number;
-  area: number;
-} => {
-
-  const perimeterLngLatAltArray:number[]=[...polygonState.lngLatAltArray,polygonState.lngLatAltArray[0],polygonState.lngLatAltArray[1],polygonState.lngLatAltArray[2]]
-  const perimeter:number = calculatePolylineTotalLength(perimeterLngLatAltArray);
-
-  const coords=[]
-  for (let i = 0; i < polygonState.pointCount; i++) {
-    const index=i*3
-    coords[i]=[polygonState.lngLatAltArray[index],polygonState.lngLatAltArray[index+1]]
-  }
-
-  const polygon = turf.polygon([coords]); // 注意嵌套：polygon([[...]])
-
-  const area = turf.area(polygon); // 单位：平方米
-
-// 获取 Label 位置（推荐 centerOfMass，避免 centroid 落在外面）
-  const center = turf.centerOfMass(polygon);
-  const centerCoord = center.geometry.coordinates;
-
-  return { centerCoord,perimeter,area};
-};
-
-export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,totalLengthLabelManager) => {
+export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,perimeterAndAreaLabel) => {
 
   const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastButOnePolygonBoxSelectionDynamicSegmentLengthLabel')
   const lastDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastPolygonBoxSelectionDynamicSegmentLengthLabel')
@@ -129,7 +96,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const addDynamicLineSegment = (longitude:number,latitude:number,height:number) => {
-    if (dynamicPolygonState.pointCount>=2) {
+    if (dynamicPolygonState.pointCount>=1) {
       const lastPointIndex:number=dynamicPolygonState.pointCount*3
       dynamicPolygonState.lngLatAltArray[lastPointIndex]=longitude
       dynamicPolygonState.lngLatAltArray[lastPointIndex+1]=latitude
@@ -141,7 +108,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const updateSegmentLengthLabel = () => {
-    if (dynamicPolygonState.pointCount>=2) {
+    if (dynamicPolygonState.pointCount>=1) {
+      console.log("dynamicPolygonState.pointCount", dynamicPolygonState.pointCount);
       const lastPointIndex:number=dynamicPolygonState.pointCount*3
       const lastPositions:number[]=[
         dynamicPolygonState.lngLatAltArray[lastPointIndex],
@@ -165,14 +133,14 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       const lastButOneSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
       lastButOneDynamicSegmentLengthLabel.updateTempSegmentLengthLabel(lastButOneSegmentMidLngLatAlt,lastButOneDistance)
 
-      const lastDistance:number=calculateSurfaceDistance(firstPositions,lastPositions)
-      const lastSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(firstPositions,lastPositions)
-      lastDynamicSegmentLengthLabel.updateTempSegmentLengthLabel(lastSegmentMidLngLatAlt,lastDistance)
+      if (dynamicPolygonState.pointCount>=2) {
+        const lastDistance:number=calculateSurfaceDistance(firstPositions,lastPositions)
+        const lastSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(firstPositions,lastPositions)
+        lastDynamicSegmentLengthLabel.updateTempSegmentLengthLabel(lastSegmentMidLngLatAlt,lastDistance)
 
-
-      const obj=calculateTotalLengthLabelParams(dynamicPolygonState)
-      totalLengthLabelManager.updateTempTotalLengthLabel(lngLatAlt,obj.perimeter)
-
+        const polygon=getPolygon(dynamicPolygonState.lngLatAltArray)
+        perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
+      }
     }
   }
 
@@ -193,6 +161,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     const dataSourceUniqueId:string = generateBizUniqueId('activePolygonBoxSelection')
     activePolygonBoxSelection.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
 
+    addTempSegmentLengthLabels()
+
     // dynamicPolygonState.positions = Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray);
 
     // 2. 创建动态位置的CallbackProperty
@@ -211,6 +181,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     activePolygonBoxSelection.dynamicPolygon = activePolygonBoxSelection.dataSource.entities.add({
       id: polygonUniqueId,
       properties: {
+        operationType:'boxSelection',
         sourceType: 'polygonBoxSelection',
         type: 'polygon',
         dataSourceName: dataSourceUniqueId,
@@ -223,7 +194,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const cloneDynamicPolygonToDataSource=(dataSource,dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('polygonBoxSelectionPolyline')
+    const uniqueId:string = generateBizUniqueId('polygonBoxSelectionPolygon')
 
     // 2. 创建动态位置的CallbackProperty
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
@@ -235,6 +206,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     dataSource.entities.add({
       id: uniqueId,
       properties: {
+        operationType:'boxSelection',
         sourceType: 'polygonBoxSelection',
         type: 'polygon',
         dataSourceName: dataSourceName,
@@ -263,6 +235,9 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     // 若坐标数组长度 = 确认点数 +1（说明有鼠标移动的临时点），则删除最后3个元素
     if (polygonPointCount === polygonState.pointCount + 1) {
       polygonState.lngLatAltArray.splice(polygonState.pointCount * 3, 3);
+
+      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(polygonState.lngLatAltArray)
+      polygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
     }
   };
 
@@ -274,6 +249,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         if (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype === 'polygon') {
           initActivePolygonBoxSelection()
         } else {
+          removeTempSegmentLengthLabels()
           cleanupActivePolygonBoxSelection()
           resetDynamicPolygonState()
         }
@@ -285,7 +261,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const finishPolygonBoxSelection=(): void => {
-    if (dynamicPolygonState.pointCount < 2) {
+    if (dynamicPolygonState.pointCount <=2) {
       return
     }
 
@@ -293,19 +269,29 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     const uniqueId:string = generateBizUniqueId('polygonBoxSelectionDataSource')
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
-    cloneDynamicPolygonToDataSource(newDataSource,uniqueId)
+    cloneDynamicPolygonToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const { midLngLatAlt, totalDistance }:{ midLngLatAlt:LngLatAlt, totalDistance:number } = calculateTotalLengthLabelParams(dynamicPolygonState);
-    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, totalDistance,uniqueId);
+    const properties:EntityProperties={
+      operationType:'boxSelection',
+      sourceType:'polygonBoxSelection',
+      type:'perimeterAndAreaLabel',
+      dataSourceName:uniqueId,
+    }
 
+    const polygon=getPolygon(dynamicPolygonState.lngLatAltArray)
+    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,properties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
+
+    lastDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection,false)
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
     polygonBoxSelectionDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
     spatialSelectStore.setOperationType('none');
+
+    console.log("newDataSource.entities.values", newDataSource.entities.values);
   }
 
-  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource):void=>{
+  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
     for (let i:number = 0; i < activePolygonBoxSelection.segmentLengthLabels.length; i++) {
       const oldPointEntity:Cesium.Entity = activePolygonBoxSelection.surveyPoints[i];
       const oldLabelEntity:Cesium.Entity = activePolygonBoxSelection.segmentLengthLabels[i];
@@ -317,7 +303,9 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId);
         pointCloneConfig.properties={
           type:'surveyPoint',
-          sourceType:'polygonBoxSelection'
+          sourceType:'polygonBoxSelection',
+          operationType:'boxSelection',
+          dataSourceName:uniqueId,
         }
         // pointCloneConfig.label.show=false
         // pointCloneConfig.point.show=false
@@ -330,25 +318,14 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId);
         labelCloneConfig.properties={
           type:'segmentLengthLabel',
-          sourceType:'polygonBoxSelection'
+          sourceType:'polygonBoxSelection',
+          operationType:'boxSelection',
+          dataSourceName:uniqueId,
         }
         // labelCloneConfig.label.show=false
         labelCloneConfig.show=false
         dataSource.entities.add(labelCloneConfig);
       }
-    }
-    const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
-    const lastPointEntity:Cesium.Entity=activePolygonBoxSelection.surveyPoints[dynamicPolygonState.pointCount-1]
-    if (lastPointEntity) {
-      const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId);
-      lastPointCloneConfig.properties={
-        type:'surveyPoint',
-        sourceType:'polygonBoxSelection'
-      }
-      // lastPointCloneConfig.label.show=false
-      // lastPointCloneConfig.point.show=false
-      lastPointCloneConfig.show=false
-      dataSource.entities.add(lastPointCloneConfig);
     }
   }
 
@@ -356,6 +333,16 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     activePolygonBoxSelection.surveyPoints=[]
     activePolygonBoxSelection.segmentLengthLabels=[]
     viewer.value.dataSources.remove(activePolygonBoxSelection.dataSource);
+  }
+
+  const removeTempSegmentLengthLabels=()=>{
+    lastButOneDynamicSegmentLengthLabel.removeTempSegmentLengthLabel()
+    lastDynamicSegmentLengthLabel.removeTempSegmentLengthLabel()
+  }
+
+  const addTempSegmentLengthLabels=()=>{
+    lastButOneDynamicSegmentLengthLabel.addTempSegmentLengthLabelToViewer()
+    lastDynamicSegmentLengthLabel.addTempSegmentLengthLabelToViewer()
   }
 
   const handleEsc = () => {
@@ -380,7 +367,6 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolygonState.pointCount--;
       updateSegmentLengthLabel();
-      totalLengthLabelManager.updateTempTotalLengthLabel();
     }
   };
 

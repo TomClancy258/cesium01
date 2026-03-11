@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/cesium-events/event-handlers/airport-interaction.ts
-import {emitCesiumEvent} from "../useCesiumMouseEvents"
+import {emitCesiumEvent} from "../../useCesiumMouseEvents"
 import {
   AirportBaseProperties,
   AirportBillboardProperties, AirportSelectedData

@@ -30,7 +30,9 @@ export interface LngLatAlt {
 export interface MeasurementSelectedData {
   id:string,
   type:string,
-  sourceType:string
+  sourceType:string,
+  operationType:string,
+  dataSourceName:string
 }
 
 export interface DynamicPolylineState {

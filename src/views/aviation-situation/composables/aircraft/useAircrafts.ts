@@ -258,6 +258,7 @@ export function useAircrafts(viewer) {
       rotation: -Cesium.Math.toRadians(heading),
       width: 30,
       height: 30,
+      // color: new Cesium.Color(1, 1, 1, 0)
     })
 
     billboard.properties = {
@@ -287,6 +288,7 @@ export function useAircrafts(viewer) {
       horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
       pixelOffset: new Cesium.Cartesian2(0, 20),
       outlineColor: Cesium.Color.BLACK,
+      // color: new Cesium.Color(1, 1, 1, 0)
     })
 
     label.properties = {

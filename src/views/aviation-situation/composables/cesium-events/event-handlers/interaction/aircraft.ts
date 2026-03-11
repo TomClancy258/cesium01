@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/cesium-events/event-handlers/aircraft-interaction.ts
-import {emitCesiumEvent} from "../useCesiumMouseEvents"
+import {emitCesiumEvent} from "../../useCesiumMouseEvents"
 import {
   AircraftBaseProperties,
   AircraftBillboardProperties, AircraftSelectedData

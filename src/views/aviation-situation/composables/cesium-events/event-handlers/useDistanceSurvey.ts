@@ -15,6 +15,7 @@ import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constan
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
+import { uniqueId } from 'lodash-es'
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -178,6 +179,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     activeDistanceSurvey.dynamicPolyline = activeDistanceSurvey.dataSource.entities.add({
       id: polylineUniqueId,
       properties: {
+        operationTypes: 'distanceSurvey',
         sourceType: 'distanceSurvey',
         type: 'polyline',
         dataSourceName: dataSourceUniqueId,
@@ -202,6 +204,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     dataSource.entities.add({
       id: uniqueId,
       properties: {
+        operationType: 'distanceSurvey',
         sourceType: 'distanceSurvey',
         type: 'polyline',
         dataSourceName: dataSourceName,
@@ -230,6 +233,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     // 若坐标数组长度 = 确认点数 +1（说明有鼠标移动的临时点），则删除最后3个元素
     if (polylinePointCount === polylineState.pointCount + 1) {
       polylineState.lngLatAltArray.splice(polylineState.pointCount * 3, 3);
+      polylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(polylineState.lngLatAltArray)
     }
   };
 
@@ -262,7 +266,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const finishDistanceSurvey=(): void => {
-    if (dynamicPolylineState.pointCount < 2) {
+    if (dynamicPolylineState.pointCount <= 1) {
       return
     }
 
@@ -273,7 +277,14 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     cloneDynamicPolylineToDataSource(newDataSource,uniqueId)
 
     const midLngLatAlt:LngLatAlt = getLastLineSegmentMidLngLatAlt(dynamicPolylineState);
-    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray);
+
+    const properties:EntityProperties={
+      operationType:'distanceSurvey',
+      sourceType:'distanceSurvey',
+      type:'totalDistanceLabel',
+      dataSourceName:uniqueId,
+    }
+    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray,properties);
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
@@ -282,7 +293,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     spatialSelectStore.setOperationType('none');
   }
 
-  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource):void=>{
+  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
     for (let i:number = 0; i < activeDistanceSurvey.segmentLengthLabels.length; i++) {
       const oldPointEntity:Cesium.Entity = activeDistanceSurvey.surveyPoints[i];
       const oldLabelEntity:Cesium.Entity = activeDistanceSurvey.segmentLengthLabels[i];
@@ -294,7 +305,9 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
         const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId);
         pointCloneConfig.properties={
           type:'surveyPoint',
-          sourceType:'distanceSurvey'
+          sourceType:'distanceSurvey',
+          operationType:'distanceSurvey',
+          dataSourceName:uniqueId,
         }
         // pointCloneConfig.label.show=false
         // pointCloneConfig.point.show=false
@@ -307,7 +320,9 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
         const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId);
         labelCloneConfig.properties={
           type:'segmentLengthLabel',
-          sourceType:'distanceSurvey'
+          sourceType:'distanceSurvey',
+          operationType:'distanceSurvey',
+          dataSourceName:uniqueId,
         }
         // labelCloneConfig.label.show=false
         labelCloneConfig.show=false
@@ -320,7 +335,9 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId);
       lastPointCloneConfig.properties={
         type:'surveyPoint',
-        sourceType:'distanceSurvey'
+        sourceType:'distanceSurvey',
+        operationType:'distanceSurvey',
+        dataSourceName:uniqueId,
       }
       // lastPointCloneConfig.label.show=false
       // lastPointCloneConfig.point.show=false

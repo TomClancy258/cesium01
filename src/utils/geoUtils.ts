@@ -1,6 +1,8 @@
 //geoUtils.ts
 import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
+import * as turf from '@turf/turf'
+import { getPolygon } from '@/utils/cesiumUtils'
 
 export function isValidCoordinate(
   longitude: unknown,
@@ -219,3 +221,103 @@ export const calculatePolylineTotalLength = (lngLatAltArray: number[]): number =
   }
   return totalLength;
 };
+
+export const calculatePerimeter = (lngLatAltArray: number[]): number => {
+  let perimeter = 0;
+  // 至少3个点（9个元素）才计算长度
+  if (lngLatAltArray.length < 9) return perimeter;
+
+  const lngLatAltArrayPushFirstPoint:number[]=getLngLatAltArrayPushFirstPoint(lngLatAltArray)
+  // 遍历所有线段，累加长度
+  for (let i = 0; i < lngLatAltArrayPushFirstPoint.length - 3; i += 3) {
+    const startPoint = [
+      lngLatAltArrayPushFirstPoint[i],
+      lngLatAltArrayPushFirstPoint[i + 1],
+      lngLatAltArrayPushFirstPoint[i + 2],
+    ];
+    const endPoint = [
+      lngLatAltArrayPushFirstPoint[i + 3],
+      lngLatAltArrayPushFirstPoint[i + 4],
+      lngLatAltArrayPushFirstPoint[i + 5],
+    ];
+    perimeter += calculateSurfaceDistance(startPoint, endPoint);
+  }
+  return perimeter;
+};
+
+export const getLngLatAltArrayPushFirstPoint=(lngLatAltArray: number[])=>{
+  if (lngLatAltArray.length <= 2) {
+    return lngLatAltArray
+  }
+  const lngLatAltArrayPushFirstPoint:number[]=[...lngLatAltArray,lngLatAltArray[0],lngLatAltArray[1],lngLatAltArray[2]]
+  return lngLatAltArrayPushFirstPoint
+}
+
+export const calculateArea = (lngLatAltArray: number[]): number => {
+  let area = 0;
+  // 至少3个点（9个元素）才计算长度
+  if (lngLatAltArray.length < 9) return perimeter;
+
+  const polygon = getPolygon(lngLatAltArray); // 注意嵌套：polygon([[...]])
+
+  area = turf.area(polygon); // 单位：平方米
+  return area;
+};
+
+/**
+ * 格式化面积显示：自动切换 m² / ha / km² 并保留合适的小数位
+ * @param areaInSquareMeters 面积（单位：平方米）
+ * @returns 格式化后的字符串，如 "1234.56 m²"、"12.34 ha" 或 "1.25 km²"
+ */
+export const formatArea = (areaInSquareMeters: number): string => {
+  if (areaInSquareMeters < 0) return '0 m²'; // 防止负数
+
+  const absArea = areaInSquareMeters;
+
+  // 1. 小于 10,000 平方米：显示为 m²，保留 2 位小数
+  if (absArea < 10_000) {
+    return `${absArea.toFixed(2)} m²`;
+  }
+
+  // 2. 小于 1,000,000 平方米（即 < 100 公顷）：转换为公顷（1 ha = 10,000 m²）
+  if (absArea < 1_000_000) {
+    const hectares = absArea / 10_000;
+    return `${hectares.toFixed(2)} ha`;
+  }
+
+  // 3. 大于等于 1,000,000 平方米：转换为平方公里（1 km² = 1,000,000 m²）
+  const km2 = absArea / 1_000_000;
+
+  // 可选：对超大区域（如 > 100 km²）减少小数位，但通常保留 2 位已足够清晰
+  if (km2 >= 100) {
+    return `${km2.toFixed(1)} km²`;
+  }
+
+  return `${km2.toFixed(2)} km²`;
+};
+
+
+export const getPolygon=(lngLatAltArray:number[])=>{
+  const lngLatAltArrayPushFirstPoint:number[]=getLngLatAltArrayPushFirstPoint(lngLatAltArray)
+
+  const coords=[]
+  const pointCount=lngLatAltArrayPushFirstPoint.length/3
+  for (let i = 0; i < pointCount; i++) {
+    const index=i*3
+    coords[i]=[lngLatAltArrayPushFirstPoint[index],lngLatAltArrayPushFirstPoint[index+1]]
+  }
+  const polygon = turf.polygon([coords]);
+  return polygon
+}
+
+export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
+  const polygon=getPolygon(lngLatAltArray)
+  const center = turf.centerOfMass(polygon);
+  const centerCoord = center.geometry.coordinates;
+  const lngLatAlt:LngLatAlt={
+    longitude:centerCoord[0],
+    latitude:centerCoord[1],
+    height:0,
+  }
+  return lngLatAlt
+}

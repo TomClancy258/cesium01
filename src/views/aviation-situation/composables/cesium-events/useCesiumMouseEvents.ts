@@ -5,12 +5,16 @@ import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
 import type { MapBillboardLabelProperties } from "../../types/shared"
 import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
 
-import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/aircraft-interaction"
-import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/airport-interaction"
+import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/interaction/aircraft"
+import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/interaction/airport"
 import {
   handleDistanceSurveyHover,
   handleDistanceSurveyLeftClick
-} from './event-handlers/distanceSurvey-interaction'
+} from './event-handlers/interaction/distanceSurvey'
+import {
+  handlePolygonBoxSelectionHover,
+  handlePolygonBoxSelectionLeftClick
+} from './event-handlers/interaction/box-selection/polygonBoxSelection'
 
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore=useSpatialSelectStore()
@@ -26,7 +30,7 @@ import {
 } from "./event-handlers/useDistanceSurvey"
 import {
   usePolygonBoxSelection,
-} from "./event-handlers/box-select/usePolygonBoxSelection.ts"
+} from "./event-handlers/box-selection/usePolygonBoxSelection.ts"
 
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
@@ -46,6 +50,10 @@ import {
 import {
   useTempTotalLengthLabel
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempTotalLengthLabel'
+
+import {
+  useTempPerimeterAndAreaLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempPerimeterAndAreaLabel'
 
 import { onUnmounted, watch } from 'vue'
 
@@ -84,6 +92,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const mouseFollowPointLabelManager = useMouseFollowPointLabel(viewer);
   const segmentLengthLabelManager = useTempSegmentLengthLabel(viewer);
   const totalLengthLabelManager = useTempTotalLengthLabel(viewer);
+  const perimeterAndAreaLabel = useTempPerimeterAndAreaLabel(viewer);
 
   const {
     distanceSurvey,
@@ -97,13 +106,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmPolygonBoxSelectionSurveyPoint,
     setupSpatialSelectFormWatch:setupPolygonBoxSelectionSpatialFormWatch,
     finishPolygonBoxSelection,
-  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,totalLengthLabelManager)
+  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
   const initEvents = () => {
     if (!viewer?.value) return
     mouseFollowPointLabelManager.addTempPointLabelToViewer()
     segmentLengthLabelManager.addTempSegmentLengthLabelToViewer()
     totalLengthLabelManager.addTempTotalLengthLabelToViewer()
+    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -128,8 +138,10 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
             confirmDistanceSurveySurveyPoint()
           }
-          if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
-            confirmPolygonBoxSelectionSurveyPoint()
+          if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'){
+            if(spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
+              confirmPolygonBoxSelectionSurveyPoint()
+            }
           }
           const entity: Cesium.Entity = pickedObject.id
           if (!entity.properties) {
@@ -137,8 +149,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           }
 
           const properties = entity.properties.getValue() as EntityProperties
-          if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
+          if(properties.operationType==='distanceSurvey') {
             handleDistanceSurveyLeftClick(viewer,entity,properties)
+          }else if(properties.operationType==='boxSelection'){
+            if(properties.sourceType==='polygonBoxSelection'){
+              handlePolygonBoxSelectionLeftClick(viewer,entity,properties)
+            }
           }else{
             measurementSelectionStore.clearSelected()
             clearSelectedEntityHighlight()
@@ -202,8 +218,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           return
         }
         const properties = entity.properties.getValue() as EntityProperties
-        if(properties.sourceType==='distanceSurvey'&&properties.type==='polyline') {
-          handleDistanceSurveyHover(viewer,entity,properties)
+        console.log("properties", properties);
+        if(properties.operationType==='distanceSurvey') {
+            handleDistanceSurveyHover(viewer,entity,properties)
+        }else if(properties.operationType==='boxSelection'){
+          if(properties.sourceType==='polygonBoxSelection') {
+            handlePolygonBoxSelectionHover(viewer,entity,properties)
+            // viewer.value.scene.requestRender();
+          }
         }
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {
         const properties: MapBillboardLabelProperties = pickedObject.primitive.properties
@@ -224,6 +246,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // clearHoveredHighlight()
       emitCesiumEvent('aircraftLeave');
       emitCesiumEvent('airportLeave');
+
       clearHoveredEntityHighlight()
     }
   }, 100)
@@ -254,6 +277,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
           segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(false)
           totalLengthLabelManager.setTempTotalLengthLabelVisibility(false)
+        }
+
+        if (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype!='none') {
+          perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(true)
+        }else{
+          perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(false)
         }
       },
       {

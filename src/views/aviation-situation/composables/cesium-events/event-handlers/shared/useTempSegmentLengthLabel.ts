@@ -3,8 +3,8 @@ import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { formatDistance } from '@/utils/geoUtils.ts'
+import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
-import { TEMP_POINT_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import type {DistanceSurveySession} from "../useDistanceSurvey"
 
 export interface SegmentLengthInfo  {
@@ -22,37 +22,6 @@ export interface TempSegmentLengthLabel  {
   position: TempSegmentLabelPosition
   lengthInfo:SegmentLengthInfo
 }
-
-// ========== 新增：线段长度Label通用配置函数 ==========
-/**
- * 创建线段长度Label的样式配置（仅Label，无Point）
- * @param text Label文本（静态文本/CallbackProperty）
- * @param position 实体位置（静态坐标/CallbackProperty）
- * @returns Label样式配置
- */
-const createSegmentLengthLabelConfig = (
-  text: string | Cesium.CallbackProperty | null = null,
-  position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null
-):Cesium.Entity.ConstructorOptions => {
-  const baseConfig: Cesium.Entity.ConstructorOptions = {
-    label: {
-      // 复用临时点Label的基础样式（保持视觉统一）
-      font: TEMP_POINT_LABEL_STYLE.LABEL.FONT,
-      outlineColor: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_COLOR,
-      outlineWidth: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_WIDTH,
-      style: TEMP_POINT_LABEL_STYLE.LABEL.STYLE,
-      pixelOffset: TEMP_POINT_LABEL_STYLE.LABEL.PIXEL_OFFSET,
-      heightReference: TEMP_POINT_LABEL_STYLE.LABEL.HEIGHT_REFERENCE,
-      disableDepthTestDistance: Number.POSITIVE_INFINITY, // 防遮挡（常量漏配时兜底）
-    },
-  };
-
-  // 动态/静态文本、位置单独赋值
-  if (text) baseConfig.label!.text = text;
-  if (position) baseConfig.position = position;
-
-  return baseConfig;
-};
 
 export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   // 初始化临时坐标标签
@@ -82,7 +51,7 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
     }, false);
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
-    const labelConfig:Cesium.Entity.ConstructorOptions = createSegmentLengthLabelConfig(textCallback, positionCallback);
+    const labelConfig:Cesium.Entity.ConstructorOptions = createEntityLabelConfig(textCallback, positionCallback);
 
     // 4. 组装实体并添加
     tempSegmentLengthLabel.entity = viewer.value.entities.add({
@@ -106,7 +75,7 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
     const staticText:string = `长度：${tempSegmentLengthLabel.lengthInfo.formattedDistanceStr}`;
 
     // 2. 调用通用函数生成样式配置
-    const styleConfig:Cesium.Entity.ConstructorOptions = createSegmentLengthLabelConfig(
+    const styleConfig:Cesium.Entity.ConstructorOptions = createEntityLabelConfig(
       staticText,
       tempSegmentLengthLabel.position.cartesian3
     );

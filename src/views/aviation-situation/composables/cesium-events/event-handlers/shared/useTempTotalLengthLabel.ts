@@ -4,40 +4,9 @@ import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { calculatePolylineTotalLength, formatDistance } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
-import { TEMP_POINT_LABEL_STYLE,TEMP_TOTAL_LENGTH_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
-import type {DistanceSurveySession} from "../useDistanceSurvey"
 import type {TempSegmentLengthLabel} from "./useTempSegmentLengthLabel"
-
-// ========== 新增：线段长度Label通用配置函数 ==========
-/**
- * 创建线段长度Label的样式配置（仅Label，无Point）
- * @param text Label文本（静态文本/CallbackProperty）
- * @param position 实体位置（静态坐标/CallbackProperty）
- * @returns Label样式配置
- */
-const createTotalLengthLabelConfig = (
-  text: string | Cesium.CallbackProperty | null = null,
-  position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null
-):Cesium.Entity.ConstructorOptions => {
-  const baseConfig: Cesium.Entity.ConstructorOptions = {
-    label: {
-      // 复用临时点Label的基础样式（保持视觉统一）
-      font: TEMP_POINT_LABEL_STYLE.LABEL.FONT,
-      outlineColor: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_COLOR,
-      outlineWidth: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_WIDTH,
-      style: TEMP_POINT_LABEL_STYLE.LABEL.STYLE,
-      pixelOffset: TEMP_TOTAL_LENGTH_LABEL_STYLE.LABEL.PIXEL_OFFSET,
-      heightReference: TEMP_POINT_LABEL_STYLE.LABEL.HEIGHT_REFERENCE,
-      disableDepthTestDistance: Number.POSITIVE_INFINITY, // 防遮挡（常量漏配时兜底）
-    },
-  };
-
-  // 动态/静态文本、位置单独赋值
-  if (text) baseConfig.label!.text = text;
-  if (position) baseConfig.position = position;
-
-  return baseConfig;
-};
+import { createEntityLabelConfig } from '@/utils/cesiumUtils'
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   // 初始化临时坐标标签
@@ -67,7 +36,7 @@ export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>
     }, false);
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
-    const labelConfig:Cesium.Entity.ConstructorOptions = createTotalLengthLabelConfig(textCallback, positionCallback);
+    const labelConfig:Cesium.Entity.ConstructorOptions = createEntityLabelConfig(textCallback, positionCallback,'totalDistance');
 
     // 4. 组装实体并添加
     tempTotalLengthLabel.entity = viewer.value.entities.add({
@@ -82,28 +51,36 @@ export const useTempTotalLengthLabel = (viewer: ShallowRef<Cesium.Viewer | null>
     dataSource:Cesium.CustomDataSource,
     lngLatAlt:LngLatAlt,
     lngLatAltArray:number[],
+    properties:EntityProperties=null
   ):void => {
     if (lngLatAltArray.length===0 || !lngLatAlt) return;
     const totalDistance:number = calculatePolylineTotalLength(lngLatAltArray);
 
     const uniqueId:string = generateBizUniqueId('tempTotalLengthLabel');
-    const formattedTotalDistanceStr:number=formatDistance(totalDistance)
+    const formattedTotalDistanceStr:string=formatDistance(totalDistance)
 
     // 1. 生成静态文本
     const staticText:string = `总长度：${formattedTotalDistanceStr}`;
 
     // 2. 调用通用函数生成样式配置
-    const styleConfig:Cesium.Entity.ConstructorOptions = createTotalLengthLabelConfig(
+    const styleConfig:Cesium.Entity.ConstructorOptions = createEntityLabelConfig(
       staticText,
       Cesium.Cartesian3.fromDegrees(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height),
+      'totalDistance'
     );
 
-    // 3. 组装实体配置并添加
-    dataSource.entities.add({
+    const entityConfig:Cesium.Entity.ConstructorOptions={
       id: uniqueId,
       show: true,
       ...styleConfig, // 复用通用样式
-    });
+    }
+    if (properties) {
+      entityConfig.properties=properties
+    }
+
+    // 3. 组装实体配置并添加
+    dataSource.entities.add(entityConfig);
+
   };
 
   // 清除临时坐标标签
