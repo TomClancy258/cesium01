@@ -12,8 +12,13 @@ const measurementSelectionStore=useMeasurementSelectionStore()
 import {getShowEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
 
 export const handlePolygonBoxSelectionHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
-  const {showEntities,highlightEntity}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
-
+  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
+  if (
+    measurementSelectionStore.drawingDataSource &&
+    measurementSelectionStore.drawingDataSource.name === dataSourceName
+  ) {
+    return
+  }
   highlightEntityOnHover(highlightEntity, {
     components: [
       { type: 'polygon', prop: 'material', value: Cesium.Color.fromCssColorString('rgba(165, 243, 252, 0.25)') }
@@ -22,7 +27,13 @@ export const handlePolygonBoxSelectionHover = ( viewer:ShallowRef<Cesium.Viewer|
 }
 
 export const handlePolygonBoxSelectionLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
-  const {showEntities,highlightEntity}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
+  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
+  if (
+    measurementSelectionStore.drawingDataSource &&
+    measurementSelectionStore.drawingDataSource.name === dataSourceName
+  ) {
+    return
+  }
   highlightEntityAndSetSelected(highlightEntity, {
     components: [
       { type: 'polygon', prop: 'material', value: Cesium.Color.fromCssColorString('rgba(6, 182, 212, 0.25)') }

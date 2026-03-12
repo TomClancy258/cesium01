@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
-import {showEntities,hideEntities} from "@/utils/cesiumUtils"
+import {showEntitiesLabelByAlpha,hideEntitiesLabelByAlpha} from "@/utils/cesiumUtils"
 
 interface EntityHighlightData{
   entity:Cesium.Entity|null,
@@ -137,7 +137,7 @@ export function highlightEntityOnHover(
     // 若上一个 hover 项未被选中，才恢复默认
     if (hovered.entity !== selected.entity) {
       restoreEntityOriginalState(hovered.entity)
-      hideEntities(hovered.showEntities)
+      hideEntitiesLabelByAlpha(hovered.showEntities)
     }
   }
 
@@ -145,7 +145,7 @@ export function highlightEntityOnHover(
   hovered.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
   hovered.showEntities=entities
-  showEntities(hovered.showEntities)
+  showEntitiesLabelByAlpha(hovered.showEntities)
 }
 
 /**
@@ -159,7 +159,7 @@ export function highlightEntityAndSetSelected(
   // 恢复上一个选中的Entity
   if (selected.entity && selected.entity !== entity) {
     restoreEntityOriginalState(selected.entity)
-    hideEntities(selected.showEntities)
+    hideEntitiesLabelByAlpha(selected.showEntities)
   }
 
   // 清除当前hover
@@ -173,7 +173,7 @@ export function highlightEntityAndSetSelected(
   setEntityHighlightStyle(entity, highlightConfig)
 
   selected.showEntities=entities
-  showEntities(selected.showEntities)
+  showEntitiesLabelByAlpha(selected.showEntities)
 }
 
 /**
@@ -184,7 +184,7 @@ export function clearHoveredEntityHighlight(): void {
     restoreEntityOriginalState(hovered.entity)
     hovered.entity = null
 
-    hideEntities(hovered.showEntities)
+    hideEntitiesLabelByAlpha(hovered.showEntities)
     hovered.showEntities=[]
   }
 }
@@ -197,7 +197,7 @@ export function clearSelectedEntityHighlight(): void {
     restoreEntityOriginalState(selected.entity)
     selected.entity = null
 
-    hideEntities(selected.showEntities)
+    hideEntitiesLabelByAlpha(selected.showEntities)
     selected.showEntities=[]
   }
 }

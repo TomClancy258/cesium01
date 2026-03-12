@@ -1,4 +1,4 @@
-// useTempSegmentLengthLabel.ts
+// src/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempSegmentLengthLabel.ts
 import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
@@ -6,6 +6,7 @@ import { formatDistance } from '@/utils/geoUtils.ts'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import type {DistanceSurveySession} from "../useDistanceSurvey"
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface SegmentLengthInfo  {
   distance: number,
@@ -63,7 +64,8 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
 
   // 添加临时坐标标签到自定义数据源
   const addTempSegmentLengthLabelToDataSource = (
-    activeDistanceSurvey:DistanceSurveySession
+    activeDistanceSurvey:DistanceSurveySession,
+    properties:EntityProperties,
   ):LngLatAlt => {
     if (!activeDistanceSurvey.dataSource || !tempSegmentLengthLabel.position.cartesian3) return;
     const { lngLatAlt }: {
@@ -79,6 +81,13 @@ export const useTempSegmentLengthLabel = (viewer: ShallowRef<Cesium.Viewer | nul
       staticText,
       tempSegmentLengthLabel.position.cartesian3
     );
+
+    if (properties) {
+      styleConfig.properties=properties
+      styleConfig.properties.label={
+        originalFillColor:styleConfig.label?.fillColor
+      }
+    }
 
     // 3. 组装实体配置并添加
     const entity: Cesium.Entity = activeDistanceSurvey.dataSource.entities.add({

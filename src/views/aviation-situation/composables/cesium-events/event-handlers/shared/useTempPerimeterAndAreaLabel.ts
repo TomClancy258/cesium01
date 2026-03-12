@@ -1,4 +1,4 @@
-// useTempPerimeterAndAreaLabel.ts
+// src/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempPerimeterAndAreaLabel.ts
 import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
@@ -114,12 +114,16 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 
     const entityConfig:Cesium.Entity.ConstructorOptions={
       id: uniqueId,
-      show: false,
+      show: true,
       ...styleConfig, // 复用通用样式
     }
     if (properties) {
+      properties.label={
+        originalFillColor:styleConfig.label?.fillColor
+      }
       entityConfig.properties=properties
     }
+    styleConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
     // 3. 组装实体配置并添加
     dataSource.entities.add(entityConfig);

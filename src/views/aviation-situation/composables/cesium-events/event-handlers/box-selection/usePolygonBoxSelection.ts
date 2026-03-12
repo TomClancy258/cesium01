@@ -1,4 +1,4 @@
-// src/views/aviation-situation/composables/cesium-events/event-handlers/usePolygonBoxSelection.ts
+// src/views/aviation-situation/composables/cesium-events/event-handlers/box-selection/usePolygonBoxSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
@@ -9,7 +9,7 @@ import {
   calculateSurfaceDistance,
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
-import { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import { DrawingDataSource, LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
@@ -18,6 +18,8 @@ import { getPolygon } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 import {useDynamicSegmentLengthLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentLengthLabel'
+
+import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
 
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
@@ -57,7 +59,7 @@ const createDynamicPolygonConfig = (
 };
 
 export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,perimeterAndAreaLabel) => {
-
+  const measurementSelectionStore=useMeasurementSelectionStore()
   const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastButOnePolygonBoxSelectionDynamicSegmentLengthLabel')
   const lastDynamicSegmentLengthLabel=useDynamicSegmentLengthLabel(viewer,'lastPolygonBoxSelectionDynamicSegmentLengthLabel')
 
@@ -145,7 +147,13 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const confirmSurveyPoint = () => {
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonBoxSelection)
+    const pointLabelProperties:EntityProperties={
+      operationType:'boxSelection',
+      sourceType:'polygonBoxSelection',
+      type:'tempSurveyPoint',
+      dataSourceName:activePolygonBoxSelection.dataSource.name,
+    }
+    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonBoxSelection,pointLabelProperties)
 
     dynamicPolygonState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
@@ -153,13 +161,24 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     dynamicPolygonState.pointCount++
 
     if (dynamicPolygonState.pointCount >= 2) {
-      lastButOneDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection)
+      const properties:EntityProperties={
+        operationType:'boxSelection',
+        sourceType:'polygonBoxSelection',
+        type:'tempSegmentLengthLabel',
+        dataSourceName:activePolygonBoxSelection.dataSource.name,
+      }
+      lastButOneDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection,properties,true,)
     }
   }
 
   const initActivePolygonBoxSelection = (): void => {
     const dataSourceUniqueId:string = generateBizUniqueId('activePolygonBoxSelection')
     activePolygonBoxSelection.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
+
+    const drawingDataSourceData:DrawingDataSource={
+      name:dataSourceUniqueId
+    }
+    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
 
     addTempSegmentLengthLabels()
 
@@ -271,7 +290,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolygonToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const properties:EntityProperties={
+    const PerimeterAndAreaLabelProperties:EntityProperties={
       operationType:'boxSelection',
       sourceType:'polygonBoxSelection',
       type:'perimeterAndAreaLabel',
@@ -279,16 +298,21 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     }
 
     const polygon=getPolygon(dynamicPolygonState.lngLatAltArray)
-    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,properties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
+    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,PerimeterAndAreaLabelProperties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
 
-    lastDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection,false)
+
+    const surveyPointProperties:EntityProperties={
+      operationType:'boxSelection',
+      sourceType:'polygonBoxSelection',
+      type:'surveyPoint',
+      dataSourceName:activePolygonBoxSelection.dataSource?.name,
+    }
+    lastDynamicSegmentLengthLabel.addTempSegmentLengthLabelToDataSource(activePolygonBoxSelection,surveyPointProperties,true,)
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
     polygonBoxSelectionDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
     spatialSelectStore.setOperationType('none');
-
-    console.log("newDataSource.entities.values", newDataSource.entities.values);
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
@@ -300,30 +324,45 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
-        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId);
+        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId,viewer);
+        const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
+
         pointCloneConfig.properties={
           type:'surveyPoint',
           sourceType:'polygonBoxSelection',
           operationType:'boxSelection',
           dataSourceName:uniqueId,
+          label:{
+            originalFillColor:pointOriginalFillColor,
+          }
         }
         // pointCloneConfig.label.show=false
-        // pointCloneConfig.point.show=false
-        pointCloneConfig.show=false
+        pointCloneConfig.point.show=false
+        // pointCloneConfig.show=false
+
+        pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+
         dataSource.entities.add(pointCloneConfig);
       }
 
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
-        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId);
+        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId,viewer);
+        const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
+
         labelCloneConfig.properties={
           type:'segmentLengthLabel',
           sourceType:'polygonBoxSelection',
           operationType:'boxSelection',
           dataSourceName:uniqueId,
+          label:{
+            originalFillColor:labelOriginalFillColor,
+          }
         }
         // labelCloneConfig.label.show=false
-        labelCloneConfig.show=false
+        // labelCloneConfig.show=false
+
+        labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
         dataSource.entities.add(labelCloneConfig);
       }
     }
@@ -333,6 +372,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     activePolygonBoxSelection.surveyPoints=[]
     activePolygonBoxSelection.segmentLengthLabels=[]
     viewer.value.dataSources.remove(activePolygonBoxSelection.dataSource);
+
   }
 
   const removeTempSegmentLengthLabels=()=>{

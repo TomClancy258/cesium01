@@ -5,6 +5,7 @@ import * as Cesium from 'cesium'
  * Label 基础样式类型
  */
 export type CesiumLabelStyle = {
+  FILL_COLOR: string,
   FONT: string;
   OUTLINE_COLOR: Cesium.Color;
   OUTLINE_WIDTH: number;
@@ -107,6 +108,7 @@ export type TempTotalLengthLabelStyle = {
  */
 export const TEMP_POINT_LABEL_STYLE: TempPointLabelStyle = {
   LABEL: {
+    FILL_COLOR:Cesium.Color.WHITE,
     FONT: '14px Verdana',
     OUTLINE_COLOR: Cesium.Color.DARKSLATEGREY,
     OUTLINE_WIDTH: 2,

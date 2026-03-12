@@ -14,8 +14,13 @@ import {getShowEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
 
 
 export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
-  const {showEntities,highlightEntity}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
-
+  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
+  if (
+    measurementSelectionStore.drawingDataSource &&
+    measurementSelectionStore.drawingDataSource.name === dataSourceName
+  ) {
+    return
+  }
   highlightEntityOnHover(highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
@@ -25,8 +30,13 @@ export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>
 
 // 处理机场左键点击
 export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
-  const {showEntities,highlightEntity}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
-
+  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
+  if (
+    measurementSelectionStore.drawingDataSource &&
+    measurementSelectionStore.drawingDataSource.name === dataSourceName
+  ) {
+    return
+  }
   highlightEntityAndSetSelected(highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }

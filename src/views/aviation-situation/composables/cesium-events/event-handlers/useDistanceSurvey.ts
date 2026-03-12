@@ -15,7 +15,7 @@ import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constan
 import {cloneEntityStyle} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
-import { uniqueId } from 'lodash-es'
+import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -76,6 +76,7 @@ const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): Ln
 };
 
 export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager) => {
+  const measurementSelectionStore=useMeasurementSelectionStore()
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
@@ -148,14 +149,26 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const confirmSurveyPoint = () => {
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activeDistanceSurvey)
+    const pointLabelProperties:EntityProperties={
+      operationType:'distanceSurvey',
+      sourceType:'distanceSurvey',
+      type:'tempSurveyPoint',
+      dataSourceName:activeDistanceSurvey.dataSource.name,
+    }
+    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activeDistanceSurvey,pointLabelProperties)
 
     dynamicPolylineState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
     dynamicPolylineState.pointCount++
 
     if (dynamicPolylineState.pointCount >= 2) {
-      segmentLengthLabelManager.addTempSegmentLengthLabelToDataSource(activeDistanceSurvey)
+      const properties:EntityProperties={
+        operationType:'distanceSurvey',
+        sourceType:'distanceSurvey',
+        type:'tempSegmentLengthLabel',
+        dataSourceName:activeDistanceSurvey.dataSource.name,
+      }
+      segmentLengthLabelManager.addTempSegmentLengthLabelToDataSource(activeDistanceSurvey,properties)
     }
   }
 
@@ -163,6 +176,10 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     const dataSourceUniqueId:string = generateBizUniqueId('activeDistanceSurvey')
     activeDistanceSurvey.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
 
+    const drawingDataSourceData:DrawingDataSource={
+      name:dataSourceUniqueId
+    }
+    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
     // 2. 创建动态位置的CallbackProperty
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
@@ -302,46 +319,64 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
-        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId);
+        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId,viewer);
+        const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
         pointCloneConfig.properties={
           type:'surveyPoint',
           sourceType:'distanceSurvey',
           operationType:'distanceSurvey',
           dataSourceName:uniqueId,
+          label:{
+            originalFillColor:pointOriginalFillColor,
+          }
         }
         // pointCloneConfig.label.show=false
-        // pointCloneConfig.point.show=false
-        pointCloneConfig.show=false
+        pointCloneConfig.point.show=false
+        // pointCloneConfig.show=false
+        pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+
         dataSource.entities.add(pointCloneConfig);
       }
 
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
-        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId);
+        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId,viewer);
+        const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
+
         labelCloneConfig.properties={
           type:'segmentLengthLabel',
           sourceType:'distanceSurvey',
           operationType:'distanceSurvey',
           dataSourceName:uniqueId,
+          label:{
+            originalFillColor:labelOriginalFillColor,
+          }
         }
         // labelCloneConfig.label.show=false
-        labelCloneConfig.show=false
+        // labelCloneConfig.show=false
+        labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+
         dataSource.entities.add(labelCloneConfig);
       }
     }
     const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
     const lastPointEntity:Cesium.Entity=activeDistanceSurvey.surveyPoints[dynamicPolylineState.pointCount-1]
     if (lastPointEntity) {
-      const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId);
+      const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId,viewer);
+      const pointOriginalFillColor=lastPointCloneConfig.properties.label.originalFillColor
       lastPointCloneConfig.properties={
         type:'surveyPoint',
         sourceType:'distanceSurvey',
         operationType:'distanceSurvey',
         dataSourceName:uniqueId,
+        label:{
+          originalFillColor:pointOriginalFillColor,
+        }
       }
       // lastPointCloneConfig.label.show=false
-      // lastPointCloneConfig.point.show=false
-      lastPointCloneConfig.show=false
+      lastPointCloneConfig.point.show=false
+      // lastPointCloneConfig.show=false
+      lastPointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
       dataSource.entities.add(lastPointCloneConfig);
     }
   }
@@ -350,6 +385,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     activeDistanceSurvey.surveyPoints=[]
     activeDistanceSurvey.segmentLengthLabels=[]
     viewer.value.dataSources.remove(activeDistanceSurvey.dataSource);
+
   }
 
   const handleEsc = () => {

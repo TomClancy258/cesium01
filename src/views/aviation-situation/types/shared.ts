@@ -40,3 +40,7 @@ export interface DynamicPolylineState {
   pointCount: number; // 坐标点数量（一组算一个）
   positions:Cesium.Cartesian3[]
 }
+
+export interface DrawingDataSource{
+  name:string|null
+}

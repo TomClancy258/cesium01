@@ -1,10 +1,11 @@
-// useMouseFollowPointLabel.ts
+//src/views/aviation-situation/composables/cesium-events/event-handlers/shared/useMouseFollowPointLabel.ts
 import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { formatLngLatAlt ,cartesian3ToLngLatAlt} from '@/utils/geoUtils.ts'
 import {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import {TEMP_POINT_LABEL_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface TempPointLabelPosition  {
   cartesian3: Cesium.Cartesian3 | null | undefined
@@ -100,7 +101,8 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
 
   // 添加临时坐标标签到自定义数据源
   const addTempPointLabelToDataSource  = (
-    currentDistanceSurveying
+    currentDistanceSurveying,
+    properties:EntityProperties
   ):LngLatAlt  => {
     if (!currentDistanceSurveying.dataSource || !tempPointLabel.position.cartesian3) return;
     const { lngLatAlt, formattedLngLatAlt }: {
@@ -117,6 +119,13 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
       staticText,
       tempPointLabel.position.cartesian3
     );
+
+    if (properties) {
+      styleConfig.properties=properties
+      styleConfig.properties.label={
+        originalFillColor:styleConfig.label?.fillColor
+      }
+    }
 
     // 3. 组装实体配置并添加
     const entity: Cesium.Entity = currentDistanceSurveying.dataSource.entities.add({

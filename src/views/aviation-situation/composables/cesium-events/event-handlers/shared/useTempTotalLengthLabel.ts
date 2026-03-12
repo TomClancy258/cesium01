@@ -1,4 +1,4 @@
-// useTempTotalLengthLabel.ts
+//src/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempTotalLengthLabel.ts
 import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'

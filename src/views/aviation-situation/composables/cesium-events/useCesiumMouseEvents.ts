@@ -57,6 +57,9 @@ import {
 
 import { onUnmounted, watch } from 'vue'
 
+import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
+
+
 // 发布 Cesium 交互事件（替换原 emitCesiumEvent）
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
   eventName: T,
@@ -88,6 +91,8 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
+  const measurementSelectionStore=useMeasurementSelectionStore()
+
   let handler: Cesium.ScreenSpaceEventHandler | null = null
   const mouseFollowPointLabelManager = useMouseFollowPointLabel(viewer);
   const segmentLengthLabelManager = useTempSegmentLengthLabel(viewer);
@@ -224,7 +229,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         }else if(properties.operationType==='boxSelection'){
           if(properties.sourceType==='polygonBoxSelection') {
             handlePolygonBoxSelectionHover(viewer,entity,properties)
-            // viewer.value.scene.requestRender();
           }
         }
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {
@@ -268,13 +272,17 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType === 'distanceSurvey'||
-          (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype === 'polygon')) {
+        if (newForm.operationType != 'none'||(newForm.operationType==='boxSelection'&&newForm.boxSelectionSubtype!='none')) {
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
+        }else{
+          mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
+          measurementSelectionStore.clearDrawingDataSource()
+        }
+
+        if (newForm.operationType === 'distanceSurvey') {
           segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(true)
           totalLengthLabelManager.setTempTotalLengthLabelVisibility(true)
         } else {
-          mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
           segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(false)
           totalLengthLabelManager.setTempTotalLengthLabelVisibility(false)
         }

@@ -7,6 +7,10 @@ export type EntityComponent =
   | { type: 'point', prop: 'color', value: Cesium.Color }
   | { type: 'polygon', prop: 'material', value: Cesium.Material | Cesium.Color }; // 预留扩展
 
+export interface EntityLabelProperties {
+  originalFillColor:Cesium.Color
+}
+
 // Entity属性类型（按组件分类保存原始值）
 export interface EntityProperties {
   operationType:string,
@@ -19,6 +23,8 @@ export interface EntityProperties {
   originalLabelFillColor?: Cesium.Color;
   originalPointColor?: Cesium.Color;
   originalPolygonMaterial?: Cesium.Material | Cesium.Color;
+
+  label:EntityLabelProperties
 }
 
 // 高亮配置类型（支持多组件同时高亮）
