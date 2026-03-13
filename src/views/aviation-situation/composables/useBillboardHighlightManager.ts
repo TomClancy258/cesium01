@@ -1,6 +1,6 @@
 // src/views/aviation-situation/composables/useHighlightManager.ts
 import * as Cesium from 'cesium'
-import { useHighlightStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
@@ -8,7 +8,7 @@ import type { AirportSelectedData } from '@/views/aviation-situation/types/airpo
 let hoveredBillboard: Cesium.Billboard | null = null
 let selectedBillboard: Cesium.Billboard | null = null
 
-const highlightStore = useHighlightStore()
+const aviationSelectionStore = useAviationSelectionStore()
 
 // 工具方法：恢复原始图片
 const restoreBillboardImage = (billboard: Cesium.Billboard) => {
@@ -58,14 +58,14 @@ export function highlightBillboardAndSetSelected(
   // 清除当前hover（选中优先级更高）
   if (hoveredBillboard === billboard) {
     hoveredBillboard = null
-    // highlightStore.clearHovered()
+    // aviationSelectionStore.clearHovered()
   }
 
   // 更新选中实例+视觉
   selectedBillboard = billboard
   billboard.image = highlightImage
   // 同步Pinia（必选，支撑UI联动）
-  highlightStore.setSelected(selectedData)
+  aviationSelectionStore.setSelected(selectedData)
 }
 
 /**
@@ -75,7 +75,7 @@ export function clearHoveredHighlight(): void {
   if (hoveredBillboard && hoveredBillboard !== selectedBillboard) {
     restoreBillboardImage(hoveredBillboard)
     hoveredBillboard = null
-    // highlightStore.clearHovered()
+    // aviationSelectionStore.clearHovered()
   }
 }
 
@@ -86,7 +86,7 @@ export function clearSelectedHighlight(): void {
   if (selectedBillboard) {
     restoreBillboardImage(selectedBillboard)
     selectedBillboard = null
-    highlightStore.clearSelected()
+    aviationSelectionStore.clearSelected()
   }
 }
 

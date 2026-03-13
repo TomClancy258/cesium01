@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useHighlightStore } from '@/stores/aviationSelection'
-const highlightStore = useHighlightStore()
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
+const aviationSelectionStore = useAviationSelectionStore()
 
 const isAltitudeLegendVisible = computed(() => {
-  return highlightStore.selected && highlightStore.selected.sourceType === 'aircraft'
+  return aviationSelectionStore.selected && aviationSelectionStore.selected.sourceType === 'aircraft'
 })
 </script>
 

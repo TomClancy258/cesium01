@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
 
-export const useHighlightStore = defineStore('highlight', () => {
+export const useAviationSelectionStore = defineStore('aviationSelection', () => {
   const lastSelectedIcao24=ref<string | null >(null)
 
   // 选中数据（响应式，支撑UI联动）

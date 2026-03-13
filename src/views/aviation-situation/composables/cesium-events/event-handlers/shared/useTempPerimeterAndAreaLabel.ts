@@ -10,7 +10,7 @@ import {
 } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import * as turf from '@turf/turf'
-import { createEntityLabelConfig, getPolygon } from '@/utils/cesiumUtils'
+import { createEntityLabelConfig, createPolygonFromLngLatAltArray } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface PerimeterInfo {

@@ -10,17 +10,17 @@ import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/intera
 import {
   handleDistanceSurveyHover,
   handleDistanceSurveyLeftClick
-} from './event-handlers/interaction/distanceSurvey'
+} from './event-handlers/interaction/distance-survey'
 import {
   handlePolygonBoxSelectionHover,
   handlePolygonBoxSelectionLeftClick
-} from './event-handlers/interaction/box-selection/polygonBoxSelection'
+} from './event-handlers/interaction/box-selection/polygon-box-selection'
 
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore=useSpatialSelectStore()
 
-import {useHighlightStore} from "@/stores/aviationSelection"
-const highlightStore=useHighlightStore()
+import {useAviationSelectionStore} from "@/stores/aviationSelection"
+const aviationSelectionStore=useAviationSelectionStore()
 
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
 const measurementSelectionStore=useMeasurementSelectionStore()
@@ -44,12 +44,12 @@ import {
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useMouseFollowPointLabel'
 
 import {
-  useTempSegmentLengthLabel
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempSegmentLengthLabel'
+  useTempSegmentDistanceLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempSegmentDistanceLabel'
 
 import {
-  useTempTotalLengthLabel
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempTotalLengthLabel'
+  useTempTotalDistanceLabel
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useTempTotalDistanceLabel'
 
 import {
   useTempPerimeterAndAreaLabel
@@ -95,8 +95,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
   let handler: Cesium.ScreenSpaceEventHandler | null = null
   const mouseFollowPointLabelManager = useMouseFollowPointLabel(viewer);
-  const segmentLengthLabelManager = useTempSegmentLengthLabel(viewer);
-  const totalLengthLabelManager = useTempTotalLengthLabel(viewer);
+  const segmentDistanceLabelManager = useTempSegmentDistanceLabel(viewer);
+  const totalDistanceLabelManager = useTempTotalDistanceLabel(viewer);
   const perimeterAndAreaLabel = useTempPerimeterAndAreaLabel(viewer);
 
   const {
@@ -104,7 +104,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmDistanceSurveySurveyPoint,
     setupSpatialSelectFormWatch:setupDistanceSurveySpatialFormWatch,
     finishDistanceSurvey,
-  }=useDistanceSurvey(viewer,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager)
+  }=useDistanceSurvey(viewer,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager)
 
   const {
     polygonBoxSelection,
@@ -116,8 +116,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const initEvents = () => {
     if (!viewer?.value) return
     mouseFollowPointLabelManager.addTempPointLabelToViewer()
-    segmentLengthLabelManager.addTempSegmentLengthLabelToViewer()
-    totalLengthLabelManager.addTempTotalLengthLabelToViewer()
+    segmentDistanceLabelManager.addTempSegmentDistanceLabelToViewer()
+    totalDistanceLabelManager.addTempTotalDistanceLabelToViewer()
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
 
     // 销毁已有 handler
@@ -173,13 +173,13 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           } else if (properties.sourceType === 'airport') {
             handleAirportLeftClick(properties, pickedObject)
           }else{
-            highlightStore.clearSelected()
-            highlightStore.clearLastSelectedIcao24()
+            aviationSelectionStore.clearSelected()
+            aviationSelectionStore.clearLastSelectedIcao24()
           }
         }
       }else{
-        highlightStore.clearSelected()
-        highlightStore.clearLastSelectedIcao24()
+        aviationSelectionStore.clearSelected()
+        aviationSelectionStore.clearLastSelectedIcao24()
 
         measurementSelectionStore.clearSelected()
         clearSelectedEntityHighlight()
@@ -280,11 +280,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         }
 
         if (newForm.operationType === 'distanceSurvey') {
-          segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(true)
-          totalLengthLabelManager.setTempTotalLengthLabelVisibility(true)
+          segmentDistanceLabelManager.setTempSegmentDistanceLabelVisibility(true)
+          totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(true)
         } else {
-          segmentLengthLabelManager.setTempSegmentLengthLabelVisibility(false)
-          totalLengthLabelManager.setTempTotalLengthLabelVisibility(false)
+          segmentDistanceLabelManager.setTempSegmentDistanceLabelVisibility(false)
+          totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(false)
         }
 
         if (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype!='none') {

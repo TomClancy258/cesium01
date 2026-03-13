@@ -6,8 +6,8 @@ import type { DrawerProps } from 'element-plus'
 import AircraftDetail from './AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
 
-import { useHighlightStore } from '@/stores/aviationSelection'
-const highlightStore = useHighlightStore()
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
+const aviationSelectionStore = useAviationSelectionStore()
 
 const direction = ref<DrawerProps['direction']>('ltr')
 
@@ -21,8 +21,8 @@ const handleClose = (): void => {
 }
 
 const selectedSourceType = computed(() => {
-  if (highlightStore.selected !== null) {
-    return highlightStore.selected.sourceType
+  if (aviationSelectionStore.selected !== null) {
+    return aviationSelectionStore.selected.sourceType
   }else{
     return ''
   }
@@ -30,7 +30,7 @@ const selectedSourceType = computed(() => {
 
 // 优化：用computed替代watch控制抽屉显隐（更简洁）
 const drawer = computed({
-  get: () => highlightStore.selected !== null,
+  get: () => aviationSelectionStore.selected !== null,
   set: (value) => {
     // 处理抽屉手动关闭的逻辑（v-model需要双向绑定）
     if (!value) {

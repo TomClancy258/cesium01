@@ -1,20 +1,20 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
-import {showEntitiesLabelByAlpha,hideEntitiesLabelByAlpha} from "@/utils/cesiumUtils"
+import {showMeasurementEntities,hideMeasurementEntities} from "@/utils/cesiumUtils"
 
 interface EntityHighlightData{
   entity:Cesium.Entity|null,
-  showEntities: Cesium.Entity[],
+  measurementEntities: Cesium.Entity[],
 }
 
 // 仅存储Entity实例（模块单例，非响应式）
 const hovered:EntityHighlightData={
   entity: null,
-  showEntities:[]
+  measurementEntities:[]
 }
 const selected:EntityHighlightData={
   entity: null,
-  showEntities:[]
+  measurementEntities:[]
 }
 
 /**
@@ -137,15 +137,15 @@ export function highlightEntityOnHover(
     // 若上一个 hover 项未被选中，才恢复默认
     if (hovered.entity !== selected.entity) {
       restoreEntityOriginalState(hovered.entity)
-      hideEntitiesLabelByAlpha(hovered.showEntities)
+      hideMeasurementEntities(hovered.measurementEntities)
     }
   }
 
   // 设置新hover高亮
   hovered.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
-  hovered.showEntities=entities
-  showEntitiesLabelByAlpha(hovered.showEntities)
+  hovered.measurementEntities=entities
+  showMeasurementEntities(hovered.measurementEntities)
 }
 
 /**
@@ -159,21 +159,21 @@ export function highlightEntityAndSetSelected(
   // 恢复上一个选中的Entity
   if (selected.entity && selected.entity !== entity) {
     restoreEntityOriginalState(selected.entity)
-    hideEntitiesLabelByAlpha(selected.showEntities)
+    hideMeasurementEntities(selected.measurementEntities)
   }
 
   // 清除当前hover
   if (hovered.entity === entity) {
     hovered.entity = null
-    hovered.showEntities=[]
+    hovered.measurementEntities=[]
   }
 
   // 设置选中高亮
   selected.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
 
-  selected.showEntities=entities
-  showEntitiesLabelByAlpha(selected.showEntities)
+  selected.measurementEntities=entities
+  showMeasurementEntities(selected.measurementEntities)
 }
 
 /**
@@ -184,8 +184,8 @@ export function clearHoveredEntityHighlight(): void {
     restoreEntityOriginalState(hovered.entity)
     hovered.entity = null
 
-    hideEntitiesLabelByAlpha(hovered.showEntities)
-    hovered.showEntities=[]
+    hideMeasurementEntities(hovered.measurementEntities)
+    hovered.measurementEntities=[]
   }
 }
 
@@ -197,8 +197,8 @@ export function clearSelectedEntityHighlight(): void {
     restoreEntityOriginalState(selected.entity)
     selected.entity = null
 
-    hideEntitiesLabelByAlpha(selected.showEntities)
-    selected.showEntities=[]
+    hideMeasurementEntities(selected.measurementEntities)
+    selected.measurementEntities=[]
   }
 }
 

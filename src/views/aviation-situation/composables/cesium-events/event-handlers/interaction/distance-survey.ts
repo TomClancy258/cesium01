@@ -1,4 +1,4 @@
-//src/views/aviation-situation/composables/cesium-events/event-handlers/distanceSurvey-interaction.ts
+//src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distanceSurvey.ts
 import * as Cesium from 'cesium'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
@@ -10,38 +10,40 @@ import type { MeasurementSelectedData } from '@/views/aviation-situation/types/s
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
 const measurementSelectionStore=useMeasurementSelectionStore()
 
-import {getShowEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
+import {getMeasurementEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
 
 
 export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
-  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
+  const dataSourceName:string=properties.dataSourceName
   if (
     measurementSelectionStore.drawingDataSource &&
     measurementSelectionStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  highlightEntityOnHover(highlightEntity, {
+  const result:MeasurementEntitiesResult | undefined =getMeasurementEntitiesAndHighlightEntity(viewer, properties,2)
+  highlightEntityOnHover(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
     ]
-  },showEntities)
+  },result.measurementEntities)
 }
 
 // 处理机场左键点击
 export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
-  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,2)
+  const dataSourceName:string=properties.dataSourceName
   if (
     measurementSelectionStore.drawingDataSource &&
     measurementSelectionStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  highlightEntityAndSetSelected(highlightEntity, {
+  const result:MeasurementEntitiesResult | undefined =getMeasurementEntitiesAndHighlightEntity(viewer, properties,2)
+  highlightEntityAndSetSelected(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }
     ]
-  },showEntities)
+  },result.measurementEntities)
   const selected:MeasurementSelectedData={
     id:entity.id,
     type:properties.type,

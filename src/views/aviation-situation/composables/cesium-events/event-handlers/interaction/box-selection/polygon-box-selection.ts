@@ -9,36 +9,38 @@ import { ShallowRef } from 'vue'
 import type { MeasurementSelectedData } from '@/views/aviation-situation/types/shared'
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
 const measurementSelectionStore=useMeasurementSelectionStore()
-import {getShowEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
+import {getMeasurementEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
 
 export const handlePolygonBoxSelectionHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
-  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
+  const dataSourceName:string=properties.dataSourceName
   if (
     measurementSelectionStore.drawingDataSource &&
     measurementSelectionStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  highlightEntityOnHover(highlightEntity, {
+  const result:MeasurementEntitiesResult | undefined=getMeasurementEntitiesAndHighlightEntity(viewer, properties,1)
+  highlightEntityOnHover(result.highlightEntity, {
     components: [
       { type: 'polygon', prop: 'material', value: Cesium.Color.fromCssColorString('rgba(165, 243, 252, 0.25)') }
     ]
-  },showEntities)
+  },result.measurementEntities)
 }
 
 export const handlePolygonBoxSelectionLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
-  const {showEntities,highlightEntity,dataSourceName}=getShowEntitiesAndHighlightEntity(viewer, properties,1)
+  const dataSourceName:string=properties.dataSourceName
   if (
     measurementSelectionStore.drawingDataSource &&
     measurementSelectionStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  highlightEntityAndSetSelected(highlightEntity, {
+  const result:MeasurementEntitiesResult | undefined=getMeasurementEntitiesAndHighlightEntity(viewer, properties,1)
+  highlightEntityAndSetSelected(result.highlightEntity, {
     components: [
       { type: 'polygon', prop: 'material', value: Cesium.Color.fromCssColorString('rgba(6, 182, 212, 0.25)') }
     ]
-  },showEntities)
+  },result.measurementEntities)
   const selected:MeasurementSelectedData={
     id:entity.id,
     type:properties.type,

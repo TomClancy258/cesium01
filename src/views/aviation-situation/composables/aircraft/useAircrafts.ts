@@ -21,7 +21,7 @@ import {
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
 } from '../useBillboardHighlightManager'
-import { useHighlightStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
 import { useAircraftStore } from '@/stores/aircraft'
@@ -36,7 +36,7 @@ import {
   airplaneSelectedSvgRawDataUrl,
 } from './aircraftConstants'
 
-const highlightStore = useHighlightStore()
+const aviationSelectionStore = useAviationSelectionStore()
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const aircraftStore = useAircraftStore()
 
@@ -320,9 +320,9 @@ export function useAircrafts(viewer) {
 
   const setupHighlightWatch = (): void => {
     unwatchHighlight = watch(
-      [() => simulatedWebSocketStore.index, () => highlightStore.selected],
+      [() => simulatedWebSocketStore.index, () => aviationSelectionStore.selected],
       () => {
-        const selected: AviationSelectedData = highlightStore.selected
+        const selected: AviationSelectedData = aviationSelectionStore.selected
         if (selected === null) {
           clearAircraftRoute()
           resetAircraftPlannedTrajectory()
@@ -400,7 +400,7 @@ export function useAircrafts(viewer) {
 
       if (match) {
         matchedAircraftCount.value++
-        const selected:AviationSelectedData  = highlightStore.selected
+        const selected:AviationSelectedData  = aviationSelectionStore.selected
         if (selected?.sourceType === 'aircraft' && p.icao24 === selected.icao24) {
           isSelectedAircraftMatched = true
         }

@@ -5,11 +5,11 @@ import type { RoutePoint } from '@/network/aircraft/types/route-full'
 import type { AircraftSelectedData,AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { altitudeColorMap } from '../aircraftConstants'
-import {useHighlightStore} from '@/stores/aviationSelection'
+import {useAviationSelectionStore} from '@/stores/aviationSelection'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   let aircraftRoutePoints: RoutePoint[] = []
-const highlightStore = useHighlightStore()
+const aviationSelectionStore = useAviationSelectionStore()
 
   const initAircraftRoute=():void=>{
     aircraftGraphic.primitives.selectedAircraft.routePolylines = new Cesium.PolylineCollection()
@@ -105,7 +105,7 @@ const highlightStore = useHighlightStore()
       if (aircraftRoutePoints.length === 0) {
         drawAircraftRoute(routeData, icao24)
       } else {
-        if (icao24 !== highlightStore.lastSelectedIcao24) {
+        if (icao24 !== aviationSelectionStore.lastSelectedIcao24) {
           clearAircraftRoute()
           drawAircraftRoute(routeData, icao24)
         }else{
@@ -115,7 +115,7 @@ const highlightStore = useHighlightStore()
       }
 
       aircraftRoutePoints = routeData
-      highlightStore.setLastSelectedIcao24(icao24)
+      aviationSelectionStore.setLastSelectedIcao24(icao24)
     } catch (error) {
       console.error('同步航线失败:', error)
       clearAircraftRoute()
@@ -128,7 +128,7 @@ const highlightStore = useHighlightStore()
   const clearAircraftRoute = (): void => {
     aircraftGraphic.primitives.selectedAircraft.routePolylines?.removeAll()
     aircraftRoutePoints = []
-    highlightStore.clearLastSelectedIcao24()
+    aviationSelectionStore.clearLastSelectedIcao24()
   }
 
   return {

@@ -11,13 +11,13 @@ import type {
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
-import {useHighlightStore} from '@/stores/aviationSelection'
+import {useAviationSelectionStore} from '@/stores/aviationSelection'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 
 const aircraftStore=useAircraftStore()
 
 export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) {
-  const highlightStore = useHighlightStore()
+  const aviationSelectionStore = useAviationSelectionStore()
 
   const aircraftPlannedTrajectoryState:DynamicPolylineState={
     lngLatAltArray:[],
@@ -184,7 +184,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
       if (aircraftPlannedWaypoints.length === 0) {
         drawAircraftPlannedWaypoints(routeData, icao24)
       } else {
-        if (icao24 !== highlightStore.lastSelectedIcao24) {
+        if (icao24 !== aviationSelectionStore.lastSelectedIcao24) {
           clearAircraftPlannedWaypoints()
           drawAircraftPlannedWaypoints(routeData, icao24)
         }else{

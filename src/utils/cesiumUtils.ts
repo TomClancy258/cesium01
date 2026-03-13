@@ -3,13 +3,18 @@ import { TEMP_POINT_LABEL_STYLE,TEMP_TOTAL_LENGTH_LABEL_STYLE } from '@/views/av
 import { ShallowRef } from 'cesium'
 import {EntityProperties} from "@/views/aviation-situation/types/entity"
 
+interface MeasurementEntitiesResult {
+  measurementEntities: Cesium.Entity[];
+  highlightEntity: Cesium.Entity | null;
+}
+
 /**
  * 克隆 Cesium Entity 的 Label/Point 样式（通用工具函数）
  * @param sourceEntity 源实体
  * @param newEntityId 新实体ID
  * @returns 克隆后的实体配置对象
  */
-export const cloneEntityStyle = (
+export const cloneEntityAsConfig = (
   sourceEntity: Cesium.Entity,
   newEntityId: string,
   viewer:ShallowRef<Cesium.Viewer>
@@ -22,7 +27,6 @@ export const cloneEntityStyle = (
     // show: false,
     // position: sourceEntity.position,
   };
-  console.log("sourceEntity", sourceEntity);
   if (sourceEntity.properties) {
     const props = sourceEntity.properties.getValue() as EntityProperties
     cloneConfig.properties=props
@@ -31,8 +35,8 @@ export const cloneEntityStyle = (
   // /*
   if (Cesium.defined(sourceEntity.position)) {
     // 获取当前时刻的位置值（Cartesian3）
-    const currentTime = viewer.value.clock.currentTime; // 需要传入 viewer 或 clock
-    const posValue = sourceEntity.position.getValue(currentTime);
+    const currentTime:Cesium.JulianDate = viewer.value.clock.currentTime; // 需要传入 viewer 或 clock
+    const posValue:Cesium.Cartesian3 | undefined = sourceEntity.position.getValue(currentTime);
 
     if (Cesium.defined(posValue)) {
       cloneConfig.position = posValue; // Cesium 会自动包装为 ConstantProperty
@@ -85,11 +89,10 @@ export const hideEntities=(entities:Cesium.Entity[])=>{
   }
 }
 
-export const showEntitiesLabelByAlpha=(entities:Cesium.Entity[])=>{
+export const showMeasurementEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     if(entity.label){
       const props = entity.properties.getValue() as EntityProperties
-      console.log("props", props);
       entity.label.fillColor = props.label.originalFillColor;
     }
     if(entity.point){
@@ -98,7 +101,7 @@ export const showEntitiesLabelByAlpha=(entities:Cesium.Entity[])=>{
   }
 }
 
-export const hideEntitiesLabelByAlpha=(entities:Cesium.Entity[])=>{
+export const hideMeasurementEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     if(entity.label){
       entity.label.fillColor = Cesium.Color.TRANSPARENT;
@@ -151,21 +154,21 @@ export const createEntityLabelConfig = (
  * @param properties 实体属性
  * @returns 显示的实体数组
  */
-export const getShowEntitiesAndHighlightEntity = (
+export const getMeasurementEntitiesAndHighlightEntity = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   properties: EntityProperties,
   startIndex:number=1,
-): Cesium.Entity[] => {
+): MeasurementEntitiesResult |undefined => {
   // 重置显示的实体数组
-  const showEntities:Cesium.Entity[]=[]
+  const measurementEntities:Cesium.Entity[]=[]
 
-  if (!viewer.value) return showEntities
+  if (!viewer.value) return
 
   const dataSourceName: string = properties.dataSourceName
   const dataSources: Cesium.CustomDataSource[] = viewer.value.dataSources.getByName(dataSourceName)
 
   if (dataSources.length === 0) {
-    return showEntities
+    return
   }
 
   const dataSource: Cesium.CustomDataSource = dataSources[0]
@@ -173,7 +176,7 @@ export const getShowEntitiesAndHighlightEntity = (
   // 从第i+1个实体开始遍历（索引i），显示测量相关元素
   for (let i: number = startIndex; i < values.length; i++) {
     // 存储显示的实体（调整索引从0开始）
-    showEntities[i - startIndex] = values[i]
+    measurementEntities[i - startIndex] = values[i]
 
     // const entityProperties = values[i].properties.getValue() as EntityProperties
     // 根据实体类型显示对应的组件
@@ -185,5 +188,5 @@ export const getShowEntitiesAndHighlightEntity = (
     // }
   }
 
-  return {showEntities,highlightEntity:values[0],dataSourceName}
+  return {measurementEntities,highlightEntity:values[0]}
 }

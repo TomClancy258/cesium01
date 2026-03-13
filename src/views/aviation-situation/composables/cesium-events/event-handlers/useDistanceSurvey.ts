@@ -6,13 +6,13 @@ import { generateBizUniqueId } from '@/utils/uuid'
 import { type TempPointLabelPositionLngLatAlt } from './shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from './useKeyboardEvents';
 import {
-  calculatePolylineTotalLength,
+  calculatePolylineTotalDistance,
   calculateSurfaceDistance,
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
-import {cloneEntityStyle} from "@/utils/cesiumUtils"
+import {cloneEntityAsConfig} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
@@ -21,7 +21,7 @@ import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
 export interface DistanceSurveySession {
   dataSource: Cesium.CustomDataSource|null
   surveyPoints: Cesium.Entity[]
-  segmentLengthLabels: Cesium.Entity[]
+  segmentDistanceLabels: Cesium.Entity[]
   dynamicPolyline: Cesium.Entity|null
 }
 
@@ -75,7 +75,7 @@ const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): Ln
   return midLngLatAlt
 };
 
-export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentLengthLabelManager,totalLengthLabelManager) => {
+export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager) => {
   const measurementSelectionStore=useMeasurementSelectionStore()
 
   const spatialSelectStore = useSpatialSelectStore()
@@ -85,7 +85,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     //该距离测绘折线的全部
     dataSource: null,
     surveyPoints:[],
-    segmentLengthLabels:[],
+    segmentDistanceLabels:[],
     //该距离测绘的折线
     dynamicPolyline: null,
   }
@@ -109,7 +109,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     const lngLatAlt:TempPointLabelPositionLngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
 
     addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
-    updateSegmentLengthLabel();
+    updateSegmentDistanceLabel();
 
   }
 
@@ -124,7 +124,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     }
   }
 
-  const updateSegmentLengthLabel = () => {
+  const updateSegmentDistanceLabel = () => {
     if (dynamicPolylineState.pointCount>=1) {
       const lastPointIndex:number=dynamicPolylineState.pointCount*3
       const lastPositions:number[]=[
@@ -140,11 +140,11 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       ]
 
       const distance:number=calculateSurfaceDistance(lastButOnePositions,lastPositions)
-      const totalDistance:number=calculatePolylineTotalLength(dynamicPolylineState.lngLatAltArray)
+      const totalDistance:number=calculatePolylineTotalDistance(dynamicPolylineState.lngLatAltArray)
       const lngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
 
-      segmentLengthLabelManager.updateTempSegmentLengthLabel(lngLatAlt,distance)
-      totalLengthLabelManager.updateTempTotalLengthLabel(lngLatAlt,totalDistance)
+      segmentDistanceLabelManager.updateTempSegmentDistanceLabel(lngLatAlt,distance)
+      totalDistanceLabelManager.updateTempTotalDistanceLabel(lngLatAlt,totalDistance)
     }
   }
 
@@ -165,10 +165,10 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       const properties:EntityProperties={
         operationType:'distanceSurvey',
         sourceType:'distanceSurvey',
-        type:'tempSegmentLengthLabel',
+        type:'tempSegmentDistanceLabel',
         dataSourceName:activeDistanceSurvey.dataSource.name,
       }
-      segmentLengthLabelManager.addTempSegmentLengthLabelToDataSource(activeDistanceSurvey,properties)
+      segmentDistanceLabelManager.addTempSegmentDistanceLabelToDataSource(activeDistanceSurvey,properties)
     }
   }
 
@@ -265,15 +265,15 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
 
           // activateMouseFollowPointLabel('distanceSurvey');
-          // activateTempSegmentLengthLabel('distanceSurvey')
-          // activateTempTotalLengthLabel('distanceSurvey')
+          // activateTempSegmentDistanceLabel('distanceSurvey')
+          // activateTempTotalDistanceLabel('distanceSurvey')
         } else {
           cleanupActiveDistanceSurvey()
           resetDynamicPolylineState()
 
           // deactivateMouseFollowPointLabel('distanceSurvey');
-          // deactivateTempSegmentLengthLabel('distanceSurvey')
-          // deactivateTempTotalLengthLabel('distanceSurvey')
+          // deactivateTempSegmentDistanceLabel('distanceSurvey')
+          // deactivateTempTotalDistanceLabel('distanceSurvey')
         }
       },
       {
@@ -301,7 +301,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       type:'totalDistanceLabel',
       dataSourceName:uniqueId,
     }
-    totalLengthLabelManager.addTempTotalLengthLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray,properties);
+    totalDistanceLabelManager.addTempTotalDistanceLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray,properties);
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
@@ -311,15 +311,15 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
-    for (let i:number = 0; i < activeDistanceSurvey.segmentLengthLabels.length; i++) {
+    for (let i:number = 0; i < activeDistanceSurvey.segmentDistanceLabels.length; i++) {
       const oldPointEntity:Cesium.Entity = activeDistanceSurvey.surveyPoints[i];
-      const oldLabelEntity:Cesium.Entity = activeDistanceSurvey.segmentLengthLabels[i];
+      const oldLabelEntity:Cesium.Entity = activeDistanceSurvey.segmentDistanceLabels[i];
       const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
       const labelUniqueId:string = generateBizUniqueId('LabelEntity');
 
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
-        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldPointEntity, pointUniqueId,viewer);
+        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldPointEntity, pointUniqueId,viewer);
         const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
         pointCloneConfig.properties={
           type:'surveyPoint',
@@ -340,11 +340,11 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
-        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(oldLabelEntity, labelUniqueId,viewer);
+        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldLabelEntity, labelUniqueId,viewer);
         const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
 
         labelCloneConfig.properties={
-          type:'segmentLengthLabel',
+          type:'segmentDistanceLabel',
           sourceType:'distanceSurvey',
           operationType:'distanceSurvey',
           dataSourceName:uniqueId,
@@ -362,7 +362,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
     const lastPointEntity:Cesium.Entity=activeDistanceSurvey.surveyPoints[dynamicPolylineState.pointCount-1]
     if (lastPointEntity) {
-      const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityStyle(lastPointEntity, pointUniqueId,viewer);
+      const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(lastPointEntity, pointUniqueId,viewer);
       const pointOriginalFillColor=lastPointCloneConfig.properties.label.originalFillColor
       lastPointCloneConfig.properties={
         type:'surveyPoint',
@@ -383,7 +383,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
   const cleanupActiveDistanceSurvey=()=>{
     activeDistanceSurvey.surveyPoints=[]
-    activeDistanceSurvey.segmentLengthLabels=[]
+    activeDistanceSurvey.segmentDistanceLabels=[]
     viewer.value.dataSources.remove(activeDistanceSurvey.dataSource);
 
   }
@@ -399,7 +399,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     // 回退最后一个坐标点
     if (dynamicPolylineState.pointCount >= 2) {
       const pointEntity:Cesium.Entity|undefined=activeDistanceSurvey.surveyPoints.pop()
-      const labelEntity:Cesium.Entity|undefined=activeDistanceSurvey.segmentLengthLabels.pop()
+      const labelEntity:Cesium.Entity|undefined=activeDistanceSurvey.segmentDistanceLabels.pop()
       activeDistanceSurvey.dataSource.entities.remove(pointEntity)
       activeDistanceSurvey.dataSource.entities.remove(labelEntity)
 
@@ -407,8 +407,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolylineState.pointCount--;
-      updateSegmentLengthLabel();
-      totalLengthLabelManager.updateTempTotalLengthLabel();
+      updateSegmentDistanceLabel();
+      totalDistanceLabelManager.updateTempTotalDistanceLabel();
     }
   };
 

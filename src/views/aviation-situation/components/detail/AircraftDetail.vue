@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useHighlightStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
 
-const highlightStore=useHighlightStore()
+const aviationSelectionStore=useAviationSelectionStore()
 
 </script>
 
 <template>
   <div>
     <h3>飞机详情</h3>
-    <p>ICAO24: {{ highlightStore.selected?.icao24 }}</p>
+    <p>ICAO24: {{ aviationSelectionStore.selected?.icao24 }}</p>
   </div>
 </template>
 

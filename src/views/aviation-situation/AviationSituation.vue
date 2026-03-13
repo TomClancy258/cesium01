@@ -9,7 +9,7 @@ import { useAirports } from './composables/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
-import { useHighlightStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
@@ -20,7 +20,7 @@ import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCa
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
-const highlightStore = useHighlightStore()
+const aviationSelectionStore = useAviationSelectionStore()
 const aircraftStore = useAircraftStore()
 const airportStore = useAirportStore()
 
@@ -68,9 +68,9 @@ onMounted(async () => {
 onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
-  highlightStore.clearSelected()
-  highlightStore.clearHovered()
-  highlightStore.clearLastSelectedIcao24()
+  aviationSelectionStore.clearSelected()
+  aviationSelectionStore.clearHovered()
+  aviationSelectionStore.clearLastSelectedIcao24()
   aircraftStore.resetAircraftFilterForm()
   aircraftStore.resetAircraftTrajectoryOptions()
   airportStore.resetAirportFilterForm()

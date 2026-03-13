@@ -2,7 +2,6 @@
 import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
-import { getPolygon } from '@/utils/cesiumUtils'
 
 export function isValidCoordinate(
   longitude: unknown,
@@ -200,7 +199,7 @@ export const formatDistance = (distanceInMeters: number): string => {
  * @param lngLatAltArray 经纬度海拔数组（3个一组）
  * @returns 总长度（单位和`calculateSurfaceDistance`保持一致）
  */
-export const calculatePolylineTotalLength = (lngLatAltArray: number[]): number => {
+export const calculatePolylineTotalDistance = (lngLatAltArray: number[]): number => {
   let totalLength = 0;
   // 至少2个点（6个元素）才计算长度
   if (lngLatAltArray.length < 6) return totalLength;
@@ -227,7 +226,7 @@ export const calculatePerimeter = (lngLatAltArray: number[]): number => {
   // 至少3个点（9个元素）才计算长度
   if (lngLatAltArray.length < 9) return perimeter;
 
-  const lngLatAltArrayPushFirstPoint:number[]=getLngLatAltArrayPushFirstPoint(lngLatAltArray)
+  const lngLatAltArrayPushFirstPoint:number[]=closePolygonRing(lngLatAltArray)
   // 遍历所有线段，累加长度
   for (let i = 0; i < lngLatAltArrayPushFirstPoint.length - 3; i += 3) {
     const startPoint = [
@@ -245,20 +244,20 @@ export const calculatePerimeter = (lngLatAltArray: number[]): number => {
   return perimeter;
 };
 
-export const getLngLatAltArrayPushFirstPoint=(lngLatAltArray: number[])=>{
-  if (lngLatAltArray.length <= 2) {
+export const closePolygonRing=(lngLatAltArray: number[]):number[]=>{
+  const pointCount:number=lngLatAltArray.length/3
+  if (pointCount <= 2) {
     return lngLatAltArray
   }
-  const lngLatAltArrayPushFirstPoint:number[]=[...lngLatAltArray,lngLatAltArray[0],lngLatAltArray[1],lngLatAltArray[2]]
-  return lngLatAltArrayPushFirstPoint
+  return [...lngLatAltArray,lngLatAltArray[0],lngLatAltArray[1],lngLatAltArray[2]]
 }
 
 export const calculateArea = (lngLatAltArray: number[]): number => {
-  let area = 0;
+  let area:number = 0;
   // 至少3个点（9个元素）才计算长度
-  if (lngLatAltArray.length < 9) return perimeter;
+  if (lngLatAltArray.length < 9) return area;
 
-  const polygon = getPolygon(lngLatAltArray); // 注意嵌套：polygon([[...]])
+  const polygon:turf.Feature<turf.Polygon> = createPolygonFromLngLatAltArray(lngLatAltArray); // 注意嵌套：polygon([[...]])
 
   area = turf.area(polygon); // 单位：平方米
   return area;
@@ -272,7 +271,7 @@ export const calculateArea = (lngLatAltArray: number[]): number => {
 export const formatArea = (areaInSquareMeters: number): string => {
   if (areaInSquareMeters < 0) return '0 m²'; // 防止负数
 
-  const absArea = areaInSquareMeters;
+  const absArea:number = areaInSquareMeters;
 
   // 1. 小于 10,000 平方米：显示为 m²，保留 2 位小数
   if (absArea < 10_000) {
@@ -286,7 +285,7 @@ export const formatArea = (areaInSquareMeters: number): string => {
   }
 
   // 3. 大于等于 1,000,000 平方米：转换为平方公里（1 km² = 1,000,000 m²）
-  const km2 = absArea / 1_000_000;
+  const km2:number = absArea / 1_000_000;
 
   // 可选：对超大区域（如 > 100 km²）减少小数位，但通常保留 2 位已足够清晰
   if (km2 >= 100) {
@@ -297,27 +296,25 @@ export const formatArea = (areaInSquareMeters: number): string => {
 };
 
 
-export const getPolygon=(lngLatAltArray:number[])=>{
-  const lngLatAltArrayPushFirstPoint:number[]=getLngLatAltArrayPushFirstPoint(lngLatAltArray)
+export const createPolygonFromLngLatAltArray=(lngLatAltArray:number[]): turf.Feature<turf.Polygon>=>{
+  const closedRing:number[]=closePolygonRing(lngLatAltArray)
 
-  const coords=[]
-  const pointCount=lngLatAltArrayPushFirstPoint.length/3
-  for (let i = 0; i < pointCount; i++) {
-    const index=i*3
-    coords[i]=[lngLatAltArrayPushFirstPoint[index],lngLatAltArrayPushFirstPoint[index+1]]
+  const coords: [number, number][]=[]
+  const pointCount:number=closedRing.length/3
+  for (let i:number = 0; i < pointCount; i++) {
+    const index:number=i*3
+    coords[i]=[closedRing[index],closedRing[index+1]]
   }
-  const polygon = turf.polygon([coords]);
-  return polygon
+  return turf.polygon([coords])
 }
 
 export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
-  const polygon=getPolygon(lngLatAltArray)
-  const center = turf.centerOfMass(polygon);
+  const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(lngLatAltArray)
+  const center:turf.Feature<turf.Point> = turf.centerOfMass(polygon);
   const centerCoord = center.geometry.coordinates;
-  const lngLatAlt:LngLatAlt={
+  return {
     longitude:centerCoord[0],
     latitude:centerCoord[1],
     height:0,
   }
-  return lngLatAlt
 }
