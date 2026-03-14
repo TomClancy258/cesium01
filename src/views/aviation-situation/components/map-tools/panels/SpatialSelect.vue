@@ -8,7 +8,7 @@ const operationTypes = [
     label: '无操作',
   },
   {
-    value: 'distanceSurvey',
+    value: 'distanceMeasurement',
     label: '距离测绘',
   },
   {
@@ -36,8 +36,8 @@ const boxSelectionSubtypes = [
 ]
 const boxSelectionTargets = [
   {
-    value: 'all',
-    label: '全部',
+    value: 'measurement',
+    label: '仅测绘',
   },
   {
     value: 'aircraft',
@@ -47,10 +47,14 @@ const boxSelectionTargets = [
     value: 'airport',
     label: '仅机场',
   },
+  {
+    value: 'all',
+    label: '全部',
+  },
 ]
 
 const operationTypeChange = (val: string): void => {
-  if (val === 'distanceSurvey') {
+  if (val === 'distanceMeasurement') {
 
   }
 }

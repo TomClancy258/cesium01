@@ -4,7 +4,7 @@ import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { formatDistance } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
-import type {DistanceSurveySession} from "../useDistanceSurvey"
+import type {DistanceSurveySession} from "../useDistanceMeasurement"
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 

@@ -10,18 +10,18 @@ import type {
   AirportSelectedData,
   AirportTooltipState,
 } from '../types/airport'
-import { flyToPositionWithHeightOffset, isValidCoordinate, updateTooltip,getCameraHeight } from '@/utils/geoUtils'
+import { isValidCoordinate, updateTooltip,getCameraHeight } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
-
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
+
 import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?raw'
-
 const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHoveredSvgRaw)}`
-import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 
+import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
+
 import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
-import { emitCesiumEvent, onCesiumEvent } from './cesium-events/useCesiumMouseEvents'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 import type {
   AirportFilterForm,

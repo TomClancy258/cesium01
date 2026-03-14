@@ -4,7 +4,7 @@
  const spatialSelectStore = useSpatialSelectStore()
 
  const isHintVisible = computed(() => {
-   return spatialSelectStore.spatialSelectForm.operationType === 'distanceSurvey'
+   return spatialSelectStore.spatialSelectForm.operationType === 'distanceMeasurement'
  })
 </script>
 

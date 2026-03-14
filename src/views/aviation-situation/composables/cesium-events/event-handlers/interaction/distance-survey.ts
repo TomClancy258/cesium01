@@ -1,4 +1,4 @@
-//src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distanceSurvey.ts
+//src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distanceMeasurement.ts
 import * as Cesium from 'cesium'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {

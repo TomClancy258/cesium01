@@ -75,12 +75,12 @@ const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): Ln
   return midLngLatAlt
 };
 
-export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager) => {
+export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>, mouseFollowPointLabelManager, segmentDistanceLabelManager, totalDistanceLabelManager) => {
   const measurementSelectionStore=useMeasurementSelectionStore()
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
-  const distanceSurveyDataSources: Cesium.CustomDataSource[] = []
+  const distanceMeasurementDataSources: Cesium.CustomDataSource[] = []
   const activeDistanceSurvey: DistanceSurveySession = {
     //该距离测绘折线的全部
     dataSource: null,
@@ -96,7 +96,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     positions:[]
   };
 
-  const distanceSurvey = (position: Cesium.Cartesian2): void => {
+  const distanceMeasurement = (position: Cesium.Cartesian2): void => {
     const ray: Cesium.Ray = viewer.value.camera.getPickRay(position)
     const cartesian3 :Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
     if (!cartesian3) {
@@ -150,8 +150,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
   const confirmSurveyPoint = () => {
     const pointLabelProperties:EntityProperties={
-      operationType:'distanceSurvey',
-      sourceType:'distanceSurvey',
+      operationType:'distanceMeasurement',
+      sourceType:'distanceMeasurement',
       type:'tempSurveyPoint',
       dataSourceName:activeDistanceSurvey.dataSource.name,
     }
@@ -163,8 +163,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
     if (dynamicPolylineState.pointCount >= 2) {
       const properties:EntityProperties={
-        operationType:'distanceSurvey',
-        sourceType:'distanceSurvey',
+        operationType:'distanceMeasurement',
+        sourceType:'distanceMeasurement',
         type:'tempSegmentDistanceLabel',
         dataSourceName:activeDistanceSurvey.dataSource.name,
       }
@@ -196,8 +196,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     activeDistanceSurvey.dynamicPolyline = activeDistanceSurvey.dataSource.entities.add({
       id: polylineUniqueId,
       properties: {
-        operationTypes: 'distanceSurvey',
-        sourceType: 'distanceSurvey',
+        operationTypes: 'distanceMeasurement',
+        sourceType: 'distanceMeasurement',
         type: 'polyline',
         dataSourceName: dataSourceUniqueId,
         originalPolylineMaterial:polylineConfig.polyline?.material
@@ -209,7 +209,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   }
 
   const cloneDynamicPolylineToDataSource=(dataSource,dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('distanceSurveyPolyline')
+    const uniqueId:string = generateBizUniqueId('distanceMeasurementPolyline')
 
     // 2. 创建动态位置的CallbackProperty
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
@@ -221,8 +221,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     dataSource.entities.add({
       id: uniqueId,
       properties: {
-        operationType: 'distanceSurvey',
-        sourceType: 'distanceSurvey',
+        operationType: 'distanceMeasurement',
+        sourceType: 'distanceMeasurement',
         type: 'polyline',
         dataSourceName: dataSourceName,
         originalPolylineMaterial:polylineConfig.polyline?.material
@@ -259,21 +259,21 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType === 'distanceSurvey') {
+        if (newForm.operationType === 'distanceMeasurement') {
           initActiveDistanceSurvey()
 
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
 
-          // activateMouseFollowPointLabel('distanceSurvey');
-          // activateTempSegmentDistanceLabel('distanceSurvey')
-          // activateTempTotalDistanceLabel('distanceSurvey')
+          // activateMouseFollowPointLabel('distanceMeasurement');
+          // activateTempSegmentDistanceLabel('distanceMeasurement')
+          // activateTempTotalDistanceLabel('distanceMeasurement')
         } else {
           cleanupActiveDistanceSurvey()
           resetDynamicPolylineState()
 
-          // deactivateMouseFollowPointLabel('distanceSurvey');
-          // deactivateTempSegmentDistanceLabel('distanceSurvey')
-          // deactivateTempTotalDistanceLabel('distanceSurvey')
+          // deactivateMouseFollowPointLabel('distanceMeasurement');
+          // deactivateTempSegmentDistanceLabel('distanceMeasurement')
+          // deactivateTempTotalDistanceLabel('distanceMeasurement')
         }
       },
       {
@@ -289,15 +289,15 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
     cleanTempMouseMovePoints(dynamicPolylineState);
 
-    const uniqueId:string = generateBizUniqueId('distanceSurveyDataSource')
+    const uniqueId:string = generateBizUniqueId('distanceMeasurementDataSource')
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolylineToDataSource(newDataSource,uniqueId)
 
     const midLngLatAlt:LngLatAlt = getLastLineSegmentMidLngLatAlt(dynamicPolylineState);
 
     const properties:EntityProperties={
-      operationType:'distanceSurvey',
-      sourceType:'distanceSurvey',
+      operationType:'distanceMeasurement',
+      sourceType:'distanceMeasurement',
       type:'totalDistanceLabel',
       dataSourceName:uniqueId,
     }
@@ -305,7 +305,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
-    distanceSurveyDataSources.push(newDataSource);
+    distanceMeasurementDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
     spatialSelectStore.setOperationType('none');
   }
@@ -323,8 +323,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
         const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
         pointCloneConfig.properties={
           type:'surveyPoint',
-          sourceType:'distanceSurvey',
-          operationType:'distanceSurvey',
+          sourceType:'distanceMeasurement',
+          operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
           label:{
             originalFillColor:pointOriginalFillColor,
@@ -345,8 +345,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
 
         labelCloneConfig.properties={
           type:'segmentDistanceLabel',
-          sourceType:'distanceSurvey',
-          operationType:'distanceSurvey',
+          sourceType:'distanceMeasurement',
+          operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
           label:{
             originalFillColor:labelOriginalFillColor,
@@ -366,8 +366,8 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
       const pointOriginalFillColor=lastPointCloneConfig.properties.label.originalFillColor
       lastPointCloneConfig.properties={
         type:'surveyPoint',
-        sourceType:'distanceSurvey',
-        operationType:'distanceSurvey',
+        sourceType:'distanceMeasurement',
+        operationType:'distanceMeasurement',
         dataSourceName:uniqueId,
         label:{
           originalFillColor:pointOriginalFillColor,
@@ -416,7 +416,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType === 'distanceSurvey'
+    () => spatialSelectStore.spatialSelectForm.operationType === 'distanceMeasurement'
   );
 
   onUnmounted(() => {
@@ -425,7 +425,7 @@ export const useDistanceSurvey = (viewer: ShallowRef<Cesium.Viewer | null>,mouse
   })
 
   return {
-    distanceSurvey,
+    distanceMeasurement,
     confirmSurveyPoint,
     setupSpatialSelectFormWatch,
     finishDistanceSurvey,

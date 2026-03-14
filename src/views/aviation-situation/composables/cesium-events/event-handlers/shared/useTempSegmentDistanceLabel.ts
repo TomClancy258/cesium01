@@ -5,7 +5,7 @@ import { generateBizUniqueId } from '@/utils/uuid'
 import { formatDistance } from '@/utils/geoUtils.ts'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
-import type {DistanceSurveySession} from "../useDistanceSurvey"
+import type {DistanceSurveySession} from "../useDistanceMeasurement"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface SegmentDistanceInfo  {

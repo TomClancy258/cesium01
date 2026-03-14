@@ -14,14 +14,14 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
   const spatialSelectForm = reactive<SpatialSelectForm>({
     operationType: 'none',
     boxSelectionSubtype: 'none',
-    boxSelectionTarget: 'all',
+    boxSelectionTarget: 'measurement',
   })
 
   // 仅提供数据重置方法（纯数据操作）
   const resetAirportFilterForm = () => {
     spatialSelectForm.operationType = 'none'
     spatialSelectForm.boxSelectionSubtype = 'none'
-    spatialSelectForm.boxSelectionTarget = 'all'
+    spatialSelectForm.boxSelectionTarget = 'measurement'
   }
 
   const setOperationType = (type: string) => {

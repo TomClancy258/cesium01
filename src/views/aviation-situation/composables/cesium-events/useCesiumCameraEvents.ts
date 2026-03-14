@@ -1,4 +1,4 @@
-// src/views/aviation-situation/composables/useCesiumCameraEvents.ts
+//src/views/aviation-situation/composables/cesium-events/useCesiumCameraEvents.ts
 import { onUnmounted } from 'vue'
 import type { ShallowRef, Viewer } from 'cesium'
 import mittBus, { CameraEvent, CesiumCameraEventName } from '../mittBus'

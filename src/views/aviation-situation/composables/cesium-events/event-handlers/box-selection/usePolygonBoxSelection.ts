@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/box-selection/usePolygonBoxSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
+import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { type TempPointLabelPositionLngLatAlt } from '../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../useKeyboardEvents';
@@ -20,6 +20,10 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {useDynamicSegmentDistanceLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
+import {
+  emitCesiumEvent
+} from '@/views/aviation-situation/composables/mittBus'
+import * as turf from '@turf/turf'
 
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
@@ -111,7 +115,6 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
   const updateSegmentDistanceLabel = () => {
     if (dynamicPolygonState.pointCount>=1) {
-      console.log("dynamicPolygonState.pointCount", dynamicPolygonState.pointCount);
       const lastPointIndex:number=dynamicPolygonState.pointCount*3
       const lastPositions:number[]=[
         dynamicPolygonState.lngLatAltArray[lastPointIndex],
@@ -140,8 +143,14 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         const lastSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(firstPositions,lastPositions)
         lastDynamicSegmentLengthLabel.updateTempSegmentDistanceLabel(lastSegmentMidLngLatAlt,lastDistance)
 
-        const polygon=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
+        const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
         perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
+
+        const boxSelectionTarget:string=spatialSelectStore.spatialSelectForm.boxSelectionTarget
+
+        // if (boxSelectionTarget === 'aircraft') {
+          emitCesiumEvent('aircraftBoxSelection',polygon)
+        // }
       }
     }
   }

@@ -1,16 +1,8 @@
+// src/views/aviation-situation/composables/mittBus.ts
 import mitt from 'mitt';
-import type {AircraftBaseProperties,AircraftSelectedData} from "@/views/aviation-situation/types/aircraft"
-import type {AirportBaseProperties,AirportSelectedData} from "@/views/aviation-situation/types/airport"
+import type { AircraftBaseProperties, AircraftSelectedData } from "@/views/aviation-situation/types/aircraft"
+import type { AirportBaseProperties, AirportSelectedData } from "@/views/aviation-situation/types/airport"
 
-// 1. 相机事件类型（对齐原 useCesiumCameraEvents.ts）
-export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
-export type CameraEventCallback = (camera: Cesium.Camera) => void;
-interface CameraEvent {
-  type: CesiumCameraEventName;
-  payload: Cesium.Camera;
-}
-
-// 2. Cesium 交互事件类型（对齐原 useCesiumEvents.ts）
 export type CesiumMouseEventName =
   | 'aircraftHover'
   | 'aircraftLeave'
@@ -18,8 +10,18 @@ export type CesiumMouseEventName =
   | 'airportHover'
   | 'airportLeave'
   | 'airportLeftClick'
-  | 'mouseWheel';
+  | 'mouseWheel'
+  | 'aircraftBoxSelection'; // 新增你需要的事件类型
 
+// 2. 相机事件类型
+export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
+export type CameraEventCallback = (camera: Cesium.Camera) => void;
+interface CameraEvent {
+  type: CesiumCameraEventName;
+  payload: Cesium.Camera;
+}
+
+// 3. 事件回调映射（补充 boxSelection 的类型）
 export interface EventCallbackMap {
   aircraftHover: (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   aircraftLeave: () => void;
@@ -28,14 +30,41 @@ export interface EventCallbackMap {
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
   mouseWheel: () => void;
+  boxSelection: () => void; // 新增事件的回调类型（无参数）
 }
 
-// 3. 合并所有事件类型
+// 4. 合并所有事件类型
 type AllCesiumEvents = {
-  camera: CameraEvent; // 相机事件
+  camera: CameraEvent;
 } & { [K in CesiumMouseEventName]: Parameters<EventCallbackMap[K]> };
 
-// 4. 创建 mitt 实例（泛型约束类型）
+// 5. 创建 mitt 实例
 const mittBus = mitt<AllCesiumEvents>();
+
+// 6. 抽离公共的事件发布方法
+export const emitCesiumEvent = <T extends CesiumMouseEventName>(
+  eventName: T,
+  ...args: EventCallbackMap[T]
+) => {
+  mittBus.emit(eventName, args); // 适配 mitt 单参数规则：多参数打包为数组
+};
+
+// 7. 抽离公共的事件订阅方法
+export const onCesiumEvent = <T extends CesiumMouseEventName>(
+  eventName: T,
+  callback: (...args: EventCallbackMap[T]) => void
+) => {
+  const wrappedCallback = (args: Parameters<EventCallbackMap[T]>) => {
+    if (Array.isArray(args)) {
+      callback(...args); // 多参数解构
+    } else {
+      callback(args);    // 单参数直接传递
+    }
+  };
+
+  mittBus.on(eventName, wrappedCallback);
+  // 返回解绑函数，方便外部销毁
+  return () => mittBus.off(eventName, wrappedCallback);
+};
 
 export default mittBus;

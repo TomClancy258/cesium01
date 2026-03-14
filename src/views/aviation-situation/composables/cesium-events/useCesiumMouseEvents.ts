@@ -22,12 +22,9 @@ const spatialSelectStore=useSpatialSelectStore()
 import {useAviationSelectionStore} from "@/stores/aviationSelection"
 const aviationSelectionStore=useAviationSelectionStore()
 
-import {useMeasurementSelectionStore} from "@/stores/measurementSelection.ts"
-const measurementSelectionStore=useMeasurementSelectionStore()
-
 import {
-  useDistanceSurvey,
-} from "./event-handlers/useDistanceSurvey"
+  useDistanceMeasurement,
+} from "./event-handlers/useDistanceMeasurement"
 import {
   usePolygonBoxSelection,
 } from "./event-handlers/box-selection/usePolygonBoxSelection.ts"
@@ -58,36 +55,7 @@ import {
 import { onUnmounted, watch } from 'vue'
 
 import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
-
-
-// 发布 Cesium 交互事件（替换原 emitCesiumEvent）
-export const emitCesiumEvent = <T extends CesiumMouseEventName>(
-  eventName: T,
-  ...args:  EventCallbackMap[T]
-) => {
-  // 关键修改：把多参数作为「单个数组参数」emit（适配mitt的单参数规则）
-  mittBus.emit(eventName, args);
-};
-
-// 订阅 Cesium 交互事件（替换原 onCesiumEvent）
-export const onCesiumEvent = <T extends CesiumMouseEventName>(
-  eventName: T,
-  callback: (...args: EventCallbackMap[T]) => void
-) => {
-  // 关键修改：mitt的回调接收单个参数（多参数时是数组），手动解构后传给callback
-  const wrappedCallback = (args: Parameters<EventCallbackMap[T]>) => {
-    if (Array.isArray(args)) {
-      callback(...args); // 多参数时解构数组
-    } else {
-      callback(args);    // 单参数时直接传递
-    }
-  };
-
-  mittBus.on(eventName, wrappedCallback);
-  return () => {
-    mittBus.off(eventName, wrappedCallback); // 解绑包装后的回调
-  };
-};
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
@@ -100,11 +68,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const perimeterAndAreaLabel = useTempPerimeterAndAreaLabel(viewer);
 
   const {
-    distanceSurvey,
+    distanceMeasurement,
     confirmSurveyPoint:confirmDistanceSurveySurveyPoint,
     setupSpatialSelectFormWatch:setupDistanceSurveySpatialFormWatch,
     finishDistanceSurvey,
-  }=useDistanceSurvey(viewer,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager)
+  }=useDistanceMeasurement(viewer,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager)
 
   const {
     polygonBoxSelection,
@@ -127,8 +95,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 鼠标移动
     handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
       // console.log("MOUSE_MOVE");
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
-        distanceSurvey(movement.endPosition)
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
+        distanceMeasurement(movement.endPosition)
       }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
         polygonBoxSelection(movement.endPosition)
       }
@@ -140,7 +108,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const pickedObject = viewer.value.scene.pick(click.position)
       if (Cesium.defined(pickedObject) && pickedObject.id) {
         if(pickedObject.id instanceof Cesium.Entity){
-          if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
+          if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
             confirmDistanceSurveySurveyPoint()
           }
           if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'){
@@ -154,7 +122,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           }
 
           const properties = entity.properties.getValue() as EntityProperties
-          if(properties.operationType==='distanceSurvey') {
+          if(properties.operationType==='distanceMeasurement') {
             handleDistanceSurveyLeftClick(viewer,entity,properties)
           }else if(properties.operationType==='boxSelection'){
             if(properties.sourceType==='polygonBoxSelection'){
@@ -187,7 +155,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
     // 右键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceSurvey'){
+      if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
         finishDistanceSurvey()
       }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
         finishPolygonBoxSelection()
@@ -224,7 +192,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         }
         const properties = entity.properties.getValue() as EntityProperties
         console.log("properties", properties);
-        if(properties.operationType==='distanceSurvey') {
+        if(properties.operationType==='distanceMeasurement') {
             handleDistanceSurveyHover(viewer,entity,properties)
         }else if(properties.operationType==='boxSelection'){
           if(properties.sourceType==='polygonBoxSelection') {
@@ -279,7 +247,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           measurementSelectionStore.clearDrawingDataSource()
         }
 
-        if (newForm.operationType === 'distanceSurvey') {
+        if (newForm.operationType === 'distanceMeasurement') {
           segmentDistanceLabelManager.setTempSegmentDistanceLabelVisibility(true)
           totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(true)
         } else {

@@ -14,7 +14,7 @@ export interface EntityLabelProperties {
 // Entity属性类型（按组件分类保存原始值）
 export interface EntityProperties {
   operationType:string,
-  sourceType: string; // distanceSurvey/xxx
+  sourceType: string; // distanceMeasurement/xxx
   type: string; // polyline/polygon/label/point （Entity整体类型）
   dataSourceName?: string;
   originalShow?: boolean; // 整体显隐状态
