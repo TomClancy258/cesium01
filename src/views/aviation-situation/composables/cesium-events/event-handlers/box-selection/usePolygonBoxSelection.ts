@@ -21,7 +21,7 @@ import {useDynamicSegmentDistanceLabel} from '@/views/aviation-situation/composa
 
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
 import {
-  emitCesiumEvent
+  emitCesiumEvent, onCesiumEvent
 } from '@/views/aviation-situation/composables/mittBus'
 import * as turf from '@turf/turf'
 
@@ -147,12 +147,25 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
 
         const boxSelectionTarget:string=spatialSelectStore.spatialSelectForm.boxSelectionTarget
-
+        const boxSelectionData={
+          dataSourceName:activePolygonBoxSelection.dataSource.name,
+          type:'polygon',
+          graphic:polygon,
+          isActive: true
+        }
         // if (boxSelectionTarget === 'aircraft') {
-          emitCesiumEvent('aircraftBoxSelection',polygon)
+          emitCesiumEvent('aircraftBoxSelected',boxSelectionData)
         // }
       }
     }
+  }
+
+  let unsubAircraftFiltered: () => void;
+
+  const subscribePolygonBoxSelectionEvents = () => {
+    unsubAircraftFiltered = onCesiumEvent('aircraftFiltered', () => {
+      updateSegmentDistanceLabel()
+    });
   }
 
   const confirmSurveyPoint = () => {
@@ -306,7 +319,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       dataSourceName:uniqueId,
     }
 
-    const polygon=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
+    const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,PerimeterAndAreaLabelProperties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
 
 
@@ -322,6 +335,16 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     polygonBoxSelectionDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
     spatialSelectStore.setOperationType('none');
+
+    const boxSelectionData={
+      dataSourceName:uniqueId,
+      type:'polygon',
+      graphic:polygon,
+      isActive:false
+    }
+    // if (boxSelectionTarget === 'aircraft') {
+    emitCesiumEvent('aircraftBoxSelected',boxSelectionData)
+    // }
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
@@ -429,6 +452,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   onUnmounted(() => {
     unwatchSpatialSelectForm?.()
     unbindKeyboardEvents();
+    unsubAircraftFiltered()
   })
 
   return {
@@ -436,5 +460,6 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     confirmSurveyPoint,
     setupSpatialSelectFormWatch,
     finishPolygonBoxSelection,
+    subscribePolygonBoxSelectionEvents,
   }
 }

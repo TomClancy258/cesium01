@@ -2,7 +2,7 @@
 import { reactive, watch, onUnmounted, ref } from 'vue'
 import * as Cesium from 'cesium'
 import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import type {
@@ -41,15 +41,32 @@ const aviationSelectionStore = useAviationSelectionStore()
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const aircraftStore = useAircraftStore()
 
-interface BoxSelection{
+
+export type Graphic =turf.Feature<turf.Polygon>|turf.Feature<turf.Point>
+
+interface GraphicObj{
+  type:string,
+  graphic:Graphic,
+  billboards:Cesium.Billboard[],
+  aircraftIcao24Set:Set<string>
+}
+
+interface BoxSelectionActive{
+  type:string,
+  dataSourceName:string,
+  graphic:Graphic,
   billboards:Cesium.Billboard[]
+}
+
+interface BoxSelection{
+  finishedGraphicMap:Map<string,GraphicObj>
+  active:BoxSelectionActive
 }
 
 interface MatchedAircraft{
   aircrafts: Aircraft[],
   billboards: Cesium.Billboard[],
   billboardMap: Map<string, Cesium.Billboard>,
-  boxSelection:BoxSelection,
 }
 
 /**
@@ -74,11 +91,18 @@ export function useAircrafts(viewer) {
     aircrafts:[],
     billboards:[],
     billboardMap:new Map(),
+  }
 
-    activeBoxSelection:{
-      billboards:[],
-      // aircrafts:[],
-    }
+  const boxSelection:BoxSelection={
+    active:{
+      type:'',
+      dataSourceName:'',
+      graphic:null,
+      aircraftObj:{
+
+      },
+    },
+    finishedGraphicMap:new Map(),
   }
   const matchedAircraftCount = ref<number>(0)
 
@@ -220,6 +244,7 @@ export function useAircrafts(viewer) {
           aircrafts = data
           setaArcraftDataMap(data)
           drawAircrafts()
+          // finishedBoxSelection()
         } else {
           const offset: number = newIndex * 0.02
           for (const aircraft of data) {
@@ -307,6 +332,7 @@ export function useAircrafts(viewer) {
       heading,
       originalColor: billboard.color,
       originalImage: billboard.image,
+      dataSourceNameSet:new Set<string>()
     } satisfies AircraftBillboardProperties
 
     // 创建Label
@@ -336,6 +362,7 @@ export function useAircrafts(viewer) {
       baroAltitude,
       heading,
       originalFillColor: label.fillColor,
+      dataSourceNameSet:new Set<string>()
     } satisfies AircraftLabelProperties
 
     // 存入Map
@@ -458,6 +485,9 @@ export function useAircrafts(viewer) {
     // 控制航线/容器显隐
     aircraftGraphic.primitives.selectedAircraft.routePolylines.show = isSelectedAircraftMatched
     aircraftGraphic.primitiveContainer.show = form.visible
+
+    // finishedBoxSelection()
+    emitCesiumEvent('aircraftFiltered')
   }, 300)
 
   // ========== 事件订阅 ==========
@@ -496,20 +526,34 @@ export function useAircrafts(viewer) {
       handleCameraMoveEnd(viewer.value.camera)
     });
 
-    // 滚轮事件
-    unsubBoxSelection = onCesiumEvent('aircraftBoxSelection', (graphic) => {
-      boxSelection(graphic)
+    unsubBoxSelection = onCesiumEvent('aircraftBoxSelected', (boxSelectionData) => {
+      if (boxSelectionData.isActive) {
+        activeBoxSelection(boxSelectionData)
+      }else{
+        const graphicObj={
+          graphic:boxSelectionData.graphic,
+          type:boxSelectionData.type,
+          aircraftIcao24Set:new Set<string>()
+        }
+        // for(const )
+        boxSelection.finishedGraphicMap.set(boxSelectionData.dataSourceName,graphicObj)
+      }
     });
   }
 
-  const boxSelection=(graphic):void=>{
-    matched.boxSelection.billboards=[]
+  const finishedBoxSelection=():void=>{
     matched.aircrafts.forEach(aircraft => {
       // 构建Turf点
-      const turfPoint = turf.point([aircraft.longitude, aircraft.latitude]);
+      const turfPoint:turf.Feature<turf.Point> = turf.point([aircraft.longitude, aircraft.latitude]);
 
-      // 3. 判断是否在内，并修改颜色
-      const isInPolygon:boolean = turf.booleanPointInPolygon(turfPoint, graphic);
+      let isInPolygon:boolean=false
+      for (const [dataSourceName, graphicObj] of boxSelection.finishedGraphicMap) {
+        if (graphicObj.type === 'polygon') {
+          isInPolygon = turf.booleanPointInPolygon(turfPoint, graphicObj.graphic);
+        }
+
+      }
+
       const billboard:Cesium.Billboard=matched.billboardMap.get(aircraft.icao24)
 
       if (!billboard) {
@@ -517,10 +561,37 @@ export function useAircrafts(viewer) {
       }
 
       if (isInPolygon) {
-        matched.boxSelection.billboards.push(billboard)
-        highlightBillboardOnBoxSelection(billboard)
+        // matched.boxSelection.billboards.push(billboard)
+        highlightBillboardOnBoxSelection(billboard,airplaneBoxSelectionSvgRawDataUrl)
       } else {
-        clearBoxSelectedHighlight(billboard)
+        clearBoxSelectedHighlight(dataSourceName,billboard)
+      }
+    })
+  }
+
+
+  const activeBoxSelection=(boxSelectionData):void=>{
+    boxSelection.active.type=boxSelectionData.type
+    boxSelection.active.dataSourceName=boxSelectionData.dataSourceName
+    boxSelection.active.graphic=boxSelectionData.graphic
+    boxSelection.active.billboards=[]
+    matched.aircrafts.forEach(aircraft => {
+      // 构建Turf点
+      const turfPoint:turf.Feature<turf.Point> = turf.point([aircraft.longitude, aircraft.latitude]);
+
+      // 3. 判断是否在内，并修改颜色
+      const isInPolygon:boolean = turf.booleanPointInPolygon(turfPoint, boxSelectionData.graphic);
+      const billboard:Cesium.Billboard=matched.billboardMap.get(aircraft.icao24)
+
+      if (!billboard) {
+        return
+      }
+
+      if (isInPolygon) {
+        boxSelection.active.billboards.push(billboard)
+        highlightBillboardOnBoxSelection(boxSelectionData.dataSourceName,billboard,airplaneBoxSelectionSvgRawDataUrl)
+      } else {
+        clearBoxSelectedHighlight(boxSelectionData.dataSourceName,billboard)
       }
     })
   }

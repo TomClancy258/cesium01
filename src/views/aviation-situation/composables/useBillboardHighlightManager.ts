@@ -1,207 +1,146 @@
+// src/views/aviation-situation/composables/useHighlightManager.ts
 import * as Cesium from 'cesium'
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
-interface HighlightState {
-  hoveredBillboard: Cesium.Billboard | null
-  selectedBillboard: Cesium.Billboard | null
-  boxSelectedBillboards: Cesium.Billboard[] // 存储框选的Billboard
-}
-
-// 高亮状态管理（单例）
-const highlightState: HighlightState = {
-  hoveredBillboard: null,
-  selectedBillboard: null,
-  boxSelectedBillboards: [], // 存储框选的Billboard
-}
+// 仅存储Cesium实例（非响应式，模块单例）
+let hoveredBillboard: Cesium.Billboard | null = null
+let selectedBillboard: Cesium.Billboard | null = null
 
 const aviationSelectionStore = useAviationSelectionStore()
 
 // 工具方法：恢复原始图片
 const restoreBillboardImage = (billboard: Cesium.Billboard) => {
-  if (billboard.properties?.originalImage) {
+  if (billboard.properties.boxSelectionImage) {
+    billboard.image=billboard.properties.boxSelectionImage
+  }else{
     billboard.image = billboard.properties.originalImage
   }
 }
 
-// ========== 框选高亮相关 ==========
-/**
- * 批量设置框选高亮
- * @param billboards 目标Billboard数组
- * @param isInBox 是否在框选范围内（true=高亮，false=恢复）
- * @param boxSelectImage 框选高亮图片地址（外部传入）
- */
-export function setBoxSelectionHighlight(
-  billboards: Cesium.Billboard[],
-  isInBox: boolean,
-  boxSelectImage: string,
-): void {
-  billboards.forEach((billboard) => {
-    // 选中的Billboard不参与框选样式（优先级最高）
-    if (billboard === highlightState.selectedBillboard) return
-
-    if (isInBox) {
-      highlightState.boxSelectedBillboards.add(billboard)
-      billboard.image = boxSelectImage
-    } else {
-      highlightState.boxSelectedBillboards.delete(billboard)
-      // 若不在框选且不是hover状态，恢复原始样式；否则保留hover样式
-      if (billboard !== highlightState.hoveredBillboard) {
-        restoreBillboardImage(billboard)
-      }
-    }
-  })
-}
 
 export function highlightBillboardOnBoxSelection(
+  dataSourceName:string,
   billboard: Cesium.Billboard,
   highlightImage: string,
 ): void {
   // 选中的Billboard不参与框选样式（优先级最高）
-  if (billboard === highlightState.selectedBillboard) return
-  else if (billboard === highlightState.hoveredBillboard) return
+  if (billboard === selectedBillboard||billboard === hoveredBillboard) {
+    billboard.properties.boxSelectionImage=highlightImage
+    return
+  }
+
+  const dataSourceNameSet:Set<string>=billboard.properties.dataSourceNameSet
+  dataSourceNameSet.add(dataSourceName)
 
   billboard.image = highlightImage
-  billboard.properties.isBoxSelected = true
+
   billboard.properties.boxSelectionImage = highlightImage
-  // highlightState.boxSelectedBillboards.push(billboard)
 }
 
-export function clearBoxSelectedHighlight(billboard): void {
+export function clearBoxSelectedHighlight(dataSourceName,billboard): void {
   if (
-    billboard !== highlightState.hoveredBillboard &&
-    billboard !== highlightState.selectedBillboard
+    billboard === hoveredBillboard ||
+    billboard === selectedBillboard
   ) {
+    return
+  }
+  const dataSourceNameSet:Set<string>=billboard.properties.dataSourceNameSet
+  dataSourceNameSet.delete(dataSourceName)
+
+  if (dataSourceNameSet.size === 0) {
     billboard.image = billboard.properties.originalImage
     billboard.properties.boxSelectionImage = undefined
   }
 }
 
-// ========== Hover高亮 ==========
 /**
- * Billboard鼠标悬浮高亮
- * @param billboard 目标Billboard
- * @param highlightImage hover高亮图片地址
- * @param hoverData 悬浮关联数据
+ * hover高亮：视觉+同步Pinia（如果需要UI联动）
  */
 export function highlightBillboardOnHover(
   billboard: Cesium.Billboard,
   highlightImage: string,
-  hoverData: AircraftSelectedData | AirportSelectedData | null = null,
+  hoverData: AircraftSelectedData | AirportSelectedData | null = null
 ): void {
-  // 选中/框选的Billboard，hover不生效（优先级更低）
-  if (
-    billboard === highlightState.selectedBillboard ||
-    highlightState.boxSelectedBillboards.has(billboard)
-  ) {
-    return
-  }
+  // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
+  if (selectedBillboard === billboard) return
 
-  if (highlightState.hoveredBillboard === billboard) return
+  if (hoveredBillboard === billboard) return
 
-  // 还原上一个hover项
-  if (highlightState.hoveredBillboard) {
-    if (
-      highlightState.hoveredBillboard !== highlightState.selectedBillboard &&
-      !highlightState.boxSelectedBillboards.has(highlightState.hoveredBillboard)
-    ) {
-      restoreBillboardImage(highlightState.hoveredBillboard)
+  // 还原上一个 hover 项
+  if (hoveredBillboard) {
+    // 若上一个 hover 项未被选中，才恢复默认
+    if (hoveredBillboard !== selectedBillboard) {
+      restoreBillboardImage(hoveredBillboard)
     }
   }
 
-  highlightState.hoveredBillboard = billboard
+  hoveredBillboard = billboard
   billboard.image = highlightImage
 }
 
-// ========== 选中高亮 ==========
 /**
- * 选中Billboard并设置高亮
- * @param selectedData 选中关联数据
- * @param billboard 目标Billboard
- * @param highlightImage 选中高亮图片地址
- * @param boxSelectImage 框选样式图片地址（用于恢复上一个选中项的框选样式）
+ * 选中高亮：视觉+同步Pinia
  */
 export function highlightBillboardAndSetSelected(
   selectedData: AircraftSelectedData | AirportSelectedData | null,
   billboard: Cesium.Billboard,
-  highlightImage: string,
-  boxSelectImage: string,
+  highlightImage: string
 ): void {
-  // 恢复上一个选中项
-  if (highlightState.selectedBillboard && highlightState.selectedBillboard !== billboard) {
-    // 若上一个选中项在框选范围内，恢复为框选样式；否则恢复原始
-    if (highlightState.boxSelectedBillboards.has(highlightState.selectedBillboard)) {
-      highlightState.selectedBillboard.image = boxSelectImage
-    } else {
-      restoreBillboardImage(highlightState.selectedBillboard)
-    }
+  // 恢复上一个选中的图片
+  if (selectedBillboard && selectedBillboard !== billboard) {
+    restoreBillboardImage(selectedBillboard)
   }
 
-  // 清除当前hover
-  if (highlightState.hoveredBillboard === billboard) {
-    highlightState.hoveredBillboard = null
+  // 清除当前hover（选中优先级更高）
+  if (hoveredBillboard === billboard) {
+    hoveredBillboard = null
+    // aviationSelectionStore.clearHovered()
   }
 
-  // 更新选中状态+样式
-  highlightState.selectedBillboard = billboard
+  // 更新选中实例+视觉
+  selectedBillboard = billboard
   billboard.image = highlightImage
+  // 同步Pinia（必选，支撑UI联动）
   aviationSelectionStore.setSelected(selectedData)
 }
 
-// ========== 清除高亮 ==========
 /**
- * 清除悬浮高亮
- * @param boxSelectImage 框选样式图片地址（用于恢复框选项的样式）
+ * 清除hover：视觉+同步Pinia
  */
-export function clearHoveredHighlight(boxSelectImage: string): void {
-  if (
-    highlightState.hoveredBillboard &&
-    highlightState.hoveredBillboard !== highlightState.selectedBillboard
-  ) {
-    // 若hover项在框选范围内，恢复为框选样式；否则恢复原始
-    if (highlightState.boxSelectedBillboards.has(highlightState.hoveredBillboard)) {
-      highlightState.hoveredBillboard.image = boxSelectImage
-    } else {
-      restoreBillboardImage(highlightState.hoveredBillboard)
-    }
-    highlightState.hoveredBillboard = null
+export function clearHoveredHighlight(): void {
+  if (hoveredBillboard && hoveredBillboard !== selectedBillboard) {
+    restoreBillboardImage(hoveredBillboard)
+    hoveredBillboard = null
+    // aviationSelectionStore.clearHovered()
   }
 }
 
 /**
- * 清除选中高亮
- * @param boxSelectImage 框选样式图片地址（用于恢复框选项的样式）
+ * 清除选中：视觉+同步Pinia
  */
-export function clearSelectedHighlight(boxSelectImage: string): void {
-  if (highlightState.selectedBillboard) {
-    // 若选中项在框选范围内，恢复为框选样式；否则恢复原始
-    if (highlightState.boxSelectedBillboards.has(highlightState.selectedBillboard)) {
-      highlightState.selectedBillboard.image = boxSelectImage
-    } else {
-      restoreBillboardImage(highlightState.selectedBillboard)
-    }
-    highlightState.selectedBillboard = null
+export function clearSelectedHighlight(): void {
+  if (selectedBillboard) {
+    restoreBillboardImage(selectedBillboard)
+    selectedBillboard = null
     aviationSelectionStore.clearSelected()
   }
 }
 
 /**
  * 清除所有高亮
- * @param hoverImage hover样式图片地址
- * @param boxSelectImage 框选样式图片地址
  */
-export function clearAllHighlight(hoverImage: string, boxSelectImage: string): void {
-  clearHoveredHighlight(boxSelectImage)
-  clearSelectedHighlight(boxSelectImage)
-  clearBoxSelectionHighlight(hoverImage)
+export function clearAllHighlight(): void {
+  clearHoveredHighlight()
+  clearSelectedHighlight()
 }
 
-// 暴露状态查询方法（供外部校验）
-export function getHighlightState() {
-  return {
-    hoveredBillboard: highlightState.hoveredBillboard,
-    selectedBillboard: highlightState.selectedBillboard,
-    boxSelectedBillboards: [...highlightState.boxSelectedBillboards],
-  }
+// 暴露实例获取方法（供外部校验用，如判断是否选中）
+export function getSelectedBillboard(): Cesium.Billboard | null {
+  return selectedBillboard
+}
+
+export function getHoveredBillboard(): Cesium.Billboard | null {
+  return hoveredBillboard
 }

@@ -79,6 +79,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmPolygonBoxSelectionSurveyPoint,
     setupSpatialSelectFormWatch:setupPolygonBoxSelectionSpatialFormWatch,
     finishPolygonBoxSelection,
+    subscribePolygonBoxSelectionEvents,
   }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
   const initEvents = () => {
@@ -87,6 +88,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     segmentDistanceLabelManager.addTempSegmentDistanceLabelToViewer()
     totalDistanceLabelManager.addTempTotalDistanceLabelToViewer()
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
+
+    subscribePolygonBoxSelectionEvents()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -191,7 +194,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           return
         }
         const properties = entity.properties.getValue() as EntityProperties
-        console.log("properties", properties);
         if(properties.operationType==='distanceMeasurement') {
             handleDistanceSurveyHover(viewer,entity,properties)
         }else if(properties.operationType==='boxSelection'){
@@ -199,6 +201,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
             handlePolygonBoxSelectionHover(viewer,entity,properties)
           }
         }
+        aviationBillboardLeave()
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {
         const properties: MapBillboardLabelProperties = pickedObject.primitive.properties
         const position:Cesium.Cartesian3 = pickedObject.primitive.position
@@ -216,12 +219,16 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       }
     }else {
       // clearHoveredHighlight()
-      emitCesiumEvent('aircraftLeave');
-      emitCesiumEvent('airportLeave');
+      aviationBillboardLeave()
 
       clearHoveredEntityHighlight()
     }
   }, 100)
+
+  const aviationBillboardLeave=()=>{
+    emitCesiumEvent('aircraftLeave');
+    emitCesiumEvent('airportLeave');
+  }
 
   // 销毁事件监听
   const destroyEvents = () => {

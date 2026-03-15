@@ -10,13 +10,15 @@ export interface AircraftBaseProperties {
   longitude: number
   latitude: number
   baroAltitude: number
-  heading: number
+  heading: number,
+  dataSourceNameSet:Set<string>
 }
 
 // Billboard 专用属性
 export interface AircraftBillboardProperties extends AircraftBaseProperties {
   type: 'billboard'
   originalColor: Cesium.Color
+  originalImage: string | undefined
 }
 
 // Label 专用属性
