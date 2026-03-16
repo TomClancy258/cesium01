@@ -154,11 +154,15 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
           graphic:polygon,
           isActive: true
         }
-        // if (spatialSelectionTarget === 'aircraft') {
-        //   emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-        // }else if(spatialSelectionTarget === 'airport') {
+        if (spatialSelectionTarget === 'aircraft') {
+          emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+        }
+        else if(spatialSelectionTarget === 'airport') {
           emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-        // }
+        }else if(spatialSelectionTarget === 'all') {
+          emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+          emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+        }
       }
     }
   }
@@ -166,7 +170,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
   let unsubAircraftFiltered: () => void;
 
   const subscribePolygonSpatialSelectionEvents = () => {
-    unsubAircraftFiltered = onCesiumEvent('aircraftFiltered', () => {
+    unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
       updateSegmentDistanceLabel()
     });
   }
@@ -265,7 +269,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
    */
   const resetDynamicPolygonState = (): void => {
     dynamicPolygonState.lngLatAltArray = [];
-    dynamicPolygonState.polygonHierarchy = null;
+    dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy([]);
     dynamicPolygonState.pointCount = 0;
   }
 
@@ -291,6 +295,9 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
         if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'polygon') {
+          removeTempSegmentDistanceLabels()
+          cleanupActivePolygonSpatialSelection()
+          resetDynamicPolygonState()
           initActivePolygonSpatialSelection()
         } else {
           removeTempSegmentDistanceLabels()
@@ -340,17 +347,23 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     polygonSpatialSelectionDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
 
+    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+
     const spatialSelectionData={
       dataSourceName:uniqueId,
       type:'polygon',
       graphic:polygon,
       isActive:false
     }
-    // if (spatialSelectionTarget === 'aircraft') {
-    // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-    // }else if(spatialSelectionTarget === 'airport') {
-              emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-    //         }
+    if (spatialSelectionTarget === 'aircraft') {
+      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+    }
+    else if(spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+    }else if(spatialSelectionTarget === 'all') {
+      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+    }
 
     spatialSelectStore.setOperationType('none');
   }
@@ -452,7 +465,18 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       updateSegmentDistanceLabel()
     }
     if (dynamicPolygonState.pointCount === 1) {
-      emitCesiumEvent('clearAircraftActiveSpatialSelection')
+      const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+
+      emitCesiumEvent('clearAviationActiveSpatialSelection')
+
+      // if (spatialSelectionTarget === 'aircraft') {
+      //   emitCesiumEvent('clearAircraftActiveSpatialSelection')
+      // }else if(spatialSelectionTarget === 'airport') {
+      //   emitCesiumEvent('clearAirportActiveSpatialSelection')
+      // }else if(spatialSelectionTarget === 'all') {
+      //   emitCesiumEvent('clearAircraftActiveSpatialSelection')
+      //   emitCesiumEvent('clearAirportActiveSpatialSelection')
+      // }
     }
   };
 

@@ -40,7 +40,7 @@ import {
   airplaneBlueSvgDataUrl,
   airplaneHoveredSvgRawDataUrl,
   airplaneSelectedSvgRawDataUrl,
-  airplaneSpatialSelectionSvgRawDataUrl,
+  airplaneSpatialSelectedSvgRawDataUrl,
 } from './aircraftConstants'
 import * as turf from '@turf/turf'
 
@@ -240,8 +240,8 @@ export function useAircrafts(viewer) {
           aircrafts = data
           drawAircrafts()
         } else {
-          // const offset: number = newIndex * 0.02
-          const offset: number = newIndex * 0.1
+          const offset: number = newIndex * 0.02
+          // const offset: number = newIndex * 0.1
           for (const aircraft of data) {
             aircraft.longitude += offset
             aircraft.latitude += offset
@@ -472,7 +472,7 @@ export function useAircrafts(viewer) {
     aircraftGraphic.primitiveContainer.show = form.visible
 
     finishedSpatialSelection()
-    emitCesiumEvent('aircraftFiltered')
+    emitCesiumEvent('aviationFiltered')
   }, 300)
 
   // ========== 事件订阅 ==========
@@ -531,7 +531,8 @@ export function useAircrafts(viewer) {
       }
     })
 
-    unsubClearActiveSpatialSelection = onCesiumEvent('clearAircraftActiveSpatialSelection', () => {
+    // unsubClearActiveSpatialSelection = onCesiumEvent('clearAircraftActiveSpatialSelection', () => {
+    unsubClearActiveSpatialSelection = onCesiumEvent('clearAviationActiveSpatialSelection', () => {
       clearAircraftActiveSpatialSelection()
     })
   }
@@ -564,7 +565,7 @@ export function useAircrafts(viewer) {
           isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
         }
         if (isInGraphic) {
-          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airplaneSpatialSelectionSvgRawDataUrl)
+          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airplaneSpatialSelectedSvgRawDataUrl)
           // if (billboard.properties.icao24 === 'c05f5d') {
           //   console.log('选中')
           //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
@@ -602,7 +603,7 @@ export function useAircrafts(viewer) {
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
           billboard,
-          airplaneSpatialSelectionSvgRawDataUrl,
+          airplaneSpatialSelectedSvgRawDataUrl,
         )
       } else {
         clearSpatialSelectedHighlight(spatialSelectionData.dataSourceName, billboard)

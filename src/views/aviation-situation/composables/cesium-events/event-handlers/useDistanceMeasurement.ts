@@ -260,20 +260,14 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
         if (newForm.operationType === 'distanceMeasurement') {
-          initActiveDistanceSurvey()
-
-          mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
-
-          // activateMouseFollowPointLabel('distanceMeasurement');
-          // activateTempSegmentDistanceLabel('distanceMeasurement')
-          // activateTempTotalDistanceLabel('distanceMeasurement')
-        } else {
           cleanupActiveDistanceSurvey()
           resetDynamicPolylineState()
 
-          // deactivateMouseFollowPointLabel('distanceMeasurement');
-          // deactivateTempSegmentDistanceLabel('distanceMeasurement')
-          // deactivateTempTotalDistanceLabel('distanceMeasurement')
+          initActiveDistanceSurvey()
+          mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
+        } else {
+          cleanupActiveDistanceSurvey()
+          resetDynamicPolylineState()
         }
       },
       {

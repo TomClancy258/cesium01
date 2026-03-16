@@ -20,11 +20,11 @@ const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponen
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
 
-import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selection.svg?raw'
+import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
 import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 import type {
   AirportFilterForm,
@@ -91,6 +91,17 @@ export function useAirports(viewer) {
 
   let airports: Airport[] = []
   const matchedIcaoSet = new Set<string>()
+
+  const spatialSelection: SpatialSelection = {
+    active: {
+      type: '',
+      dataSourceName: '',
+      graphic: null,
+      icaoSet: new Set<string>(),
+    },
+    finishedGraphicMap: new Map(),
+  }
+
 
   const matchedAirportCount = ref<number>(0)
   const airportRenderMap = new Map<string, AirportRenderItem>()
@@ -189,6 +200,7 @@ export function useAirports(viewer) {
 
     // 初始化时订阅相机事件
     subscribeCameraEvents()
+    subscribeAirportEvents()
   }
 
   const loadAndDrawAirports = async () => {
@@ -249,6 +261,7 @@ export function useAirports(viewer) {
         latitude,
         originalColor: billboard.color,
         originalImage: billboard.image,
+        dataSourceNameSet: new Set<string>(),
       } satisfies AirportBillboardProperties
 
       // 添加 Label
@@ -280,6 +293,7 @@ export function useAirports(viewer) {
         longitude,
         latitude,
         originalFillColor: label.fillColor,
+        dataSourceNameSet: new Set<string>(),
       } satisfies AirportLabelProperties
 
       airportRenderMap.set(icao, { airport, billboard, label })
@@ -309,7 +323,7 @@ export function useAirports(viewer) {
     const matchedBillboard: null | Cesium.Billboard = null
 
     airportRenderMap.forEach(({ airport, billboard, label }) => {
-      const p: AirportBaseProperties = billboard.properties
+      const p = billboard.properties as AirportBaseProperties
       if (!p) return
 
       const match: boolean =
@@ -319,6 +333,7 @@ export function useAirports(viewer) {
 
       const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
+        matchedIcaoSet.add(airport.icao)
         matchedAirportCount.value++
         // matchedBillboard=billboard
       }
@@ -330,6 +345,8 @@ export function useAirports(viewer) {
       billboard.show = match
       label.show = match
     })
+    finishedSpatialSelection()
+    emitCesiumEvent('aviationFiltered')
     // 高亮匹配项
     if (matchedAirportCount.value === 0) {
       // ElNotification({
@@ -348,6 +365,7 @@ export function useAirports(viewer) {
   let unsubAirportLeftClick: () => void
   let unsubMouseWheel: () => void
   let unsubSpatialSelect: () => void
+  let unsubClearActiveSpatialSelection: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -396,7 +414,53 @@ export function useAirports(viewer) {
         finishedSpatialSelection()
       }
     })
+
+    // unsubClearActiveSpatialSelection = onCesiumEvent('clearAirportActiveSpatialSelection', () => {
+    unsubClearActiveSpatialSelection = onCesiumEvent('clearAviationActiveSpatialSelection', () => {
+      clearAirportActiveSpatialSelection()
+    })
   }
+
+  const clearAirportActiveSpatialSelection = () => {
+    matchedIcaoSet.forEach((icao) => {
+      const airportRenderItem = airportRenderMap.get(icao)
+      if (!airportRenderItem) return
+      const { billboard } = airportRenderItem
+      clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
+    })
+    matchedIcaoSet.clear()
+  }
+
+  const activateSpatialSelection = (spatialSelectionData): void => {
+    spatialSelection.active.type = spatialSelectionData.type
+    spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
+    spatialSelection.active.graphic = spatialSelectionData.graphic
+    spatialSelection.active.icaoSet.clear()
+    // ✅ 只遍历“当前匹配筛选条件”的飞机
+    matchedIcaoSet.forEach((icao) => {
+      const airportRenderItem = airportRenderMap.get(icao)
+      if (!airportRenderItem) return
+
+      const { airport, billboard } = airportRenderItem
+      const turfPoint = turf.point([airport.longitude, airport.latitude])
+      let isInPolygon: boolean = false
+      if (spatialSelectionData.type === 'polygon') {
+        isInPolygon = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
+      }
+
+      if (isInPolygon) {
+        spatialSelection.active.icaoSet.add(icao)
+        highlightBillboardOnSpatialSelection(
+          spatialSelectionData.dataSourceName,
+          billboard,
+          airportSpatialSelectedSvgRawDataUrl,
+        )
+      } else {
+        clearSpatialSelectedHighlight(spatialSelectionData.dataSourceName, billboard)
+      }
+    })
+  }
+
 
   const finishedSpatialSelection = (): void => {
     matchedIcaoSet.forEach((icao) => {
@@ -416,22 +480,13 @@ export function useAirports(viewer) {
           isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
         }
         if (isInGraphic) {
-          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airplaneSpatialSelectionSvgRawDataUrl)
-          // if (billboard.properties.icao24 === 'c05f5d') {
-          //   console.log('选中')
-          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
-          // }
+          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airportSpatialSelectedSvgRawDataUrl)
         }else{
           clearSpatialSelectedHighlight(dataSourceName, billboard)
-          // if (billboard.properties.icao24 === 'c05f5d') {
-          //   console.log('未选中')
-          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
-          // }
         }
       }
     })
   }
-
 
   const clearAirports = (): void => {
     airportGraphic.primitives.billboards.removeAll()
@@ -439,9 +494,6 @@ export function useAirports(viewer) {
     airportRenderMap.clear() // ✅ 一行清空
     matchedAirportCount.value = 0
   }
-
-  // 初始化时自动订阅事件
-  subscribeAirportEvents()
 
   let unwatchAirportFilterForm: () => void
   const setupAirportFilterFormWatch = (): void => {
@@ -463,6 +515,7 @@ export function useAirports(viewer) {
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
     unsubSpatialSelect?.()
+    unsubClearActiveSpatialSelection?.()
 
     unwatchAirportFilterForm?.()
 
