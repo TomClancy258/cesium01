@@ -12,22 +12,22 @@ const aviationSelectionStore = useAviationSelectionStore()
 
 // 工具方法：恢复原始图片
 const restoreBillboardImage = (billboard: Cesium.Billboard) => {
-  if (billboard.properties.boxSelectionImage) {
-    billboard.image=billboard.properties.boxSelectionImage
+  if (billboard.properties.spatialSelectionImage) {
+    billboard.image=billboard.properties.spatialSelectionImage
   }else{
     billboard.image = billboard.properties.originalImage
   }
 }
 
 
-export function highlightBillboardOnBoxSelection(
+export function highlightBillboardOnSpatialSelection(
   dataSourceName:string,
   billboard: Cesium.Billboard,
   highlightImage: string,
 ): void {
   // 选中的Billboard不参与框选样式（优先级最高）
   if (billboard === selectedBillboard||billboard === hoveredBillboard) {
-    billboard.properties.boxSelectionImage=highlightImage
+    billboard.properties.spatialSelectionImage=highlightImage
     return
   }
 
@@ -36,10 +36,10 @@ export function highlightBillboardOnBoxSelection(
 
   billboard.image = highlightImage
 
-  billboard.properties.boxSelectionImage = highlightImage
+  billboard.properties.spatialSelectionImage = highlightImage
 }
 
-export function clearBoxSelectedHighlight(dataSourceName,billboard): void {
+export function clearSpatialSelectedHighlight(dataSourceName,billboard): void {
   if (
     billboard === hoveredBillboard ||
     billboard === selectedBillboard
@@ -51,7 +51,7 @@ export function clearBoxSelectedHighlight(dataSourceName,billboard): void {
 
   if (dataSourceNameSet.size === 0) {
     billboard.image = billboard.properties.originalImage
-    billboard.properties.boxSelectionImage = undefined
+    billboard.properties.spatialSelectionImage = undefined
   }
 }
 

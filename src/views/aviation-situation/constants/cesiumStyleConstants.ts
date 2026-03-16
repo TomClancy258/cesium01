@@ -89,7 +89,7 @@ export type DistanceSurveyPolylineStyle = {
 /**
  * 框选样式类型（包含多图形类型的组合）
  */
-export type BoxSelectionStyle = {
+export type SpatialSelectionStyle = {
   POLYGON: CesiumPolygonStyle;    // 多边形框选
   RECTANGLE: CesiumRectangleStyle;// 矩形框选
   ELLIPSE: CesiumEllipseStyle;    // 圆形框选
@@ -141,7 +141,7 @@ export const DISTANCE_SURVEY_POLYLINE_STYLE: DistanceSurveyPolylineStyle = {
 /**
  * 框选样式常量（独立维护，包含多图形）
  */
-export const BOX_SELECTION_STYLE: BoxSelectionStyle = {
+export const BOX_SELECTION_STYLE: SpatialSelectionStyle = {
   // 多边形框选样式（实时绘制态）
   POLYGON: {
     OUTLINE_WIDTH: 2,

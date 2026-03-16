@@ -1,4 +1,4 @@
-// src/views/aviation-situation/composables/cesium-events/event-handlers/box-selection/usePolygonBoxSelection.ts
+// src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
@@ -32,7 +32,7 @@ interface DynamicPolygonState {
 }
 
 /** 单条距离测绘的完整结构 */
-export interface PolygonBoxSelectionSession {
+export interface PolygonSpatialSelectionSession {
   dataSource: Cesium.CustomDataSource|null
   surveyPoints: Cesium.Entity[]
   segmentDistanceLabels: Cesium.Entity[]
@@ -62,15 +62,15 @@ const createDynamicPolygonConfig = (
   return baseConfig;
 };
 
-export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,perimeterAndAreaLabel) => {
+export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,perimeterAndAreaLabel) => {
   const measurementSelectionStore=useMeasurementSelectionStore()
-  const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastButOnePolygonBoxSelectionDynamicSegmentLengthLabel')
-  const lastDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastPolygonBoxSelectionDynamicSegmentLengthLabel')
+  const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastButOnePolygonSpatialSelectionDynamicSegmentLengthLabel')
+  const lastDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastPolygonSpatialSelectionDynamicSegmentLengthLabel')
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
-  const polygonBoxSelectionDataSources: Cesium.CustomDataSource[] = []
-  const activePolygonBoxSelection: PolygonBoxSelectionSession = {
+  const polygonSpatialSelectionDataSources: Cesium.CustomDataSource[] = []
+  const activePolygonSpatialSelection: PolygonSpatialSelectionSession = {
     //该距离测绘折线的全部
     dataSource: null,
     surveyPoints:[],
@@ -85,7 +85,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     polygonHierarchy:new Cesium.PolygonHierarchy([])
   };
 
-  const polygonBoxSelection = (cartesian2: Cesium.Cartesian2): void => {
+  const polygonSpatialSelection = (cartesian2: Cesium.Cartesian2): void => {
     const ray: Cesium.Ray = viewer.value.camera.getPickRay(cartesian2)
     const cartesian3 :Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
     if (!cartesian3) {
@@ -146,15 +146,15 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
         const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
         perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
 
-        const boxSelectionTarget:string=spatialSelectStore.spatialSelectForm.boxSelectionTarget
-        const boxSelectionData={
-          dataSourceName:activePolygonBoxSelection.dataSource.name,
+        const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+        const spatialSelectionData={
+          dataSourceName:activePolygonSpatialSelection.dataSource.name,
           type:'polygon',
           graphic:polygon,
           isActive: true
         }
-        // if (boxSelectionTarget === 'aircraft') {
-          emitCesiumEvent('aircraftBoxSelected',boxSelectionData)
+        // if (spatialSelectionTarget === 'aircraft') {
+          emitCesiumEvent('aircraftBoxSelect',spatialSelectionData)
         // }
       }
     }
@@ -162,7 +162,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
   let unsubAircraftFiltered: () => void;
 
-  const subscribePolygonBoxSelectionEvents = () => {
+  const subscribePolygonSpatialSelectionEvents = () => {
     unsubAircraftFiltered = onCesiumEvent('aircraftFiltered', () => {
       updateSegmentDistanceLabel()
     });
@@ -170,12 +170,12 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
   const confirmSurveyPoint = () => {
     const pointLabelProperties:EntityProperties={
-      operationType:'boxSelection',
-      sourceType:'polygonBoxSelection',
+      operationType:'spatialSelection',
+      sourceType:'polygonSpatialSelection',
       type:'tempSurveyPoint',
-      dataSourceName:activePolygonBoxSelection.dataSource.name,
+      dataSourceName:activePolygonSpatialSelection.dataSource.name,
     }
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonBoxSelection,pointLabelProperties)
+    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonSpatialSelection,pointLabelProperties)
 
     dynamicPolygonState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
@@ -184,18 +184,18 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     if (dynamicPolygonState.pointCount >= 2) {
       const properties:EntityProperties={
-        operationType:'boxSelection',
-        sourceType:'polygonBoxSelection',
+        operationType:'spatialSelection',
+        sourceType:'polygonSpatialSelection',
         type:'tempSegmentLengthLabel',
-        dataSourceName:activePolygonBoxSelection.dataSource.name,
+        dataSourceName:activePolygonSpatialSelection.dataSource.name,
       }
-      lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonBoxSelection,properties,true,)
+      lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,properties,true,)
     }
   }
 
-  const initActivePolygonBoxSelection = (): void => {
-    const dataSourceUniqueId:string = generateBizUniqueId('activePolygonBoxSelection')
-    activePolygonBoxSelection.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
+  const initActivePolygonSpatialSelection = (): void => {
+    const dataSourceUniqueId:string = generateBizUniqueId('activePolygonSpatialSelection')
+    activePolygonSpatialSelection.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
 
     const drawingDataSourceData:DrawingDataSource={
       name:dataSourceUniqueId
@@ -216,14 +216,14 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
     const polygonConfig:Cesium.Entity.ConstructorOptions = createDynamicPolygonConfig(positionCallback);
-    const polygonUniqueId:string = generateBizUniqueId('activePolygonBoxSelectionPolyline')
+    const polygonUniqueId:string = generateBizUniqueId('activePolygonSpatialSelectionPolyline')
 
     // 4. 组装实体并添加
-    activePolygonBoxSelection.dynamicPolygon = activePolygonBoxSelection.dataSource.entities.add({
+    activePolygonSpatialSelection.dynamicPolygon = activePolygonSpatialSelection.dataSource.entities.add({
       id: polygonUniqueId,
       properties: {
-        operationType:'boxSelection',
-        sourceType: 'polygonBoxSelection',
+        operationType:'spatialSelection',
+        sourceType: 'polygonSpatialSelection',
         type: 'polygon',
         dataSourceName: dataSourceUniqueId,
         originalPolygonMaterial:polygonConfig.polygon?.material
@@ -231,11 +231,11 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
       ...polygonConfig,
     });
 
-    viewer.value?.dataSources.add(activePolygonBoxSelection.dataSource)
+    viewer.value?.dataSources.add(activePolygonSpatialSelection.dataSource)
   }
 
   const cloneDynamicPolygonToDataSource=(dataSource,dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('polygonBoxSelectionPolygon')
+    const uniqueId:string = generateBizUniqueId('polygonSpatialSelectionPolygon')
 
     // 2. 创建动态位置的CallbackProperty
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
@@ -247,8 +247,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     dataSource.entities.add({
       id: uniqueId,
       properties: {
-        operationType:'boxSelection',
-        sourceType: 'polygonBoxSelection',
+        operationType:'spatialSelection',
+        sourceType: 'polygonSpatialSelection',
         type: 'polygon',
         dataSourceName: dataSourceName,
         originalPolygonMaterial:polygonConfig.polygon?.material
@@ -287,12 +287,14 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype === 'polygon') {
-          initActivePolygonBoxSelection()
+        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'polygon') {
+          initActivePolygonSpatialSelection()
         } else {
           removeTempSegmentDistanceLabels()
-          cleanupActivePolygonBoxSelection()
+          cleanupActivePolygonSpatialSelection()
           resetDynamicPolygonState()
+
+          emitCesiumEvent('clearAircraftActiveSpatialSelection')
         }
       },
       {
@@ -301,20 +303,20 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     )
   }
 
-  const finishPolygonBoxSelection=(): void => {
+  const finishPolygonSpatialSelection=(): void => {
     if (dynamicPolygonState.pointCount <=2) {
       return
     }
 
     cleanTempMouseMovePoints(dynamicPolygonState);
 
-    const uniqueId:string = generateBizUniqueId('polygonBoxSelectionDataSource')
+    const uniqueId:string = generateBizUniqueId('polygonSpatialSelectionDataSource')
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolygonToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
     const PerimeterAndAreaLabelProperties:EntityProperties={
-      operationType:'boxSelection',
-      sourceType:'polygonBoxSelection',
+      operationType:'spatialSelection',
+      sourceType:'polygonSpatialSelection',
       type:'perimeterAndAreaLabel',
       dataSourceName:uniqueId,
     }
@@ -324,33 +326,34 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
 
     const surveyPointProperties:EntityProperties={
-      operationType:'boxSelection',
-      sourceType:'polygonBoxSelection',
+      operationType:'spatialSelection',
+      sourceType:'polygonSpatialSelection',
       type:'surveyPoint',
-      dataSourceName:activePolygonBoxSelection.dataSource?.name,
+      dataSourceName:activePolygonSpatialSelection.dataSource?.name,
     }
-    lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonBoxSelection,surveyPointProperties,true,)
+    lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,surveyPointProperties,true,)
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
-    polygonBoxSelectionDataSources.push(newDataSource);
+    polygonSpatialSelectionDataSources.push(newDataSource);
     viewer.value?.dataSources.add(newDataSource)
-    spatialSelectStore.setOperationType('none');
 
-    const boxSelectionData={
+    const spatialSelectionData={
       dataSourceName:uniqueId,
       type:'polygon',
       graphic:polygon,
       isActive:false
     }
-    // if (boxSelectionTarget === 'aircraft') {
-    emitCesiumEvent('aircraftBoxSelected',boxSelectionData)
+    // if (spatialSelectionTarget === 'aircraft') {
+    emitCesiumEvent('aircraftBoxSelect',spatialSelectionData)
     // }
+
+    spatialSelectStore.setOperationType('none');
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
-    for (let i:number = 0; i < activePolygonBoxSelection.segmentDistanceLabels.length; i++) {
-      const oldPointEntity:Cesium.Entity = activePolygonBoxSelection.surveyPoints[i];
-      const oldLabelEntity:Cesium.Entity = activePolygonBoxSelection.segmentDistanceLabels[i];
+    for (let i:number = 0; i < activePolygonSpatialSelection.segmentDistanceLabels.length; i++) {
+      const oldPointEntity:Cesium.Entity = activePolygonSpatialSelection.surveyPoints[i];
+      const oldLabelEntity:Cesium.Entity = activePolygonSpatialSelection.segmentDistanceLabels[i];
       const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
       const labelUniqueId:string = generateBizUniqueId('LabelEntity');
 
@@ -361,8 +364,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
         pointCloneConfig.properties={
           type:'surveyPoint',
-          sourceType:'polygonBoxSelection',
-          operationType:'boxSelection',
+          sourceType:'polygonSpatialSelection',
+          operationType:'spatialSelection',
           dataSourceName:uniqueId,
           label:{
             originalFillColor:pointOriginalFillColor,
@@ -384,8 +387,8 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
         labelCloneConfig.properties={
           type:'segmentLengthLabel',
-          sourceType:'polygonBoxSelection',
-          operationType:'boxSelection',
+          sourceType:'polygonSpatialSelection',
+          operationType:'spatialSelection',
           dataSourceName:uniqueId,
           label:{
             originalFillColor:labelOriginalFillColor,
@@ -400,10 +403,10 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
     }
   }
 
-  const cleanupActivePolygonBoxSelection=()=>{
-    activePolygonBoxSelection.surveyPoints=[]
-    activePolygonBoxSelection.segmentDistanceLabels=[]
-    viewer.value.dataSources.remove(activePolygonBoxSelection.dataSource);
+  const cleanupActivePolygonSpatialSelection=()=>{
+    activePolygonSpatialSelection.surveyPoints=[]
+    activePolygonSpatialSelection.segmentDistanceLabels=[]
+    viewer.value.dataSources.remove(activePolygonSpatialSelection.dataSource);
 
   }
 
@@ -427,18 +430,24 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     // 回退最后一个坐标点
     if (dynamicPolygonState.pointCount >= 2) {
-      const pointEntity:Cesium.Entity|undefined=activePolygonBoxSelection.surveyPoints.pop()
-      const labelEntity:Cesium.Entity|undefined=activePolygonBoxSelection.segmentDistanceLabels.pop()
-      activePolygonBoxSelection.dataSource.entities.remove(pointEntity)
-      activePolygonBoxSelection.dataSource.entities.remove(labelEntity)
+      const pointEntity: Cesium.Entity | undefined = activePolygonSpatialSelection.surveyPoints.pop()
+      const labelEntity: Cesium.Entity | undefined =
+        activePolygonSpatialSelection.segmentDistanceLabels.pop()
+      activePolygonSpatialSelection.dataSource.entities.remove(pointEntity)
+      activePolygonSpatialSelection.dataSource.entities.remove(labelEntity)
 
-      dynamicPolygonState.lngLatAltArray.splice((dynamicPolygonState.pointCount-1) * 3, 3);
-      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
-      dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+      dynamicPolygonState.lngLatAltArray.splice((dynamicPolygonState.pointCount - 1) * 3, 3)
+      const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
+        dynamicPolygonState.lngLatAltArray,
+      )
+      dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy(positions)
 
       // 删除最后三个元素 (lon, lat, alt)
-      dynamicPolygonState.pointCount--;
-      updateSegmentDistanceLabel();
+      dynamicPolygonState.pointCount--
+      updateSegmentDistanceLabel()
+    }
+    if (dynamicPolygonState.pointCount === 1) {
+      emitCesiumEvent('clearAircraftActiveSpatialSelection')
     }
   };
 
@@ -446,7 +455,7 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'
+    () => spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'
   );
 
   onUnmounted(() => {
@@ -456,10 +465,10 @@ export const usePolygonBoxSelection = (viewer: ShallowRef<Cesium.Viewer | null>,
   })
 
   return {
-    polygonBoxSelection,
+    polygonSpatialSelection,
     confirmSurveyPoint,
     setupSpatialSelectFormWatch,
-    finishPolygonBoxSelection,
-    subscribePolygonBoxSelectionEvents,
+    finishPolygonSpatialSelection,
+    subscribePolygonSpatialSelectionEvents,
   }
 }

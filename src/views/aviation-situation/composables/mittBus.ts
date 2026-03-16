@@ -11,7 +11,7 @@ export type CesiumMouseEventName =
   | 'airportLeave'
   | 'airportLeftClick'
   | 'mouseWheel'
-  | 'aircraftBoxSelection'; // 新增你需要的事件类型
+  | 'aircraftSpatialSelection'; // 新增你需要的事件类型
 
 // 2. 相机事件类型
 export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
@@ -21,7 +21,7 @@ interface CameraEvent {
   payload: Cesium.Camera;
 }
 
-// 3. 事件回调映射（补充 boxSelection 的类型）
+// 3. 事件回调映射（补充 spatialSelection 的类型）
 export interface EventCallbackMap {
   aircraftHover: (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   aircraftLeave: () => void;
@@ -30,7 +30,7 @@ export interface EventCallbackMap {
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
   mouseWheel: () => void;
-  boxSelection: () => void; // 新增事件的回调类型（无参数）
+  spatialSelection: () => void; // 新增事件的回调类型（无参数）
 }
 
 // 4. 合并所有事件类型

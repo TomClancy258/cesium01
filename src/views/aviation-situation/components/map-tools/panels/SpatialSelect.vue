@@ -12,11 +12,11 @@ const operationTypes = [
     label: '距离测绘',
   },
   {
-    value: 'boxSelection',
+    value: 'spatialSelection',
     label: '框选',
   },
 ]
-const boxSelectionSubtypes = [
+const spatialSelectionSubtypes = [
   {
     value: 'none',
     label: '无操作',
@@ -34,7 +34,7 @@ const boxSelectionSubtypes = [
     label: '矩形',
   },
 ]
-const boxSelectionTargets = [
+const spatialSelectionTargets = [
   {
     value: 'measurement',
     label: '仅测绘',
@@ -58,8 +58,8 @@ const operationTypeChange = (val: string): void => {
 
   }
 }
-const boxSelectionSubtypeChange = (): void => {}
-const boxSelectionTargetChange = (): void => {}
+const spatialSelectionSubtypeChange = (): void => {}
+const spatialSelectionTargetChange = (): void => {}
 </script>
 
 <template>
@@ -82,27 +82,27 @@ const boxSelectionTargetChange = (): void => {}
           />
         </el-select>
       </el-form-item>
-      <div v-show="spatialSelectStore.spatialSelectForm.operationType === 'boxSelection'">
-        <el-form-item label="框选子类型" prop="boxSelectionSubtype">
+      <div v-show="spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection'">
+        <el-form-item label="框选子类型" prop="spatialSelectionSubtype">
           <el-select
-            v-model="spatialSelectStore.spatialSelectForm.boxSelectionSubtype"
-            @change="boxSelectionSubtypeChange"
+            v-model="spatialSelectStore.spatialSelectForm.spatialSelectionSubtype"
+            @change="spatialSelectionSubtypeChange"
           >
             <el-option
-              v-for="item in boxSelectionSubtypes"
+              v-for="item in spatialSelectionSubtypes"
               :key="item.value"
               :label="item.label"
               :value="item.value"
             />
           </el-select>
         </el-form-item>
-        <el-form-item label="框选目标" prop="boxSelectionTarget">
+        <el-form-item label="框选目标" prop="spatialSelectionTarget">
           <el-select
-            v-model="spatialSelectStore.spatialSelectForm.boxSelectionTarget"
-            @change="boxSelectionTargetChange"
+            v-model="spatialSelectStore.spatialSelectForm.spatialSelectionTarget"
+            @change="spatialSelectionTargetChange"
           >
             <el-option
-              v-for="item in boxSelectionTargets"
+              v-for="item in spatialSelectionTargets"
               :key="item.value"
               :label="item.label"
               :value="item.value"

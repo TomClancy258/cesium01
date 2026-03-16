@@ -14,12 +14,15 @@ import type {
   TrajectoryGroup,
 } from '@/views/aviation-situation/types/aircraft'
 import { getCameraHeight, isValidCoordinate, updateTooltip } from '@/utils/geoUtils'
-import type { AircraftFilterForm,AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
-type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountry'>;
+import type { AircraftFilterForm, AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
+
+type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountry'>
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
-  clearHoveredHighlight, highlightBillboardOnBoxSelection, clearBoxSelectedHighlight
+  clearHoveredHighlight,
+  highlightBillboardOnSpatialSelection,
+  clearSpatialSelectedHighlight,
 } from '../useBillboardHighlightManager'
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
@@ -33,7 +36,7 @@ import {
   airplaneBlueSvgDataUrl,
   airplaneHoveredSvgRawDataUrl,
   airplaneSelectedSvgRawDataUrl,
-  airplaneBoxSelectionSvgRawDataUrl,
+  airplaneSpatialSelectionSvgRawDataUrl,
 } from './aircraftConstants'
 import * as turf from '@turf/turf'
 
@@ -41,32 +44,31 @@ const aviationSelectionStore = useAviationSelectionStore()
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const aircraftStore = useAircraftStore()
 
-
-export type Graphic =turf.Feature<turf.Polygon>|turf.Feature<turf.Point>
-
-interface GraphicObj{
-  type:string,
-  graphic:Graphic,
-  billboards:Cesium.Billboard[],
-  aircraftIcao24Set:Set<string>
+export interface AircraftRenderItem {
+  aircraft: Aircraft
+  billboard: Cesium.Billboard
+  label: Cesium.Label
 }
 
-interface BoxSelectionActive{
-  type:string,
-  dataSourceName:string,
-  graphic:Graphic,
-  billboards:Cesium.Billboard[]
+export type Graphic = turf.Feature<turf.Polygon> | turf.Feature<turf.Point>
+
+interface SelectionRegion {
+  type: string
+  graphic: Graphic
+  billboards: Cesium.Billboard[]
+  aircraftIcao24Set: Set<string>
 }
 
-interface BoxSelection{
-  finishedGraphicMap:Map<string,GraphicObj>
-  active:BoxSelectionActive
+interface SpatialSelectionActive {
+  type: string
+  dataSourceName: string
+  graphic: Graphic
+  icao24Set: Set<string>
 }
 
-interface MatchedAircraft{
-  aircrafts: Aircraft[],
-  billboards: Cesium.Billboard[],
-  billboardMap: Map<string, Cesium.Billboard>,
+interface SpatialSelection {
+  finishedGraphicMap: Map<string, SelectionRegion>
+  active: SpatialSelectionActive
 }
 
 /**
@@ -86,35 +88,27 @@ const getColorByAltitude = (altitude: number): Cesium.Color => {
 
 export function useAircrafts(viewer) {
   let aircrafts: Aircraft[] = []
-  const aircraftDataMap:Map<string, Aircraft>=new Map()
-  const matched:MatchedAircraft={
-    aircrafts:[],
-    billboards:[],
-    billboardMap:new Map(),
-  }
+  const matchedIcao24Set = new Set<string>()
 
-  const boxSelection:BoxSelection={
-    active:{
-      type:'',
-      dataSourceName:'',
-      graphic:null,
-      aircraftObj:{
-
-      },
+  const spatialSelection: SpatialSelection = {
+    active: {
+      type: '',
+      dataSourceName: '',
+      graphic: null,
+      icao24Set: new Set<string>(),
     },
-    finishedGraphicMap:new Map(),
+    finishedGraphicMap: new Map(),
   }
   const matchedAircraftCount = ref<number>(0)
-
+  const AircraftRenderMap = new Map<string, AircraftRenderItem>()
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
     primitives: {
       billboards: null,
-      billboardMap: new Map(),
-      labelMap: new Map(),
       labels: null,
-      selectedAircraft: { // 对应类型中的selectedAircraft，语义清晰
+      selectedAircraft: {
+        // 对应类型中的selectedAircraft，语义清晰
         routePolylines: null,
         planned: {
           trajectoryPolylineEntity: null,
@@ -122,7 +116,7 @@ export function useAircrafts(viewer) {
         },
       },
     },
-  };
+  }
 
   // 提示框状态
   const tooltip = reactive<AircraftTooltipState>({
@@ -142,7 +136,10 @@ export function useAircrafts(viewer) {
   })
 
   // 引入航线/轨迹模块
-  const {initAircraftRoute, syncAircraftRoute, clearAircraftRoute } = useAircraftRoute(viewer, aircraftGraphic)
+  const { initAircraftRoute, syncAircraftRoute, clearAircraftRoute } = useAircraftRoute(
+    viewer,
+    aircraftGraphic,
+  )
   const {
     syncAircraftPlannedTrajectory,
     setAircraftPlannedTrajectoryVisible,
@@ -154,13 +151,13 @@ export function useAircrafts(viewer) {
   } = useAircraftTrajectory(viewer, aircraftGraphic)
 
   // ========== 相机事件 ==========
-  let unsubCameraMoveEnd: () => void;
+  let unsubCameraMoveEnd: () => void
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
-    if (!aircraftStore.aircraftFilterForm.visible) return;
-    if (!aircraftGraphic.primitiveContainer) return;
-    const cameraHeight: number = getCameraHeight(camera);
+    if (!aircraftStore.aircraftFilterForm.visible) return
+    if (!aircraftGraphic.primitiveContainer) return
+    const cameraHeight: number = getCameraHeight(camera)
     setAircraftsLabelVisible(cameraHeight <= AIRCRAFT_LABEL_SHOW_DISTANCE)
-  };
+  }
 
   const setAircraftsLabelVisible = (isVisible): void => {
     if (aircraftGraphic.primitives.labels) {
@@ -169,8 +166,8 @@ export function useAircrafts(viewer) {
   }
 
   const subscribeCameraEvents = () => {
-    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', handleCameraMoveEnd);
-  };
+    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', handleCameraMoveEnd)
+  }
 
   // ========== 初始化 ==========
   const initAircrafts = () => {
@@ -190,7 +187,10 @@ export function useAircrafts(viewer) {
 
     // 设置属性
     aircraftGraphic.primitiveContainer.properties = { sourceType: 'aircraft', type: 'container' }
-    aircraftGraphic.primitives.billboards.properties = { sourceType: 'aircraft', type: 'billboards' }
+    aircraftGraphic.primitives.billboards.properties = {
+      sourceType: 'aircraft',
+      type: 'billboards',
+    }
     aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft', type: 'labels' }
 
     initAircraftRoute()
@@ -210,12 +210,6 @@ export function useAircrafts(viewer) {
     // 订阅事件
     subscribeCameraEvents()
     subscribeAircraftEvents()
-
-  }
-
-  const setaArcraftDataMap=(data:Aircraft[])=>{
-    aircraftDataMap.clear()
-    data.forEach(aircraft => aircraftDataMap.set(aircraft.icao24, aircraft))
   }
 
   // ========== 数据加载与渲染 ==========
@@ -225,7 +219,6 @@ export function useAircrafts(viewer) {
       clearAircrafts()
       if (Array.isArray(res) && res.length > 0) {
         aircrafts = res
-        setaArcraftDataMap(res)
         drawAircrafts()
       } else {
         console.warn('飞机数据为空或格式错误:', res)
@@ -242,17 +235,15 @@ export function useAircrafts(viewer) {
       if (Array.isArray(data) && data.length > 0) {
         if (aircrafts.length === 0) {
           aircrafts = data
-          setaArcraftDataMap(data)
           drawAircrafts()
-          // finishedBoxSelection()
         } else {
-          const offset: number = newIndex * 0.02
+          // const offset: number = newIndex * 0.02
+          const offset: number = newIndex * 0.1
           for (const aircraft of data) {
             aircraft.longitude += offset
             aircraft.latitude += offset
           }
           aircrafts = data
-          setaArcraftDataMap(data)
           refreshAircraftsInScene(data)
         }
         filterAircrafts()
@@ -269,31 +260,28 @@ export function useAircrafts(viewer) {
   const refreshAircraftsInScene = (newAircrafts: Aircraft[]): void => {
     const newIcaoSet = new Set<string>()
 
-    // 更新/添加飞机
     for (const aircraft of newAircrafts) {
       newIcaoSet.add(aircraft.icao24)
-      const billboard = aircraftGraphic.primitives.billboardMap.get(aircraft.icao24)
-      if (billboard) {
+      const aircraftRenderItem = AircraftRenderMap.get(aircraft.icao24)
+
+      if (aircraftRenderItem) {
+        // 更新位置和航向
         const position = Cesium.Cartesian3.fromDegrees(
           aircraft.longitude,
           aircraft.latitude,
           aircraft.baroAltitude,
         )
-        billboard.position = position
-        billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
-        aircraftGraphic.primitives.billboardMap.set(aircraft.icao24,billboard)
-        const label:Cesium.Label = aircraftGraphic.primitives.labelMap.get(aircraft.icao24)
-        if (label){
-          label.position = position
-          aircraftGraphic.primitives.labelMap.set(aircraft.icao24,label)
-        }
+        aircraftRenderItem.billboard.position = position
+        aircraftRenderItem.billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
+        aircraftRenderItem.label.position = position
+        aircraftRenderItem.aircraft=aircraft
       } else {
         drawAircraft(aircraft)
       }
     }
 
     // 移除消失的飞机
-    for (const icao24 of aircraftGraphic.primitives.billboardMap.keys()) {
+    for (const icao24 of AircraftRenderMap.keys()) {
       if (!newIcaoSet.has(icao24)) {
         removeAircraft(icao24)
       }
@@ -306,7 +294,11 @@ export function useAircrafts(viewer) {
     const { longitude, latitude, baroAltitude, callsign, heading, icao24, originCountry } = aircraft
     if (!isValidCoordinate(longitude, latitude, baroAltitude)) return
 
-    const position:Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, baroAltitude)
+    const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
+      longitude,
+      latitude,
+      baroAltitude,
+    )
 
     // 创建Billboard
     const billboard = aircraftGraphic.primitives.billboards.add({
@@ -332,7 +324,7 @@ export function useAircrafts(viewer) {
       heading,
       originalColor: billboard.color,
       originalImage: billboard.image,
-      dataSourceNameSet:new Set<string>()
+      dataSourceNameSet: new Set<string>(),
     } satisfies AircraftBillboardProperties
 
     // 创建Label
@@ -362,16 +354,15 @@ export function useAircrafts(viewer) {
       baroAltitude,
       heading,
       originalFillColor: label.fillColor,
-      dataSourceNameSet:new Set<string>()
+      dataSourceNameSet: new Set<string>(),
     } satisfies AircraftLabelProperties
 
     // 存入Map
-    aircraftGraphic.primitives.billboardMap.set(icao24, billboard)
-    aircraftGraphic.primitives.labelMap.set(icao24, label)
+    AircraftRenderMap.set(icao24, { aircraft, billboard, label })
   }
 
   const drawAircrafts = (): void => {
-    aircrafts.forEach(aircraft => drawAircraft(aircraft))
+    aircrafts.forEach((aircraft) => drawAircraft(aircraft))
   }
 
   // ========== 监听逻辑 ==========
@@ -396,7 +387,7 @@ export function useAircrafts(viewer) {
           syncAircraftRoute(currentIcao24, selected)
           // 同步计划轨迹
           syncAircraftPlannedTrajectory(currentIcao24, selected)
-          const planned:TrajectoryGroup = aircraftStore.aircraftTrajectoryOptions.planned
+          const planned: TrajectoryGroup = aircraftStore.aircraftTrajectoryOptions.planned
           if (planned.trajectoryVisible) {
             initPlannedTrajectoryCallback()
             setAircraftPlannedTrajectoryVisible(true)
@@ -411,7 +402,7 @@ export function useAircrafts(viewer) {
           clearAircraftPlannedWaypoints()
         }
       },
-      { deep: true }
+      { deep: true },
     )
   }
 
@@ -420,7 +411,7 @@ export function useAircrafts(viewer) {
       () => simulatedWebSocketStore.index,
       (newIndex) => {
         if (newIndex !== null) syncAircrafts(newIndex)
-      }
+      },
     )
   }
 
@@ -431,18 +422,17 @@ export function useAircrafts(viewer) {
         filterAircrafts()
         handleCameraMoveEnd(viewer.value.camera)
       },
-      { deep: true }
+      { deep: true },
     )
   }
 
   // ========== 筛选逻辑 ==========
   const filterAircrafts = useDebounceFn((): void => {
-    matched.aircrafts = []
-    matched.billboards = []
-    matched.billboardMap.clear()
+    matchedIcao24Set.clear()
     matchedAircraftCount.value = 0
-    const form:AircraftFilterForm = aircraftStore.aircraftFilterForm
-    const query:AircraftFilterQuery = {
+
+    const form = aircraftStore.aircraftFilterForm
+    const query: AircraftFilterQuery = {
       icao24: form.icao24?.trim().toLowerCase(),
       callsign: form.callsign?.trim().toLowerCase(),
       originCountry: form.originCountry?.trim().toLowerCase(),
@@ -450,43 +440,35 @@ export function useAircrafts(viewer) {
 
     let isSelectedAircraftMatched = false
 
-    aircraftGraphic.primitives.billboardMap.forEach((billboard, icao24) => {
-      //如果 billboard.properties 的原始类型不是 AircraftBaseProperties（比如是 any/unknown/Record<string, any>），
-      // 直接用 const p: 类型 = 变量 属于「类型赋值」，TS 会严格校验原始类型是否兼容，大概率报类型不匹配错误；
+    AircraftRenderMap.forEach(({ aircraft, billboard, label }) => {
       const p = billboard.properties as AircraftBaseProperties
       if (!p) return
 
-      const match:boolean =
+      const match =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
-        (!query.originCountry || (p.originCountry ?? '').toLowerCase().includes(query.originCountry))
+        (!query.originCountry ||
+          (p.originCountry ?? '').toLowerCase().includes(query.originCountry))
 
       if (match) {
+        matchedIcao24Set.add(aircraft.icao24)
         matchedAircraftCount.value++
-        const selected:AviationSelectedData  = aviationSelectionStore.selected
+
+        const selected = aviationSelectionStore.selected
         if (selected?.sourceType === 'aircraft' && p.icao24 === selected.icao24) {
           isSelectedAircraftMatched = true
         }
-        matched.billboards.push(billboard)
-
-        const aircraft:Aircraft = aircraftDataMap.get(icao24)
-        if (aircraft) {
-          matched.aircrafts.push(aircraft)
-        }
-
-        matched.billboardMap.set(icao24,billboard)
       }
 
+      // 控制显隐
       billboard.show = match
-      const label:Cesium.Label|null = aircraftGraphic.primitives.labelMap.get(icao24)
-      if (label) label.show = match
+      label.show = match
     })
 
-    // 控制航线/容器显隐
     aircraftGraphic.primitives.selectedAircraft.routePolylines.show = isSelectedAircraftMatched
     aircraftGraphic.primitiveContainer.show = form.visible
 
-    // finishedBoxSelection()
+    finishedSpatialSelection()
     emitCesiumEvent('aircraftFiltered')
   }, 300)
 
@@ -494,14 +476,19 @@ export function useAircrafts(viewer) {
   let unsubAircraftHover: () => void
   let unsubAircraftLeave: () => void
   let unsubAircraftLeftClick: () => void
-  let unsubMouseWheel: () => void;
-  let unsubBoxSelection: () => void;
+  let unsubMouseWheel: () => void
+  let unsubBoxSelect: () => void
+  let unsubClearActiveSpatialSelection: () => void
 
   const subscribeAircraftEvents = () => {
     // Hover事件
     unsubAircraftHover = onCesiumEvent(
       'aircraftHover',
-      (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
+      (
+        properties: AircraftBaseProperties,
+        position: Cesium.Cartesian2,
+        billboard: Cesium.Billboard,
+      ) => {
         showAircraftTooltip(position, properties)
         highlightBillboardOnHover(billboard, airplaneHoveredSvgRawDataUrl)
       },
@@ -524,79 +511,106 @@ export function useAircrafts(viewer) {
     // 滚轮事件
     unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
       handleCameraMoveEnd(viewer.value.camera)
-    });
+    })
 
-    unsubBoxSelection = onCesiumEvent('aircraftBoxSelected', (boxSelectionData) => {
-      if (boxSelectionData.isActive) {
-        activeBoxSelection(boxSelectionData)
-      }else{
-        const graphicObj={
-          graphic:boxSelectionData.graphic,
-          type:boxSelectionData.type,
-          aircraftIcao24Set:new Set<string>()
+    unsubBoxSelect = onCesiumEvent('aircraftBoxSelect', (spatialSelectionData) => {
+      if (spatialSelectionData.isActive) {
+        activateSpatialSelection(spatialSelectionData)
+      } else {
+        const selectionRegion:SelectionRegion = {
+          graphic: spatialSelectionData.graphic,
+          type: spatialSelectionData.type,
+          aircraftIcao24Set: new Set<string>(matchedIcao24Set),
         }
-        // for(const )
-        boxSelection.finishedGraphicMap.set(boxSelectionData.dataSourceName,graphicObj)
+
+        spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
+        finishedSpatialSelection()
       }
-    });
+    })
+
+    unsubClearActiveSpatialSelection = onCesiumEvent('clearAircraftActiveSpatialSelection', () => {
+      clearAircraftActiveSpatialSelection()
+    })
   }
 
-  const finishedBoxSelection=():void=>{
-    matched.aircrafts.forEach(aircraft => {
+  const clearAircraftActiveSpatialSelection = () => {
+    matchedIcao24Set.forEach((icao24) => {
+      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      if (!aircraftRenderItem) return
+      const { billboard } = aircraftRenderItem
+      clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
+    })
+    matchedIcao24Set.clear()
+  }
+
+  const finishedSpatialSelection = (): void => {
+    matchedIcao24Set.forEach((icao24) => {
+      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      if (!aircraftRenderItem) return
+      const {aircraft,billboard}=aircraftRenderItem
       // 构建Turf点
-      const turfPoint:turf.Feature<turf.Point> = turf.point([aircraft.longitude, aircraft.latitude]);
+      const turfPoint: turf.Feature<turf.Point> = turf.point([
+        aircraft.longitude,
+        aircraft.latitude,
+      ])
 
-      let isInPolygon:boolean=false
-      for (const [dataSourceName, graphicObj] of boxSelection.finishedGraphicMap) {
-        if (graphicObj.type === 'polygon') {
-          isInPolygon = turf.booleanPointInPolygon(turfPoint, graphicObj.graphic);
+      for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+        let isInGraphic: boolean = false
+        if (selectionRegion.type === 'polygon') {
+
+          isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
         }
-
-      }
-
-      const billboard:Cesium.Billboard=matched.billboardMap.get(aircraft.icao24)
-
-      if (!billboard) {
-        return
-      }
-
-      if (isInPolygon) {
-        // matched.boxSelection.billboards.push(billboard)
-        highlightBillboardOnBoxSelection(billboard,airplaneBoxSelectionSvgRawDataUrl)
-      } else {
-        clearBoxSelectedHighlight(dataSourceName,billboard)
+        if (isInGraphic) {
+          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airplaneSpatialSelectionSvgRawDataUrl)
+          // if (billboard.properties.icao24 === 'c05f5d') {
+          //   console.log('选中')
+          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
+          // }
+        }else{
+          clearSpatialSelectedHighlight(dataSourceName, billboard)
+          // if (billboard.properties.icao24 === 'c05f5d') {
+          //   console.log('未选中')
+          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
+          // }
+        }
       }
     })
   }
 
+  const activateSpatialSelection = (spatialSelectionData): void => {
+    spatialSelection.active.type = spatialSelectionData.type
+    spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
+    spatialSelection.active.graphic = spatialSelectionData.graphic
+    spatialSelection.active.icao24Set.clear()
+    // ✅ 只遍历“当前匹配筛选条件”的飞机
+    matchedIcao24Set.forEach((icao24) => {
+      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      if (!aircraftRenderItem) return
 
-  const activeBoxSelection=(boxSelectionData):void=>{
-    boxSelection.active.type=boxSelectionData.type
-    boxSelection.active.dataSourceName=boxSelectionData.dataSourceName
-    boxSelection.active.graphic=boxSelectionData.graphic
-    boxSelection.active.billboards=[]
-    matched.aircrafts.forEach(aircraft => {
-      // 构建Turf点
-      const turfPoint:turf.Feature<turf.Point> = turf.point([aircraft.longitude, aircraft.latitude]);
-
-      // 3. 判断是否在内，并修改颜色
-      const isInPolygon:boolean = turf.booleanPointInPolygon(turfPoint, boxSelectionData.graphic);
-      const billboard:Cesium.Billboard=matched.billboardMap.get(aircraft.icao24)
-
-      if (!billboard) {
-        return
+      const { aircraft, billboard } = aircraftRenderItem
+      const turfPoint = turf.point([aircraft.longitude, aircraft.latitude])
+      let isInPolygon: boolean = false
+      if (spatialSelectionData.type === 'polygon') {
+        isInPolygon = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
       }
 
       if (isInPolygon) {
-        boxSelection.active.billboards.push(billboard)
-        highlightBillboardOnBoxSelection(boxSelectionData.dataSourceName,billboard,airplaneBoxSelectionSvgRawDataUrl)
+        spatialSelection.active.icao24Set.add(icao24)
+        highlightBillboardOnSpatialSelection(
+          spatialSelectionData.dataSourceName,
+          billboard,
+          airplaneSpatialSelectionSvgRawDataUrl,
+        )
       } else {
-        clearBoxSelectedHighlight(boxSelectionData.dataSourceName,billboard)
+        clearSpatialSelectedHighlight(spatialSelectionData.dataSourceName, billboard)
       }
     })
   }
 
-  const showAircraftTooltip = (screenPosition: Cesium.Cartesian2, properties: AircraftBaseProperties) => {
+  const showAircraftTooltip = (
+    screenPosition: Cesium.Cartesian2,
+    properties: AircraftBaseProperties,
+  ) => {
     updateTooltip<AircraftBaseProperties>(tooltip, screenPosition, properties)
   }
 
@@ -607,27 +621,19 @@ export function useAircrafts(viewer) {
   const clearAircrafts = (): void => {
     aircraftGraphic.primitives.billboards?.removeAll()
     aircraftGraphic.primitives.labels?.removeAll()
-    aircraftGraphic.primitives.billboardMap.clear()
-    aircraftGraphic.primitives.labelMap.clear()
-
-    aircraftDataMap.clear()
+    AircraftRenderMap.clear() // ✅ 一行搞定
     matchedAircraftCount.value = 0
-
     clearAircraftRoute()
   }
 
   const removeAircraft = (icao24: string): void => {
-    const billboard = aircraftGraphic.primitives.billboardMap.get(icao24)
-    const label = aircraftGraphic.primitives.labelMap.get(icao24)
+    const aircraftRenderItem = AircraftRenderMap.get(icao24)
+    if (!aircraftRenderItem) return
 
-    if (billboard) aircraftGraphic.primitives.billboards?.remove(billboard)
-    if (label) aircraftGraphic.primitives.labels?.remove(label)
-
-    aircraftGraphic.primitives.billboardMap.delete(icao24)
-    aircraftGraphic.primitives.labelMap.delete(icao24)
+    aircraftGraphic.primitives.billboards?.remove(aircraftRenderItem.billboard)
+    aircraftGraphic.primitives.labels?.remove(aircraftRenderItem.label)
+    AircraftRenderMap.delete(icao24)
   }
-
-
 
   // ========== 卸载清理 ==========
   onUnmounted(() => {
@@ -636,8 +642,9 @@ export function useAircrafts(viewer) {
     unsubAircraftLeave?.()
     unsubAircraftLeftClick?.()
     unsubMouseWheel?.()
-    unsubBoxSelection?.()
+    unsubBoxSelect?.()
     unsubCameraMoveEnd?.()
+    unsubClearActiveSpatialSelection?.()
 
     // 监听解绑
     unwatchHighlight?.()

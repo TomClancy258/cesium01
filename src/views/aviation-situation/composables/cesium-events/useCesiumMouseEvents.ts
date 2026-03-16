@@ -12,9 +12,9 @@ import {
   handleDistanceSurveyLeftClick
 } from './event-handlers/interaction/distance-survey'
 import {
-  handlePolygonBoxSelectionHover,
-  handlePolygonBoxSelectionLeftClick
-} from './event-handlers/interaction/box-selection/polygon-box-selection'
+  handlePolygonSpatialSelectionHover,
+  handlePolygonSpatialSelectionLeftClick
+} from './event-handlers/interaction/spatial-selection/polygon-spatial-selection'
 
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore=useSpatialSelectStore()
@@ -26,8 +26,8 @@ import {
   useDistanceMeasurement,
 } from "./event-handlers/useDistanceMeasurement"
 import {
-  usePolygonBoxSelection,
-} from "./event-handlers/box-selection/usePolygonBoxSelection.ts"
+  usePolygonSpatialSelection,
+} from "./event-handlers/spatial-selection/usePolygonSpatialSelection.ts"
 
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
@@ -75,12 +75,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   }=useDistanceMeasurement(viewer,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager)
 
   const {
-    polygonBoxSelection,
-    confirmSurveyPoint:confirmPolygonBoxSelectionSurveyPoint,
-    setupSpatialSelectFormWatch:setupPolygonBoxSelectionSpatialFormWatch,
-    finishPolygonBoxSelection,
-    subscribePolygonBoxSelectionEvents,
-  }=usePolygonBoxSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
+    polygonSpatialSelection,
+    confirmSurveyPoint:confirmPolygonSpatialSelectionSurveyPoint,
+    setupSpatialSelectFormWatch:setupPolygonSpatialSelectionSpatialFormWatch,
+    finishPolygonSpatialSelection,
+    subscribePolygonSpatialSelectionEvents,
+  }=usePolygonSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
   const initEvents = () => {
     if (!viewer?.value) return
@@ -89,7 +89,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     totalDistanceLabelManager.addTempTotalDistanceLabelToViewer()
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
 
-    subscribePolygonBoxSelectionEvents()
+    subscribePolygonSpatialSelectionEvents()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -100,8 +100,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // console.log("MOUSE_MOVE");
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
         distanceMeasurement(movement.endPosition)
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
-        polygonBoxSelection(movement.endPosition)
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+        polygonSpatialSelection(movement.endPosition)
       }
       mouseMove(movement)
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
@@ -114,9 +114,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
             confirmDistanceSurveySurveyPoint()
           }
-          if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'){
-            if(spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
-              confirmPolygonBoxSelectionSurveyPoint()
+          if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
+            if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+              confirmPolygonSpatialSelectionSurveyPoint()
             }
           }
           const entity: Cesium.Entity = pickedObject.id
@@ -127,9 +127,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           const properties = entity.properties.getValue() as EntityProperties
           if(properties.operationType==='distanceMeasurement') {
             handleDistanceSurveyLeftClick(viewer,entity,properties)
-          }else if(properties.operationType==='boxSelection'){
-            if(properties.sourceType==='polygonBoxSelection'){
-              handlePolygonBoxSelectionLeftClick(viewer,entity,properties)
+          }else if(properties.operationType==='spatialSelection'){
+            if(properties.sourceType==='polygonSpatialSelection'){
+              handlePolygonSpatialSelectionLeftClick(viewer,entity,properties)
             }
           }else{
             measurementSelectionStore.clearSelected()
@@ -160,8 +160,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
         finishDistanceSurvey()
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='boxSelection'&&spatialSelectStore.spatialSelectForm.boxSelectionSubtype==='polygon'){
-        finishPolygonBoxSelection()
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+        finishPolygonSpatialSelection()
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 
@@ -176,7 +176,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
     setupSpatialSelectFormWatch()
     setupDistanceSurveySpatialFormWatch()
-    setupPolygonBoxSelectionSpatialFormWatch()
+    setupPolygonSpatialSelectionSpatialFormWatch()
   }
 
   // 鼠标滚轮（节流）
@@ -196,9 +196,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         const properties = entity.properties.getValue() as EntityProperties
         if(properties.operationType==='distanceMeasurement') {
             handleDistanceSurveyHover(viewer,entity,properties)
-        }else if(properties.operationType==='boxSelection'){
-          if(properties.sourceType==='polygonBoxSelection') {
-            handlePolygonBoxSelectionHover(viewer,entity,properties)
+        }else if(properties.operationType==='spatialSelection'){
+          if(properties.sourceType==='polygonSpatialSelection') {
+            handlePolygonSpatialSelectionHover(viewer,entity,properties)
           }
         }
         aviationBillboardLeave()
@@ -247,7 +247,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType != 'none'||(newForm.operationType==='boxSelection'&&newForm.boxSelectionSubtype!='none')) {
+        if (newForm.operationType != 'none'||(newForm.operationType==='spatialSelection'&&newForm.spatialSelectionSubtype!='none')) {
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
         }else{
           mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
@@ -262,7 +262,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(false)
         }
 
-        if (newForm.operationType === 'boxSelection'&&newForm.boxSelectionSubtype!='none') {
+        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype!='none') {
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(true)
         }else{
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(false)
