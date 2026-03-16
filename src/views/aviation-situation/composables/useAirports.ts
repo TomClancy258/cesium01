@@ -422,13 +422,13 @@ export function useAirports(viewer) {
   }
 
   const clearAirportActiveSpatialSelection = () => {
-    matchedIcaoSet.forEach((icao) => {
+    spatialSelection.active.icaoSet.forEach((icao) => {
       const airportRenderItem = airportRenderMap.get(icao)
       if (!airportRenderItem) return
       const { billboard } = airportRenderItem
       clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
     })
-    matchedIcaoSet.clear()
+    spatialSelection.active.icaoSet.clear()
   }
 
   const activateSpatialSelection = (spatialSelectionData): void => {

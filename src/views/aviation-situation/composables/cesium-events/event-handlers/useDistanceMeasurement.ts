@@ -254,20 +254,22 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     }
   };
 
+  const resetDistanceMeasurementSession=()=>{
+    cleanupActiveDistanceSurvey()
+    resetDynamicPolylineState()
+  }
+
   let unwatchSpatialSelectForm: () => void
   const setupSpatialSelectFormWatch = (): void => {
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
         if (newForm.operationType === 'distanceMeasurement') {
-          cleanupActiveDistanceSurvey()
-          resetDynamicPolylineState()
-
+          resetDistanceMeasurementSession()
           initActiveDistanceSurvey()
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
         } else {
-          cleanupActiveDistanceSurvey()
-          resetDynamicPolylineState()
+          resetDistanceMeasurementSession()
         }
       },
       {

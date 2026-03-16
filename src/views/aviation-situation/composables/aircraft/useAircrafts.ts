@@ -240,8 +240,8 @@ export function useAircrafts(viewer) {
           aircrafts = data
           drawAircrafts()
         } else {
-          const offset: number = newIndex * 0.02
-          // const offset: number = newIndex * 0.1
+          // const offset: number = newIndex * 0.02
+          const offset: number = newIndex * 0.1
           for (const aircraft of data) {
             aircraft.longitude += offset
             aircraft.latitude += offset
@@ -368,6 +368,12 @@ export function useAircrafts(viewer) {
     aircrafts.forEach((aircraft) => drawAircraft(aircraft))
   }
 
+  const clearSelectedAircraftRouteAndTrajectory=()=>{
+    clearAircraftRoute()
+    resetAircraftPlannedTrajectory()
+    clearAircraftPlannedWaypoints()
+  }
+
   // ========== 监听逻辑 ==========
   let unwatchHighlight: () => void
   let unwatchSimulatedWebsocket: () => void
@@ -379,9 +385,7 @@ export function useAircrafts(viewer) {
       () => {
         const selected: AviationSelectedData = aviationSelectionStore.selected
         if (selected === null) {
-          clearAircraftRoute()
-          resetAircraftPlannedTrajectory()
-          clearAircraftPlannedWaypoints()
+          clearSelectedAircraftRouteAndTrajectory()
           return
         }
         if (selected?.sourceType === 'aircraft') {
@@ -400,9 +404,7 @@ export function useAircrafts(viewer) {
             setAircraftPlannedWaypointsVisible(true)
           }
         } else {
-          clearAircraftRoute()
-          resetAircraftPlannedTrajectory()
-          clearAircraftPlannedWaypoints()
+          clearSelectedAircraftRouteAndTrajectory()
         }
       },
       { deep: true },
@@ -538,13 +540,14 @@ export function useAircrafts(viewer) {
   }
 
   const clearAircraftActiveSpatialSelection = () => {
-    matchedIcao24Set.forEach((icao24) => {
+    spatialSelection.active.icao24Set.forEach((icao24) => {
+      // matchedIcao24Set.forEach((icao24) => {
       const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
       const { billboard } = aircraftRenderItem
       clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
     })
-    matchedIcao24Set.clear()
+    spatialSelection.active.icao24Set.clear()
   }
 
   const finishedSpatialSelection = (): void => {

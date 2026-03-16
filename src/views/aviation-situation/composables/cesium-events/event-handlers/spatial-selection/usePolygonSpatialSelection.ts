@@ -289,21 +289,22 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     }
   };
 
+  const resetPolygonSpatialSelectionSession=()=>{
+    removeTempSegmentDistanceLabels()
+    cleanupActivePolygonSpatialSelection()
+    resetDynamicPolygonState()
+  }
+
   let unwatchSpatialSelectForm: () => void
   const setupSpatialSelectFormWatch = (): void => {
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
         if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'polygon') {
-          removeTempSegmentDistanceLabels()
-          cleanupActivePolygonSpatialSelection()
-          resetDynamicPolygonState()
+          resetPolygonSpatialSelectionSession()
           initActivePolygonSpatialSelection()
         } else {
-          removeTempSegmentDistanceLabels()
-          cleanupActivePolygonSpatialSelection()
-          resetDynamicPolygonState()
-
+          resetPolygonSpatialSelectionSession()
           emitCesiumEvent('clearAircraftActiveSpatialSelection')
         }
       },
@@ -440,6 +441,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
+    emitCesiumEvent('clearAviationActiveSpatialSelection')
     spatialSelectStore.setOperationType('none');
   };
 
