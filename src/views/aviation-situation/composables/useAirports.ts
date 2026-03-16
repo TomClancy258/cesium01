@@ -20,6 +20,9 @@ const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponen
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
 
+import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selection.svg?raw'
+const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
+
 import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
@@ -29,13 +32,21 @@ import type {
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
-  clearHoveredHighlight,
+  clearHoveredHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
 } from './useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
+import { Graphic, SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import * as turf from '@turf/turf'
 
 const airportStore = useAirportStore()
+
+export interface AirportRenderItem {
+  airport: Airport
+  billboard: Cesium.Billboard
+  label: Cesium.Label
+}
 
 interface AirportPrimitives {
   billboards: Cesium.BillboardCollection | null
@@ -49,21 +60,46 @@ interface AirportGraphic {
   primitives: AirportPrimitives
 }
 
+export interface AirportRenderItem {
+  airport: Airport
+  billboard: Cesium.Billboard
+  label: Cesium.Label
+}
+
+interface SelectionRegion {
+  type: string
+  graphic: Graphic
+  billboards: Cesium.Billboard[]
+  icaoSet: Set<string>
+}
+
+interface SpatialSelectionActive {
+  type: string
+  dataSourceName: string
+  graphic: Graphic
+  icaoSet: Set<string>
+}
+
+interface SpatialSelection {
+  finishedGraphicMap: Map<string, SelectionRegion>
+  active: SpatialSelectionActive
+}
+
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
 
   let airports: Airport[] = []
+  const matchedIcaoSet = new Set<string>()
 
   const matchedAirportCount = ref<number>(0)
+  const airportRenderMap = new Map<string, AirportRenderItem>()
 
   const airportGraphic: AirportGraphic = markRaw({
     primitiveContainer: null,
     primitives: {
       billboards: null,
-      billboardMap: new Map(),
       labels: null,
-      labelMap: new Map(),
     },
   })
   const tooltip = reactive<AirportTooltipState>({
@@ -246,8 +282,7 @@ export function useAirports(viewer) {
         originalFillColor: label.fillColor,
       } satisfies AirportLabelProperties
 
-      airportGraphic.primitives.billboardMap.set(airport.icao, billboard)
-      airportGraphic.primitives.labelMap.set(airport.icao, label)
+      airportRenderMap.set(icao, { airport, billboard, label })
     }
   }
 
@@ -273,8 +308,7 @@ export function useAirports(viewer) {
 
     const matchedBillboard: null | Cesium.Billboard = null
 
-    // 高亮匹配项
-    airportGraphic.primitives.billboardMap.forEach((billboard: Cesium.Billboard, icao: string) => {
+    airportRenderMap.forEach(({ airport, billboard, label }) => {
       const p: AirportBaseProperties = billboard.properties
       if (!p) return
 
@@ -294,11 +328,9 @@ export function useAirports(viewer) {
       // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
 
       billboard.show = match
-      const label: Cesium.Label|null = airportGraphic.primitives.labelMap.get(icao)
-      if (label) {
-        label.show = match
-      }
+      label.show = match
     })
+    // 高亮匹配项
     if (matchedAirportCount.value === 0) {
       // ElNotification({
       //   title: '提示',
@@ -315,6 +347,7 @@ export function useAirports(viewer) {
   let unsubAirportLeave: () => void
   let unsubAirportLeftClick: () => void
   let unsubMouseWheel: () => void
+  let unsubSpatialSelect: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -348,15 +381,62 @@ export function useAirports(viewer) {
     unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
       handleCameraMoveEnd(viewer.value.camera)
     })
+
+    unsubSpatialSelect = onCesiumEvent('airportSpatialSelect', (spatialSelectionData:SpatialSelectionData) => {
+      if (spatialSelectionData.isActive) {
+        activateSpatialSelection(spatialSelectionData)
+      } else {
+        const selectionRegion:SelectionRegion = {
+          graphic: spatialSelectionData.graphic,
+          type: spatialSelectionData.type,
+          icaoSet: new Set<string>(matchedIcaoSet),
+        }
+
+        spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
+        finishedSpatialSelection()
+      }
+    })
   }
+
+  const finishedSpatialSelection = (): void => {
+    matchedIcaoSet.forEach((icao) => {
+      const airportRenderItem = airportRenderMap.get(icao)
+      if (!airportRenderItem) return
+      const {airport,billboard}=airportRenderItem
+      // 构建Turf点
+      const turfPoint: turf.Feature<turf.Point> = turf.point([
+        airport.longitude,
+        airport.latitude,
+      ])
+
+      for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+        let isInGraphic: boolean = false
+        if (selectionRegion.type === 'polygon') {
+
+          isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
+        }
+        if (isInGraphic) {
+          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airplaneSpatialSelectionSvgRawDataUrl)
+          // if (billboard.properties.icao24 === 'c05f5d') {
+          //   console.log('选中')
+          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
+          // }
+        }else{
+          clearSpatialSelectedHighlight(dataSourceName, billboard)
+          // if (billboard.properties.icao24 === 'c05f5d') {
+          //   console.log('未选中')
+          //   console.log("billboard.properties.spatialSelectionImage", billboard.properties.spatialSelectionImage);
+          // }
+        }
+      }
+    })
+  }
+
 
   const clearAirports = (): void => {
     airportGraphic.primitives.billboards.removeAll()
     airportGraphic.primitives.labels.removeAll()
-
-    airportGraphic.primitives.billboardMap.clear()
-    airportGraphic.primitives.labelMap.clear()
-
+    airportRenderMap.clear() // ✅ 一行清空
     matchedAirportCount.value = 0
   }
 
@@ -382,6 +462,7 @@ export function useAirports(viewer) {
     unsubAirportLeftClick?.()
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
+    unsubSpatialSelect?.()
 
     unwatchAirportFilterForm?.()
 

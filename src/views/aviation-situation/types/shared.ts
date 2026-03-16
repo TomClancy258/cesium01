@@ -1,6 +1,7 @@
 import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelectedData} from "./aircraft"
 import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
 import Cesium from 'cesium'
+import * as turf from '@turf/turf'
 
 interface TooltipPosition {
   left: number
@@ -43,4 +44,13 @@ export interface DynamicPolylineState {
 
 export interface DrawingDataSource{
   name:string|null
+}
+
+export type Graphic = turf.Feature<turf.Polygon> | turf.Feature<turf.Point>
+
+export interface SpatialSelectionData{
+  dataSourceName:string,
+  type:string,
+  graphic:Graphic,
+  isActive: boolean
 }

@@ -9,7 +9,7 @@ import {
   calculateSurfaceDistance,
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
-import { DrawingDataSource, LngLatAlt } from '@/views/aviation-situation/types/shared'
+import { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
@@ -147,14 +147,17 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
 
         const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
-        const spatialSelectionData={
+
+        const spatialSelectionData:SpatialSelectionData={
           dataSourceName:activePolygonSpatialSelection.dataSource.name,
           type:'polygon',
           graphic:polygon,
           isActive: true
         }
         // if (spatialSelectionTarget === 'aircraft') {
-          emitCesiumEvent('aircraftBoxSelect',spatialSelectionData)
+        //   emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+        // }else if(spatialSelectionTarget === 'airport') {
+          emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
         // }
       }
     }
@@ -344,8 +347,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       isActive:false
     }
     // if (spatialSelectionTarget === 'aircraft') {
-    emitCesiumEvent('aircraftBoxSelect',spatialSelectionData)
-    // }
+    // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+    // }else if(spatialSelectionTarget === 'airport') {
+              emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+    //         }
 
     spatialSelectStore.setOperationType('none');
   }

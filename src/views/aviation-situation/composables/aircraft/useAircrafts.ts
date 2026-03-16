@@ -28,7 +28,11 @@ import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useDebounceFn } from '@vueuse/core'
-import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
+import {
+  AviationSelectedData,
+  Graphic,
+  SpatialSelectionData
+} from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
 import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
 import {
@@ -40,6 +44,7 @@ import {
 } from './aircraftConstants'
 import * as turf from '@turf/turf'
 
+
 const aviationSelectionStore = useAviationSelectionStore()
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const aircraftStore = useAircraftStore()
@@ -50,13 +55,11 @@ export interface AircraftRenderItem {
   label: Cesium.Label
 }
 
-export type Graphic = turf.Feature<turf.Polygon> | turf.Feature<turf.Point>
-
 interface SelectionRegion {
   type: string
   graphic: Graphic
   billboards: Cesium.Billboard[]
-  aircraftIcao24Set: Set<string>
+  icao24Set: Set<string>
 }
 
 interface SpatialSelectionActive {
@@ -100,7 +103,7 @@ export function useAircrafts(viewer) {
     finishedGraphicMap: new Map(),
   }
   const matchedAircraftCount = ref<number>(0)
-  const AircraftRenderMap = new Map<string, AircraftRenderItem>()
+  const aircraftRenderMap = new Map<string, AircraftRenderItem>()
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
@@ -262,7 +265,7 @@ export function useAircrafts(viewer) {
 
     for (const aircraft of newAircrafts) {
       newIcaoSet.add(aircraft.icao24)
-      const aircraftRenderItem = AircraftRenderMap.get(aircraft.icao24)
+      const aircraftRenderItem = aircraftRenderMap.get(aircraft.icao24)
 
       if (aircraftRenderItem) {
         // 更新位置和航向
@@ -281,7 +284,7 @@ export function useAircrafts(viewer) {
     }
 
     // 移除消失的飞机
-    for (const icao24 of AircraftRenderMap.keys()) {
+    for (const icao24 of aircraftRenderMap.keys()) {
       if (!newIcaoSet.has(icao24)) {
         removeAircraft(icao24)
       }
@@ -358,7 +361,7 @@ export function useAircrafts(viewer) {
     } satisfies AircraftLabelProperties
 
     // 存入Map
-    AircraftRenderMap.set(icao24, { aircraft, billboard, label })
+    aircraftRenderMap.set(icao24, { aircraft, billboard, label })
   }
 
   const drawAircrafts = (): void => {
@@ -440,7 +443,7 @@ export function useAircrafts(viewer) {
 
     let isSelectedAircraftMatched = false
 
-    AircraftRenderMap.forEach(({ aircraft, billboard, label }) => {
+    aircraftRenderMap.forEach(({ aircraft, billboard, label }) => {
       const p = billboard.properties as AircraftBaseProperties
       if (!p) return
 
@@ -477,7 +480,7 @@ export function useAircrafts(viewer) {
   let unsubAircraftLeave: () => void
   let unsubAircraftLeftClick: () => void
   let unsubMouseWheel: () => void
-  let unsubBoxSelect: () => void
+  let unsubSpatialSelect: () => void
   let unsubClearActiveSpatialSelection: () => void
 
   const subscribeAircraftEvents = () => {
@@ -513,14 +516,14 @@ export function useAircrafts(viewer) {
       handleCameraMoveEnd(viewer.value.camera)
     })
 
-    unsubBoxSelect = onCesiumEvent('aircraftBoxSelect', (spatialSelectionData) => {
+    unsubSpatialSelect = onCesiumEvent('aircraftSpatialSelect', (spatialSelectionData:SpatialSelectionData) => {
       if (spatialSelectionData.isActive) {
         activateSpatialSelection(spatialSelectionData)
       } else {
         const selectionRegion:SelectionRegion = {
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
-          aircraftIcao24Set: new Set<string>(matchedIcao24Set),
+          icao24Set: new Set<string>(matchedIcao24Set),
         }
 
         spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
@@ -535,7 +538,7 @@ export function useAircrafts(viewer) {
 
   const clearAircraftActiveSpatialSelection = () => {
     matchedIcao24Set.forEach((icao24) => {
-      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
       const { billboard } = aircraftRenderItem
       clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
@@ -545,7 +548,7 @@ export function useAircrafts(viewer) {
 
   const finishedSpatialSelection = (): void => {
     matchedIcao24Set.forEach((icao24) => {
-      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
       const {aircraft,billboard}=aircraftRenderItem
       // 构建Turf点
@@ -584,7 +587,7 @@ export function useAircrafts(viewer) {
     spatialSelection.active.icao24Set.clear()
     // ✅ 只遍历“当前匹配筛选条件”的飞机
     matchedIcao24Set.forEach((icao24) => {
-      const aircraftRenderItem = AircraftRenderMap.get(icao24)
+      const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
 
       const { aircraft, billboard } = aircraftRenderItem
@@ -621,18 +624,18 @@ export function useAircrafts(viewer) {
   const clearAircrafts = (): void => {
     aircraftGraphic.primitives.billboards?.removeAll()
     aircraftGraphic.primitives.labels?.removeAll()
-    AircraftRenderMap.clear() // ✅ 一行搞定
+    aircraftRenderMap.clear() // ✅ 一行搞定
     matchedAircraftCount.value = 0
     clearAircraftRoute()
   }
 
   const removeAircraft = (icao24: string): void => {
-    const aircraftRenderItem = AircraftRenderMap.get(icao24)
+    const aircraftRenderItem = aircraftRenderMap.get(icao24)
     if (!aircraftRenderItem) return
 
     aircraftGraphic.primitives.billboards?.remove(aircraftRenderItem.billboard)
     aircraftGraphic.primitives.labels?.remove(aircraftRenderItem.label)
-    AircraftRenderMap.delete(icao24)
+    aircraftRenderMap.delete(icao24)
   }
 
   // ========== 卸载清理 ==========
@@ -642,7 +645,7 @@ export function useAircrafts(viewer) {
     unsubAircraftLeave?.()
     unsubAircraftLeftClick?.()
     unsubMouseWheel?.()
-    unsubBoxSelect?.()
+    unsubSpatialSelect?.()
     unsubCameraMoveEnd?.()
     unsubClearActiveSpatialSelection?.()
 
