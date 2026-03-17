@@ -1,4 +1,4 @@
-//useAircraftTrajectory.ts
+//src/views/aviation-situation/composables/aircraft/routes/useAircraftTrajectory.ts
 import * as Cesium from 'cesium'
 import { getAircraftPlannedTrajectory } from '@/network/aircraft'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'

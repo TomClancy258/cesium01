@@ -1,4 +1,4 @@
-import type {TooltipState} from './shared'
+import type {TooltipState,AviationPrimitivesBase,AviationGraphicBase} from './shared'
 import * as Cesium from "cesium"
 
 export interface AircraftBaseProperties {
@@ -72,17 +72,12 @@ export interface SelectedAircraft {
   planned:SelectedAircraftPlanned
 }
 
-// 2. 抽离所有飞机的图元集合（核心：独立Interface）
-export interface AircraftPrimitives {
-  billboards: Cesium.BillboardCollection | null; // 全部飞机的图标（广告牌）
-  billboardMap: Map<string, Cesium.Billboard>; // 飞机ID → 对应图标（快速查找）
-  labelMap: Map<string, Cesium.Label>; // 飞机ID → 对应标签（快速查找）
-  labels: Cesium.LabelCollection | null; // 全部飞机的标签
-  selectedAircraft: SelectedAircraft; // 选中飞机的专属航线/航路点
+
+// 飞机图元 = 基础图元 + 选中飞机的专属属性
+export interface AircraftPrimitives extends AviationPrimitivesBase {
+  selectedAircraft: SelectedAircraft; // 飞机独有的扩展属性
 }
 
-// 3. 顶层飞机图元容器
-export interface AircraftGraphic {
-  primitiveContainer: Cesium.PrimitiveCollection | null; // 所有飞机图元的根容器
-  primitives: AircraftPrimitives; // 关联抽离后的图元接口
-}
+// 飞机图元容器 = 通用容器 + 飞机图元
+// export interface AircraftGraphic extends AviationGraphicBase<AircraftPrimitives> {}
+export type AircraftGraphic = AviationGraphicBase<AircraftPrimitives>;

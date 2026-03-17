@@ -28,10 +28,10 @@ import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useDebounceFn } from '@vueuse/core'
-import {
+import type {
   AviationSelectedData,
-  Graphic,
-  SpatialSelectionData
+  SpatialSelectionData,
+AviationRenderItem, SpatialSelection,SelectionRegion
 } from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
 import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
@@ -43,36 +43,7 @@ import {
   airplaneSpatialSelectedSvgRawDataUrl,
 } from './aircraftConstants'
 import * as turf from '@turf/turf'
-
-
-const aviationSelectionStore = useAviationSelectionStore()
-const simulatedWebSocketStore = useSimulatedWebSocketStore()
-const aircraftStore = useAircraftStore()
-
-export interface AircraftRenderItem {
-  aircraft: Aircraft
-  billboard: Cesium.Billboard
-  label: Cesium.Label
-}
-
-interface SelectionRegion {
-  type: string
-  graphic: Graphic
-  billboards: Cesium.Billboard[]
-  icao24Set: Set<string>
-}
-
-interface SpatialSelectionActive {
-  type: string
-  dataSourceName: string
-  graphic: Graphic
-  icao24Set: Set<string>
-}
-
-interface SpatialSelection {
-  finishedGraphicMap: Map<string, SelectionRegion>
-  active: SpatialSelectionActive
-}
+type AircraftRenderItem = AviationRenderItem<Aircraft>
 
 /**
  * 根据高度值获取对应区间的固定颜色
@@ -90,6 +61,10 @@ const getColorByAltitude = (altitude: number): Cesium.Color => {
 }
 
 export function useAircrafts(viewer) {
+  const aviationSelectionStore = useAviationSelectionStore()
+  const simulatedWebSocketStore = useSimulatedWebSocketStore()
+  const aircraftStore = useAircraftStore()
+
   let aircrafts: Aircraft[] = []
   const matchedIcao24Set = new Set<string>()
 
@@ -98,7 +73,7 @@ export function useAircrafts(viewer) {
       type: '',
       dataSourceName: '',
       graphic: null,
-      icao24Set: new Set<string>(),
+      idSet: new Set<string>(),
     },
     finishedGraphicMap: new Map(),
   }
@@ -277,7 +252,7 @@ export function useAircrafts(viewer) {
         aircraftRenderItem.billboard.position = position
         aircraftRenderItem.billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
         aircraftRenderItem.label.position = position
-        aircraftRenderItem.aircraft=aircraft
+        aircraftRenderItem.data=aircraft
       } else {
         drawAircraft(aircraft)
       }
@@ -361,7 +336,7 @@ export function useAircrafts(viewer) {
     } satisfies AircraftLabelProperties
 
     // 存入Map
-    aircraftRenderMap.set(icao24, { aircraft, billboard, label })
+    aircraftRenderMap.set(icao24, { data: aircraft, billboard, label })
   }
 
   const drawAircrafts = (): void => {
@@ -445,7 +420,7 @@ export function useAircrafts(viewer) {
 
     let isSelectedAircraftMatched = false
 
-    aircraftRenderMap.forEach(({ aircraft, billboard, label }) => {
+    aircraftRenderMap.forEach(({  data: aircraft, billboard, label }) => {
       const p = billboard.properties as AircraftBaseProperties
       if (!p) return
 
@@ -525,7 +500,7 @@ export function useAircrafts(viewer) {
         const selectionRegion:SelectionRegion = {
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
-          icao24Set: new Set<string>(matchedIcao24Set),
+          idSet: new Set<string>(matchedIcao24Set),
         }
 
         spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
@@ -540,21 +515,23 @@ export function useAircrafts(viewer) {
   }
 
   const clearAircraftActiveSpatialSelection = () => {
-    spatialSelection.active.icao24Set.forEach((icao24) => {
+    console.log("spatialSelection.active.idSet.size", spatialSelection.active.idSet.size);
+    spatialSelection.active.idSet.forEach((icao24) => {
       // matchedIcao24Set.forEach((icao24) => {
       const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
       const { billboard } = aircraftRenderItem
+      console.log("spatialSelection.active.dataSourceName", spatialSelection.active.dataSourceName);
       clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
     })
-    spatialSelection.active.icao24Set.clear()
+    spatialSelection.active.idSet.clear()
   }
 
   const finishedSpatialSelection = (): void => {
     matchedIcao24Set.forEach((icao24) => {
       const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
-      const {aircraft,billboard}=aircraftRenderItem
+      const {data:aircraft,billboard}=aircraftRenderItem
       // 构建Turf点
       const turfPoint: turf.Feature<turf.Point> = turf.point([
         aircraft.longitude,
@@ -588,13 +565,13 @@ export function useAircrafts(viewer) {
     spatialSelection.active.type = spatialSelectionData.type
     spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
     spatialSelection.active.graphic = spatialSelectionData.graphic
-    spatialSelection.active.icao24Set.clear()
+    spatialSelection.active.idSet.clear()
     // ✅ 只遍历“当前匹配筛选条件”的飞机
     matchedIcao24Set.forEach((icao24) => {
       const aircraftRenderItem = aircraftRenderMap.get(icao24)
       if (!aircraftRenderItem) return
 
-      const { aircraft, billboard } = aircraftRenderItem
+      const { data:aircraft, billboard } = aircraftRenderItem
       const turfPoint = turf.point([aircraft.longitude, aircraft.latitude])
       let isInPolygon: boolean = false
       if (spatialSelectionData.type === 'polygon') {
@@ -602,7 +579,7 @@ export function useAircrafts(viewer) {
       }
 
       if (isInPolygon) {
-        spatialSelection.active.icao24Set.add(icao24)
+        spatialSelection.active.idSet.add(icao24)
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
           billboard,

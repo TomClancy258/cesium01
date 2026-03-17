@@ -1,6 +1,6 @@
 import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelectedData} from "./aircraft"
 import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
-import Cesium from 'cesium'
+import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 
 interface TooltipPosition {
@@ -53,4 +53,41 @@ export interface SpatialSelectionData{
   type:string,
   graphic:Graphic,
   isActive: boolean
+}
+
+// 通用 RenderItem（用泛型）
+export interface AviationRenderItem<T> {
+  data: T
+  billboard: Cesium.Billboard
+  label: Cesium.Label
+}
+
+// 统一 SelectionRegion（使用 genericIdSet）
+export interface SelectionRegion {
+  type: string
+  graphic: Graphic
+  idSet: Set<string> // ✅ 统一叫 idSet，不再区分 icao / icao24
+}
+
+export interface SpatialSelectionActive {
+  type: string
+  dataSourceName: string
+  graphic: Graphic
+  idSet: Set<string> // ✅ 同上
+}
+
+export interface SpatialSelection {
+  finishedGraphicMap: Map<string, SelectionRegion>
+  active: SpatialSelectionActive
+}
+
+
+export interface AviationPrimitivesBase {
+  billboards: Cesium.BillboardCollection | null;
+  labels: Cesium.LabelCollection | null;
+}
+
+export interface AviationGraphicBase<T extends AviationPrimitivesBase = AviationPrimitivesBase> {
+  primitiveContainer: Cesium.PrimitiveCollection | null;
+  primitives: T;
 }

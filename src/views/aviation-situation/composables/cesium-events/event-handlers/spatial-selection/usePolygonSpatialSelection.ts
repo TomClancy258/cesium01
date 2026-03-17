@@ -305,7 +305,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
           initActivePolygonSpatialSelection()
         } else {
           resetPolygonSpatialSelectionSession()
-          emitCesiumEvent('clearAircraftActiveSpatialSelection')
+          emitCesiumEvent('clearAviationActiveSpatialSelection')
         }
       },
       {

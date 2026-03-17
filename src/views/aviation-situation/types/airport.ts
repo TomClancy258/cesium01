@@ -1,4 +1,4 @@
-import type { TooltipState } from './shared'
+import type { AviationGraphicBase, AviationPrimitivesBase, TooltipState } from './shared'
 import * as Cesium from "cesium"
 
 export interface AirportBaseProperties{
@@ -36,3 +36,11 @@ export interface AirportSelectedData {
   icao: string;
 }
 
+
+// 机场图元 = 纯基础图元（无扩展）
+// export interface AirportPrimitives extends AviationPrimitivesBase {}
+export type AirportPrimitives = AviationPrimitivesBase;
+
+// 机场图元容器 = 通用容器 + 机场图元
+// export interface AirportGraphic extends AviationGraphicBase<AirportPrimitives> {}
+export type AirportGraphic = AviationGraphicBase<AirportPrimitives>;

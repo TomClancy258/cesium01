@@ -113,6 +113,16 @@ export const calculateDistance = (pos1: number[], pos2: number[]): number => {
 
 //获取沿地球椭球体表面的真实地理距离
 export const calculateSurfaceDistance = (pos1: number[], pos2: number[]): number => {
+  const geodesic=calculateSurfaceGeodesic(pos1,pos2)
+
+  // 3. 获取表面距离 (单位：米)
+  const distance:number = geodesic.surfaceDistance;
+
+  return distance;
+};
+
+//获取沿地球椭球体表面的真实地理距离
+export const calculateSurfaceGeodesic = (pos1: number[], pos2: number[]): Cesium.EllipsoidGeodesic => {
   if (!pos1 || !pos2) return 0;
 
   const ellipsoid:Cesium.Ellipsoid = Cesium.Ellipsoid.WGS84;
@@ -125,10 +135,7 @@ export const calculateSurfaceDistance = (pos1: number[], pos2: number[]): number
   // 2. 创建大地测量对象
   const geodesic:Cesium.EllipsoidGeodesic = new Cesium.EllipsoidGeodesic(cartographic1, cartographic2, ellipsoid);
 
-  // 3. 获取表面距离 (单位：米)
-  const distance:number = geodesic.surfaceDistance;
-
-  return distance;
+  return geodesic;
 };
 
 /**
@@ -296,16 +303,40 @@ export const formatArea = (areaInSquareMeters: number): string => {
 };
 
 
-export const createPolygonFromLngLatAltArray=(lngLatAltArray:number[]): turf.Feature<turf.Polygon>=>{
+export const createPolygonFromLngLatAltArray=(
+  lngLatAltArray:number[],
+  maxSegmentLength: number = 10000): turf.Feature<turf.Polygon>=>{
   const closedRing:number[]=closePolygonRing(lngLatAltArray)
 
-  const coords: [number, number][]=[]
   const pointCount:number=closedRing.length/3
-  for (let i:number = 0; i < pointCount; i++) {
-    const index:number=i*3
-    coords[i]=[closedRing[index],closedRing[index+1]]
+  if (pointCount < 3) {
+    throw new Error('Polygon must have at least 3 points');
   }
-  return turf.polygon([coords])
+
+  // 2. 提取纯 [lng, lat] 点列（忽略 altitude）
+  const originalCoords: [number, number][] = [];
+  for (let i = 0; i < pointCount; i++) {
+    const idx = i * 3;
+    originalCoords.push([closedRing[idx], closedRing[idx + 1]]);
+  }
+  // console.log("originalCoords", originalCoords);
+
+  // 3. 对每条边插值
+  const interpolatedCoords: [number, number][] = [];
+  // interpolatedCoords.push(originalCoords[0])
+  for (let i = 0; i < originalCoords.length - 1; i++) {
+    const start = originalCoords[i];
+    const end = originalCoords[i + 1];
+
+    //interpolated为[[A经度,A纬度],[A1经度,A1纬度],[B2经度,B2纬度],[B经度,B纬度]]
+    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength);
+
+    //interpolatedCoords为[[A经度,A纬度],[B经度,B纬度],[C经度,C纬度],[A经度,A纬度]]
+    interpolatedCoords.push(...interpolated);
+  }
+  // console.log("interpolatedCoords", interpolatedCoords);
+  // 4. 构建 Turf 多边形（注意：Turf 要求外环是逆时针，但 booleanPointInPolygon 不敏感）
+  return turf.polygon([interpolatedCoords]);
 }
 
 export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
@@ -317,4 +348,51 @@ export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
     latitude:centerCoord[1],
     height:0,
   }
+}
+
+// geoUtils.ts —— 新增工具函数
+
+/**
+ * 对一条测地线边进行插值（按最大分段长度）
+ * @param start [lng, lat]
+ * @param end   [lng, lat]
+ * @param maxSegmentLength 最大分段长度（米），默认 1000 米
+ * @returns 插值点数组（包含起点，不含终点）
+ */
+function interpolateGeodesicEdge(
+  start: [number, number],
+  end: [number, number],
+  maxSegmentLength: number = 10000
+): [number, number][] {
+// ✅ 补全为 [lng, lat, alt]，高度设为 0（不影响测地距离）
+  const pos1 = [...start, 0];
+  const pos2 = [...end, 0];
+
+  const geodesic = calculateSurfaceGeodesic(pos1, pos2);
+  const distance=geodesic.surfaceDistance
+  if (distance <= maxSegmentLength) {
+    return [start]; // 边太短，不插值
+  }
+
+  const numSegments = Math.floor(distance / maxSegmentLength);
+  // const numSegments = Math.ceil(distance / maxSegmentLength);
+  // const numSegments = Math.max(1, Math.ceil(distance / maxSegmentLength));
+  const points: [number, number][] = [];
+  points.push(start)
+  // const post = geodesic.interpolateUsingFraction(0);
+  // const lon=Cesium.Math.toDegrees(post.longitude)
+  // const lat=Cesium.Math.toDegrees(post.latitude)
+  // console.log("lon", lon);
+  // console.log("lat", lat);
+  for (let i = 1; i < numSegments; i++) {
+    const frac = i / numSegments;
+    // const pos = geodesic.interpolateUsingSurfaceDistance(frac * distance);
+    const pos = geodesic.interpolateUsingFraction(frac);
+    points.push([
+      Cesium.Math.toDegrees(pos.longitude),
+      Cesium.Math.toDegrees(pos.latitude)
+    ]);
+  }
+  points.push(end)
+  return points;
 }

@@ -1,4 +1,4 @@
-//useAirports.ts
+//src/views/aviation-situation/composables/useAirports.ts
 import { reactive, onUnmounted, markRaw, ref, watch } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
@@ -9,7 +9,7 @@ import type {
   AirportLabelProperties,
   AirportSelectedData,
   AirportTooltipState,
-} from '../types/airport'
+} from '../../types/airport'
 import { isValidCoordinate, updateTooltip,getCameraHeight } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
@@ -23,67 +23,26 @@ const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompone
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
-import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
+import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents' // 替换原导入
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 import type {
   AirportFilterForm,
+  AirportGraphic,
 } from '@/views/aviation-situation/types/airport'
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
-} from './useBillboardHighlightManager'
+} from '../useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
-import { Graphic, SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import { AviationRenderItem,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 import * as turf from '@turf/turf'
+type AirportRenderItem = AviationRenderItem<Airport>
 
 const airportStore = useAirportStore()
-
-export interface AirportRenderItem {
-  airport: Airport
-  billboard: Cesium.Billboard
-  label: Cesium.Label
-}
-
-interface AirportPrimitives {
-  billboards: Cesium.BillboardCollection | null
-  billboardMap: Map<string, Cesium.Billboard>
-  labelMap: Map<string, Cesium.Label>
-  labels: Cesium.LabelCollection | null
-}
-
-interface AirportGraphic {
-  primitiveContainer: Cesium.PrimitiveCollection | null
-  primitives: AirportPrimitives
-}
-
-export interface AirportRenderItem {
-  airport: Airport
-  billboard: Cesium.Billboard
-  label: Cesium.Label
-}
-
-interface SelectionRegion {
-  type: string
-  graphic: Graphic
-  billboards: Cesium.Billboard[]
-  icaoSet: Set<string>
-}
-
-interface SpatialSelectionActive {
-  type: string
-  dataSourceName: string
-  graphic: Graphic
-  icaoSet: Set<string>
-}
-
-interface SpatialSelection {
-  finishedGraphicMap: Map<string, SelectionRegion>
-  active: SpatialSelectionActive
-}
 
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
@@ -97,7 +56,7 @@ export function useAirports(viewer) {
       type: '',
       dataSourceName: '',
       graphic: null,
-      icaoSet: new Set<string>(),
+      idSet: new Set<string>(),
     },
     finishedGraphicMap: new Map(),
   }
@@ -296,7 +255,7 @@ export function useAirports(viewer) {
         dataSourceNameSet: new Set<string>(),
       } satisfies AirportLabelProperties
 
-      airportRenderMap.set(icao, { airport, billboard, label })
+      airportRenderMap.set(icao, { data: airport, billboard, label })
     }
   }
 
@@ -322,7 +281,7 @@ export function useAirports(viewer) {
 
     const matchedBillboard: null | Cesium.Billboard = null
 
-    airportRenderMap.forEach(({ airport, billboard, label }) => {
+    airportRenderMap.forEach(({  data: airport, billboard, label }) => {
       const p = billboard.properties as AirportBaseProperties
       if (!p) return
 
@@ -407,7 +366,7 @@ export function useAirports(viewer) {
         const selectionRegion:SelectionRegion = {
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
-          icaoSet: new Set<string>(matchedIcaoSet),
+          idSet: new Set<string>(matchedIcaoSet),
         }
 
         spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
@@ -422,26 +381,26 @@ export function useAirports(viewer) {
   }
 
   const clearAirportActiveSpatialSelection = () => {
-    spatialSelection.active.icaoSet.forEach((icao) => {
+    spatialSelection.active.idSet.forEach((icao) => {
       const airportRenderItem = airportRenderMap.get(icao)
       if (!airportRenderItem) return
       const { billboard } = airportRenderItem
       clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
     })
-    spatialSelection.active.icaoSet.clear()
+    spatialSelection.active.idSet.clear()
   }
 
   const activateSpatialSelection = (spatialSelectionData): void => {
     spatialSelection.active.type = spatialSelectionData.type
     spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
     spatialSelection.active.graphic = spatialSelectionData.graphic
-    spatialSelection.active.icaoSet.clear()
+    spatialSelection.active.idSet.clear()
     // ✅ 只遍历“当前匹配筛选条件”的飞机
     matchedIcaoSet.forEach((icao) => {
       const airportRenderItem = airportRenderMap.get(icao)
       if (!airportRenderItem) return
 
-      const { airport, billboard } = airportRenderItem
+      const { data: airport, billboard } = airportRenderItem
       const turfPoint = turf.point([airport.longitude, airport.latitude])
       let isInPolygon: boolean = false
       if (spatialSelectionData.type === 'polygon') {
@@ -449,7 +408,7 @@ export function useAirports(viewer) {
       }
 
       if (isInPolygon) {
-        spatialSelection.active.icaoSet.add(icao)
+        spatialSelection.active.idSet.add(icao)
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
           billboard,
@@ -466,7 +425,7 @@ export function useAirports(viewer) {
     matchedIcaoSet.forEach((icao) => {
       const airportRenderItem = airportRenderMap.get(icao)
       if (!airportRenderItem) return
-      const {airport,billboard}=airportRenderItem
+      const {data: airport,billboard}=airportRenderItem
       // 构建Turf点
       const turfPoint: turf.Feature<turf.Point> = turf.point([
         airport.longitude,
