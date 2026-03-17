@@ -9,7 +9,9 @@ import type {
   AirportLabelProperties,
   AirportSelectedData,
   AirportTooltipState,
-} from '../../types/airport'
+  AirportFilterForm,
+  AirportGraphic,
+} from '@/views/aviation-situation/types/airport'
 import { isValidCoordinate, updateTooltip,getCameraHeight } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
@@ -23,44 +25,29 @@ const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompone
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
-import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents' // 替换原导入
+import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
-import type {
-  AirportFilterForm,
-  AirportGraphic,
-} from '@/views/aviation-situation/types/airport'
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
-} from '../useBillboardHighlightManager'
+} from './useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
 import { AviationRenderItem,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
-import * as turf from '@turf/turf'
 type AirportRenderItem = AviationRenderItem<Airport>
-
-const airportStore = useAirportStore()
+import { useAviationTooltip } from './useAviationTooltip'
+import {useSpatialSelection} from '@/views/aviation-situation/composables/useSpatialSelection'
 
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
+  const airportStore = useAirportStore()
 
   let airports: Airport[] = []
   const matchedIcaoSet = new Set<string>()
-
-  const spatialSelection: SpatialSelection = {
-    active: {
-      type: '',
-      dataSourceName: '',
-      graphic: null,
-      idSet: new Set<string>(),
-    },
-    finishedGraphicMap: new Map(),
-  }
-
 
   const matchedAirportCount = ref<number>(0)
   const airportRenderMap = new Map<string, AirportRenderItem>()
@@ -72,18 +59,27 @@ export function useAirports(viewer) {
       labels: null,
     },
   })
-  const tooltip = reactive<AirportTooltipState>({
-    visible: false,
-    position: { left: 0, top: 0 },
-    properties: {
-      icao: '',
-      type: '',
-      sourceType: '',
-      country: '',
-      name: '',
-      longitude: 0,
-      latitude: 0,
-    },
+
+  const {
+    tooltip,
+    showTooltip: showAirportTooltip,
+    hideTooltip: hideAirportTooltip
+  } = useAviationTooltip<AirportBaseProperties>({
+    icao: '',
+    type: '',
+    sourceType: 'airport',
+    country: '',
+    name: '',
+    longitude: 0,
+    latitude: 0,
+  })
+
+  const { finishedSpatialSelection, dispose: disposeSpatialSelection,subscribeSpatialSelectionEvents } = useSpatialSelection({
+    matchedIdSet: matchedIcaoSet,
+    renderMap: airportRenderMap,
+    getCoord: (airport) => [airport.longitude, airport.latitude],
+    spatialSelectedImageUrl: airportSpatialSelectedSvgRawDataUrl,
+    spatialSelectEvent: 'airportSpatialSelect',
   })
 
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
@@ -123,10 +119,6 @@ export function useAirports(viewer) {
   }
   // ========== 相机事件修改结束 ==========
 
-  const hideAirportTooltip = (): void => {
-    tooltip.visible = false
-  }
-
   const setAirportsVisible = (isVisible:boolean): void => {
     airportGraphic.primitiveContainer.show = isVisible
   }
@@ -160,6 +152,7 @@ export function useAirports(viewer) {
     // 初始化时订阅相机事件
     subscribeCameraEvents()
     subscribeAirportEvents()
+    subscribeSpatialSelectionEvents()
   }
 
   const loadAndDrawAirports = async () => {
@@ -259,13 +252,6 @@ export function useAirports(viewer) {
     }
   }
 
-  const showAirportTooltip = (
-    screenPosition: Cesium.Cartesian2,
-    properties: AirportBaseProperties,
-  ): void => {
-    updateTooltip<AirportBaseProperties>(tooltip, screenPosition, properties)
-  }
-
   const filterAirports = useDebounceFn((): void => {
     matchedAirportCount.value = 0
 
@@ -323,26 +309,19 @@ export function useAirports(viewer) {
   let unsubAirportLeave: () => void
   let unsubAirportLeftClick: () => void
   let unsubMouseWheel: () => void
-  let unsubSpatialSelect: () => void
-  let unsubClearActiveSpatialSelection: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
     unsubAirportHover = onCesiumEvent(
       'airportHover',
-      (
-        properties: AirportBaseProperties,
-        position: Cesium.Cartesian2,
-        billboard: Cesium.Billboard,
-      ) => {
-        showAirportTooltip(position, properties)
+      (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
+        showAirportTooltip(position, properties) // 替换原方法
         highlightBillboardOnHover(billboard, airportHoveredSvgRawDataUrl)
-      },
+      }
     )
 
-    // 订阅机场leave事件
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
-      hideAirportTooltip()
+      hideAirportTooltip() // 替换原方法
       clearHoveredHighlight()
     })
 
@@ -359,92 +338,6 @@ export function useAirports(viewer) {
       handleCameraMoveEnd(viewer.value.camera)
     })
 
-    unsubSpatialSelect = onCesiumEvent('airportSpatialSelect', (spatialSelectionData:SpatialSelectionData) => {
-      if (spatialSelectionData.isActive) {
-        activateSpatialSelection(spatialSelectionData)
-      } else {
-        const selectionRegion:SelectionRegion = {
-          graphic: spatialSelectionData.graphic,
-          type: spatialSelectionData.type,
-          idSet: new Set<string>(matchedIcaoSet),
-        }
-
-        spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
-        finishedSpatialSelection()
-      }
-    })
-
-    // unsubClearActiveSpatialSelection = onCesiumEvent('clearAirportActiveSpatialSelection', () => {
-    unsubClearActiveSpatialSelection = onCesiumEvent('clearAviationActiveSpatialSelection', () => {
-      clearAirportActiveSpatialSelection()
-    })
-  }
-
-  const clearAirportActiveSpatialSelection = () => {
-    spatialSelection.active.idSet.forEach((icao) => {
-      const airportRenderItem = airportRenderMap.get(icao)
-      if (!airportRenderItem) return
-      const { billboard } = airportRenderItem
-      clearSpatialSelectedHighlight(spatialSelection.active.dataSourceName, billboard)
-    })
-    spatialSelection.active.idSet.clear()
-  }
-
-  const activateSpatialSelection = (spatialSelectionData): void => {
-    spatialSelection.active.type = spatialSelectionData.type
-    spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
-    spatialSelection.active.graphic = spatialSelectionData.graphic
-    spatialSelection.active.idSet.clear()
-    // ✅ 只遍历“当前匹配筛选条件”的飞机
-    matchedIcaoSet.forEach((icao) => {
-      const airportRenderItem = airportRenderMap.get(icao)
-      if (!airportRenderItem) return
-
-      const { data: airport, billboard } = airportRenderItem
-      const turfPoint = turf.point([airport.longitude, airport.latitude])
-      let isInPolygon: boolean = false
-      if (spatialSelectionData.type === 'polygon') {
-        isInPolygon = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
-      }
-
-      if (isInPolygon) {
-        spatialSelection.active.idSet.add(icao)
-        highlightBillboardOnSpatialSelection(
-          spatialSelectionData.dataSourceName,
-          billboard,
-          airportSpatialSelectedSvgRawDataUrl,
-        )
-      } else {
-        clearSpatialSelectedHighlight(spatialSelectionData.dataSourceName, billboard)
-      }
-    })
-  }
-
-
-  const finishedSpatialSelection = (): void => {
-    matchedIcaoSet.forEach((icao) => {
-      const airportRenderItem = airportRenderMap.get(icao)
-      if (!airportRenderItem) return
-      const {data: airport,billboard}=airportRenderItem
-      // 构建Turf点
-      const turfPoint: turf.Feature<turf.Point> = turf.point([
-        airport.longitude,
-        airport.latitude,
-      ])
-
-      for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
-        let isInGraphic: boolean = false
-        if (selectionRegion.type === 'polygon') {
-
-          isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
-        }
-        if (isInGraphic) {
-          highlightBillboardOnSpatialSelection(dataSourceName, billboard, airportSpatialSelectedSvgRawDataUrl)
-        }else{
-          clearSpatialSelectedHighlight(dataSourceName, billboard)
-        }
-      }
-    })
   }
 
   const clearAirports = (): void => {
@@ -473,8 +366,7 @@ export function useAirports(viewer) {
     unsubAirportLeftClick?.()
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
-    unsubSpatialSelect?.()
-    unsubClearActiveSpatialSelection?.()
+    disposeSpatialSelection?.()
 
     unwatchAirportFilterForm?.()
 
