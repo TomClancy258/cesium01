@@ -69,7 +69,7 @@ onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
   aviationSelectionStore.clearSelected()
-  aviationSelectionStore.clearHovered()
+  // aviationSelectionStore.clearHovered()
   aviationSelectionStore.clearLastSelectedIcao24()
   aircraftStore.resetAircraftFilterForm()
   aircraftStore.resetAircraftTrajectoryOptions()

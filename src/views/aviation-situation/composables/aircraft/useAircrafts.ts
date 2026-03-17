@@ -119,7 +119,7 @@ export function useAircrafts(viewer) {
     initPlannedTrajectory,
   } = useAircraftTrajectory(viewer, aircraftGraphic)
 
-  const { finishedSpatialSelection, dispose: disposeSpatialSelection,
+  const { finishedSpatialSelection,
     subscribeSpatialSelectionEvents} = useSpatialSelection({
     matchedIdSet: matchedIcao24Set,
     renderMap: aircraftRenderMap,
@@ -514,7 +514,6 @@ export function useAircrafts(viewer) {
     unsubAircraftLeftClick?.()
     unsubMouseWheel?.()
     unsubCameraMoveEnd?.()
-    disposeSpatialSelection?.()
 
     // 监听解绑
     unwatchHighlight?.()

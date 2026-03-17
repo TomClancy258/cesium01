@@ -74,7 +74,7 @@ export function useAirports(viewer) {
     latitude: 0,
   })
 
-  const { finishedSpatialSelection, dispose: disposeSpatialSelection,subscribeSpatialSelectionEvents } = useSpatialSelection({
+  const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useSpatialSelection({
     matchedIdSet: matchedIcaoSet,
     renderMap: airportRenderMap,
     getCoord: (airport) => [airport.longitude, airport.latitude],
@@ -366,7 +366,6 @@ export function useAirports(viewer) {
     unsubAirportLeftClick?.()
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
-    disposeSpatialSelection?.()
 
     unwatchAirportFilterForm?.()
 

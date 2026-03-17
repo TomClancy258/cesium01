@@ -1,18 +1,20 @@
 // src/views/aviation-situation/composables/useSpatialSelection.ts
 
 import * as turf from '@turf/turf'
+import * as Cesium from "cesium"
 import type { SpatialSelectionData, SelectionRegion, SpatialSelection } from '../types/shared'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
 } from './useBillboardHighlightManager'
 import { onCesiumEvent } from './mittBus'
+import { onUnmounted } from 'vue'
 
 interface UseSpatialSelectionOptions<T> {
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
   matchedIdSet: Set<string>
   /** 完整渲染 Map，key 为 id */
-  renderMap: Map<string, { data: T; billboard: any; label: any }>
+  renderMap: Map<string, { data: T; billboard: Cesium.Billboard; label: Cesium.Label }>
   /** 从 data 中取经纬度 */
   getCoord: (data: T) => [number, number]
   /** 框选高亮图片 URL */
@@ -133,10 +135,13 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
     unsubClearActive?.()
   }
 
+  onUnmounted(()=>{
+    dispose()
+  })
+
   return {
     spatialSelection,
     finishedSpatialSelection,
-    dispose,
     subscribeSpatialSelectionEvents,
   }
 }
