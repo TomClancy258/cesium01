@@ -216,8 +216,8 @@ export function useAircrafts(viewer) {
           aircrafts = data
           drawAircrafts()
         } else {
-          // const offset: number = newIndex * 0.02
-          const offset: number = newIndex * 0.1
+          const offset: number = newIndex * 0.02
+          // const offset: number = newIndex * 0.1
           for (const aircraft of data) {
             aircraft.longitude += offset
             aircraft.latitude += offset

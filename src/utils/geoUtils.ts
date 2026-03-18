@@ -270,6 +270,13 @@ export const calculateArea = (lngLatAltArray: number[]): number => {
   return area;
 };
 
+export const calculateAreaFromGraphic = (graphic): number => {
+  let area:number = 0;
+
+  area = turf.area(graphic); // 单位：平方米
+  return area;
+};
+
 /**
  * 格式化面积显示：自动切换 m² / ha / km² 并保留合适的小数位
  * @param areaInSquareMeters 面积（单位：平方米）
@@ -328,8 +335,11 @@ export const createPolygonFromLngLatAltArray=(
     const start = originalCoords[i];
     const end = originalCoords[i + 1];
 
+    // const isLastSegment=i===originalCoords.length - 2;
+    // console.log("isLastSegment", isLastSegment);
+
     //interpolated为[[A经度,A纬度],[A1经度,A1纬度],[B2经度,B2纬度],[B经度,B纬度]]
-    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength);
+    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength,isLastSegment);
 
     //interpolatedCoords为[[A经度,A纬度],[B经度,B纬度],[C经度,C纬度],[A经度,A纬度]]
     interpolatedCoords.push(...interpolated);
@@ -362,7 +372,8 @@ export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
 function interpolateGeodesicEdge(
   start: [number, number],
   end: [number, number],
-  maxSegmentLength: number = 10000
+  maxSegmentLength: number = 10000,
+  isLastSegment:boolean=false,
 ): [number, number][] {
 // ✅ 补全为 [lng, lat, alt]，高度设为 0（不影响测地距离）
   const pos1 = [...start, 0];
@@ -371,7 +382,11 @@ function interpolateGeodesicEdge(
   const geodesic = calculateSurfaceGeodesic(pos1, pos2);
   const distance=geodesic.surfaceDistance
   if (distance <= maxSegmentLength) {
-    return [start]; // 边太短，不插值
+    // if (!isLastSegment) {
+    //   return [start]; // 边太短，不插值
+    // }else{
+      return [start, distance];
+    // }
   }
 
   const numSegments = Math.floor(distance / maxSegmentLength);

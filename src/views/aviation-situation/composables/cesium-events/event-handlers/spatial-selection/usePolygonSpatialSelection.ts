@@ -9,7 +9,7 @@ import {
   calculateSurfaceDistance,
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
-import { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import type { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'

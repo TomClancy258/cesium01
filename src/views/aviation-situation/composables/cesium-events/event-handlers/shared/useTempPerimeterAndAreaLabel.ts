@@ -3,7 +3,7 @@ import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import {
-  calculateArea, calculateCentroidLngLatAlt,
+  calculateArea, calculateAreaFromGraphic, calculateCentroidLngLatAlt,
   calculatePerimeter,
   formatArea,
   formatDistance
@@ -88,7 +88,7 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     if (lngLatAltArray.length===0) return;
     const perimeter:number = calculatePerimeter(lngLatAltArray);
 
-    const area = calculateArea(lngLatAltArray); // 单位：平方米
+    const area = calculateAreaFromGraphic(graphic); // 单位：平方米
 
     const uniqueId:string = generateBizUniqueId('tempPerimeterAndAreaLabel');
     const formattedPerimeterStr:string=formatDistance(perimeter)
@@ -140,7 +140,7 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     if (lngLatAltArray.length===0) return;
 
     const perimeter:number = calculatePerimeter(lngLatAltArray);
-    const area = calculateArea(lngLatAltArray); // 单位：平方米
+    const area = calculateAreaFromGraphic(graphic); // 单位：平方米
 
     const center = turf.centerOfMass(graphic);
     const centerCoord = center.geometry.coordinates;

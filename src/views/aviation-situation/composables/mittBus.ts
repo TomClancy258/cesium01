@@ -2,6 +2,7 @@
 import mitt from 'mitt';
 import type { AircraftBaseProperties, AircraftSelectedData } from "@/views/aviation-situation/types/aircraft"
 import type { AirportBaseProperties, AirportSelectedData } from "@/views/aviation-situation/types/airport"
+import type { SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -11,7 +12,8 @@ export type CesiumMouseEventName =
   | 'airportLeave'
   | 'airportLeftClick'
   | 'mouseWheel'
-  | 'aircraftSpatialSelection'; // 新增你需要的事件类型
+  | 'aircraftSpatialSelect' // 新增你需要的事件类型
+  | 'airportSpatialSelect';
 
 // 2. 相机事件类型
 export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
@@ -29,8 +31,9 @@ export interface EventCallbackMap {
   airportHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
-  mouseWheel: () => void;
-  spatialSelection: () => void; // 新增事件的回调类型（无参数）
+  mouseWheel: () => void; // 新增事件的回调类型（无参数）
+  aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
+  airportSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
 }
 
 // 4. 合并所有事件类型
