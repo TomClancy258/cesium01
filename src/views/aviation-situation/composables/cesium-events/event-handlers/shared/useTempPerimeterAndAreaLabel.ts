@@ -3,14 +3,14 @@ import * as Cesium from 'cesium'
 import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import {
-  calculateArea, calculateAreaFromGraphic, calculateCentroidLngLatAlt,
-  calculatePerimeter,
+  calculateAreaFromGraphic,
+  calculatePolygonPerimeter,
   formatArea,
   formatDistance
 } from '@/utils/geoUtils.ts'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import * as turf from '@turf/turf'
-import { createEntityLabelConfig, createPolygonFromLngLatAltArray } from '@/utils/cesiumUtils'
+import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface PerimeterInfo {
@@ -86,7 +86,7 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     graphic
   ):void => {
     if (lngLatAltArray.length===0) return;
-    const perimeter:number = calculatePerimeter(lngLatAltArray);
+    const perimeter:number = calculatePolygonPerimeter(lngLatAltArray);
 
     const area = calculateAreaFromGraphic(graphic); // 单位：平方米
 
@@ -139,7 +139,7 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
   const updateTempPerimeterAndAreaLabel = (lngLatAltArray:number[],graphic):void => {
     if (lngLatAltArray.length===0) return;
 
-    const perimeter:number = calculatePerimeter(lngLatAltArray);
+    const perimeter:number = calculatePolygonPerimeter(lngLatAltArray);
     const area = calculateAreaFromGraphic(graphic); // 单位：平方米
 
     const center = turf.centerOfMass(graphic);

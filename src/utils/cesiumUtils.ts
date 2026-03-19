@@ -149,6 +149,42 @@ export const createEntityLabelConfig = (
 };
 
 /**
+ * 创建临时点的 Label/Point 样式配置（复用常量，仅传可变量）
+ * @param text Label文本（可选，动态文本用CallbackProperty时传null）
+ * @param position 实体位置（可选，动态位置用CallbackProperty时传null）
+ * @returns Label/Point 样式配置
+ */
+export const createTempPointLabelStyleConfig = (
+  text: string | Cesium.CallbackProperty | null = null,
+  position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null
+):Cesium.Entity.ConstructorOptions => {
+  const baseConfig: Cesium.Entity.ConstructorOptions= {
+    label: {
+      font: TEMP_POINT_LABEL_STYLE.LABEL.FONT,
+      outlineColor: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_COLOR,
+      outlineWidth: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_WIDTH,
+      style: TEMP_POINT_LABEL_STYLE.LABEL.STYLE,
+      pixelOffset: TEMP_POINT_LABEL_STYLE.LABEL.PIXEL_OFFSET,
+      heightReference: TEMP_POINT_LABEL_STYLE.LABEL.HEIGHT_REFERENCE,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY, // 补充防遮挡配置（常量里漏了的话）
+    },
+    point: {
+      pixelSize: TEMP_POINT_LABEL_STYLE.POINT.PIXEL_SIZE,
+      color: TEMP_POINT_LABEL_STYLE.POINT.COLOR,
+      outlineColor: TEMP_POINT_LABEL_STYLE.POINT.OUTLINE_COLOR,
+      outlineWidth: TEMP_POINT_LABEL_STYLE.POINT.OUTLINE_WIDTH,
+      heightReference: TEMP_POINT_LABEL_STYLE.POINT.HEIGHT_REFERENCE,
+    },
+  };
+
+  // 动态文本/位置单独处理
+  if (text) baseConfig.label!.text = text;
+  if (position) baseConfig.position = position;
+
+  return baseConfig;
+};
+
+/**
  * 显示距离测量相关的实体（测量点和分段长度标签）
  * @param viewer Cesium Viewer 实例
  * @param properties 实体属性

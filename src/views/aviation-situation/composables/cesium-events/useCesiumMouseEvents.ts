@@ -1,7 +1,7 @@
 //src/views/aviation-situation/composables/cesium-events/useCesiumMouseEvents.ts
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
-import mittBus, { CesiumMouseEventName,EventCallbackMap } from '../mittBus'
+import mittBus, { CesiumMouseEventName } from '../mittBus'
 import type { MapBillboardLabelProperties } from "../../types/shared"
 import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
 
@@ -117,6 +117,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
             if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
               confirmPolygonSpatialSelectionSurveyPoint()
+            }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+              // confirmCircleSpatialSelectionSurveyPoint()
             }
           }
           const entity: Cesium.Entity = pickedObject.id

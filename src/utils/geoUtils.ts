@@ -228,7 +228,7 @@ export const calculatePolylineTotalDistance = (lngLatAltArray: number[]): number
   return totalLength;
 };
 
-export const calculatePerimeter = (lngLatAltArray: number[]): number => {
+export const calculatePolygonPerimeter = (lngLatAltArray: number[]): number => {
   let perimeter = 0;
   // 至少3个点（9个元素）才计算长度
   if (lngLatAltArray.length < 9) return perimeter;
@@ -349,6 +349,37 @@ export const createPolygonFromLngLatAltArray=(
   return turf.polygon([interpolatedCoords]);
 }
 
+/**
+ * 根据半径动态设置圆的边数（steps）
+ * - 小范围（<1km）：32 边足够平滑且高效
+ * - 中等范围（1~10km）：64 边
+ * - 大范围（10~100km）：128 边
+ * - 超大范围（≥100km）：256 边（上限，避免性能问题）
+ */
+const getCircleSteps = (radiusInMeters: number): number => {
+  if (radiusInMeters < 1_000) return 32;
+  if (radiusInMeters < 10_000) return 64;
+  if (radiusInMeters < 100_000) return 128;
+  return 256; // 最大值
+};
+
+export const createCircleFromCenterAndRadius = (
+  center: LngLatAlt,
+  radiusInMeters: number
+):turf.Feature<turf.Polygon> => {
+  const steps = getCircleSteps(radiusInMeters);
+  return turf.circle(
+    [center.longitude, center.latitude],
+    radiusInMeters,
+    { steps, units: 'meters' }
+  );
+};
+
+export const calculatePerimeterFromGraphic = (graphic):number => {
+  return turf.length(graphic)
+};
+
+
 export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
   const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(lngLatAltArray)
   const center:turf.Feature<turf.Point> = turf.centerOfMass(polygon);
@@ -411,3 +442,4 @@ function interpolateGeodesicEdge(
   points.push(end)
   return points;
 }
+
