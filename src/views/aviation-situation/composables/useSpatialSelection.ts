@@ -9,6 +9,7 @@ import {
 } from './useBillboardHighlightManager'
 import { onCesiumEvent } from './mittBus'
 import { onUnmounted } from 'vue'
+import { booleanLngLatAltArrayInCircle } from '@/utils/geoUtils'
 
 interface UseSpatialSelectionOptions<T> {
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
@@ -56,14 +57,16 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       if (!item) return
 
       const [lng, lat] = getCoord(item.data)
-      const turfPoint = turf.point([lng, lat])
-      let isInPolygon = false
+      let isInGraphic = false
 
       if (spatialSelectionData.type === 'polygon') {
-        isInPolygon = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
+        const turfPoint = turf.point([lng, lat])
+        isInGraphic = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
+      }else if (spatialSelectionData.type === 'circle') {
+        isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],spatialSelectionData.centerLngLatAltArray,spatialSelectionData.radius)
       }
 
-      if (isInPolygon) {
+      if (isInGraphic) {
         spatialSelection.active.idSet.add(id)
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
@@ -82,12 +85,14 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       if (!item) return
 
       const [lng, lat] = getCoord(item.data)
-      const turfPoint = turf.point([lng, lat])
 
       for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
         let isInGraphic = false
         if (selectionRegion.type === 'polygon') {
+          const turfPoint = turf.point([lng, lat])
           isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
+        }else if (selectionRegion.type === 'circle') {
+          isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],selectionRegion.centerLngLatAltArray,selectionRegion.radius)
         }
 
         if (isInGraphic) {
@@ -118,6 +123,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         const selectionRegion: SelectionRegion = {
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
+          radius: spatialSelectionData.radius,
+          centerLngLatAltArray: spatialSelectionData.centerLngLatAltArray,
           idSet: new Set<string>(matchedIdSet),
         }
         spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)

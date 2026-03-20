@@ -51,8 +51,10 @@ export type Graphic = turf.Feature<turf.Polygon> | turf.Feature<turf.Point>
 export interface SpatialSelectionData{
   dataSourceName:string,
   type:string,
-  graphic:Graphic,
-  isActive: boolean
+  graphic?:Graphic,
+  isActive: boolean,
+  radius?:number,
+  centerLngLatAltArray?:number[],
 }
 
 // 通用 RenderItem（用泛型）
@@ -65,7 +67,9 @@ export interface AviationRenderItem<T> {
 // 统一 SelectionRegion（使用 genericIdSet）
 export interface SelectionRegion {
   type: string
-  graphic: Graphic
+  graphic?: Graphic
+  radius: number
+  centerLngLatAltArray: number[]
   idSet: Set<string> // ✅ 统一叫 idSet，不再区分 icao / icao24
 }
 

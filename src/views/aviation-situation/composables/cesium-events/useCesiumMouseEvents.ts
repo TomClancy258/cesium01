@@ -28,6 +28,9 @@ import {
 import {
   usePolygonSpatialSelection,
 } from "./event-handlers/spatial-selection/usePolygonSpatialSelection.ts"
+import {
+  useCircleSpatialSelection,
+} from "./event-handlers/spatial-selection/circle/useCircleSpatialSelection.ts"
 
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
@@ -82,6 +85,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     subscribePolygonSpatialSelectionEvents,
   }=usePolygonSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
+  const {
+    circleSpatialSelection,
+    confirmSurveyPoint:confirmCircleSpatialSelectionSurveyPoint,
+    setupSpatialSelectFormWatch:setupCircleSpatialSelectionSpatialFormWatch,
+    finishCircleSpatialSelection,
+    subscribeCircleSpatialSelectionEvents,
+  }=useCircleSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
+
   const initEvents = () => {
     if (!viewer?.value) return
     mouseFollowPointLabelManager.addTempPointLabelToViewer()
@@ -102,6 +113,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         distanceMeasurement(movement.endPosition)
       }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
         polygonSpatialSelection(movement.endPosition)
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+        circleSpatialSelection(movement.endPosition)
       }
       mouseMove(movement)
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
@@ -118,7 +131,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
             if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
               confirmPolygonSpatialSelectionSurveyPoint()
             }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
-              // confirmCircleSpatialSelectionSurveyPoint()
+              confirmCircleSpatialSelectionSurveyPoint()
             }
           }
           const entity: Cesium.Entity = pickedObject.id
@@ -162,8 +175,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
         finishDistanceSurvey()
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
-        finishPolygonSpatialSelection()
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
+        if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+          finishPolygonSpatialSelection()
+        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+          finishCircleSpatialSelection()
+        }
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 
@@ -179,6 +196,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     setupSpatialSelectFormWatch()
     setupDistanceSurveySpatialFormWatch()
     setupPolygonSpatialSelectionSpatialFormWatch()
+    setupCircleSpatialSelectionSpatialFormWatch()
   }
 
   // 鼠标滚轮（节流）
@@ -264,7 +282,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(false)
         }
 
-        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype!='none') {
+        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype!='none'&&newForm.spatialSelectionSubtype!='circle') {
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(true)
         }else{
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(false)

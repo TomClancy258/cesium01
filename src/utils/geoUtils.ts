@@ -339,7 +339,9 @@ export const createPolygonFromLngLatAltArray=(
     // console.log("isLastSegment", isLastSegment);
 
     //interpolated为[[A经度,A纬度],[A1经度,A1纬度],[B2经度,B2纬度],[B经度,B纬度]]
-    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength,isLastSegment);
+    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength,
+      // isLastSegment
+    );
 
     //interpolatedCoords为[[A经度,A纬度],[B经度,B纬度],[C经度,C纬度],[A经度,A纬度]]
     interpolatedCoords.push(...interpolated);
@@ -364,12 +366,12 @@ const getCircleSteps = (radiusInMeters: number): number => {
 };
 
 export const createCircleFromCenterAndRadius = (
-  center: LngLatAlt,
+  lngLatAltArray: number[],
   radiusInMeters: number
 ):turf.Feature<turf.Polygon> => {
   const steps = getCircleSteps(radiusInMeters);
   return turf.circle(
-    [center.longitude, center.latitude],
+    [lngLatAltArray[0], lngLatAltArray[1]],
     radiusInMeters,
     { steps, units: 'meters' }
   );
@@ -443,3 +445,7 @@ function interpolateGeodesicEdge(
   return points;
 }
 
+export const booleanLngLatAltArrayInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
+  const distance=calculateSurfaceDistance(lngLatAltArray,center)
+  return distance <= radius;
+}

@@ -3,20 +3,21 @@ import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
-import { type TempPointLabelPositionLngLatAlt } from '../../shared/useMouseFollowPointLabel'
+import {
+  TempPointLabelPosition,
+  type TempPointLabelPositionLngLatAlt
+} from '../../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../../useKeyboardEvents';
 import {
   calculateAreaFromGraphic,
   calculatePerimeterFromGraphic,
   calculateSurfaceDistance, createCircleFromCenterAndRadius, formatArea, formatDistance,
-  getSurfaceMidpoint
 } from '@/utils/geoUtils'
 import { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 import {
-  BOX_SELECTION_STYLE,
+  BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
-import { createCircleFromLngLatAltArray } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
@@ -62,12 +63,29 @@ export interface CircleSpatialSelectionSession {
  * @returns Polyline样式配置
  */
 const createDynamicCircleConfig = (
-  radius:number|Cesium.CallbackProperty=0,
+  radius:number|Cesium.CallbackProperty=1,
+  text:string|Cesium.CallbackProperty,
   position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null
 ):Cesium.Entity.ConstructorOptions => {
   const baseConfig: Cesium.Entity.ConstructorOptions = {
     show: true,
-    circle: {
+    label: {
+      font: TEMP_POINT_LABEL_STYLE.LABEL.FONT,
+      outlineColor: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_COLOR,
+      outlineWidth: TEMP_POINT_LABEL_STYLE.LABEL.OUTLINE_WIDTH,
+      style: TEMP_POINT_LABEL_STYLE.LABEL.STYLE,
+      pixelOffset: TEMP_POINT_LABEL_STYLE.LABEL.PIXEL_OFFSET,
+      heightReference: TEMP_POINT_LABEL_STYLE.LABEL.HEIGHT_REFERENCE,
+      disableDepthTestDistance: Number.POSITIVE_INFINITY, // 补充防遮挡配置（常量里漏了的话）
+    },
+    point: {
+      pixelSize: TEMP_POINT_LABEL_STYLE.POINT.PIXEL_SIZE,
+      color: TEMP_POINT_LABEL_STYLE.POINT.COLOR,
+      outlineColor: TEMP_POINT_LABEL_STYLE.POINT.OUTLINE_COLOR,
+      outlineWidth: TEMP_POINT_LABEL_STYLE.POINT.OUTLINE_WIDTH,
+      heightReference: TEMP_POINT_LABEL_STYLE.POINT.HEIGHT_REFERENCE,
+    },
+    ellipse: {
       semiMinorAxis: radius,
       semiMajorAxis: radius,
       material: BOX_SELECTION_STYLE.POLYGON.MATERIAL,
@@ -75,6 +93,7 @@ const createDynamicCircleConfig = (
   };
   // 动态/静态文本、位置单独赋值
   if (position) baseConfig.position = position;
+  if (text) baseConfig.label.text = text;
 
   return baseConfig;
 };
@@ -84,9 +103,9 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   const spatialSelectStore = useSpatialSelectStore()
 
   const circleEntities: Cesium.Entity[] = []
-  const dynamicCircle:Cesium.Entity|null= null
+  let dynamicCircle:Cesium.Entity|null= null
 
-  const dynamicCircleState: DynamicCircleState = {
+  let dynamicCircleState: DynamicCircleState = {
     lngLatAltArray: [],
     pointCount:0,
     perimeterInfo:{
@@ -98,7 +117,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       formattedAreaStr:'',
     },
     radiusInfo:{
-      radius:0,
+      radius:1,
       formattedRadiusStr:'',
     },
   };
@@ -114,15 +133,16 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     mouseFollowPointLabelManager.updateTempPointLabel(cartesian3);
     const lngLatAlt:TempPointLabelPositionLngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
 
-
     updateDynamicCircle(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
   }
 
   const updateDynamicCircle = (longitude:number,latitude:number,height:number) => {
     if (dynamicCircleState.pointCount===1) {
-      dynamicCircleState.lngLatAltArray[3]=longitude
-      dynamicCircleState.lngLatAltArray[4]=latitude
-      dynamicCircleState.lngLatAltArray[5]=height
+      const lngLatAltArray=dynamicCircleState.lngLatAltArray
+
+      lngLatAltArray[3]=longitude
+      lngLatAltArray[4]=latitude
+      lngLatAltArray[5]=height
 
       const startPoint = [
         lngLatAltArray[0],
@@ -135,7 +155,8 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         lngLatAltArray[5],
       ];
       const radius = calculateSurfaceDistance(startPoint, endPoint);
-      dynamicCircleState.radius=radius;
+      dynamicCircleState.radiusInfo.radius=radius;
+      dynamicCircleState.radiusInfo.formattedRadiusStr=formatDistance(radius);
 
       const circle= createCircleFromCenterAndRadius(startPoint,radius)
 
@@ -150,9 +171,10 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
       const spatialSelectionData:SpatialSelectionData={
-        dataSourceName:activeCircleSpatialSelection.dataSource.name,
+        dataSourceName:dynamicCircle.id,
         type:'circle',
-        graphic:circle,
+        radius:radius,
+        centerLngLatAltArray:startPoint,
         isActive: true
       }
       if (spatialSelectionTarget === 'aircraft') {
@@ -176,58 +198,74 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   }
 
   const confirmSurveyPoint = () => {
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
+    if (dynamicCircleState.pointCount >= 2) {
+      return
+    }
+    const position:TempPointLabelPosition=mouseFollowPointLabelManager.tempPointLabel.position
+    const lngLatAlt: TempPointLabelPositionLngLatAlt =position.lngLatAlt;
+    const cartesian3: Cesium.Cartesian3 =position.cartesian3;
 
     dynamicCircleState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     dynamicCircleState.pointCount++
+
+    if (dynamicCircleState.pointCount === 1) {
+      dynamicCircle.position=cartesian3
+    }
   }
 
   const initActiveCircleSpatialSelection = (): void => {
-    const dataSourceUniqueId:string = generateBizUniqueId('activeCircleSpatialSelection')
+    const circleUniqueId:string = generateBizUniqueId('activeCircleSpatialSelection')
 
     const drawingDataSourceData:DrawingDataSource={
-      name:dataSourceUniqueId
+      name:circleUniqueId
     }
     measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
 
     // 2. 创建动态位置的CallbackProperty
     const radiusCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
-          return dynamicCircleState.radius;
+          return dynamicCircleState.radiusInfo.radius;
       },
       false,
     );
-
-    const circleConfig:Cesium.Entity.ConstructorOptions = createDynamicCircleConfig(radiusCallback);
-    const circleUniqueId:string = generateBizUniqueId('activeCircleSpatialSelectionPolyline')
-
+    // 2. 创建动态位置的CallbackProperty
+    const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
+      ():string => {
+        return `周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n
+      面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n
+      半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`;
+      },
+      false,
+    );
+    const circleConfig:Cesium.Entity.ConstructorOptions = createDynamicCircleConfig(radiusCallback,textCallback);
     // 4. 组装实体并添加
-    activeCircleSpatialSelection.dynamicCircle = activeCircleSpatialSelection.dataSource.entities.add({
+    dynamicCircle = viewer.value.entities.add({
       id: circleUniqueId,
       properties: {
         operationType:'spatialSelection',
         sourceType: 'circleSpatialSelection',
         type: 'circle',
-        dataSourceName: dataSourceUniqueId,
-        originalCircleMaterial:circleConfig.circle?.material
+        dataSourceName: circleUniqueId,
+        originalEllipseMaterial:circleConfig.ellipse?.material
       },
       ...circleConfig,
     });
-
-    viewer.value?.dataSources.add(activeCircleSpatialSelection.dataSource)
   }
 
-  const cloneDynamicCircleToDataSource=(dataSource,dataSourceName:string)=>{
+  const cloneDynamicCircleToDataSource=(dataSourceName:string)=>{
     const uniqueId:string = generateBizUniqueId('circleSpatialSelectionCircle')
 
-    // 2. 创建动态位置的CallbackProperty
-    const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicCircleState.lngLatAltArray)
+    const circleConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicCircle,uniqueId,viewer);
 
-    // 3. 调用通用函数生成Label配置（无Point，仅Label）
-    const circleConfig:Cesium.Entity.ConstructorOptions = createDynamicCircleConfig(positions);
+    circleConfig.label.text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n
+      面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n
+      半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`
+
+    circleConfig.ellipse.semiMajorAxis=dynamicCircleState.radiusInfo.radius
+    circleConfig.ellipse.semiMinorAxis=dynamicCircleState.radiusInfo.radius
 
     // 4. 组装实体并添加
-    dataSource.entities.add({
+    const entity=viewer.value.entities.add({
       id: uniqueId,
       properties: {
         operationType:'spatialSelection',
@@ -238,35 +276,34 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       } as EntityProperties,
       ...circleConfig, // 复用通用样式，消除重复代码
     });
+
+    circleEntities.push(entity)
   }
 
   /**
    * 重置计划轨迹
    */
   const resetDynamicCircleState = (): void => {
-    dynamicCircleState.lngLatAltArray = [];
-    dynamicCircleState.circleHierarchy = new Cesium.CircleHierarchy([]);
-    dynamicCircleState.pointCount = 0;
+    dynamicCircleState={
+      lngLatAltArray: [],
+      pointCount:0,
+      perimeterInfo:{
+        perimeter:0,
+        formattedPerimeterStr:'',
+      },
+      areaInfo:{
+        area:0,
+        formattedAreaStr:'',
+      },
+      radiusInfo:{
+        radius:1,
+        formattedRadiusStr:'',
+      },
+    };
   }
 
-  /**
-   * 清理鼠标移动时临时追加的坐标点（仅保留用户确认的点）
-   * @param circleState 动态折线状态
-   */
-  const cleanTempMouseMovePoints = (circleState: DynamicCircleState): void => {
-    const circlePositionsLen:number = circleState.lngLatAltArray.length;
-    const circlePointCount:number = circlePositionsLen / 3;
-    // 若坐标数组长度 = 确认点数 +1（说明有鼠标移动的临时点），则删除最后3个元素
-    if (circlePointCount === circleState.pointCount + 1) {
-      circleState.lngLatAltArray.splice(circleState.pointCount * 3, 3);
-
-      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(circleState.lngLatAltArray)
-      circleState.circleHierarchy=new Cesium.CircleHierarchy(positions)
-    }
-  };
-
   const resetCircleSpatialSelectionSession=()=>{
-    cleanupActiveCircleSpatialSelection()
+    viewer.value?.entities.remove(dynamicCircle);
     resetDynamicCircleState()
   }
 
@@ -290,38 +327,22 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   }
 
   const finishCircleSpatialSelection=(): void => {
-    if (dynamicCircleState.pointCount <=2) {
+    if (dynamicCircleState.pointCount <=1) {
       return
     }
-
-    cleanTempMouseMovePoints(dynamicCircleState);
 
     const uniqueId:string = generateBizUniqueId('circleSpatialSelectionDataSource')
     const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
     cloneDynamicCircleToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const PerimeterAndAreaLabelProperties:EntityProperties={
-      operationType:'spatialSelection',
-      sourceType:'circleSpatialSelection',
-      type:'perimeterAndAreaLabel',
-      dataSourceName:uniqueId,
-    }
+    const lngLatAltArray=dynamicCircleState.lngLatAltArray
+    const center:LngLatAlt=[
+      lngLatAltArray[0],
+      lngLatAltArray[1],
+      lngLatAltArray[2],
+    ]
 
-    const circle:turf.Feature<turf.Circle>=createCircleFromLngLatAltArray(dynamicCircleState.lngLatAltArray)
-    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicCircleState.lngLatAltArray,PerimeterAndAreaLabelProperties,circle); //周长和面积Label，存放在dataSource.entities里的index=1的位置
-
-
-    const surveyPointProperties:EntityProperties={
-      operationType:'spatialSelection',
-      sourceType:'circleSpatialSelection',
-      type:'surveyPoint',
-      dataSourceName:activeCircleSpatialSelection.dataSource?.name,
-    }
-    lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activeCircleSpatialSelection,surveyPointProperties,true,)
-    cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
-
-    circleSpatialSelectionDataSources.push(newDataSource);
-    viewer.value?.dataSources.add(newDataSource)
+    const circle:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicCircleState.radiusInfo.radius)
 
     const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
@@ -329,7 +350,9 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       dataSourceName:uniqueId,
       type:'circle',
       graphic:circle,
-      isActive:false
+      isActive:false,
+      radius:dynamicCircleState.radiusInfo.radius,
+      centerLngLatAltArray:center,
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
@@ -344,65 +367,6 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     spatialSelectStore.setOperationType('none');
   }
 
-  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
-    for (let i:number = 0; i < activeCircleSpatialSelection.segmentDistanceLabels.length; i++) {
-      const oldPointEntity:Cesium.Entity = activeCircleSpatialSelection.surveyPoints[i];
-      const oldLabelEntity:Cesium.Entity = activeCircleSpatialSelection.segmentDistanceLabels[i];
-      const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
-      const labelUniqueId:string = generateBizUniqueId('LabelEntity');
-
-      // --- A. 克隆 Point (创建新对象) ---
-      if (oldPointEntity) {
-        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldPointEntity, pointUniqueId,viewer);
-        const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
-
-        pointCloneConfig.properties={
-          type:'surveyPoint',
-          sourceType:'circleSpatialSelection',
-          operationType:'spatialSelection',
-          dataSourceName:uniqueId,
-          label:{
-            originalFillColor:pointOriginalFillColor,
-          }
-        }
-        // pointCloneConfig.label.show=false
-        pointCloneConfig.point.show=false
-        // pointCloneConfig.show=false
-
-        pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
-
-        dataSource.entities.add(pointCloneConfig);
-      }
-
-      // --- B. 克隆 Label (关键：固化 text) ---
-      if (oldLabelEntity) {
-        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldLabelEntity, labelUniqueId,viewer);
-        const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
-
-        labelCloneConfig.properties={
-          type:'segmentLengthLabel',
-          sourceType:'circleSpatialSelection',
-          operationType:'spatialSelection',
-          dataSourceName:uniqueId,
-          label:{
-            originalFillColor:labelOriginalFillColor,
-          }
-        }
-        // labelCloneConfig.label.show=false
-        // labelCloneConfig.show=false
-
-        labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
-        dataSource.entities.add(labelCloneConfig);
-      }
-    }
-  }
-
-  const cleanupActiveCircleSpatialSelection=()=>{
-    activeCircleSpatialSelection.surveyPoints=[]
-    activeCircleSpatialSelection.segmentDistanceLabels=[]
-    viewer.value.dataSources.remove(activeCircleSpatialSelection.dataSource);
-
-  }
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
@@ -414,20 +378,8 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     console.log("Backspace pressed - Removing last point");
 
     // 回退最后一个坐标点
-    if (dynamicCircleState.pointCount >= 2) {
-      const pointEntity: Cesium.Entity | undefined = activeCircleSpatialSelection.surveyPoints.pop()
-      const labelEntity: Cesium.Entity | undefined =
-        activeCircleSpatialSelection.segmentDistanceLabels.pop()
-      activeCircleSpatialSelection.dataSource.entities.remove(pointEntity)
-      activeCircleSpatialSelection.dataSource.entities.remove(labelEntity)
-
+    if (dynamicCircleState.pointCount === 2) {
       dynamicCircleState.lngLatAltArray.splice((dynamicCircleState.pointCount - 1) * 3, 3)
-      const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
-        dynamicCircleState.lngLatAltArray,
-      )
-      dynamicCircleState.circleHierarchy = new Cesium.CircleHierarchy(positions)
-
-      // 删除最后三个元素 (lon, lat, alt)
       dynamicCircleState.pointCount--
       updateDynamicCircle()
     }

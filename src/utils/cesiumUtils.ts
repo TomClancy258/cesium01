@@ -1,5 +1,9 @@
 import * as Cesium from 'cesium';
-import { TEMP_POINT_LABEL_STYLE,TEMP_TOTAL_LENGTH_LABEL_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
+import {
+  BOX_SELECTION_STYLE,
+  TEMP_POINT_LABEL_STYLE,
+  TEMP_TOTAL_LENGTH_LABEL_STYLE
+} from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { ShallowRef } from 'cesium'
 import {EntityProperties} from "@/views/aviation-situation/types/entity"
 
@@ -73,6 +77,14 @@ export const cloneEntityAsConfig = (
       heightReference: srcPoint.heightReference,
     };
   }
+  if (sourceEntity.ellipse) {
+    const srcEllipse:Cesium.EllipseGraphics = sourceEntity.ellipse;
+    cloneConfig.ellipse = {
+      semiMinorAxis: srcEllipse.semiMinorAxis,
+      semiMajorAxis: srcEllipse.semiMajorAxis,
+      material: srcEllipse.material,
+    };
+  }
 
   return cloneConfig;
 };
@@ -141,7 +153,7 @@ export const createEntityLabelConfig = (
     baseConfig.label.pixelOffset=TEMP_TOTAL_LENGTH_LABEL_STYLE.LABEL.PIXEL_OFFSET
   }
   // 动态/静态文本、位置单独赋值
-  if (text) {}baseConfig.label!.text = text;
+  if (text)baseConfig.label!.text = text;
   // baseConfig.label!.fillColor = Cesium.Color.RED;
   if (position) baseConfig.position = position;
 
