@@ -95,7 +95,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     // 复用抽离后的更新逻辑
     mouseFollowPointLabelManager.updateTempPointLabel(cartesian3);
 
-    const lngLatAlt:TempPointLabelPositionLngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
+    const lngLatAlt:LngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
 
     addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
     updateSegmentDistanceLabel();
@@ -151,6 +151,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         const spatialSelectionData:SpatialSelectionData={
           dataSourceName:activePolygonSpatialSelection.dataSource.name,
           type:'polygon',
+          sourceType:'polygonSpatialSelection',
           graphic:polygon,
           isActive: true
         }
@@ -182,7 +183,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       type:'tempSurveyPoint',
       dataSourceName:activePolygonSpatialSelection.dataSource.name,
     }
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonSpatialSelection,pointLabelProperties)
+    const lngLatAlt: LngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonSpatialSelection,pointLabelProperties)
 
     dynamicPolygonState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
@@ -233,7 +234,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         sourceType: 'polygonSpatialSelection',
         type: 'polygon',
         dataSourceName: dataSourceUniqueId,
-        originalPolygonMaterial:polygonConfig.polygon?.material
+        originalPolygonMaterial:polygonConfig.polygon?.material,
+        polygon:{
+          originalMaterial:polygonConfig.polygon?.material
+        },
       },
       ...polygonConfig,
     });
@@ -258,7 +262,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         sourceType: 'polygonSpatialSelection',
         type: 'polygon',
         dataSourceName: dataSourceName,
-        originalPolygonMaterial:polygonConfig.polygon?.material
+        originalPolygonMaterial:polygonConfig.polygon?.material,
+        polygon:{
+          originalMaterial:polygonConfig.polygon?.material
+        },
       } as EntityProperties,
       ...polygonConfig, // 复用通用样式，消除重复代码
     });
@@ -353,6 +360,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     const spatialSelectionData={
       dataSourceName:uniqueId,
       type:'polygon',
+      sourceType:'polygonSpatialSelection',
       graphic:polygon,
       isActive:false
     }
@@ -379,22 +387,22 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
         const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldPointEntity, pointUniqueId,viewer);
-        const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
+        // const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
 
         pointCloneConfig.properties={
           type:'surveyPoint',
           sourceType:'polygonSpatialSelection',
           operationType:'spatialSelection',
           dataSourceName:uniqueId,
-          label:{
-            originalFillColor:pointOriginalFillColor,
-          }
+          // label:{
+          //   originalFillColor:pointOriginalFillColor,
+          // }
         }
         // pointCloneConfig.label.show=false
-        pointCloneConfig.point.show=false
-        // pointCloneConfig.show=false
+        // pointCloneConfig.point.show=false
+        pointCloneConfig.show=false
 
-        pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+        // pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
         dataSource.entities.add(pointCloneConfig);
       }
@@ -414,9 +422,9 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
           }
         }
         // labelCloneConfig.label.show=false
-        // labelCloneConfig.show=false
+        labelCloneConfig.show=false
 
-        labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+        // labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
         dataSource.entities.add(labelCloneConfig);
       }
     }

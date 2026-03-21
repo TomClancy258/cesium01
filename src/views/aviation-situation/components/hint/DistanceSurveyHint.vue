@@ -6,12 +6,22 @@
  const isHintVisible = computed(() => {
    return spatialSelectStore.spatialSelectForm.operationType != 'none'
  })
+
+ const hintTitle = computed(() => {
+   const operationType = spatialSelectStore.spatialSelectForm.operationType;
+   if (operationType === 'distanceMeasurement') {
+     return '距离测绘';
+   } else if (operationType === 'spatialSelection') {
+     return '框选';
+   }
+   return '';
+ });
 </script>
 
 <template>
 <div class="cesium-hint" v-show="isHintVisible">
   <div class="hint-title">
-    <span class="icon">📏</span> 距离测绘
+    <span class="icon">📏</span> {{hintTitle}}
   </div>
   <div class="hint-content">
     <p><kbd>左键</kbd>：添加测点</p>

@@ -118,6 +118,23 @@ export const calculateSurfaceDistance = (pos1: number[], pos2: number[]): number
   // 3. 获取表面距离 (单位：米)
   const distance:number = geodesic.surfaceDistance;
 
+  // const posS = geodesic.interpolateUsingFraction(0);
+  // const posE = geodesic.interpolateUsingFraction(1);
+  // const coordS=[
+  //   Cesium.Math.toDegrees(posS.longitude),
+  //   Cesium.Math.toDegrees(posS.latitude)
+  // ]
+  // const coordE=[
+  //   Cesium.Math.toDegrees(posE.longitude),
+  //   Cesium.Math.toDegrees(posE.latitude)
+  // ]
+  //
+  // console.log("pos1", pos1);
+  // console.log("coordS", coordS);
+  // console.log('\n')
+  // console.log("pos2", pos2);
+  // console.log("coordE", coordE);
+
   return distance;
 };
 
@@ -326,7 +343,6 @@ export const createPolygonFromLngLatAltArray=(
     const idx = i * 3;
     originalCoords.push([closedRing[idx], closedRing[idx + 1]]);
   }
-  // console.log("originalCoords", originalCoords);
 
   // 3. 对每条边插值
   const interpolatedCoords: [number, number][] = [];
@@ -405,43 +421,33 @@ export const calculateCentroidLngLatAlt=(lngLatAltArray:number[]):LngLatAlt=>{
 function interpolateGeodesicEdge(
   start: [number, number],
   end: [number, number],
-  maxSegmentLength: number = 10000,
-  isLastSegment:boolean=false,
+  maxSegmentLength: number = 10000
 ): [number, number][] {
-// ✅ 补全为 [lng, lat, alt]，高度设为 0（不影响测地距离）
-  const pos1 = [...start, 0];
-  const pos2 = [...end, 0];
+  const pos1 = [start[0], start[1], 0];
+  const pos2 = [end[0], end[1], 0];
 
   const geodesic = calculateSurfaceGeodesic(pos1, pos2);
-  const distance=geodesic.surfaceDistance
+  const distance = geodesic.surfaceDistance;
+
   if (distance <= maxSegmentLength) {
-    // if (!isLastSegment) {
-    //   return [start]; // 边太短，不插值
-    // }else{
-      return [start, distance];
-    // }
+    return [start, end]; // ✅ 修复这里
   }
 
-  const numSegments = Math.floor(distance / maxSegmentLength);
-  // const numSegments = Math.ceil(distance / maxSegmentLength);
-  // const numSegments = Math.max(1, Math.ceil(distance / maxSegmentLength));
+  const numSegments = Math.ceil(distance / maxSegmentLength); // 更合理：确保每段 ≤ max
   const points: [number, number][] = [];
-  points.push(start)
-  // const post = geodesic.interpolateUsingFraction(0);
-  // const lon=Cesium.Math.toDegrees(post.longitude)
-  // const lat=Cesium.Math.toDegrees(post.latitude)
-  // console.log("lon", lon);
-  // console.log("lat", lat);
+  points.push(start);
+
+  // 只插值中间点，避免端点漂移
   for (let i = 1; i < numSegments; i++) {
     const frac = i / numSegments;
-    // const pos = geodesic.interpolateUsingSurfaceDistance(frac * distance);
     const pos = geodesic.interpolateUsingFraction(frac);
     points.push([
       Cesium.Math.toDegrees(pos.longitude),
       Cesium.Math.toDegrees(pos.latitude)
     ]);
   }
-  points.push(end)
+
+  points.push(end);
   return points;
 }
 

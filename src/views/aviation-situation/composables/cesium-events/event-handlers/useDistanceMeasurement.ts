@@ -106,7 +106,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     // 复用抽离后的更新逻辑
     mouseFollowPointLabelManager.updateTempPointLabel(cartesian3);
 
-    const lngLatAlt:TempPointLabelPositionLngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
+    const lngLatAlt:LngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
 
     addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
     updateSegmentDistanceLabel();
@@ -155,7 +155,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       type:'tempSurveyPoint',
       dataSourceName:activeDistanceSurvey.dataSource.name,
     }
-    const lngLatAlt: TempPointLabelPositionLngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activeDistanceSurvey,pointLabelProperties)
+    const lngLatAlt: LngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activeDistanceSurvey,pointLabelProperties)
 
     dynamicPolylineState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
     dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
@@ -200,7 +200,10 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         sourceType: 'distanceMeasurement',
         type: 'polyline',
         dataSourceName: dataSourceUniqueId,
-        originalPolylineMaterial:polylineConfig.polyline?.material
+        originalPolylineMaterial:polylineConfig.polyline?.material,
+        polyline:{
+          originalMaterial:polylineConfig.polyline?.material
+        },
       },
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
@@ -225,7 +228,10 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         sourceType: 'distanceMeasurement',
         type: 'polyline',
         dataSourceName: dataSourceName,
-        originalPolylineMaterial:polylineConfig.polyline?.material
+        originalPolylineMaterial:polylineConfig.polyline?.material,
+        polyline:{
+          originalMaterial:polylineConfig.polyline?.material
+        },
       } as EntityProperties,
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
@@ -316,20 +322,20 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
         const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldPointEntity, pointUniqueId,viewer);
-        const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
+        // const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
         pointCloneConfig.properties={
           type:'surveyPoint',
           sourceType:'distanceMeasurement',
           operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
-          label:{
-            originalFillColor:pointOriginalFillColor,
-          }
+          // label:{
+          //   originalFillColor:pointOriginalFillColor,
+          // }
         }
         // pointCloneConfig.label.show=false
-        pointCloneConfig.point.show=false
-        // pointCloneConfig.show=false
-        pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+        // pointCloneConfig.point.show=false
+        pointCloneConfig.show=false
+        // pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
         dataSource.entities.add(pointCloneConfig);
       }
@@ -337,20 +343,20 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
         const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldLabelEntity, labelUniqueId,viewer);
-        const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
+        // const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
 
         labelCloneConfig.properties={
           type:'segmentDistanceLabel',
           sourceType:'distanceMeasurement',
           operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
-          label:{
-            originalFillColor:labelOriginalFillColor,
-          }
+          // label:{
+          //   originalFillColor:labelOriginalFillColor,
+          // }
         }
         // labelCloneConfig.label.show=false
-        // labelCloneConfig.show=false
-        labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+        labelCloneConfig.show=false
+        // labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
         dataSource.entities.add(labelCloneConfig);
       }
@@ -359,20 +365,20 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     const lastPointEntity:Cesium.Entity=activeDistanceSurvey.surveyPoints[dynamicPolylineState.pointCount-1]
     if (lastPointEntity) {
       const lastPointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(lastPointEntity, pointUniqueId,viewer);
-      const pointOriginalFillColor=lastPointCloneConfig.properties.label.originalFillColor
+      // const pointOriginalFillColor=lastPointCloneConfig.properties.label.originalFillColor
       lastPointCloneConfig.properties={
         type:'surveyPoint',
         sourceType:'distanceMeasurement',
         operationType:'distanceMeasurement',
         dataSourceName:uniqueId,
-        label:{
-          originalFillColor:pointOriginalFillColor,
-        }
+        // label:{
+        //   originalFillColor:pointOriginalFillColor,
+        // }
       }
       // lastPointCloneConfig.label.show=false
-      lastPointCloneConfig.point.show=false
-      // lastPointCloneConfig.show=false
-      lastPointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
+      // lastPointCloneConfig.point.show=false
+      lastPointCloneConfig.show=false
+      // lastPointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
       dataSource.entities.add(lastPointCloneConfig);
     }
   }

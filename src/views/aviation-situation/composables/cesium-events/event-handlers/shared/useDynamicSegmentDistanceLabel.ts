@@ -66,8 +66,7 @@ export const useDynamicSegmentDistanceLabel = (viewer: ShallowRef<Cesium.Viewer 
   const addTempSegmentDistanceLabelToDataSource = (
     activeDistanceSurvey:DistanceSurveySession,
     properties:EntityProperties,
-    visibility:boolean=true,
-    transparency:number=1
+    visibility:boolean=false,
   ):LngLatAlt => {
     if (!activeDistanceSurvey.dataSource || !tempSegmentDistanceLabel.position.cartesian3) return;
     const { lngLatAlt }: {

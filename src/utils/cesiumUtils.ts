@@ -7,10 +7,7 @@ import {
 import { ShallowRef } from 'cesium'
 import {EntityProperties} from "@/views/aviation-situation/types/entity"
 
-interface MeasurementEntitiesResult {
-  measurementEntities: Cesium.Entity[];
-  highlightEntity: Cesium.Entity | null;
-}
+import type {MeasurementEntitiesResult} from "@/views/aviation-situation/types/shared"
 
 /**
  * 克隆 Cesium Entity 的 Label/Point 样式（通用工具函数）
@@ -91,13 +88,25 @@ export const cloneEntityAsConfig = (
 
 export const showEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    entity.show = true;
+    const props = entity.properties.getValue() as EntityProperties
+    if (props.sourceType === 'circleSpatialSelection') {
+      entity.label.show=true
+      entity.point.show=true
+    }else{
+      entity.show = true;
+    }
   }
 }
 
 export const hideEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    entity.show = false;
+    const props = entity.properties.getValue() as EntityProperties
+    if (props.sourceType === 'circleSpatialSelection') {
+      entity.label.show=false
+      entity.point.show=false
+    }else{
+      entity.show = false;
+    }
   }
 }
 

@@ -114,7 +114,7 @@ export const TEMP_POINT_LABEL_STYLE: TempPointLabelStyle = {
     OUTLINE_WIDTH: 2,
     STYLE: Cesium.LabelStyle.FILL_AND_OUTLINE,
     PIXEL_OFFSET: new Cesium.Cartesian2(0, -45),
-    HEIGHT_REFERENCE: Cesium.HeightReference.CLAMP_TO_GROUND,
+    HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
     DISABLE_DEPTH_TEST_DISTANCE: Number.POSITIVE_INFINITY
   },
   POINT: {
@@ -122,7 +122,7 @@ export const TEMP_POINT_LABEL_STYLE: TempPointLabelStyle = {
     COLOR: Cesium.Color.fromBytes(243, 242, 99),
     OUTLINE_COLOR: Cesium.Color.fromBytes(219, 218, 111),
     OUTLINE_WIDTH: 2,
-    HEIGHT_REFERENCE: Cesium.HeightReference.CLAMP_TO_GROUND
+    HEIGHT_REFERENCE: Cesium.HeightReference.NONE
   }
 } as const;
 
@@ -164,7 +164,7 @@ export const BOX_SELECTION_STYLE: SpatialSelectionStyle = {
     OUTLINE_COLOR: Cesium.Color.BLUE,
     MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
     CLAMP_TO_GROUND: true,
-    HEIGHT_REFERENCE: Cesium.HeightReference.CLAMP_TO_GROUND,
+    HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
     ARC_TYPE: Cesium.ArcType.GEODESIC
   }
 } as const;

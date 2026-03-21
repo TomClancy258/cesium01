@@ -114,16 +114,17 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 
     const entityConfig:Cesium.Entity.ConstructorOptions={
       id: uniqueId,
-      show: true,
+      // show: true,
+      show: false,
       ...styleConfig, // 复用通用样式
     }
     if (properties) {
-      properties.label={
-        originalFillColor:styleConfig.label?.fillColor
-      }
+      // properties.label={
+      //   originalFillColor:styleConfig.label?.fillColor
+      // }
       entityConfig.properties=properties
     }
-    styleConfig.label.fillColor=Cesium.Color.TRANSPARENT
+    // styleConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
     // 3. 组装实体配置并添加
     dataSource.entities.add(entityConfig);
@@ -141,7 +142,6 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 
     const perimeter:number = calculatePolygonPerimeter(lngLatAltArray);
     const area = calculateAreaFromGraphic(graphic); // 单位：平方米
-
     const center = turf.centerOfMass(graphic);
     const centerCoord = center.geometry.coordinates;
     const lngLatAlt={

@@ -1,6 +1,6 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
-import {showMeasurementEntities,hideMeasurementEntities} from "@/utils/cesiumUtils"
+import {showEntities,hideEntities} from "@/utils/cesiumUtils"
 
 interface EntityHighlightData{
   entity:Cesium.Entity|null,
@@ -65,26 +65,13 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if (!entity.properties) return
   const props = entity.properties.getValue() as EntityProperties
 
-  // 1. 恢复整体显隐状态
-  // if (props.originalShow !== undefined) {
-  //   entity.show = props.originalShow
-  // }
-
-  // 2. 恢复所有可能的子组件原始状态（按需扩展，无需频繁改代码）
-  const allPossibleComponents: EntityComponent[] = [
-    { type: 'polyline', prop: 'material', value: props.originalPolylineMaterial },
-    { type: 'label', prop: 'fillColor', value: props.originalLabelFillColor },
-    { type: 'point', prop: 'color', value: props.originalPointColor },
-    { type: 'polygon', prop: 'material', value:props.originalPolygonMaterial}
-  ]
-
-  allPossibleComponents.forEach(component => {
-    restoreComponentOriginalState(entity, component)
-  })
-
-  // if (props.type === 'polyline') {
-  //   entity.polyline.material=props.originalMaterial
-  // }
+  if(props.sourceType==='distanceMeasurement') {
+    entity.polyline.material=props.polyline.originalMaterial
+  }else if(props.sourceType==='polygonSpatialSelection') {
+    entity.polygon.material=props.polygon.originalMaterial
+  } else if(props.sourceType==='circleSpatialSelection') {
+    entity.ellipse.material=props.ellipse.originalMaterial
+  }
 }
 
 /**
@@ -92,7 +79,7 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
  */
 const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightConfig) => {
   if (!entity.properties) return
-  // const props = entity.properties.getValue() as EntityProperties
+  const props = entity.properties.getValue() as EntityProperties
 
   // 1. 设置整体显隐
   // if (config.show !== undefined) {
@@ -102,19 +89,14 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightC
   //   }
   //   entity.show = config.show
   // }
-
-  // 2. 设置子组件高亮样式（逐个处理）
-  if (config.components && config.components.length > 0) {
-    config.components.forEach(component => {
-      // 先保存原始状态（首次高亮时）
-      saveComponentOriginalState(entity, component)
-      // 设置高亮值
-      const entityComponent = (entity as Cesium.Entity)[component.type]
-      if (entityComponent) {
-        (entityComponent as any)[component.prop] = component.value
-      }
-    })
+  if(props.sourceType==='distanceMeasurement') {
+    entity.polyline.material=config.value
+  }else if(props.sourceType==='polygonSpatialSelection') {
+    entity.polygon.material=config.value
+  } else if(props.sourceType==='circleSpatialSelection') {
+    entity.ellipse.material=config.value
   }
+
 }
 
 /**
@@ -137,7 +119,7 @@ export function highlightEntityOnHover(
     // 若上一个 hover 项未被选中，才恢复默认
     if (hovered.entity !== selected.entity) {
       restoreEntityOriginalState(hovered.entity)
-      hideMeasurementEntities(hovered.measurementEntities)
+      hideEntities(hovered.measurementEntities)
     }
   }
 
@@ -145,7 +127,7 @@ export function highlightEntityOnHover(
   hovered.entity = entity
   setEntityHighlightStyle(entity, highlightConfig)
   hovered.measurementEntities=entities
-  showMeasurementEntities(hovered.measurementEntities)
+  showEntities(hovered.measurementEntities)
 }
 
 /**
@@ -159,7 +141,7 @@ export function highlightEntityAndSetSelected(
   // 恢复上一个选中的Entity
   if (selected.entity && selected.entity !== entity) {
     restoreEntityOriginalState(selected.entity)
-    hideMeasurementEntities(selected.measurementEntities)
+    hideEntities(selected.measurementEntities)
   }
 
   // 清除当前hover
@@ -173,7 +155,7 @@ export function highlightEntityAndSetSelected(
   setEntityHighlightStyle(entity, highlightConfig)
 
   selected.measurementEntities=entities
-  showMeasurementEntities(selected.measurementEntities)
+  showEntities(selected.measurementEntities)
 }
 
 /**
@@ -183,8 +165,7 @@ export function clearHoveredEntityHighlight(): void {
   if (hovered.entity && hovered.entity !== selected.entity) {
     restoreEntityOriginalState(hovered.entity)
     hovered.entity = null
-
-    hideMeasurementEntities(hovered.measurementEntities)
+    hideEntities(hovered.measurementEntities)
     hovered.measurementEntities=[]
   }
 }
@@ -197,7 +178,7 @@ export function clearSelectedEntityHighlight(): void {
     restoreEntityOriginalState(selected.entity)
     selected.entity = null
 
-    hideMeasurementEntities(selected.measurementEntities)
+    hideEntities(selected.measurementEntities)
     selected.measurementEntities=[]
   }
 }

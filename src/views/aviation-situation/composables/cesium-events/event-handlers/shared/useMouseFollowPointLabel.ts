@@ -63,7 +63,7 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
   }
 
   // 添加临时坐标标签到自定义数据源
-  const addTempPointLabelToDataSource  = (
+const addTempPointLabelToDataSource  = (
     currentDistanceSurveying,
     properties:EntityProperties
   ):LngLatAlt  => {

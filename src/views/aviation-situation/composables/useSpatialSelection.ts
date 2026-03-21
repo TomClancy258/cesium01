@@ -51,7 +51,6 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
     spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
     spatialSelection.active.graphic = spatialSelectionData.graphic
     spatialSelection.active.idSet.clear()
-
     matchedIdSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
@@ -59,13 +58,12 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       const [lng, lat] = getCoord(item.data)
       let isInGraphic = false
 
-      if (spatialSelectionData.type === 'polygon') {
+      if (spatialSelectionData.sourceType === 'polygonSpatialSelection') {
         const turfPoint = turf.point([lng, lat])
         isInGraphic = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
-      }else if (spatialSelectionData.type === 'circle') {
+      }else if (spatialSelectionData.sourceType === 'circleSpatialSelection') {
         isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],spatialSelectionData.centerLngLatAltArray,spatialSelectionData.radius)
       }
-
       if (isInGraphic) {
         spatialSelection.active.idSet.add(id)
         highlightBillboardOnSpatialSelection(
@@ -88,10 +86,10 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
       for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
         let isInGraphic = false
-        if (selectionRegion.type === 'polygon') {
+        if (selectionRegion.sourceType === 'polygonSpatialSelection') {
           const turfPoint = turf.point([lng, lat])
           isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
-        }else if (selectionRegion.type === 'circle') {
+        }else if (selectionRegion.sourceType === 'circleSpatialSelection') {
           isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],selectionRegion.centerLngLatAltArray,selectionRegion.radius)
         }
 
@@ -124,6 +122,7 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
           radius: spatialSelectionData.radius,
+          sourceType:spatialSelectionData.sourceType,
           centerLngLatAltArray: spatialSelectionData.centerLngLatAltArray,
           idSet: new Set<string>(matchedIdSet),
         }

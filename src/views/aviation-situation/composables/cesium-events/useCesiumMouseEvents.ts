@@ -8,13 +8,9 @@ import { AircraftBillboardProperties } from '@/views/aviation-situation/types/ai
 import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/interaction/aircraft"
 import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/interaction/airport"
 import {
-  handleDistanceSurveyHover,
-  handleDistanceSurveyLeftClick
-} from './event-handlers/interaction/distance-survey'
-import {
-  handlePolygonSpatialSelectionHover,
-  handlePolygonSpatialSelectionLeftClick
-} from './event-handlers/interaction/spatial-selection/polygon-spatial-selection'
+  handleSpatialSelectionHover,
+  handleSpatialSelectionLeftClick
+} from './event-handlers/interaction/spatial-selection'
 
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 const spatialSelectStore=useSpatialSelectStore()
@@ -141,11 +137,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
           const properties = entity.properties.getValue() as EntityProperties
           if(properties.operationType==='distanceMeasurement') {
-            handleDistanceSurveyLeftClick(viewer,entity,properties)
+            handleSpatialSelectionLeftClick(viewer,entity,properties)
           }else if(properties.operationType==='spatialSelection'){
-            if(properties.sourceType==='polygonSpatialSelection'){
-              handlePolygonSpatialSelectionLeftClick(viewer,entity,properties)
-            }
+            // if(properties.sourceType==='polygonSpatialSelection'){
+              handleSpatialSelectionLeftClick(viewer,entity,properties)
+            // }
           }else{
             measurementSelectionStore.clearSelected()
             clearSelectedEntityHighlight()
@@ -215,11 +211,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         }
         const properties = entity.properties.getValue() as EntityProperties
         if(properties.operationType==='distanceMeasurement') {
-            handleDistanceSurveyHover(viewer,entity,properties)
+          handleSpatialSelectionHover(viewer,entity,properties)
         }else if(properties.operationType==='spatialSelection'){
-          if(properties.sourceType==='polygonSpatialSelection') {
-            handlePolygonSpatialSelectionHover(viewer,entity,properties)
-          }
+          // if(properties.sourceType==='polygonSpatialSelection') {
+            handleSpatialSelectionHover(viewer,entity,properties)
+          // }
         }
         aviationBillboardLeave()
       } else if (pickedObject.primitive instanceof Cesium.Billboard) {

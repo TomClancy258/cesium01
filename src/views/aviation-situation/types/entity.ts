@@ -10,6 +10,15 @@ export type EntityComponent =
 export interface EntityLabelProperties {
   originalFillColor:Cesium.Color
 }
+export interface EntityEllipseProperties {
+  originalMaterial:Cesium.Material
+}
+export interface EntityPolylineProperties {
+  originalMaterial:Cesium.Material
+}
+export interface EntityPolygonProperties {
+  originalMaterial:Cesium.Material
+}
 
 // Entity属性类型（按组件分类保存原始值）
 export interface EntityProperties {
@@ -25,10 +34,13 @@ export interface EntityProperties {
   originalPolygonMaterial?: Cesium.Material | Cesium.Color;
 
   label:EntityLabelProperties
+  ellipse:EntityEllipseProperties
+  polyline:EntityPolylineProperties
+  polygon:EntityPolygonProperties
 }
 
 // 高亮配置类型（支持多组件同时高亮）
 export type EntityHighlightConfig = {
-  show?: boolean; // 整体显隐
-  components?: EntityComponent[]; // 子组件高亮配置
+  sourceType: 'distanceMeasurement|polygonSpatialSelection'|'circleSpatialSelection',
+  value: Cesium.Color
 };
