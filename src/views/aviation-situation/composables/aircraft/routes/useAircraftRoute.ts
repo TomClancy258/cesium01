@@ -9,7 +9,7 @@ import {useAviationSelectionStore} from '@/stores/aviationSelection'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   let aircraftRoutePoints: RoutePoint[] = []
-const aviationSelectionStore = useAviationSelectionStore()
+  const aviationSelectionStore = useAviationSelectionStore()
 
   const initAircraftRoute=():void=>{
     aircraftGraphic.primitives.selectedAircraft.routePolylines = new Cesium.PolylineCollection()

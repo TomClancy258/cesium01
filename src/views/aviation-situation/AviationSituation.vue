@@ -7,6 +7,7 @@ import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
 import { useAirports } from './composables/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
+import { useBuildings } from './composables/useBuildings'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
@@ -43,6 +44,10 @@ const {
   matchedAirportCount,
 } = useAirports(cesiumViewer)
 
+const {
+  initBuildings,
+} = useBuildings(cesiumViewer)
+
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
 const { initEvents: initCesiumEvents, destroyEvents } = useCesiumMouseEvents(cesiumViewer)
 
@@ -61,6 +66,8 @@ onMounted(async () => {
   // await loadAndDrawAircrafts() // 按需启用
 
   simulatedWebSocketStore.open()
+
+  // initBuildings()
 })
 
 

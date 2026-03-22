@@ -3,7 +3,6 @@ import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
-import { type TempPointLabelPositionLngLatAlt } from './shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from './useKeyboardEvents';
 import {
   calculatePolylineTotalDistance,

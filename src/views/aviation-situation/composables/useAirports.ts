@@ -194,10 +194,10 @@ export function useAirports(viewer) {
         // show: false,
         position: position,
         image: airportGreenSvgRawDataUrl,
-        // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-        //   0,
-        //   2000000
-        // ),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+          0,
+          2000000
+        ),
         width: 30,
         height: 30,
         // disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -228,10 +228,10 @@ export function useAirports(viewer) {
         verticalOrigin: Cesium.VerticalOrigin.TOP,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         pixelOffset: new Cesium.Cartesian2(0, 20),
-        // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-        //   0,
-        //   2000000
-        // ),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+          0,
+          2000000
+        ),
         outlineColor: Cesium.Color.BLACK,
         // disableDepthTestDistance: Number.POSITIVE_INFINITY,
       })
