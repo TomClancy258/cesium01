@@ -52,6 +52,9 @@ const createDynamicPolygonConfig = (
     polygon: {
       outlineWidth: BOX_SELECTION_STYLE.POLYGON.OUTLINE_WIDTH,
       outlineColor:BOX_SELECTION_STYLE.POLYGON.OUTLINE_COLOR,
+      outline: BOX_SELECTION_STYLE.POLYGON.OUTLINE,
+      height:BOX_SELECTION_STYLE.POLYGON.HEIGHT,
+
       material: BOX_SELECTION_STYLE.POLYGON.MATERIAL,
       arcType: BOX_SELECTION_STYLE.POLYGON.ARC_TYPE,
     },
@@ -69,7 +72,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
-  const polygonSpatialSelectionDataSources: Cesium.CustomDataSource[] = []
+  // const polygonSpatialSelectionDataSources: Cesium.CustomDataSource[] = []
+  const polygonSpatialSelectionDataSourceMap=new Map<string,Cesium.CustomDataSource>()
   const activePolygonSpatialSelection: PolygonSpatialSelectionSession = {
     //该距离测绘折线的全部
     dataSource: null,
@@ -109,7 +113,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       dynamicPolygonState.lngLatAltArray[lastPointIndex+2]=height
 
       const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
-      dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+      // dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+      dynamicPolygonState.polygonHierarchy.positions = positions
     }
   }
 
@@ -253,6 +258,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
     const polygonConfig:Cesium.Entity.ConstructorOptions = createDynamicPolygonConfig(positions);
+    polygonConfig.polygon.outline=false
 
     // 4. 组装实体并添加
     dataSource.entities.add({
@@ -342,7 +348,6 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,PerimeterAndAreaLabelProperties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
 
-
     const surveyPointProperties:EntityProperties={
       operationType:'spatialSelection',
       sourceType:'polygonSpatialSelection',
@@ -352,7 +357,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,surveyPointProperties,true,)
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
-    polygonSpatialSelectionDataSources.push(newDataSource);
+    // polygonSpatialSelectionDataSources.push(newDataSource);
+    polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
 
     const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget

@@ -16,11 +16,16 @@ const HOVER_COLORS: Partial<Record<string, string>> = {
   distanceMeasurement:      '#A5F3FC',
   polygonSpatialSelection:  'rgba(165, 243, 252, 0.25)',
   circleSpatialSelection:   'rgba(165, 243, 252, 0.25)',
+  hemisphereSpatialSelection:   'rgba(165, 243, 252, 0.25)',
+  // hemisphereSpatialSelection:   'rgba(135, 206, 235, 0.25)',
+
 }
 const CLICK_COLORS: Partial<Record<string, string>> = {
   distanceMeasurement:      '#06B6D4',
   polygonSpatialSelection:  'rgba(6, 182, 212, 0.25)',
   circleSpatialSelection:   'rgba(6, 182, 212, 0.25)',
+  hemisphereSpatialSelection:   'rgba(165, 243, 252, 0.25)',
+  // hemisphereSpatialSelection:   'rgba(135, 206, 235, 0.25)',
 }
 
 // ---- 公共：解析实体结果 ----
@@ -36,7 +41,7 @@ function resolveSelectionResult(
   if (sourceType === 'polygonSpatialSelection') {
     return getMeasurementEntitiesAndHighlightEntity(viewer, properties, 1)
   }
-  if (sourceType === 'circleSpatialSelection') {
+  if (sourceType === 'circleSpatialSelection'||sourceType === 'hemisphereSpatialSelection') {
     return { highlightEntity: entity, measurementEntities: [entity] }
   }
   return undefined
@@ -57,11 +62,9 @@ export const handleSpatialSelectionHover = (
   properties: EntityProperties,
 ): void => {
   if (isDrawing(properties.dataSourceName)) return
-
   const result = resolveSelectionResult(viewer, entity, properties)
   const color = HOVER_COLORS[properties.sourceType]
   if (!result || !color) return
-
   highlightEntityOnHover(
     result.highlightEntity,
     { sourceType: properties.sourceType, value: Cesium.Color.fromCssColorString(color) },

@@ -33,46 +33,6 @@ export function updateTooltip<T>(
 }
 
 /**
- * 让相机飞行到指定笛卡尔坐标位置，并将该位置的海拔抬高指定高度
- * @param viewer Cesium 视图实例
- * @param targetPosition 目标位置的笛卡尔坐标 (Cartesian3)
- * @param heightOffset 海拔偏移量（单位：米，正数升高，负数降低）
- * @param flyDuration 飞行时长（单位：秒，默认1.5秒）
- * @returns {void}
- */
-export function flyToPositionWithHeightOffset(
-  viewer: Cesium.Viewer,
-  targetPosition: Cesium.Cartesian3,
-  heightOffset: number,
-  flyDuration: number = 1.5
-): void {
-  // 校验必要参数，避免运行时错误
-  if (!viewer || !targetPosition) {
-    console.warn('flyToPositionWithHeightOffset: 缺少必要的 viewer 或 targetPosition 参数');
-    return;
-  }
-
-  try {
-    // 将笛卡尔坐标转换为地理坐标（弧度+海拔）
-    const cartographic: Cesium.Cartographic = Cesium.Cartographic.fromCartesian(targetPosition);
-
-    // 调整海拔高度
-    cartographic.height += heightOffset;
-
-    // 将调整后的地理坐标转回笛卡尔坐标
-    const destination: Cesium.Cartesian3 = Cesium.Cartographic.toCartesian(cartographic);
-
-    // 让相机飞行到目标位置
-    viewer.camera.flyTo({
-      destination: destination,
-      duration: flyDuration,
-    });
-  } catch (error) {
-    console.error('flyToPositionWithHeightOffset 执行出错:', error);
-  }
-}
-
-/**
  * 获取Cesium相机的海拔高度（米）
  * @param camera - 相机实例（从viewer.camera获取）
  * @returns 海拔高度（米）
@@ -109,6 +69,22 @@ export const calculateDistance = (pos1: number[], pos2: number[]): number => {
   const cartesian1 = Cesium.Cartesian3.fromDegrees(pos1[0], pos1[1], pos1[2] || 0)
   const cartesian2 = Cesium.Cartesian3.fromDegrees(pos2[0], pos2[1], pos2[2] || 0)
   return Cesium.Cartesian3.distance(cartesian1, cartesian2)
+}
+
+// 判断飞机/机场是否在半球内
+export const isInsideHemisphere = (
+  targetLngLatAlt: number[],   // 目标点 [lng, lat, alt]
+  centerLngLatAlt: number[],   // 球心 [lng, lat, alt]
+  radius: number,              // 绘制时用 calculateSurfaceDistance 得到的半径
+): boolean => {
+  // ✅ 用三维直线距离判断是否在球体内
+  const distance = calculateDistance(targetLngLatAlt, centerLngLatAlt)
+  if (distance > radius) return false
+
+  // ✅ 半球：只保留球心以上的部分（高度 >= 球心高度）
+  const targetAlt = targetLngLatAlt[2] ?? 0
+  const centerAlt = centerLngLatAlt[2] ?? 0
+  return targetAlt >= centerAlt
 }
 
 //获取沿地球椭球体表面的真实地理距离
@@ -451,7 +427,7 @@ function interpolateGeodesicEdge(
   return points;
 }
 
-export const booleanLngLatAltArrayInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
+export const isInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
   const distance=calculateSurfaceDistance(lngLatAltArray,center)
   return distance <= radius;
 }

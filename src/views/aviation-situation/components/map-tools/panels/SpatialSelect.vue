@@ -23,15 +23,19 @@ const spatialSelectionSubtypes = [
   },
   {
     value: 'polygon',
-    label: '多边形',
+    label: '多边形空域筛选',
   },
   {
     value: 'circle',
-    label: '圆形',
+    label: '圆形空域筛选',
   },
   {
     value: 'rectangle',
-    label: '矩形',
+    label: '矩形空域筛选',
+  },
+  {
+    value: 'hemisphere',
+    label: '半球空域筛选',
   },
 ]
 const spatialSelectionTargets = [

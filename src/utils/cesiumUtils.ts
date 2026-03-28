@@ -58,7 +58,6 @@ export const cloneEntityAsConfig = (
       style: srcLabel.style,
       pixelOffset: srcLabel.pixelOffset,
       heightReference: srcLabel.heightReference,
-      // ✅ 关键映射：从源对象读取值，赋值给小驼峰属性名
       disableDepthTestDistance: srcLabel.disableDepthTestDistance,
     };
   }
@@ -80,6 +79,23 @@ export const cloneEntityAsConfig = (
       semiMinorAxis: srcEllipse.semiMinorAxis,
       semiMajorAxis: srcEllipse.semiMajorAxis,
       material: srcEllipse.material,
+      outline: srcEllipse.outline,
+      outlineWidth: srcEllipse.outlineWidth,
+      outlineColor: srcEllipse.outlineColor,
+      height: srcEllipse.height,
+      heightReference: srcEllipse.heightReference,
+    };
+  }
+  if (sourceEntity.ellipsoid) {
+    const srcEllipsoid:Cesium.EllipsoidGraphics = sourceEntity.ellipsoid;
+    cloneConfig.ellipsoid = {
+      material: srcEllipsoid.material,
+      outline: srcEllipsoid.outline,
+      outlineWidth: srcEllipsoid.outlineWidth,
+      outlineColor: srcEllipsoid.outlineColor,
+      minimumCone: srcEllipsoid.minimumCone,
+      maximumCone: srcEllipsoid.maximumCone,
+      heightReference: srcEllipsoid.heightReference,
     };
   }
 
@@ -89,7 +105,7 @@ export const cloneEntityAsConfig = (
 export const showEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     const props = entity.properties.getValue() as EntityProperties
-    if (props.sourceType === 'circleSpatialSelection') {
+    if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=true
       entity.point.show=true
     }else{
@@ -101,7 +117,7 @@ export const showEntities=(entities:Cesium.Entity[])=>{
 export const hideEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     const props = entity.properties.getValue() as EntityProperties
-    if (props.sourceType === 'circleSpatialSelection') {
+    if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=false
       entity.point.show=false
     }else{
@@ -223,13 +239,13 @@ export const getMeasurementEntitiesAndHighlightEntity = (
 
   const dataSourceName: string = properties.dataSourceName
   const dataSources: Cesium.CustomDataSource[] = viewer.value.dataSources.getByName(dataSourceName)
-
   if (dataSources.length === 0) {
     return
   }
 
   const dataSource: Cesium.CustomDataSource = dataSources[0]
   const values: Cesium.Entity[] = dataSource.entities.values
+
   // 从第i+1个实体开始遍历（索引i），显示测量相关元素
   for (let i: number = startIndex; i < values.length; i++) {
     // 存储显示的实体（调整索引从0开始）

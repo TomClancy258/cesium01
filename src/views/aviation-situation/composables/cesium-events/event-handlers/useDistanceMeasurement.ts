@@ -79,7 +79,8 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
-  const distanceMeasurementDataSources: Cesium.CustomDataSource[] = []
+  // const distanceMeasurementDataSources: Cesium.CustomDataSource[] = []
+  const distanceMeasurementDataSourceMap=new Map<string,Cesium.CustomDataSource>()
   const activeDistanceSurvey: DistanceSurveySession = {
     //该距离测绘折线的全部
     dataSource: null,
@@ -306,7 +307,8 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
-    distanceMeasurementDataSources.push(newDataSource);
+    // distanceMeasurementDataSources.push(newDataSource);
+    distanceMeasurementDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
     spatialSelectStore.setOperationType('none');
   }

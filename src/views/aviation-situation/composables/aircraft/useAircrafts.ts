@@ -30,7 +30,7 @@ import { useDebounceFn } from '@vueuse/core'
 import type {
   AviationSelectedData,
   SpatialSelectionData,
-AviationRenderItem, SpatialSelection,SelectionRegion
+  AviationRenderItem, SpatialSelection,SelectionRegion
 } from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
 import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
@@ -66,7 +66,6 @@ export function useAircrafts(viewer) {
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
   const aircraftStore = useAircraftStore()
 
-  let aircrafts: Aircraft[] = []
   const matchedIcao24Set = new Set<string>()
 
   const matchedAircraftCount = ref<number>(0)
@@ -197,8 +196,7 @@ export function useAircrafts(viewer) {
       const res: AircraftStatesResponse = await getAircrafts()
       clearAircrafts()
       if (Array.isArray(res) && res.length > 0) {
-        aircrafts = res
-        drawAircrafts()
+        drawAircrafts(res)
       } else {
         console.warn('飞机数据为空或格式错误:', res)
       }
@@ -212,9 +210,8 @@ export function useAircrafts(viewer) {
     try {
       const data: AircraftStatesResponse = await getAircrafts()
       if (Array.isArray(data) && data.length > 0) {
-        if (aircrafts.length === 0) {
-          aircrafts = data
-          drawAircrafts()
+        if (aircraftRenderMap.size === 0) {
+          drawAircrafts(data)
         } else {
           const offset: number = newIndex * 0.02
           // const offset: number = newIndex * 0.1
@@ -222,7 +219,6 @@ export function useAircrafts(viewer) {
             aircraft.longitude += offset
             aircraft.latitude += offset
           }
-          aircrafts = data
           refreshAircraftsInScene(data)
         }
         filterAircrafts()
@@ -266,7 +262,6 @@ export function useAircrafts(viewer) {
       }
     }
 
-    aircrafts = newAircrafts
   }
 
   const drawAircraft = (aircraft: Aircraft): void => {
@@ -289,6 +284,10 @@ export function useAircrafts(viewer) {
       width: 30,
       height: 30,
       // color: new Cesium.Color(1, 1, 1, 0)
+      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+      //   0,
+      //   5000000
+      // ),
     })
 
     billboard.properties = {
@@ -320,6 +319,10 @@ export function useAircrafts(viewer) {
       pixelOffset: new Cesium.Cartesian2(0, 20),
       outlineColor: Cesium.Color.BLACK,
       // color: new Cesium.Color(1, 1, 1, 0)
+      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+      //   0,
+      //   AIRCRAFT_LABEL_SHOW_DISTANCE
+      // ),
     })
 
     label.properties = {
@@ -340,8 +343,8 @@ export function useAircrafts(viewer) {
     aircraftRenderMap.set(icao24, { data: aircraft, billboard, label })
   }
 
-  const drawAircrafts = (): void => {
-    aircrafts.forEach((aircraft) => drawAircraft(aircraft))
+  const drawAircrafts = (data: Aircraft[]): void => {
+    data.forEach((aircraft) => drawAircraft(aircraft))
   }
 
   const clearSelectedAircraftRouteAndTrajectory=()=>{

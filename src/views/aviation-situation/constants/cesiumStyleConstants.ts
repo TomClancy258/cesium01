@@ -42,6 +42,8 @@ export type CesiumPolylineStyle = {
 export type CesiumPolygonStyle = {
   OUTLINE_WIDTH: number;
   OUTLINE_COLOR: Cesium.Color;
+  OUTLINE:boolean,
+  HEIGHT:number,
   MATERIAL: Cesium.Color;
   CLAMP_TO_GROUND: boolean;
   ARC_TYPE: Cesium.ArcType;
@@ -54,9 +56,21 @@ export type CesiumEllipseStyle = {
   OUTLINE_WIDTH: number;
   OUTLINE_COLOR: Cesium.Color;
   MATERIAL: Cesium.Color;
-  CLAMP_TO_GROUND: boolean;
   HEIGHT_REFERENCE: Cesium.HeightReference;
-  ARC_TYPE: Cesium.ArcType;
+  OUTLINE:boolean,
+  HEIGHT:number
+};
+
+export type CesiumEllipsoidStyle = {
+  OUTLINE_WIDTH: number;
+  OUTLINE_COLOR: Cesium.Color;
+  MATERIAL: Cesium.Color;
+  HEIGHT_REFERENCE: Cesium.HeightReference;
+  OUTLINE:boolean,
+
+  RADII: Cesium.Cartesian3,
+  MINIMUM_CONE:number,
+  MAXIMUM_CONE: number,
 };
 
 /**
@@ -93,6 +107,7 @@ export type SpatialSelectionStyle = {
   POLYGON: CesiumPolygonStyle;    // 多边形框选
   RECTANGLE: CesiumRectangleStyle;// 矩形框选
   ELLIPSE: CesiumEllipseStyle;    // 圆形框选
+  ELLIPSOID: CesiumEllipsoidStyle;    // 圆形框选
 };
 
 /**
@@ -146,9 +161,11 @@ export const BOX_SELECTION_STYLE: SpatialSelectionStyle = {
   POLYGON: {
     OUTLINE_WIDTH: 2,
     OUTLINE_COLOR: Cesium.Color.BLUE,
+    HEIGHT:0,
+    OUTLINE: true,
     MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
     CLAMP_TO_GROUND: true,
-    ARC_TYPE: Cesium.ArcType.GEODESIC
+    ARC_TYPE: Cesium.ArcType.GEODESIC,
   },
   // 矩形框选样式
   RECTANGLE: {
@@ -163,9 +180,21 @@ export const BOX_SELECTION_STYLE: SpatialSelectionStyle = {
     OUTLINE_WIDTH: 2,
     OUTLINE_COLOR: Cesium.Color.BLUE,
     MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
-    CLAMP_TO_GROUND: true,
+    HEIGHT:0,
     HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
-    ARC_TYPE: Cesium.ArcType.GEODESIC
+    OUTLINE: true,
+  },
+  // 球体框选样式
+  ELLIPSOID: {
+    OUTLINE: true,
+    OUTLINE_WIDTH: 1,
+    // OUTLINE_COLOR: Cesium.Color.BLUE,
+    OUTLINE_COLOR: Cesium.Color.BLUE.withAlpha(.5),
+    MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
+    HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
+    MINIMUM_CONE: Cesium.Math.toRadians(0),
+    MAXIMUM_CONE: Cesium.Math.toRadians(90),
+
   }
 } as const;
 

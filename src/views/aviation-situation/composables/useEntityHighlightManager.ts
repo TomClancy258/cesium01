@@ -18,47 +18,6 @@ const selected:EntityHighlightData={
 }
 
 /**
- * 工具方法：生成原始属性的键名（如 polyline+material → originalPolylineMaterial）
- */
-const getOriginalPropKey = (component: EntityComponent): string => {
-  return `original${component.type.charAt(0).toUpperCase() + component.type.slice(1)}${component.prop.charAt(0).toUpperCase() + component.prop.slice(1)}`
-}
-
-/**
- * 通用工具：保存单个组件的原始状态
- */
-const saveComponentOriginalState = (entity: Cesium.Entity, component: EntityComponent) => {
-  if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
-  const originalKey = getOriginalPropKey(component)
-
-  // 仅首次保存原始值（避免覆盖）
-  if (props[originalKey as keyof EntityProperties] === undefined) {
-    const entityComponent = (entity as any)[component.type] // 取Entity的子组件（如entity.polyline）
-    if (entityComponent) {
-      props[originalKey as keyof EntityProperties] = (entityComponent as any)[component.prop]
-    }
-  }
-}
-
-/**
- * 通用工具：恢复单个组件的原始状态
- */
-const restoreComponentOriginalState = (entity: Cesium.Entity, component: EntityComponent) => {
-  if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
-  const originalKey = getOriginalPropKey(component)
-  const originalValue = props[originalKey as keyof EntityProperties]
-
-  if (originalValue !== undefined) {
-    const entityComponent = (entity as any)[component.type]
-    if (entityComponent) {
-      (entityComponent as any)[component.prop] = originalValue
-    }
-  }
-}
-
-/**
  * 核心工具：恢复Entity所有子组件的原始状态 + 整体显隐
  */
 const restoreEntityOriginalState = (entity: Cesium.Entity) => {
@@ -69,8 +28,14 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
     entity.polyline.material=props.polyline.originalMaterial
   }else if(props.sourceType==='polygonSpatialSelection') {
     entity.polygon.material=props.polygon.originalMaterial
+    // entity.polygon.outline=props.polygon.originalOutline
+    entity.polygon.outline=false
   } else if(props.sourceType==='circleSpatialSelection') {
     entity.ellipse.material=props.ellipse.originalMaterial
+    entity.ellipse.outline=false
+  } else if(props.sourceType==='hemisphereSpatialSelection') {
+    // entity.ellipsoid.material=props.ellipsoid.originalMaterial
+    entity.ellipsoid.outline=false
   }
 }
 
@@ -93,8 +58,13 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightC
     entity.polyline.material=config.value
   }else if(props.sourceType==='polygonSpatialSelection') {
     entity.polygon.material=config.value
+    entity.polygon.outline=true
   } else if(props.sourceType==='circleSpatialSelection') {
     entity.ellipse.material=config.value
+    entity.ellipse.outline=true
+  }else if(props.sourceType==='hemisphereSpatialSelection') {
+    // entity.ellipsoid.material=config.value
+    entity.ellipsoid.outline=true
   }
 
 }

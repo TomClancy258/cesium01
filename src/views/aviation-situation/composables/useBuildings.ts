@@ -4,7 +4,7 @@ import * as Cesium from 'cesium'
 export function useBuildings(viewer) {
   const initBuildings =  () => {
     addBuildingA()
-    addBuildingB()
+    // addBuildingB()
   }
   const addBuildingA = async () => {
     // 方法1：使用 Cesium3DTileset（推荐）
@@ -14,7 +14,7 @@ export function useBuildings(viewer) {
     viewer.value.scene.primitives.add(tileset);
 
 // 自动飞到模型位置
-//     viewer.value.zoomTo(tileset);
+    viewer.value.zoomTo(tileset);
   }
   const addBuildingB = async () => {
     // 方法1：使用 Cesium3DTileset（推荐）

@@ -9,7 +9,7 @@ import {
 } from './useBillboardHighlightManager'
 import { onCesiumEvent } from './mittBus'
 import { onUnmounted } from 'vue'
-import { booleanLngLatAltArrayInCircle } from '@/utils/geoUtils'
+import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
 
 interface UseSpatialSelectionOptions<T> {
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
@@ -62,7 +62,9 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         const turfPoint = turf.point([lng, lat])
         isInGraphic = turf.booleanPointInPolygon(turfPoint, spatialSelectionData.graphic)
       }else if (spatialSelectionData.sourceType === 'circleSpatialSelection') {
-        isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],spatialSelectionData.centerLngLatAltArray,spatialSelectionData.radius)
+        isInGraphic = isInCircle([lng, lat],spatialSelectionData.centerLngLatAltArray,spatialSelectionData.radius)
+      }else if (spatialSelectionData.sourceType === 'hemisphereSpatialSelection') {
+        isInGraphic = isInsideHemisphere([lng, lat],spatialSelectionData.centerLngLatAltArray,spatialSelectionData.radius)
       }
       if (isInGraphic) {
         spatialSelection.active.idSet.add(id)
@@ -90,7 +92,9 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
           const turfPoint = turf.point([lng, lat])
           isInGraphic = turf.booleanPointInPolygon(turfPoint, selectionRegion.graphic)
         }else if (selectionRegion.sourceType === 'circleSpatialSelection') {
-          isInGraphic = booleanLngLatAltArrayInCircle([lng, lat],selectionRegion.centerLngLatAltArray,selectionRegion.radius)
+          isInGraphic = isInCircle([lng, lat],selectionRegion.centerLngLatAltArray,selectionRegion.radius)
+        }else if (selectionRegion.sourceType === 'hemisphereSpatialSelection') {
+          isInGraphic = isInsideHemisphere([lng, lat],selectionRegion.centerLngLatAltArray,selectionRegion.radius)
         }
 
         if (isInGraphic) {

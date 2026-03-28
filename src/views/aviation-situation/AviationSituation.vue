@@ -1,4 +1,5 @@
 <script setup lang="ts">
+//src/views/aviation-situation/AviationSituation.vue
 import { onMounted, provide, ref, onUnmounted } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'

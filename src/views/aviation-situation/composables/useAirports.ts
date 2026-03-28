@@ -46,7 +46,6 @@ export function useAirports(viewer) {
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
 
-  let airports: Airport[] = []
   const matchedIcaoSet = new Set<string>()
 
   const matchedAirportCount = ref<number>(0)
@@ -159,10 +158,9 @@ export function useAirports(viewer) {
     try {
       const data: Airport[] = await getAirports()
       if (Array.isArray(data) && data.length > 0) {
-        // airports = data.slice(0, 15000) // 限制数量
-        airports = data.slice(0, 20000) // 限制数量
-        // airports = data
-        drawAirports()
+        // drawAirports(data.slice(0, 15000))
+        drawAirports(data.slice(0, 20000))
+        // drawAirports(data)
         filterAirports()
       } else {
         console.warn('机场数据为空或格式错误:', data)
@@ -174,7 +172,7 @@ export function useAirports(viewer) {
     }
   }
 
-  const drawAirports = () => {
+  const drawAirports = (airports: Airport[]) => {
     for (const airport of airports) {
       const longitude: number = airport.longitude
       const latitude: number = airport.latitude

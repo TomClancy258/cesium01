@@ -26,7 +26,7 @@ import {
 } from "./event-handlers/spatial-selection/usePolygonSpatialSelection.ts"
 import {
   useCircleSpatialSelection,
-} from "./event-handlers/spatial-selection/circle/useCircleSpatialSelection.ts"
+} from "./event-handlers/spatial-selection/useCircleSpatialSelection.ts"
 
 import { ShallowRef } from 'cesium'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
@@ -55,6 +55,9 @@ import { onUnmounted, watch } from 'vue'
 
 import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import {
+  useHemisphereSpatialSelection
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useHemisphereSpatialSelection'
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
@@ -89,6 +92,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     subscribeCircleSpatialSelectionEvents,
   }=useCircleSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
+  const {
+    hemisphereSpatialSelection,
+    confirmSurveyPoint:confirmHemisphereSpatialSelectionSurveyPoint,
+    setupSpatialSelectFormWatch:setupHemisphereSpatialSelectionSpatialFormWatch,
+    finishHemisphereSpatialSelection,
+    subscribeHemisphereSpatialSelectionEvents,
+  }=useHemisphereSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
+
   const initEvents = () => {
     if (!viewer?.value) return
     mouseFollowPointLabelManager.addTempPointLabelToViewer()
@@ -97,6 +108,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
 
     subscribePolygonSpatialSelectionEvents()
+    subscribeCircleSpatialSelectionEvents()
+    subscribeHemisphereSpatialSelectionEvents()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -107,66 +120,95 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // console.log("MOUSE_MOVE");
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
         distanceMeasurement(movement.endPosition)
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
-        polygonSpatialSelection(movement.endPosition)
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
-        circleSpatialSelection(movement.endPosition)
+      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
+        if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+          polygonSpatialSelection(movement.endPosition)
+        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+          circleSpatialSelection(movement.endPosition)
+        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='hemisphere'){
+          hemisphereSpatialSelection(movement.endPosition)
+        }
       }
       mouseMove(movement)
     }, Cesium.ScreenSpaceEventType.MOUSE_MOVE)
 
     // 左键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
-      const pickedObject = viewer.value.scene.pick(click.position)
-      if (Cesium.defined(pickedObject) && pickedObject.id) {
-        if(pickedObject.id instanceof Cesium.Entity){
-          if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
-            confirmDistanceSurveySurveyPoint()
-          }
-          if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
-            if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
-              confirmPolygonSpatialSelectionSurveyPoint()
-            }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
-              confirmCircleSpatialSelectionSurveyPoint()
-            }
-          }
-          const entity: Cesium.Entity = pickedObject.id
-          if (!entity.properties) {
-            return
-          }
-
-          const properties = entity.properties.getValue() as EntityProperties
-          if(properties.operationType==='distanceMeasurement') {
-            handleSpatialSelectionLeftClick(viewer,entity,properties)
-          }else if(properties.operationType==='spatialSelection'){
-            // if(properties.sourceType==='polygonSpatialSelection'){
-              handleSpatialSelectionLeftClick(viewer,entity,properties)
-            // }
-          }else{
-            measurementSelectionStore.clearSelected()
-            clearSelectedEntityHighlight()
-          }
-
-        }else if (pickedObject.primitive instanceof Cesium.Billboard) {
-          const properties = pickedObject.primitive.properties as MapBillboardLabelProperties
-          if (properties.type !== 'billboard') return
-          if (properties.sourceType === 'aircraft') {
-            handleAircraftLeftClick(properties, pickedObject)
-          } else if (properties.sourceType === 'airport') {
-            handleAirportLeftClick(properties, pickedObject)
-          }else{
-            aviationSelectionStore.clearSelected()
-            aviationSelectionStore.clearLastSelectedIcao24()
-          }
+      // ✅ 测绘模式下，优先处理点位确认，不需要 pick 任何对象
+      if (spatialSelectStore.spatialSelectForm.operationType === 'distanceMeasurement') {
+        confirmDistanceSurveySurveyPoint()
+        return  // ✅ 直接 return，不走后续 pick 逻辑
+      }
+      if (spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection') {
+        if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'polygon') {
+          confirmPolygonSpatialSelectionSurveyPoint()
+          return
+        } else if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'circle') {
+          confirmCircleSpatialSelectionSurveyPoint()
+          return
+        } else if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'hemisphere') {
+          confirmHemisphereSpatialSelectionSurveyPoint()
+          return
         }
-      }else{
+      }
+
+      // ✅ 非测绘模式，用 drillPick 处理交互
+      const pickedObjects = viewer.value.scene.drillPick(click.position, 5)
+
+      if (pickedObjects.length === 0) {
         aviationSelectionStore.clearSelected()
         aviationSelectionStore.clearLastSelectedIcao24()
-
         measurementSelectionStore.clearSelected()
         clearSelectedEntityHighlight()
+        return
       }
+
+      // ✅ 优先处理 Billboard（飞机/机场）
+      const billboardPicked = pickedObjects.find(
+        obj => obj.primitive instanceof Cesium.Billboard
+      )
+      if (billboardPicked) {
+        const properties = billboardPicked.primitive.properties as MapBillboardLabelProperties
+        if (properties.type !== 'billboard') return
+        if (properties.sourceType === 'aircraft') {
+          handleAircraftLeftClick(properties, billboardPicked)
+        } else if (properties.sourceType === 'airport') {
+          handleAirportLeftClick(properties, billboardPicked)
+        } else {
+          aviationSelectionStore.clearSelected()
+          aviationSelectionStore.clearLastSelectedIcao24()
+        }
+        return
+      }
+
+      // ✅ 没有 Billboard，处理 Entity（半球/多边形等）
+      const entityPicked = pickedObjects.find(
+        obj => obj.id instanceof Cesium.Entity
+      )
+      if (entityPicked) {
+        const entity: Cesium.Entity = entityPicked.id
+        if (!entity.properties) return
+
+        const properties = entity.properties.getValue() as EntityProperties
+        if (properties.operationType === 'distanceMeasurement') {
+          handleSpatialSelectionLeftClick(viewer, entity, properties)
+        } else if (properties.operationType === 'spatialSelection') {
+          handleSpatialSelectionLeftClick(viewer, entity, properties)
+        } else {
+          measurementSelectionStore.clearSelected()
+          clearSelectedEntityHighlight()
+        }
+        return
+      }
+
+      // ✅ drillPick 有结果但都不是我们关心的类型
+      aviationSelectionStore.clearSelected()
+      aviationSelectionStore.clearLastSelectedIcao24()
+      measurementSelectionStore.clearSelected()
+      clearSelectedEntityHighlight()
+
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
+
     // 右键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
@@ -176,6 +218,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           finishPolygonSpatialSelection()
         }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
           finishCircleSpatialSelection()
+        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='hemisphere'){
+          finishHemisphereSpatialSelection()
         }
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
@@ -193,6 +237,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     setupDistanceSurveySpatialFormWatch()
     setupPolygonSpatialSelectionSpatialFormWatch()
     setupCircleSpatialSelectionSpatialFormWatch()
+    setupHemisphereSpatialSelectionSpatialFormWatch()
   }
 
   // 鼠标滚轮（节流）
@@ -201,44 +246,57 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   }, 500)
 
   // 鼠标移动（节流）
-  const mouseMove = useThrottleFn((movement:Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
-    const pickedObject:Cesium.PickedObject | undefined = viewer.value.scene.pick(movement.endPosition);
-    if (Cesium.defined(pickedObject) && pickedObject.id) {
-      if (pickedObject.id instanceof Cesium.Entity) {
-        const entity: Cesium.Entity = pickedObject.id
-        if (!entity.properties) {
-          return
-        }
-        const properties = entity.properties.getValue() as EntityProperties
-        if(properties.operationType==='distanceMeasurement') {
-          handleSpatialSelectionHover(viewer,entity,properties)
-        }else if(properties.operationType==='spatialSelection'){
-          // if(properties.sourceType==='polygonSpatialSelection') {
-            handleSpatialSelectionHover(viewer,entity,properties)
-          // }
-        }
-        aviationBillboardLeave()
-      } else if (pickedObject.primitive instanceof Cesium.Billboard) {
-        const properties: MapBillboardLabelProperties = pickedObject.primitive.properties
-        const position:Cesium.Cartesian3 = pickedObject.primitive.position
-        const screenPosition: Cesium.Cartesian2 =
-          Cesium.SceneTransforms.worldToWindowCoordinates(
-            viewer.value.scene,
-            position
-          )
-        if (properties.type !== 'billboard') return;
-        if(properties.sourceType === 'aircraft'){
-          handleAircraftHover(properties as AircraftBillboardProperties,screenPosition,pickedObject)
-        } else if (properties.sourceType === 'airport') {
-          handleAirportHover(properties as AirportBillboardProperties,screenPosition,pickedObject)
-        }
-      }
-    }else {
-      // clearHoveredHighlight()
-      aviationBillboardLeave()
+  const mouseMove = useThrottleFn((movement: Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
+    // const pickedObjects = viewer.value.scene.drillPick(movement.endPosition)
+    const pickedObjects = viewer.value.scene.drillPick(movement.endPosition, 5)
 
+    if (pickedObjects.length === 0) {
+      aviationBillboardLeave()
       clearHoveredEntityHighlight()
+      return
     }
+
+    // ✅ 优先找 Billboard（飞机/机场图标）
+    const billboardPicked = pickedObjects.find(
+      obj => obj.primitive instanceof Cesium.Billboard
+    )
+    if (billboardPicked) {
+      const properties: MapBillboardLabelProperties = billboardPicked.primitive.properties
+      const position: Cesium.Cartesian3 = billboardPicked.primitive.position
+      const screenPosition: Cesium.Cartesian2 =
+        Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
+
+      if (properties.type !== 'billboard') return
+      if (properties.sourceType === 'aircraft') {
+        handleAircraftHover(properties as AircraftBillboardProperties, screenPosition, billboardPicked)
+      } else if (properties.sourceType === 'airport') {
+        handleAirportHover(properties as AirportBillboardProperties, screenPosition, billboardPicked)
+      }
+      clearHoveredEntityHighlight() // 有 billboard hover 时清除 entity 高亮
+      return
+    }
+
+    // ✅ 没有 Billboard，再处理 Entity（半球/多边形等）
+    const entityPicked = pickedObjects.find(
+      obj => obj.id instanceof Cesium.Entity
+    )
+    if (entityPicked) {
+      aviationBillboardLeave()
+      const entity: Cesium.Entity = entityPicked.id
+      if (!entity.properties) return
+
+      const properties = entity.properties.getValue() as EntityProperties
+      if (properties.operationType === 'distanceMeasurement') {
+        handleSpatialSelectionHover(viewer, entity, properties)
+      } else if (properties.operationType === 'spatialSelection') {
+        handleSpatialSelectionHover(viewer, entity, properties)
+      }
+      return
+    }
+
+    // ✅ 什么都没拾取到
+    aviationBillboardLeave()
+    clearHoveredEntityHighlight()
   }, 100)
 
   const aviationBillboardLeave=()=>{
@@ -278,7 +336,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           totalDistanceLabelManager.setTempTotalDistanceLabelVisibility(false)
         }
 
-        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype!='none'&&newForm.spatialSelectionSubtype!='circle') {
+        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype==='polygon') {
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(true)
         }else{
           perimeterAndAreaLabel.setTempPerimeterAndAreaLabelVisibility(false)
