@@ -72,6 +72,7 @@ const spatialSelectionTargetChange = (): void => {}
       :model="spatialSelectStore.spatialSelectForm"
       ref="spatialSelectFormRef"
       label-width="85px"
+      :inline="true"
     >
       <el-form-item label="操作类型" prop="operationType">
         <el-select
@@ -86,7 +87,7 @@ const spatialSelectionTargetChange = (): void => {}
           />
         </el-select>
       </el-form-item>
-      <div v-show="spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection'">
+      <span v-show="spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection'">
         <el-form-item label="框选子类型" prop="spatialSelectionSubtype">
           <el-select
             v-model="spatialSelectStore.spatialSelectForm.spatialSelectionSubtype"
@@ -113,7 +114,7 @@ const spatialSelectionTargetChange = (): void => {}
             />
           </el-select>
         </el-form-item>
-      </div>
+      </span>
 
       <!--      <el-form-item>-->
       <!--        <el-button type="primary" @click="onAirportSubmit">确认</el-button>-->
@@ -123,4 +124,8 @@ const spatialSelectionTargetChange = (): void => {}
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+:deep(.el-select) {
+  width: 145px;
+}
+</style>

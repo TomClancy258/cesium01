@@ -17,6 +17,13 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     spatialSelectionTarget: 'measurement',
   })
 
+  const spatialSelection=reactive({
+    active:{
+      aircraftNum:0,
+      airportNum:0
+    }
+  })
+
   // 仅提供数据重置方法（纯数据操作）
   const resetAirportFilterForm = () => {
     spatialSelectForm.operationType = 'none'
@@ -36,10 +43,21 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     spatialSelectForm.spatialSelectionSubtype = type
   }
 
+  const setActiveAircraftNum = (num: number) => {
+    spatialSelection.active.aircraftNum = num
+  }
+
+  const setActiveAirportNum = (num: number) => {
+    spatialSelection.active.airportNum = num
+  }
+
   return {
     spatialSelectForm,
+    spatialSelection,
     setOperationType,
     setSpatialSelectionSubtype,
-    resetAirportFilterForm
+    resetAirportFilterForm,
+    setActiveAircraftNum,
+    setActiveAirportNum,
   }
 })

@@ -1,4 +1,5 @@
 import type {TooltipState,AviationPrimitivesBase,AviationGraphicBase} from './shared'
+import type {Aircraft} from "@/network/aircraft/types/aircraft"
 import * as Cesium from "cesium"
 
 export interface AircraftBaseProperties {
@@ -81,3 +82,8 @@ export interface AircraftPrimitives extends AviationPrimitivesBase {
 // 飞机图元容器 = 通用容器 + 飞机图元
 // export interface AircraftGraphic extends AviationGraphicBase<AircraftPrimitives> {}
 export type AircraftGraphic = AviationGraphicBase<AircraftPrimitives>;
+
+export interface AircraftsSyncData {
+  data: Aircraft[],
+  status: 'ok' | 'empty' | 'error'
+}

@@ -13,6 +13,8 @@ import * as turf from '@turf/turf'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
+import {useSpatialSelectStore} from "@/stores/spatialSelect"
+
 export interface PerimeterInfo {
   perimeter: number;
   formattedPerimeterStr: string;
@@ -21,6 +23,14 @@ export interface PerimeterInfo {
 export interface AreaInfo {
   area: number;
   formattedAreaStr: string;
+}
+
+export interface AircraftInfo {
+  num: number;
+}
+
+export interface AirportInfo {
+  num: number;
 }
 
 export interface TempPerimeterAndAreaLabelPosition {
@@ -33,9 +43,12 @@ export interface TempPerimeterAndAreaLabel {
   position: TempPerimeterAndAreaLabelPosition;
   perimeterInfo: PerimeterInfo;
   areaInfo: AreaInfo;
+  aircraftInfo: AircraftInfo;
+  airportInfo: AirportInfo;
 }
 
 export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
+  const spatialSelectStore=useSpatialSelectStore()
   // 初始化临时坐标标签
   const tempPerimeterAndAreaLabel: TempPerimeterAndAreaLabel  = {
     entity: null,
@@ -51,15 +64,35 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
       area:0,
       formattedAreaStr:'',
     },
+    aircraftInfo:{
+      num:0,
+      formattedNumStr:'',
+    },
+    airportInfo:{
+      num:0,
+      formattedNumStr:'',
+    },
   };
 
   // 添加临时坐标标签到 viewer
   const addTempPerimeterAndAreaLabelToViewer = ():void => {
     if (!viewer.value) return;
+
 // 1. 创建动态文本的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
-      return `周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n
-      面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
+      const spatialSelectForm=spatialSelectStore.spatialSelectForm
+      const spatialSelection=spatialSelectStore.spatialSelection
+      let text=`周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
+      if(spatialSelectForm.operationType==='spatialSelection'){
+        if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
+          text=`飞机：${spatialSelection.active.aircraftNum} 架\n`+text
+        }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
+          text=`机场：${spatialSelection.active.airportNum} 个\n`+text
+        }else if(spatialSelectForm.spatialSelectionTarget==='all'){
+          text=`飞机：${spatialSelection.active.aircraftNum} 架\n机场：${spatialSelection.active.airportNum} 个\n`+text
+        }
+      }
+      return text
     }, false);
 
     // 2. 创建动态位置的CallbackProperty
@@ -95,8 +128,20 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     const formattedAreaStr:string=formatArea(area)
 
     // 1. 生成静态文本
-    const staticText:string = `周长：${formattedPerimeterStr}\n
+    let staticText:string = `周长：${formattedPerimeterStr}
     面积：${formattedAreaStr}`;
+
+    const spatialSelectForm=spatialSelectStore.spatialSelectForm
+    const spatialSelection=spatialSelectStore.spatialSelection
+    if(spatialSelectForm.operationType==='spatialSelection'){
+      if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
+        staticText=`飞机：${spatialSelection.active.aircraftNum} 架\n`+staticText
+      }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
+        staticText=`机场：${spatialSelection.active.airportNum} 个\n`+staticText
+      }else if(spatialSelectForm.spatialSelectionTarget==='all'){
+        staticText=`飞机：${spatialSelection.active.aircraftNum} 架\n机场：${spatialSelection.active.airportNum} 个\n`+staticText
+      }
+    }
 
     const center = turf.centerOfMass(graphic);
     const centerCoord = center.geometry.coordinates;
@@ -137,7 +182,10 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
   };
 
   // 更新临时坐标标签的位置和数据
-  const updateTempPerimeterAndAreaLabel = (lngLatAltArray:number[],graphic):void => {
+  const updateTempPerimeterAndAreaLabel = (
+    lngLatAltArray:number[],graphic,
+    aircraftNum:number=0,airportNum:number=0
+  ):void => {
     if (lngLatAltArray.length===0) return;
 
     const perimeter:number = calculatePolygonPerimeter(lngLatAltArray);
@@ -160,6 +208,9 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 
     tempPerimeterAndAreaLabel.areaInfo.area = area;
     tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr = formatArea(area);
+
+    // tempPerimeterAndAreaLabel.aircraftInfo.num = aircraftNum;
+    // tempPerimeterAndAreaLabel.airportInfo.num = airportNum;
 
     // 显示标签
     if (tempPerimeterAndAreaLabel.entity && !tempPerimeterAndAreaLabel.entity.show) {

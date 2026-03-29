@@ -368,7 +368,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       type:'polygon',
       sourceType:'polygonSpatialSelection',
       graphic:polygon,
-      isActive:false
+      isActive:false,
+      // metricsEntity:
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)

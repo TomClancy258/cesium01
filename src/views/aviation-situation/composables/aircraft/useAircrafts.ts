@@ -20,8 +20,6 @@ import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight,
-  highlightBillboardOnSpatialSelection,
-  clearSpatialSelectedHighlight,
 } from '../useBillboardHighlightManager'
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
@@ -29,8 +27,7 @@ import { useAircraftStore } from '@/stores/aircraft'
 import { useDebounceFn } from '@vueuse/core'
 import type {
   AviationSelectedData,
-  SpatialSelectionData,
-  AviationRenderItem, SpatialSelection,SelectionRegion
+  AviationRenderItem, MapBillboardLabelProperties
 } from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
 import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
@@ -41,10 +38,10 @@ import {
   airplaneSelectedSvgRawDataUrl,
   airplaneSpatialSelectedSvgRawDataUrl,
 } from './aircraftConstants'
-import * as turf from '@turf/turf'
 type AircraftRenderItem = AviationRenderItem<Aircraft>
 import { useAviationTooltip } from '../useAviationTooltip'
 import {useSpatialSelection} from '@/views/aviation-situation/composables/useSpatialSelection'
+import {handleAircraftLeftClick} from "@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft.ts"
 
 /**
  * 根据高度值获取对应区间的固定颜色
@@ -69,6 +66,7 @@ export function useAircrafts(viewer) {
   const matchedIcao24Set = new Set<string>()
 
   const matchedAircraftCount = ref<number>(0)
+  let matchedAircrafts:Aircraft[] =[]
   const aircraftRenderMap = new Map<string, AircraftRenderItem>()
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
@@ -216,8 +214,10 @@ export function useAircrafts(viewer) {
           const offset: number = newIndex * 0.02
           // const offset: number = newIndex * 0.1
           for (const aircraft of data) {
-            aircraft.longitude += offset
-            aircraft.latitude += offset
+            // aircraft.longitude += offset
+            // aircraft.latitude += offset
+            aircraft.longitude = parseFloat((aircraft.longitude + offset).toFixed(4))
+            aircraft.latitude = parseFloat((aircraft.latitude + offset).toFixed(4))
           }
           refreshAircraftsInScene(data)
         }
@@ -225,10 +225,12 @@ export function useAircrafts(viewer) {
       } else {
         console.warn('飞机数据为空或格式错误:', data)
         clearAircrafts()
+        emitCesiumEvent('aircraftsSynced', { data: [], status: 'empty' })
       }
     } catch (error) {
       console.error('加载飞机数据失败:', error)
       clearAircrafts()
+      emitCesiumEvent('aircraftsSynced', { data: [], status: 'empty' })
     }
   }
 
@@ -413,6 +415,7 @@ export function useAircrafts(viewer) {
   // ========== 筛选逻辑 ==========
   const filterAircrafts = useDebounceFn((): void => {
     matchedIcao24Set.clear()
+    matchedAircrafts=[]
     matchedAircraftCount.value = 0
 
     const form = aircraftStore.aircraftFilterForm
@@ -436,6 +439,7 @@ export function useAircrafts(viewer) {
 
       if (match) {
         matchedIcao24Set.add(aircraft.icao24)
+        matchedAircrafts.push(aircraft)
         matchedAircraftCount.value++
 
         const selected = aviationSelectionStore.selected
@@ -454,6 +458,7 @@ export function useAircrafts(viewer) {
 
     finishedSpatialSelection()
     emitCesiumEvent('aviationFiltered')
+    emitCesiumEvent('aircraftsSynced', { data: matchedAircrafts, status: 'ok' })
   }, 300)
 
   // ========== 事件订阅 ==========
@@ -461,6 +466,7 @@ export function useAircrafts(viewer) {
   let unsubAircraftLeave: () => void
   let unsubAircraftLeftClick: () => void
   let unsubMouseWheel: () => void
+  let unSubAircraftFilterTableDetailClick: () => void
 
   const subscribeAircraftEvents = () => {
     // Hover事件
@@ -490,6 +496,33 @@ export function useAircrafts(viewer) {
     unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
       handleCameraMoveEnd(viewer.value.camera)
     })
+
+    unSubAircraftFilterTableDetailClick = onCesiumEvent('aircraftFilterTableDetailClicked', (icao24:string) => {
+      flyToAircraftByIcao24(icao24)
+    })
+  }
+
+  const flyToAircraftByIcao24 = (icao24: string): void => {
+    const aircraftRenderItem = aircraftRenderMap.get(icao24)
+    if (!aircraftRenderItem) return
+    const properties = aircraftRenderItem.billboard.properties as AircraftBillboardProperties
+    handleAircraftLeftClick(properties,{
+      primitive:aircraftRenderItem.billboard
+    })
+
+    viewer.value.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(
+        aircraftRenderItem.data.longitude,
+        aircraftRenderItem.data.latitude,
+        aircraftRenderItem.data.baroAltitude + 500000
+      ),
+      orientation: {
+        // heading: Cesium.Math.toRadians(0),
+        // pitch: Cesium.Math.toRadians(-90), // 俯视
+        // roll: 0
+      },
+      duration: 1.5
+    })
   }
 
   const clearAircrafts = (): void => {
@@ -517,6 +550,7 @@ export function useAircrafts(viewer) {
     unsubAircraftLeftClick?.()
     unsubMouseWheel?.()
     unsubCameraMoveEnd?.()
+    unSubAircraftFilterTableDetailClick?.()
 
     // 监听解绑
     unwatchHighlight?.()
@@ -537,5 +571,6 @@ export function useAircrafts(viewer) {
     tooltip,
     filterAircrafts,
     matchedAircraftCount,
+    matchedAircrafts,
   }
 }

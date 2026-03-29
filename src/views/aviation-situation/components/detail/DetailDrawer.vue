@@ -48,6 +48,8 @@ const drawer = computed({
     :modal="false"
     :modal-penetrable="true"
     @close="handleClose"
+    class="map-detail-drawer"
+    style="height: 75%;"
   >
     <div class="drawer-body">
       <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
@@ -56,4 +58,5 @@ const drawer = computed({
   </el-drawer>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+</style>

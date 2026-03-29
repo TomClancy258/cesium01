@@ -34,6 +34,7 @@ const {
   tooltip: aircraftTooltip,
   filterAircrafts,
   matchedAircraftCount,
+  matchedAircrafts,
   flyToMatchedAircrafts,
 } = useAircrafts(cesiumViewer)
 
@@ -88,6 +89,7 @@ onUnmounted(() => {
 provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
 provide('matchedAircraftCount', matchedAircraftCount)
+provide('matchedAircrafts', matchedAircrafts)
 provide('matchedAirportCount', matchedAirportCount)
 provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
 </script>

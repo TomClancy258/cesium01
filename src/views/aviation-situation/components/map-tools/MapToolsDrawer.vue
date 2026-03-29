@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
-import SpatialSelect from '@/views/aviation-situation/components/map-tools/panels/SpatialSelect.vue'
+import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/SpatialSelection.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
@@ -10,7 +10,8 @@ import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
 
 const drawer = ref(false)
-const direction = ref<DrawerProps['direction']>('rtl')
+const direction = ref<DrawerProps['direction']>('btt')
+// const direction = ref<DrawerProps['direction']>('rtl')
 
 const handleOpen = (key: string, keyPath: string[]) => {
   console.log(key, keyPath)
@@ -22,73 +23,63 @@ const toggleDrawer = (): void => {
   drawer.value = !drawer.value
 }
 
+const activeIndex = ref('aircraftFilter')
 
 const activeName = ref('')
 </script>
 <template>
   <div>
-    <div class="drawer-toggle drawer-toggle--right">
-      <el-icon @click="toggleDrawer">
+    <div class="drawer-toggle drawer-toggle--bottom">
+      <el-icon @click="toggleDrawer" class="rotate-icon">
         <Fold />
       </el-icon>
     </div>
-    <el-drawer v-model="drawer" title="" size="20%" :direction="direction" :modal="false" :modal-penetrable="true">
+    <el-drawer v-model="drawer" :with-header="true" size="25%"
+               :direction="direction" :modal="false"
+               :modal-penetrable="true" class="map-tools-drawer">
       <div class="drawer-body">
-        <el-collapse class="drawer-collapse" v-model="activeName">
-          <el-collapse-item name="aircraftFilter">
-            <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
-                飞机筛选
+        <el-row>
+          <el-col :span="2">
+            <el-menu
+              :default-active="activeIndex"
+              class="el-menu-vertical-demo"
+              @open="handleOpen"
+              @close="handleClose"
+              @select="(index) => activeIndex = index"
+            >
+              <el-menu-item index="aircraftFilter">
                 <el-icon class="header-icon">
                   <Filter />
                 </el-icon>
-              </div>
-            </template>
-            <div>
-              <AircraftFilter/>
-            </div>
-          </el-collapse-item>
-          <el-collapse-item name="airportFilter">
-            <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
-                机场筛选
+                <span>飞机筛选</span>
+              </el-menu-item>
+              <el-menu-item index="airportFilter">
                 <el-icon class="header-icon">
                   <Filter />
                 </el-icon>
-              </div>
-            </template>
-            <div>
-              <AirportFilter/>
-            </div>
-          </el-collapse-item>
-          <el-collapse-item name="trajectoryOption">
-            <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
-                轨迹选项
+                <span>机场筛选</span>
+              </el-menu-item>
+              <el-menu-item index="trajectoryOption">
                 <el-icon class="header-icon">
                   <Share />
                 </el-icon>
-              </div>
-            </template>
-            <div>
-              <AircraftTrajectoryOptions/>
-            </div>
-          </el-collapse-item>
-          <el-collapse-item name="spatialSelect">
-            <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
-                空间选择
+                <span>轨迹选项</span>
+              </el-menu-item>
+              <el-menu-item index="spatialSelection">
                 <el-icon class="header-icon">
                   <PictureRounded />
                 </el-icon>
-              </div>
-            </template>
-            <div>
-              <SpatialSelect/>
-            </div>
-          </el-collapse-item>
-
-        </el-collapse>
+                <span>空间选择</span>
+              </el-menu-item>
+            </el-menu>
+          </el-col>
+          <el-col :span="22">
+            <AircraftFilter v-show="activeIndex === 'aircraftFilter'" />
+            <AirportFilter v-show="activeIndex === 'airportFilter'" />
+            <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
+            <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
+          </el-col>
+        </el-row>
       </div>
     </el-drawer>
   </div>
@@ -97,7 +88,7 @@ const activeName = ref('')
 <style lang="scss" scoped>
 .drawer-toggle {
   position: absolute;
-  top: 200px;
+  //top: 200px;
   font-size: 30px;
   cursor: pointer;
 
@@ -105,10 +96,18 @@ const activeName = ref('')
   color: #2c3e50; /* 深蓝灰图标 */
   border: 1px solid #e0e0e0; /* 浅灰描边（防白色地图融合） */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* 轻微阴影提升层次 */
+
+  .rotate-icon {
+    transform: rotate(90deg);
+  }
 }
 
 .drawer-toggle--right {
   right: 0;
+}
+.drawer-toggle--bottom {
+  bottom: 0;
+  right: 30px;
 }
 .title-wrapper {
   display: flex;
@@ -120,4 +119,10 @@ const activeName = ref('')
   color: var(--el-color-primary);
 }
 
+:deep(.map-tools-drawer) {
+  --el-drawer-padding-primary: 0;
+  .el-drawer__header{
+    margin-bottom: 0;
+  }
+}
 </style>

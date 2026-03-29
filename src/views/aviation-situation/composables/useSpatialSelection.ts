@@ -10,6 +10,7 @@ import {
 import { onCesiumEvent } from './mittBus'
 import { onUnmounted } from 'vue'
 import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
+import { useSpatialSelectStore } from '@/stores/spatialSelect'
 
 interface UseSpatialSelectionOptions<T> {
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
@@ -36,6 +37,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
     clearActiveEvent = 'clearAviationActiveSpatialSelection',
   } = options
 
+  const spatialSelectStore = useSpatialSelectStore()
+
   const spatialSelection: SpatialSelection = {
     active: {
       type: '',
@@ -51,6 +54,14 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
     spatialSelection.active.dataSourceName = spatialSelectionData.dataSourceName
     spatialSelection.active.graphic = spatialSelectionData.graphic
     spatialSelection.active.idSet.clear()
+
+    // 重置对应计数
+    if (spatialSelectEvent === 'aircraftSpatialSelect') {
+      spatialSelectStore.setActiveAircraftNum(0)
+    } else if (spatialSelectEvent === 'airportSpatialSelect') {
+      spatialSelectStore.setActiveAirportNum(0)
+    }
+
     matchedIdSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
@@ -68,6 +79,12 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       }
       if (isInGraphic) {
         spatialSelection.active.idSet.add(id)
+        // 累加对应计数
+        if (spatialSelectEvent === 'aircraftSpatialSelect') {
+          spatialSelectStore.setActiveAircraftNum(spatialSelectStore.spatialSelection.active.aircraftNum + 1)
+        } else if (spatialSelectEvent === 'airportSpatialSelect') {
+          spatialSelectStore.setActiveAirportNum(spatialSelectStore.spatialSelection.active.airportNum + 1)
+        }
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
           item.billboard,
@@ -98,12 +115,20 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         }
 
         if (isInGraphic) {
+          // console.log("dataSourceName", dataSourceName);
+          // console.log("selectionRegion", selectionRegion);
+          if (spatialSelectEvent === 'aircraftSpatialSelect') {
+
+          } else if (spatialSelectEvent === 'airportSpatialSelect') {
+
+          }
           highlightBillboardOnSpatialSelection(dataSourceName, item.billboard, spatialSelectedImageUrl)
         } else {
           clearSpatialSelectedHighlight(dataSourceName, item.billboard)
         }
       }
     })
+
   }
 
   const clearActiveSpatialSelection = (): void => {
@@ -128,7 +153,9 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
           radius: spatialSelectionData.radius,
           sourceType:spatialSelectionData.sourceType,
           centerLngLatAltArray: spatialSelectionData.centerLngLatAltArray,
-          idSet: new Set<string>(matchedIdSet),
+          // metricsEntity:spatialSelectionData.metricsEntity
+          // idSet: new Set<string>(matchedIdSet), //似乎可以去掉
+
         }
         spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
         finishedSpatialSelection()
