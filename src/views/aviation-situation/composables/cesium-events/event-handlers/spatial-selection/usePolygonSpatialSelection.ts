@@ -343,6 +343,24 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       sourceType:'polygonSpatialSelection',
       type:'perimeterAndAreaLabel',
       dataSourceName:uniqueId,
+
+      aircraft:{
+        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+      },
+      airport:{
+        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+      },
+      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label:{
+        perimeterInfo:{
+          perimeter:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
+          formattedPerimeterStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr
+        },
+        areaInfo:{
+          area:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
+          formattedAreaStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr
+        },
+      }
     }
 
     const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
@@ -369,7 +387,23 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       sourceType:'polygonSpatialSelection',
       graphic:polygon,
       isActive:false,
-      // metricsEntity:
+      aircraft:{
+        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+      },
+      airport:{
+        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+      },
+      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label:{
+        perimeterInfo:{
+          perimeter:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
+          formattedPerimeterStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr
+        },
+        areaInfo:{
+          area:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
+          formattedAreaStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr
+        },
+      }
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)

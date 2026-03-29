@@ -66,11 +66,9 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     },
     aircraftInfo:{
       num:0,
-      formattedNumStr:'',
     },
     airportInfo:{
       num:0,
-      formattedNumStr:'',
     },
   };
 
@@ -81,15 +79,15 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 // 1. 创建动态文本的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
       const spatialSelectForm=spatialSelectStore.spatialSelectForm
-      const spatialSelection=spatialSelectStore.spatialSelection
+      const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
       let text=`周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
       if(spatialSelectForm.operationType==='spatialSelection'){
         if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
-          text=`飞机：${spatialSelection.active.aircraftNum} 架\n`+text
+          text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+text
         }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
-          text=`机场：${spatialSelection.active.airportNum} 个\n`+text
+          text=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
         }else if(spatialSelectForm.spatialSelectionTarget==='all'){
-          text=`飞机：${spatialSelection.active.aircraftNum} 架\n机场：${spatialSelection.active.airportNum} 个\n`+text
+          text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
         }
       }
       return text
@@ -128,18 +126,17 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     const formattedAreaStr:string=formatArea(area)
 
     // 1. 生成静态文本
-    let staticText:string = `周长：${formattedPerimeterStr}
-    面积：${formattedAreaStr}`;
+    let staticText:string = `周长：${formattedPerimeterStr}\n面积：${formattedAreaStr}`;
 
     const spatialSelectForm=spatialSelectStore.spatialSelectForm
-    const spatialSelection=spatialSelectStore.spatialSelection
+    const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
     if(spatialSelectForm.operationType==='spatialSelection'){
       if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
-        staticText=`飞机：${spatialSelection.active.aircraftNum} 架\n`+staticText
+        staticText=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+staticText
       }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
-        staticText=`机场：${spatialSelection.active.airportNum} 个\n`+staticText
+        staticText=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+staticText
       }else if(spatialSelectForm.spatialSelectionTarget==='all'){
-        staticText=`飞机：${spatialSelection.active.aircraftNum} 架\n机场：${spatialSelection.active.airportNum} 个\n`+staticText
+        staticText=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+staticText
       }
     }
 

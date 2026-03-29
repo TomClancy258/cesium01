@@ -74,6 +74,7 @@ export function useAirports(viewer) {
   })
 
   const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useSpatialSelection({
+    viewer,
     matchedIdSet: matchedIcaoSet,
     renderMap: airportRenderMap,
     getCoord: (airport) => [airport.longitude, airport.latitude],

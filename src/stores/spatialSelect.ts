@@ -17,11 +17,13 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     spatialSelectionTarget: 'measurement',
   })
 
-  const spatialSelection=reactive({
-    active:{
-      aircraftNum:0,
-      airportNum:0
-    }
+  const activeSpatialSelection=reactive({
+    aircraft:{
+      icao24Set:new Set<string>()
+    },
+    airport:{
+      icaoSet:new Set<string>()
+    },
   })
 
   // 仅提供数据重置方法（纯数据操作）
@@ -43,21 +45,41 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     spatialSelectForm.spatialSelectionSubtype = type
   }
 
-  const setActiveAircraftNum = (num: number) => {
-    spatialSelection.active.aircraftNum = num
+  const addAircraftToActiveSpatialSelection = (icao24: string) => {
+    activeSpatialSelection.aircraft.icao24Set.add(icao24)
   }
 
-  const setActiveAirportNum = (num: number) => {
-    spatialSelection.active.airportNum = num
+  const removeAircraftFromActiveSpatialSelection = (icao24: string) => {
+    activeSpatialSelection.aircraft.icao24Set.delete(icao24)
+  }
+
+  const clearActiveAircraftSpatialSelection = () => {
+    activeSpatialSelection.aircraft.icao24Set.clear()
+  }
+
+  const addAirportToActiveSpatialSelection = (icao: string) => {
+    activeSpatialSelection.airport.icaoSet.add(icao)
+  }
+
+  const removeAirportFromActiveSpatialSelection = (icao: string) => {
+    activeSpatialSelection.airport.icaoSet.delete(icao)
+  }
+
+  const clearActiveAirportSpatialSelection = () => {
+    activeSpatialSelection.airport.icaoSet.clear()
   }
 
   return {
     spatialSelectForm,
-    spatialSelection,
+    activeSpatialSelection,
     setOperationType,
     setSpatialSelectionSubtype,
     resetAirportFilterForm,
-    setActiveAircraftNum,
-    setActiveAirportNum,
+    addAircraftToActiveSpatialSelection,
+    removeAircraftFromActiveSpatialSelection,
+    clearActiveAircraftSpatialSelection,
+    addAirportToActiveSpatialSelection,
+    removeAirportFromActiveSpatialSelection,
+    clearActiveAirportSpatialSelection,
   }
 })

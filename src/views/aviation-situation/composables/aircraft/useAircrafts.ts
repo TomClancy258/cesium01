@@ -118,6 +118,7 @@ export function useAircrafts(viewer) {
 
   const { finishedSpatialSelection,
     subscribeSpatialSelectionEvents} = useSpatialSelection({
+    viewer,
     matchedIdSet: matchedIcao24Set,
     renderMap: aircraftRenderMap,
     getCoord: (aircraft) => [aircraft.longitude, aircraft.latitude],

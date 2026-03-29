@@ -8,11 +8,13 @@ import {
   clearSpatialSelectedHighlight,
 } from './useBillboardHighlightManager'
 import { onCesiumEvent } from './mittBus'
-import { onUnmounted } from 'vue'
+import { onUnmounted, ShallowRef } from 'vue'
 import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 interface UseSpatialSelectionOptions<T> {
+  viewer:ShallowRef<Cesium.Viewer>,
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
   matchedIdSet: Set<string>
   /** 完整渲染 Map，key 为 id */
@@ -29,6 +31,7 @@ interface UseSpatialSelectionOptions<T> {
 
 export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
   const {
+    viewer,
     matchedIdSet,
     renderMap,
     getCoord,
@@ -55,11 +58,10 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
     spatialSelection.active.graphic = spatialSelectionData.graphic
     spatialSelection.active.idSet.clear()
 
-    // 重置对应计数
     if (spatialSelectEvent === 'aircraftSpatialSelect') {
-      spatialSelectStore.setActiveAircraftNum(0)
+      spatialSelectStore.clearActiveAircraftSpatialSelection()
     } else if (spatialSelectEvent === 'airportSpatialSelect') {
-      spatialSelectStore.setActiveAirportNum(0)
+      spatialSelectStore.clearActiveAirportSpatialSelection()
     }
 
     matchedIdSet.forEach((id) => {
@@ -79,11 +81,10 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       }
       if (isInGraphic) {
         spatialSelection.active.idSet.add(id)
-        // 累加对应计数
         if (spatialSelectEvent === 'aircraftSpatialSelect') {
-          spatialSelectStore.setActiveAircraftNum(spatialSelectStore.spatialSelection.active.aircraftNum + 1)
+          spatialSelectStore.addAircraftToActiveSpatialSelection(id)
         } else if (spatialSelectEvent === 'airportSpatialSelect') {
-          spatialSelectStore.setActiveAirportNum(spatialSelectStore.spatialSelection.active.airportNum + 1)
+          spatialSelectStore.addAirportToActiveSpatialSelection(id)
         }
         highlightBillboardOnSpatialSelection(
           spatialSelectionData.dataSourceName,
@@ -97,6 +98,10 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
   }
 
   const finishedSpatialSelection = (): void => {
+    for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+      selectionRegion.aircraft.icao24Set.clear()
+      // selectionRegion.airport.icaoSet.clear()
+    }
     matchedIdSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
@@ -115,13 +120,12 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         }
 
         if (isInGraphic) {
-          // console.log("dataSourceName", dataSourceName);
-          // console.log("selectionRegion", selectionRegion);
           if (spatialSelectEvent === 'aircraftSpatialSelect') {
-
+            selectionRegion.aircraft.icao24Set.add(item.data.icao24)
           } else if (spatialSelectEvent === 'airportSpatialSelect') {
-
+            // selectionRegion.airport.icaoSet.add(item.data.icao)
           }
+
           highlightBillboardOnSpatialSelection(dataSourceName, item.billboard, spatialSelectedImageUrl)
         } else {
           clearSpatialSelectedHighlight(dataSourceName, item.billboard)
@@ -129,6 +133,32 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       }
     })
 
+    for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+      if(selectionRegion.sourceType==='polygonSpatialSelection'){
+        const dataSources: Cesium.CustomDataSource[] = viewer.value.dataSources.getByName(dataSourceName)
+        if (dataSources.length === 0) {
+          return
+        }
+        const dataSource: Cesium.CustomDataSource = dataSources[0]
+        const values: Cesium.Entity[] = dataSource.entities.values
+
+        const metricsLabelEntity=values[1]
+        const props = metricsLabelEntity.properties.getValue() as EntityProperties
+
+        let staticText:string = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}`;
+
+        if(selectionRegion.spatialSelectionTarget==='aircraft') {
+          staticText=`飞机：${selectionRegion.aircraft.icao24Set.size} 架\n`+staticText
+
+        }else if(selectionRegion.spatialSelectionTarget==='airport') {
+          staticText=`机场：${selectionRegion.airport.icaoSet.size} 个\n`+staticText
+
+        }else if(selectionRegion.spatialSelectionTarget==='all') {
+          staticText=`飞机：${selectionRegion.aircraft.icao24Set.size} 架\n机场：${selectionRegion.airport.icaoSet.size} 个\n`+staticText
+        }
+        metricsLabelEntity.label.text=staticText
+      }
+    }
   }
 
   const clearActiveSpatialSelection = (): void => {
@@ -153,7 +183,13 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
           radius: spatialSelectionData.radius,
           sourceType:spatialSelectionData.sourceType,
           centerLngLatAltArray: spatialSelectionData.centerLngLatAltArray,
-          // metricsEntity:spatialSelectionData.metricsEntity
+          aircraft:{
+            icao24Set:new Set<string>(spatialSelectionData.aircraft.icao24Set)
+          },
+          airport:{
+            icaoSet:new Set<string>(spatialSelectionData.airport.icaoSet)
+          },
+          spatialSelectionTarget:spatialSelectionData.spatialSelectionTarget
           // idSet: new Set<string>(matchedIdSet), //似乎可以去掉
 
         }
