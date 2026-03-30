@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
-import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/SpatialSelection.vue'
+import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/spatial-selection/SpatialSelection.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'

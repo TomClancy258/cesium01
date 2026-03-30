@@ -1,7 +1,9 @@
-//spatialSelect.ts
+//src/stores/spatialSelect.ts
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
-
+import { reactive, shallowRef,computed,triggerRef } from 'vue'
+import {
+  SelectionRegion,
+} from '@/views/aviation-situation/types/shared'
 // 定义筛选表单类型
 export interface SpatialSelectForm {
   operationType: string,
@@ -25,6 +27,12 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
       icaoSet:new Set<string>()
     },
   })
+
+  //TODO ts类型
+  const finishedGraphicMap = shallowRef(new Map<string, any>())
+  const finishedGraphicsArray = computed(() => Array.from(finishedGraphicMap.value.values()))
+
+
 
   // 仅提供数据重置方法（纯数据操作）
   const resetAirportFilterForm = () => {
@@ -69,9 +77,26 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     activeSpatialSelection.airport.icaoSet.clear()
   }
 
+  const addFinishedSelection=(region: SelectionRegion) =>{
+    // 注意：确保 region 是 plain object（特别是 Set 要转 Array，否则 Vue 无法响应式）
+    finishedGraphicMap.value.set(region.dataSourceName, region)
+    triggerRef(finishedGraphicMap)
+  }
+
+  const removeFinishedSelection=(dataSourceName: string)=> {
+    finishedGraphicMap.value.delete(dataSourceName)
+    triggerRef(finishedGraphicMap)
+  }
+
+  const clearAllFinishedSelections=()=> {
+    finishedGraphicMap.value.clear()
+    triggerRef(finishedGraphicMap)
+  }
+
   return {
     spatialSelectForm,
     activeSpatialSelection,
+
     setOperationType,
     setSpatialSelectionSubtype,
     resetAirportFilterForm,
@@ -81,5 +106,11 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     addAirportToActiveSpatialSelection,
     removeAirportFromActiveSpatialSelection,
     clearActiveAirportSpatialSelection,
+
+    finishedGraphicMap,
+    finishedGraphicsArray,
+    addFinishedSelection,
+    removeFinishedSelection,
+    clearAllFinishedSelections,
   }
 })

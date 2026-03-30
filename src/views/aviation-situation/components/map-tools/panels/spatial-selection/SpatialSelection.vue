@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 //SpatialSelect.vue
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import DistanceMeasurement from './tables/DistanceMeasurement.vue'
+import SpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'
+
 const spatialSelectStore = useSpatialSelectStore()
 const operationTypes = [
   {
@@ -121,6 +124,8 @@ const spatialSelectionTargetChange = (): void => {}
       <!--        <el-button @click="resetAirportForm(spatialSelectFormRef)">重置</el-button>-->
       <!--      </el-form-item>-->
     </el-form>
+
+    <SpatialSelection/>
   </div>
 </template>
 

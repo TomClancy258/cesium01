@@ -3,7 +3,6 @@ import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
-import { type TempPointLabelPositionLngLatAlt } from '../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../useKeyboardEvents';
 import {
   calculateSurfaceDistance,
@@ -37,6 +36,10 @@ export interface PolygonSpatialSelectionSession {
   surveyPoints: Cesium.Entity[]
   segmentDistanceLabels: Cesium.Entity[]
   dynamicPolygon: Cesium.Entity|null
+}
+
+export interface SegmentDistancesState{
+  distances: number[]
 }
 
 /**
@@ -86,7 +89,11 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
   const dynamicPolygonState: DynamicPolygonState = {
     lngLatAltArray: [],
     pointCount: 0,
-    polygonHierarchy:new Cesium.PolygonHierarchy([])
+    polygonHierarchy:new Cesium.PolygonHierarchy([]),
+  };
+
+  const segmentDistancesState:SegmentDistancesState = {
+    distances:[]
   };
 
   const polygonSpatialSelection = (cartesian2: Cesium.Cartesian2): void => {
@@ -203,6 +210,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         dataSourceName:activePolygonSpatialSelection.dataSource.name,
       }
       lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,properties,true,)
+
+      segmentDistancesState.distances.push(
+        lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance
+      )
     }
   }
 
@@ -306,6 +317,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     removeTempSegmentDistanceLabels()
     cleanupActivePolygonSpatialSelection()
     resetDynamicPolygonState()
+
+    segmentDistancesState.distances = []
   }
 
   let unwatchSpatialSelectForm: () => void
@@ -375,6 +388,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,surveyPointProperties,true,)
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
+    segmentDistancesState.distances.push(
+      lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance
+    )
+
     // polygonSpatialSelectionDataSources.push(newDataSource);
     polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
@@ -403,7 +420,12 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
           area:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
           formattedAreaStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr
         },
-      }
+      },
+      polygonState:{
+        lngLatAltArray: dynamicPolygonState.lngLatAltArray,
+        pointCount: dynamicPolygonState.pointCount,
+      },
+      segmentDistancesState:segmentDistancesState
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
@@ -510,6 +532,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
         dynamicPolygonState.lngLatAltArray,
       )
       dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy(positions)
+
+      segmentDistancesState.distances.pop()
 
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolygonState.pointCount--

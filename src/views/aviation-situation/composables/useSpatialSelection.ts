@@ -2,12 +2,17 @@
 
 import * as turf from '@turf/turf'
 import * as Cesium from "cesium"
-import type { SpatialSelectionData, SelectionRegion, SpatialSelection } from '../types/shared'
+import {
+  SpatialSelectionData,
+  SelectionRegion,
+  SpatialSelection,
+  AviationRenderItem
+} from '../types/shared'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
 } from './useBillboardHighlightManager'
-import { onCesiumEvent } from './mittBus'
+import { emitCesiumEvent, onCesiumEvent } from './mittBus'
 import { onUnmounted, ShallowRef } from 'vue'
 import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
@@ -18,7 +23,7 @@ interface UseSpatialSelectionOptions<T> {
   /** 当前筛选匹配的 id 集合（引用，保持响应式） */
   matchedIdSet: Set<string>
   /** 完整渲染 Map，key 为 id */
-  renderMap: Map<string, { data: T; billboard: Cesium.Billboard; label: Cesium.Label }>
+  renderMap: Map<string, AviationRenderItem<T>>
   /** 从 data 中取经纬度 */
   getCoord: (data: T) => [number, number]
   /** 框选高亮图片 URL */
@@ -49,7 +54,7 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       graphic: null,
       idSet: new Set<string>(),
     },
-    finishedGraphicMap: new Map(),
+    // finishedGraphicMap: new Map(),
   }
 
   const activateSpatialSelection = (spatialSelectionData: SpatialSelectionData): void => {
@@ -64,8 +69,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       spatialSelectStore.clearActiveAirportSpatialSelection()
     }
 
-    matchedIdSet.forEach((id) => {
-      const item = renderMap.get(id)
+    matchedIdSet.forEach((id:string) => {
+      const item:AviationRenderItem<T> = renderMap.get(id)
       if (!item) return
 
       const [lng, lat] = getCoord(item.data)
@@ -98,7 +103,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
   }
 
   const finishedSpatialSelection = (): void => {
-    for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+    // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
       selectionRegion.aircraft.icao24Set.clear()
       // selectionRegion.airport.icaoSet.clear()
     }
@@ -108,7 +114,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
       const [lng, lat] = getCoord(item.data)
 
-      for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+      // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+      for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
         let isInGraphic = false
         if (selectionRegion.sourceType === 'polygonSpatialSelection') {
           const turfPoint = turf.point([lng, lat])
@@ -133,7 +140,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       }
     })
 
-    for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+    // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
+    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
       if(selectionRegion.sourceType==='polygonSpatialSelection'){
         const dataSources: Cesium.CustomDataSource[] = viewer.value.dataSources.getByName(dataSourceName)
         if (dataSources.length === 0) {
@@ -178,6 +186,7 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         activateSpatialSelection(spatialSelectionData)
       } else {
         const selectionRegion: SelectionRegion = {
+          dataSourceName: spatialSelectionData.dataSourceName,
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
           radius: spatialSelectionData.radius,
@@ -189,11 +198,31 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
           airport:{
             icaoSet:new Set<string>(spatialSelectionData.airport.icaoSet)
           },
-          spatialSelectionTarget:spatialSelectionData.spatialSelectionTarget
+          spatialSelectionTarget:spatialSelectionData.spatialSelectionTarget,
+          label:{
+            perimeterInfo:{
+              perimeter:spatialSelectionData.label.perimeterInfo.perimeter,
+              formattedPerimeterStr:spatialSelectionData.label.perimeterInfo.formattedPerimeterStr
+            },
+            areaInfo:{
+              area:spatialSelectionData.label.areaInfo.area,
+              formattedAreaStr:spatialSelectionData.label.areaInfo.formattedAreaStr
+            },
+            radiusInfo:{
+              radius:spatialSelectionData.label.radiusInfo?.radius,
+              formattedRadiusStr:spatialSelectionData.label.radiusInfo?.formattedRadiusStr
+            },
+          },
+          polygonState:{
+            lngLatAltArray: spatialSelectionData.polygonState?.lngLatAltArray,
+            pointCount: spatialSelectionData.polygonState?.pointCount,
+          },
+          segmentDistancesState:spatialSelectionData.segmentDistancesState
           // idSet: new Set<string>(matchedIdSet), //似乎可以去掉
-
         }
-        spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
+
+        spatialSelectStore.addFinishedSelection(selectionRegion)
+        // spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
         finishedSpatialSelection()
       }
     })
