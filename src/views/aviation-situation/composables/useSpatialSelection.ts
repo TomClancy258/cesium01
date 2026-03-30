@@ -104,10 +104,11 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
   const finishedSpatialSelection = (): void => {
     // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
-    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
-      selectionRegion.aircraft.icao24Set.clear()
+    // for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+    //   selectionRegion.aircraft.icao24Set.clear()
       // selectionRegion.airport.icaoSet.clear()
-    }
+    // }
+    spatialSelectStore.clearFinishedSelectionAircraftIcao24Sets()
     matchedIdSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return

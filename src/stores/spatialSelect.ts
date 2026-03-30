@@ -93,6 +93,13 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     triggerRef(finishedGraphicMap)
   }
 
+  const clearFinishedSelectionAircraftIcao24Sets=()=> {
+    for (const [dataSourceName, selectionRegion] of finishedGraphicMap.value) {
+      selectionRegion.aircraft.icao24Set.clear()
+    }
+    triggerRef(finishedGraphicMap)
+  }
+
   return {
     spatialSelectForm,
     activeSpatialSelection,
@@ -112,5 +119,6 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     addFinishedSelection,
     removeFinishedSelection,
     clearAllFinishedSelections,
+    clearFinishedSelectionAircraftIcao24Sets,
   }
 })
