@@ -167,6 +167,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
           graphic:polygon,
           isActive: true
         }
+
         if (spatialSelectionTarget === 'aircraft') {
           emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
         }
@@ -404,6 +405,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       sourceType:'polygonSpatialSelection',
       graphic:polygon,
       isActive:false,
+      centroidLngLatAlt:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
       aircraft:{
         icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
       },
@@ -435,9 +437,14 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     }else if(spatialSelectionTarget === 'all') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
       emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+    }else if(spatialSelectionTarget === 'measurement') {
+      // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
     }
 
     spatialSelectStore.setOperationType('none');
+    spatialSelectStore.clearActiveAircraftSpatialSelection()
+    spatialSelectStore.clearActiveAirportSpatialSelection()
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{

@@ -25,21 +25,21 @@ const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompone
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
-import { useCesiumCameraEvent } from './cesium-events/useCesiumCameraEvents' // 替换原导入
+import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents' // 替换原导入
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
-} from './useBillboardHighlightManager'
+} from '../useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
 import { AviationRenderItem,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
 type AirportRenderItem = AviationRenderItem<Airport>
-import { useAviationTooltip } from './useAviationTooltip'
-import {useSpatialSelection} from '@/views/aviation-situation/composables/useSpatialSelection'
+import { useAviationTooltip } from '../useAviationTooltip'
+import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
@@ -73,13 +73,11 @@ export function useAirports(viewer) {
     latitude: 0,
   })
 
-  const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useSpatialSelection({
+  const { subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
     viewer,
-    matchedIdSet: matchedIcaoSet,
+    matchedIcaoSet,
     renderMap: airportRenderMap,
-    getCoord: (airport) => [airport.longitude, airport.latitude],
     spatialSelectedImageUrl: airportSpatialSelectedSvgRawDataUrl,
-    spatialSelectEvent: 'airportSpatialSelect',
   })
 
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
@@ -289,7 +287,7 @@ export function useAirports(viewer) {
       billboard.show = match
       label.show = match
     })
-    finishedSpatialSelection()
+    // finishedSpatialSelection()
     emitCesiumEvent('aviationFiltered')
     // 高亮匹配项
     if (matchedAirportCount.value === 0) {

@@ -1,22 +1,24 @@
 // src/views/aviation-situation/composables/useSpatialSelection.ts
-
+//TODO del
 import * as turf from '@turf/turf'
 import * as Cesium from "cesium"
 import {
   SpatialSelectionData,
   SelectionRegion,
   SpatialSelection,
-  AviationRenderItem
+  AviationRenderItem,
+  SelectionRegionBase
 } from '../types/shared'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
 } from './useBillboardHighlightManager'
-import { emitCesiumEvent, onCesiumEvent } from './mittBus'
+import { onCesiumEvent } from './mittBus'
 import { onUnmounted, ShallowRef } from 'vue'
 import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
+import type {SegmentDistancesState} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection.ts"
 
 interface UseSpatialSelectionOptions<T> {
   viewer:ShallowRef<Cesium.Viewer>,
@@ -33,6 +35,7 @@ interface UseSpatialSelectionOptions<T> {
   /** 清除事件名：统一用 'clearAviationActiveSpatialSelection' */
   clearActiveEvent?: string
 }
+
 
 export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
   const {
@@ -117,6 +120,9 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
       // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
       for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+        if(selectionRegion.spatialSelectionTarget==='measurement'){
+          continue
+        }
         let isInGraphic = false
         if (selectionRegion.sourceType === 'polygonSpatialSelection') {
           const turfPoint = turf.point([lng, lat])
@@ -129,8 +135,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
         if (isInGraphic) {
           if (spatialSelectEvent === 'aircraftSpatialSelect') {
-            selectionRegion.aircraft.icao24Set.add(item.data.icao24)
-          } else if (spatialSelectEvent === 'airportSpatialSelect') {
+            spatialSelectStore.addAircraftToFinishedSelection(dataSourceName, item.data.icao24)
+          }else if (spatialSelectEvent === 'airportSpatialSelect') {
             // selectionRegion.airport.icaoSet.add(item.data.icao)
           }
 
@@ -140,6 +146,8 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
         }
       }
     })
+
+    spatialSelectStore.triggerFinishedGraphicMapUpdate()
 
     // for (const [dataSourceName, selectionRegion] of spatialSelection.finishedGraphicMap) {
     for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
@@ -186,7 +194,7 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
       if (spatialSelectionData.isActive) {
         activateSpatialSelection(spatialSelectionData)
       } else {
-        const selectionRegion: SelectionRegion = {
+        const selectionRegion: SelectionRegionBase = {
           dataSourceName: spatialSelectionData.dataSourceName,
           graphic: spatialSelectionData.graphic,
           type: spatialSelectionData.type,
@@ -224,7 +232,9 @@ export function useSpatialSelection<T>(options: UseSpatialSelectionOptions<T>) {
 
         spatialSelectStore.addFinishedSelection(selectionRegion)
         // spatialSelection.finishedGraphicMap.set(spatialSelectionData.dataSourceName, selectionRegion)
-        finishedSpatialSelection()
+        if(selectionRegion.spatialSelectionTarget!='measurement'){
+          finishedSpatialSelection()
+        }
       }
     })
 

@@ -10,7 +10,9 @@ export const useSimulatedWebSocketStore = defineStore('simulateWebSocket', () =>
     index.value++
     timer=setInterval(()=>{
       index.value++
-    },2000)
+    // },2000)
+    // },5000)
+    },10000)
   }
 
   const close  = ():void => {

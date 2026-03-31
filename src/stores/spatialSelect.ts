@@ -97,7 +97,31 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     for (const [dataSourceName, selectionRegion] of finishedGraphicMap.value) {
       selectionRegion.aircraft.icao24Set.clear()
     }
+    // triggerRef(finishedGraphicMap)
+  }
+
+  const addAircraftToFinishedSelection = (dataSourceName: string, icao24: string) => {
+    const region = finishedGraphicMap.value.get(dataSourceName)
+    if (!region) return
+    region.aircraft.icao24Set.add(icao24)
+    // 注意：不在这里 triggerRef，由调用方批量完成后统一触发
+  }
+
+  const triggerFinishedGraphicMapUpdate = () => {
     triggerRef(finishedGraphicMap)
+  }
+
+  // 在 spatialSelect.ts 里补充（对应飞机侧的 addAircraftToFinishedSelection）
+  const clearFinishedSelectionAirportIcaoSets = () => {
+    for (const [, selectionRegion] of finishedGraphicMap.value) {
+      selectionRegion.airport.icaoSet.clear()
+    }
+  }
+
+  const addAirportToFinishedSelection = (dataSourceName: string, icao: string) => {
+    const region = finishedGraphicMap.value.get(dataSourceName)
+    if (!region) return
+    region.airport.icaoSet.add(icao)
   }
 
   return {
@@ -120,5 +144,9 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     removeFinishedSelection,
     clearAllFinishedSelections,
     clearFinishedSelectionAircraftIcao24Sets,
+    addAircraftToFinishedSelection,
+    triggerFinishedGraphicMapUpdate,
+    clearFinishedSelectionAirportIcaoSets,
+    addAirportToFinishedSelection,
   }
 })

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
 import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/spatial-selection/SpatialSelection.vue'
@@ -8,6 +8,8 @@ import AirportFilter from '@/views/aviation-situation/components/map-tools/panel
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import type { AircraftsSyncData } from '@/views/aviation-situation/types/aircraft'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
@@ -26,6 +28,7 @@ const toggleDrawer = (): void => {
 const activeIndex = ref('aircraftFilter')
 
 const activeName = ref('')
+
 </script>
 <template>
   <div>

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { reactive,shallowRef } from 'vue'
 import type {AircraftTrajectoryOptions,AircraftFilterForm} from '@/views/aviation-situation/types/aircraft'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
 
 export const useAircraftStore = defineStore('aircraft', () => {
 
@@ -13,6 +14,14 @@ export const useAircraftStore = defineStore('aircraft', () => {
     endAirport: '',
     visible: true
   })
+
+  const matchedAircrafts=shallowRef<Aircraft[]>([])
+  const clearMatchedAircrafts=()=>{
+    matchedAircrafts.value=[]
+  }
+  const addMatchedAircrafts=(aircraft:Aircraft)=>{
+    matchedAircrafts.value.push(aircraft)
+  }
 
   // 仅提供数据重置方法（纯数据操作）
   const resetAircraftFilterForm = () => {
@@ -43,5 +52,9 @@ export const useAircraftStore = defineStore('aircraft', () => {
 
     aircraftTrajectoryOptions,
     resetAircraftTrajectoryOptions,
+
+    matchedAircrafts,
+    clearMatchedAircrafts,
+    addMatchedAircrafts,
   }
 })

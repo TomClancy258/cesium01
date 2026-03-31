@@ -31,6 +31,13 @@ const sourceTypeMap: Record<string, string> = {
   circleSpatialSelection: '圆形',
   hemisphereSpatialSelection: '半球',
 }
+// spatialSelectionTarget 映射
+const spatialSelectionTargetMap: Record<string, string> = {
+  measurement: '仅测绘',
+  aircraft: '仅飞机',
+  airport: '仅机场',
+  all: '全部',
+}
 
 // 坐标格式化
 const formatCoord = (arr: number[] | undefined) => {
@@ -58,11 +65,13 @@ const handleDelete = (row: any) => {
 // 查看（占位，按需实现）
 const handleView = (row: any) => {
   console.log('查看', row)
+  //TODO emitCesiumEvent 发送到 useCesiumViewer.ts里去调用geoUtils的flyToLngLatAlt？还是单独flyToGraphic写在useCesiumViewer.ts里？
 }
 </script>
 
 <template>
   <div class="spatial-selection-table">
+<!--    {{finishedGraphicsArray}}-->
     <el-table
       :data="pagedData"
       border
@@ -74,6 +83,11 @@ const handleView = (row: any) => {
       <el-table-column label="类型" prop="sourceType" align="center">
         <template #default="{ row }">
           {{ sourceTypeMap[row.sourceType] ?? row.sourceType }}
+        </template>
+      </el-table-column>
+      <el-table-column label="目标" prop="spatialSelectionTarget" align="center">
+        <template #default="{ row }">
+          {{ spatialSelectionTargetMap[row.spatialSelectionTarget] ?? row.spatialSelectionTarget }}
         </template>
       </el-table-column>
 

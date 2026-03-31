@@ -6,7 +6,7 @@ import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
-import { useAirports } from './composables/useAirports'
+import { useAirports } from './composables/airport/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
 import { useBuildings } from './composables/useBuildings'
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
@@ -81,6 +81,7 @@ onUnmounted(() => {
   // aviationSelectionStore.clearHovered()
   aviationSelectionStore.clearLastSelectedIcao24()
   aircraftStore.resetAircraftFilterForm()
+  aircraftStore.clearMatchedAircrafts()
   aircraftStore.resetAircraftTrajectoryOptions()
   airportStore.resetAirportFilterForm()
 })

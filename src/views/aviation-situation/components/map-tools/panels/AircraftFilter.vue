@@ -22,7 +22,7 @@ const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return tableData.value.slice(start, start + pageSize.value)
+  return aircraftStore.matchedAircrafts.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -34,22 +34,22 @@ const handleSizeChange = (size: number) => {
 }
 
 // ========== 事件订阅 ==========
-let unsubAircraftsSync: () => void
+// let unsubAircraftsSync: () => void
 
-onMounted(() => {
-  unsubAircraftsSync = onCesiumEvent('aircraftsSynced', (aircraftsSyncData: AircraftsSyncData) => {
-    if (aircraftsSyncData.status === 'ok') {
-      tableData.value = aircraftsSyncData.data
-    } else {
-      tableData.value = []
-    }
-    // currentPage.value = 1
-  })
-})
-
-onUnmounted(() => {
-  unsubAircraftsSync?.()
-})
+// onMounted(() => {
+//   unsubAircraftsSync = onCesiumEvent('aircraftsSynced', (aircraftsSyncData: AircraftsSyncData) => {
+//     if (aircraftsSyncData.status === 'ok') {
+//       tableData.value = aircraftsSyncData.data
+//     } else {
+//       tableData.value = []
+//     }
+//     // currentPage.value = 1
+//   })
+// })
+//
+// onUnmounted(() => {
+//   unsubAircraftsSync?.()
+// })
 
 // ========== 表单操作 ==========
 const onAircraftSubmit = () => filterAircrafts()
@@ -143,7 +143,7 @@ const onDetail = (row: Aircraft) => {
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
       :page-sizes="[10, 20, 50, 100]"
-      :total="tableData.length"
+      :total="aircraftStore.matchedAircrafts.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"

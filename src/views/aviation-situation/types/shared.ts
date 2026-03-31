@@ -2,6 +2,9 @@ import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelecte
 import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
+import type {
+  SegmentDistancesState
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection'
 
 interface TooltipPosition {
   left: number
@@ -116,4 +119,40 @@ export interface AviationGraphicBase<T extends AviationPrimitivesBase = Aviation
 export interface MeasurementEntitiesResult {
   measurementEntities: Cesium.Entity[];
   highlightEntity: Cesium.Entity | null;
+}
+
+
+export interface SelectionRegionBase {
+  dataSourceName: string;
+  graphic: Graphic;
+  type:string,
+  radius: number,
+  sourceType: string;
+  centerLngLatAltArray: number[],
+  aircraft: {
+    icao24Set: Set<string>;
+  };
+  airport: {
+    icaoSet: Set<string>;
+  };
+  spatialSelectionTarget: string;
+  label: {
+    perimeterInfo: {
+      perimeter: number;
+      formattedPerimeterStr: string;
+    };
+    areaInfo: {
+      area: number;
+      formattedAreaStr: string;
+    };
+    radiusInfo: {
+      radius: number;
+      formattedRadiusStr: string;
+    };
+  };
+  polygonState:{
+    lngLatAltArray: number[],
+    pointCount: number,
+  },
+  segmentDistancesState: SegmentDistancesState;
 }

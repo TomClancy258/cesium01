@@ -1,7 +1,8 @@
 //geoUtils.ts
-import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
+import type { LngLatAlt, TooltipState,SelectionRegionBase } from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
+import {ShallowRef} from "vue"
 
 export function isValidCoordinate(
   longitude: unknown,
@@ -430,4 +431,62 @@ function interpolateGeodesicEdge(
 export const isInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
   const distance=calculateSurfaceDistance(lngLatAltArray,center)
   return distance <= radius;
+}
+
+
+export function isPointInSelectionRegion(
+  lngLat: [number, number],
+  selectionRegion: SelectionRegionBase,
+): boolean {
+  const { sourceType, graphic, centerLngLatAltArray, radius } = selectionRegion
+
+  if (sourceType === 'polygonSpatialSelection') {
+    return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
+  }
+  if (sourceType === 'circleSpatialSelection') {
+    return isInCircle(lngLat, centerLngLatAltArray, radius)
+  }
+  if (sourceType === 'hemisphereSpatialSelection') {
+    return isInsideHemisphere(lngLat, centerLngLatAltArray, radius)
+  }
+  return false
+}
+
+// 从 SpatialSelectionData 构建 SelectionRegionBase（避免直接持有原始对象引用）
+export function buildRegionFromData(data: SpatialSelectionData): SelectionRegionBase {
+  return {
+    dataSourceName: data.dataSourceName,
+    graphic: data.graphic,
+    centroidLngLatAlt:data.centroidLngLatAlt,
+    type: data.type,
+    radius: data.radius,
+    sourceType: data.sourceType,
+    centerLngLatAltArray: data.centerLngLatAltArray,
+    aircraft: { icao24Set: new Set(data.aircraft.icao24Set) },
+    airport: { icaoSet: new Set(data.airport.icaoSet) },
+    spatialSelectionTarget: data.spatialSelectionTarget,
+    label: {
+      perimeterInfo: { ...data.label.perimeterInfo },
+      areaInfo: { ...data.label.areaInfo },
+      radiusInfo: { ...data.label.radiusInfo },
+    },
+    polygonState: { ...data.polygonState },
+    segmentDistancesState: data.segmentDistancesState,
+  }
+}
+
+export const flyToLngLatAlt = (viewer:ShallowRef<Cesium.Viewer>,lngLatAlt: LngLatAlt): void => {
+  viewer.value.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(
+      lngLatAlt.longitude,
+      lngLatAlt.latitude,
+      lngLatAlt.height + 500000
+    ),
+    orientation: {
+      // heading: Cesium.Math.toRadians(0),
+      // pitch: Cesium.Math.toRadians(-90), // 俯视
+      // roll: 0
+    },
+    duration: 1.5
+  })
 }
