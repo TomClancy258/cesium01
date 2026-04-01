@@ -1,7 +1,10 @@
 import * as Cesium from 'cesium'
 import 'cesium/Build/Cesium/Widgets/widgets.css'
 
-import { onUnmounted, shallowRef } from 'vue'
+import { onUnmounted, ShallowRef, shallowRef } from 'vue'
+import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { flyToLngLatAlt } from '@/utils/geoUtils'
 
 export function useCesiumViewer(containerId = 'cesium-container') {
   // Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZWIwNTgyZC1jMTczLTRjNjQtODZhNS00ZWFkY2M3ZmI5NzkiLCJpZCI6Njc5MDksImlhdCI6MTc3MjQxNzk4OX0.zpXh0_ldTjR-_yjVrpgd3KXCXuqzkw2gQ4bJa2M5pD8';

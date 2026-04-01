@@ -53,7 +53,7 @@ import {
 
 import { onUnmounted, watch } from 'vue'
 
-import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import {
   useHemisphereSpatialSelection

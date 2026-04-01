@@ -475,12 +475,12 @@ export function buildRegionFromData(data: SpatialSelectionData): SelectionRegion
   }
 }
 
-export const flyToLngLatAlt = (viewer:ShallowRef<Cesium.Viewer>,lngLatAlt: LngLatAlt): void => {
+export const flyToLngLatAlt = (viewer:ShallowRef<Cesium.Viewer>,lngLatAlt: LngLatAlt,offsetHeight:number=500000): void => {
   viewer.value.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(
       lngLatAlt.longitude,
       lngLatAlt.latitude,
-      lngLatAlt.height + 500000
+      lngLatAlt.height + offsetHeight
     ),
     orientation: {
       // heading: Cesium.Math.toRadians(0),

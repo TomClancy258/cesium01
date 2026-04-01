@@ -6,7 +6,7 @@ import {
 } from '@/views/aviation-situation/composables/useEntityHighlightManager.ts'
 import { ShallowRef } from 'vue'
 import type { MeasurementSelectedData, MeasurementEntitiesResult } from '@/views/aviation-situation/types/shared'
-import { useMeasurementSelectionStore } from "@/stores/measurementSelection.ts"
+import { useMeasurementSelectionStore } from "@/stores/drawingToolSelection.ts"
 import { getMeasurementEntitiesAndHighlightEntity } from "@/utils/cesiumUtils"
 
 const measurementSelectionStore = useMeasurementSelectionStore()

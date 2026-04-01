@@ -14,7 +14,9 @@ import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constan
 import {cloneEntityAsConfig} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
-import { useMeasurementSelectionStore } from '@/stores/measurementSelection'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
+import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tool.ts"
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -76,11 +78,12 @@ const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): Ln
 
 export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>, mouseFollowPointLabelManager, segmentDistanceLabelManager, totalDistanceLabelManager) => {
   const measurementSelectionStore=useMeasurementSelectionStore()
+  const distanceMeasurementStore=useDistanceMeasurementStore()
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
   // const distanceMeasurementDataSources: Cesium.CustomDataSource[] = []
-  const distanceMeasurementDataSourceMap=new Map<string,Cesium.CustomDataSource>()
+  // const distanceMeasurementDataSourceMap=new Map<string,Cesium.CustomDataSource>()
   const activeDistanceSurvey: DistanceSurveySession = {
     //该距离测绘折线的全部
     dataSource: null,
@@ -94,6 +97,10 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     lngLatAltArray: [],
     pointCount: 0,
     positions:[]
+  };
+
+  const segmentDistancesState:SegmentDistancesState = {
+    distances:[]
   };
 
   const distanceMeasurement = (position: Cesium.Cartesian2): void => {
@@ -169,6 +176,9 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         dataSourceName:activeDistanceSurvey.dataSource.name,
       }
       segmentDistanceLabelManager.addTempSegmentDistanceLabelToDataSource(activeDistanceSurvey,properties)
+      segmentDistancesState.distances.push(
+        segmentDistanceLabelManager.tempSegmentDistanceLabel.distanceInfo.distance
+      )
     }
   }
 
@@ -244,6 +254,8 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     dynamicPolylineState.lngLatAltArray = [];
     dynamicPolylineState.positions=[]
     dynamicPolylineState.pointCount = 0;
+
+    segmentDistancesState.distances = []
   }
 
   /**
@@ -307,9 +319,30 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
 
-    // distanceMeasurementDataSources.push(newDataSource);
-    distanceMeasurementDataSourceMap.set(uniqueId,newDataSource);
+    // distanceMeasurementDataSourceMap.set(uniqueId,newDataSource);
+
     viewer.value?.dataSources.add(newDataSource)
+
+    const spatialSelectionData={
+      dataSourceName:uniqueId,
+      type:'polyline',
+      sourceType:'distanceMeasurement',
+      centroidLngLatAlt:totalDistanceLabelManager.tempTotalDistanceLabel.position.lngLatAlt,
+      label:{
+        distanceInfo:{
+          perimeter:totalDistanceLabelManager.tempTotalDistanceLabel.distanceInfo.distance,
+          formattedPerimeterStr:totalDistanceLabelManager.tempTotalDistanceLabel.distanceInfo.formattedDistanceStr
+        },
+      },
+      polylineState:{
+        lngLatAltArray: dynamicPolylineState.lngLatAltArray,
+        pointCount: dynamicPolylineState.pointCount,
+      },
+      segmentDistancesState:{...segmentDistancesState}
+    }
+
+    distanceMeasurementStore.addFinishedSelection(spatialSelectionData)
+
     spatialSelectStore.setOperationType('none');
   }
 
@@ -408,6 +441,10 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
       dynamicPolylineState.lngLatAltArray.splice((dynamicPolylineState.pointCount-1) * 3, 3);
       dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
+
+
+      segmentDistancesState.distances.pop()
+
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolylineState.pointCount--;
       updateSegmentDistanceLabel();

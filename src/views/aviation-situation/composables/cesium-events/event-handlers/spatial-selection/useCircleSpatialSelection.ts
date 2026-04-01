@@ -20,7 +20,7 @@ import {
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
-import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
+import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection"
 import {
   emitCesiumEvent, onCesiumEvent
 } from '@/views/aviation-situation/composables/mittBus'

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 import { storeToRefs } from 'pinia'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 const spatialSelectStore = useSpatialSelectStore()
 const { finishedGraphicsArray } = storeToRefs(spatialSelectStore)
@@ -60,12 +61,20 @@ const getPaths = (row: any): string[] => {
 // 删除
 const handleDelete = (row: any) => {
   spatialSelectStore.removeFinishedSelection(row.dataSourceName)
+  emitCesiumEvent('spatialSelectionTableOperationClicked',{
+    type:'delete',
+    dataSourceName:row.dataSourceName,
+    sourceType:row.sourceType,
+  })
 }
 
 // 查看（占位，按需实现）
 const handleView = (row: any) => {
   console.log('查看', row)
-  //TODO emitCesiumEvent 发送到 useCesiumViewer.ts里去调用geoUtils的flyToLngLatAlt？还是单独flyToGraphic写在useCesiumViewer.ts里？
+  emitCesiumEvent('spatialSelectionTableOperationClicked',{
+    centroidLngLatAlt:row.centroidLngLatAlt,
+    type:'detail',
+  })
 }
 </script>
 

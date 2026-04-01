@@ -9,6 +9,8 @@ import { useCesiumViewer } from './composables/useCesiumViewer.ts'
 import { useAirports } from './composables/airport/useAirports'
 import { useAircrafts } from './composables/aircraft/useAircrafts'
 import { useBuildings } from './composables/useBuildings'
+import { useSpatialSelection } from './composables/useSpatialSelection'
+
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
@@ -20,11 +22,19 @@ import {clearSelectedHighlight} from "./composables/useBillboardHighlightManager
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
 
+import {useSpatialSelectStore} from "@/stores/spatialSelect.ts"
+import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection.ts"
+import {useDistanceMeasurementStore} from "@/stores/distanceMeasurement.ts"
+
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
 const aviationSelectionStore = useAviationSelectionStore()
 const aircraftStore = useAircraftStore()
 const airportStore = useAirportStore()
+
+const spatialSelectStore = useSpatialSelectStore()
+const measurementSelectionStore = useMeasurementSelectionStore()
+const distanceMeasurementStore = useDistanceMeasurementStore()
 
 // 初始化飞机/机场模块（内部已自动订阅事件）
 const {
@@ -50,6 +60,10 @@ const {
   initBuildings,
 } = useBuildings(cesiumViewer)
 
+const {
+  initSpatialSelection,
+} = useSpatialSelection(cesiumViewer)
+
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
 const { initEvents: initCesiumEvents, destroyEvents } = useCesiumMouseEvents(cesiumViewer)
 
@@ -65,6 +79,7 @@ onMounted(async () => {
   await loadAndDrawAirports()
 
   initAircrafts()
+  initSpatialSelection()
   // await loadAndDrawAircrafts() // 按需启用
 
   simulatedWebSocketStore.open()
@@ -84,6 +99,18 @@ onUnmounted(() => {
   aircraftStore.clearMatchedAircrafts()
   aircraftStore.resetAircraftTrajectoryOptions()
   airportStore.resetAirportFilterForm()
+
+  spatialSelectStore.resetSpatialSelectFilterForm()
+  spatialSelectStore.clearActiveAircraftSpatialSelection()
+  spatialSelectStore.clearActiveAirportSpatialSelection()
+  spatialSelectStore.clearAllFinishedSelections()
+
+  measurementSelectionStore.clearDrawingDataSource()
+  measurementSelectionStore.clearSelected()
+
+
+  distanceMeasurementStore.clearAllFinishedSelections()
+
 })
 
 // 提供过滤/显隐方法（原有逻辑保留）

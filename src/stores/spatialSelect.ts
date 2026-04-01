@@ -33,9 +33,8 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
   const finishedGraphicsArray = computed(() => Array.from(finishedGraphicMap.value.values()))
 
 
-
   // 仅提供数据重置方法（纯数据操作）
-  const resetAirportFilterForm = () => {
+  const resetSpatialSelectFilterForm = () => {
     spatialSelectForm.operationType = 'none'
     spatialSelectForm.spatialSelectionSubtype = 'none'
     spatialSelectForm.spatialSelectionTarget = 'measurement'
@@ -130,7 +129,7 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
 
     setOperationType,
     setSpatialSelectionSubtype,
-    resetAirportFilterForm,
+    resetSpatialSelectFilterForm,
     addAircraftToActiveSpatialSelection,
     removeAircraftFromActiveSpatialSelection,
     clearActiveAircraftSpatialSelection,

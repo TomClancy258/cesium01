@@ -18,11 +18,13 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 import {useDynamicSegmentDistanceLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
-import {useMeasurementSelectionStore} from "@/stores/measurementSelection"
+import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection"
 import {
   emitCesiumEvent, onCesiumEvent
 } from '@/views/aviation-situation/composables/mittBus'
 import * as turf from '@turf/turf'
+
+import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tool.ts"
 
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
@@ -36,10 +38,6 @@ export interface PolygonSpatialSelectionSession {
   surveyPoints: Cesium.Entity[]
   segmentDistanceLabels: Cesium.Entity[]
   dynamicPolygon: Cesium.Entity|null
-}
-
-export interface SegmentDistancesState{
-  distances: number[]
 }
 
 /**
@@ -76,7 +74,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
   // const polygonSpatialSelectionDataSources: Cesium.CustomDataSource[] = []
-  const polygonSpatialSelectionDataSourceMap=new Map<string,Cesium.CustomDataSource>()
+  // const polygonSpatialSelectionDataSourceMap=new Map<string,Cesium.CustomDataSource>()
   const activePolygonSpatialSelection: PolygonSpatialSelectionSession = {
     //该距离测绘折线的全部
     dataSource: null,
@@ -394,7 +392,7 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     )
 
     // polygonSpatialSelectionDataSources.push(newDataSource);
-    polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
+    // polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
 
     const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget

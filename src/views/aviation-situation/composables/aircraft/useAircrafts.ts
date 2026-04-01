@@ -511,23 +511,10 @@ export function useAircrafts(viewer) {
     handleAircraftLeftClick(properties,{
       primitive:aircraftRenderItem.billboard
     })
-    flyToLngLatAlt({
+    flyToLngLatAlt(viewer,{
       longitude:aircraftRenderItem.data.longitude,
       latitude:aircraftRenderItem.data.latitude,
       height:aircraftRenderItem.data.baroAltitude,
-    })
-    viewer.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(
-        aircraftRenderItem.data.longitude,
-        aircraftRenderItem.data.latitude,
-        aircraftRenderItem.data.baroAltitude + 500000
-      ),
-      orientation: {
-        // heading: Cesium.Math.toRadians(0),
-        // pitch: Cesium.Math.toRadians(-90), // 俯视
-        // roll: 0
-      },
-      duration: 1.5
     })
   }
 
