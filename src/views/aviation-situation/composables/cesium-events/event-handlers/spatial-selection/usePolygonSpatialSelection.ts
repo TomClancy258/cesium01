@@ -24,7 +24,7 @@ import {
 } from '@/views/aviation-situation/composables/mittBus'
 import * as turf from '@turf/turf'
 
-import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tool.ts"
+import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tools.ts"
 
 interface DynamicPolygonState {
   lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）

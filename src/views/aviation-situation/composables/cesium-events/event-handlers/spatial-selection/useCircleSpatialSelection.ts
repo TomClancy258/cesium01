@@ -108,7 +108,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   const spatialSelectStore = useSpatialSelectStore()
 
   // const circleEntities: Cesium.Entity[] = []
-  const circleMap: Map<string,Cesium.Entity>=new Map<string, Cesium.Entity>()
+  // const circleMap: Map<string,Cesium.Entity>=new Map<string, Cesium.Entity>()
   let dynamicCircle:Cesium.Entity|null= null
 
   let dynamicCircleState: DynamicCircleState = {
@@ -187,7 +187,12 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         dataSourceName:dynamicCircle.id,
         sourceType: 'circleSpatialSelection',
         type:'ellipse',
-        radius:radius,
+        // radius:radius,
+        label:{
+          radiusInfo:{
+            radius:radius
+          }
+        },
         centerLngLatAltArray:startPoint,
         isActive: true
       }
@@ -278,9 +283,9 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   }
 
   const cloneDynamicCircleToDataSource=(dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('circleSpatialSelectionCircle')
+    // const uniqueId:string = generateBizUniqueId('circleSpatialSelectionCircle')
 
-    const circleConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicCircle,uniqueId,viewer);
+    const circleConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicCircle,dataSourceName,viewer);
 
     circleConfig.label.text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n
       面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n
@@ -314,13 +319,14 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
     // 4. 组装实体并添加
     const entity=viewer.value.entities.add({
-      id: uniqueId,
+      id: dataSourceName,
       properties,
       ...circleConfig, // 复用通用样式，消除重复代码
     });
 
     // circleEntities.push(entity)
-    circleMap.set(uniqueId,entity)
+    // circleMap.set(uniqueId,entity)
+
   }
 
   /**
@@ -374,9 +380,9 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       return
     }
 
-    const uniqueId:string = generateBizUniqueId('circleSpatialSelectionDataSource')
-    const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
-    cloneDynamicCircleToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
+    const uniqueId:string = generateBizUniqueId('circleSpatialSelectionCircle')
+    // const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
+    cloneDynamicCircleToDataSource(uniqueId)
 
     const lngLatAltArray=dynamicCircleState.lngLatAltArray
     const center:LngLatAlt=[
@@ -395,8 +401,33 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       type:'ellipse',
       // graphic:circle,
       isActive:false,
-      radius:dynamicCircleState.radiusInfo.radius,
+      centroidLngLatAlt: {
+        longitude:lngLatAltArray[0],
+        latitude:lngLatAltArray[1],
+        height: lngLatAltArray[2]
+      },
       centerLngLatAltArray:center,
+      aircraft:{
+        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+      },
+      airport:{
+        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+      },
+      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label:{
+        perimeterInfo:{
+          perimeter:dynamicCircleState.perimeterInfo.perimeter,
+          formattedPerimeterStr:dynamicCircleState.perimeterInfo.formattedPerimeterStr
+        },
+        areaInfo:{
+          area:dynamicCircleState.areaInfo.area,
+          formattedAreaStr:dynamicCircleState.areaInfo.formattedAreaStr
+        },
+        radiusInfo:{
+          radius:dynamicCircleState.radiusInfo.radius,
+          formattedRadiusStr:dynamicCircleState.radiusInfo.formattedRadiusStr
+        },
+      },
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
@@ -405,6 +436,9 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
     }else if(spatialSelectionTarget === 'all') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
+      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+    }else if(spatialSelectionTarget === 'measurement') {
+      // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
       emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
     }
 

@@ -245,7 +245,6 @@ export const getMeasurementEntitiesAndHighlightEntity = (
 
   const dataSource: Cesium.CustomDataSource = dataSources[0]
   const values: Cesium.Entity[] = dataSource.entities.values
-
   // 从第i+1个实体开始遍历（索引i），显示测量相关元素
   for (let i: number = startIndex; i < values.length; i++) {
     // 存储显示的实体（调整索引从0开始）

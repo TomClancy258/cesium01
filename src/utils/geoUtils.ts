@@ -438,7 +438,12 @@ export function isPointInSelectionRegion(
   lngLat: [number, number],
   selectionRegion: SelectionRegionBase,
 ): boolean {
-  const { sourceType, graphic, centerLngLatAltArray, radius } = selectionRegion
+  const {
+    sourceType,
+    graphic,
+    centerLngLatAltArray,
+  } = selectionRegion
+  const radius=selectionRegion.label.radiusInfo.radius
 
   if (sourceType === 'polygonSpatialSelection') {
     return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
@@ -459,7 +464,6 @@ export function buildRegionFromData(data: SpatialSelectionData): SelectionRegion
     graphic: data.graphic,
     centroidLngLatAlt:data.centroidLngLatAlt,
     type: data.type,
-    radius: data.radius,
     sourceType: data.sourceType,
     centerLngLatAltArray: data.centerLngLatAltArray,
     aircraft: { icao24Set: new Set(data.aircraft.icao24Set) },
@@ -471,7 +475,7 @@ export function buildRegionFromData(data: SpatialSelectionData): SelectionRegion
       radiusInfo: { ...data.label.radiusInfo },
     },
     polygonState: { ...data.polygonState },
-    segmentDistancesState: data.segmentDistancesState,
+    segmentDistancesState: {...data.segmentDistancesState},
   }
 }
 

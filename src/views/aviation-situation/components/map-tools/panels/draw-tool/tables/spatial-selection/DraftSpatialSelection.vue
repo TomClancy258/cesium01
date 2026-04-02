@@ -58,6 +58,33 @@ const getPaths = (row: any): string[] => {
   return row.polygonState?.lngLatAltArray ?? []
 }
 
+// 勾选
+const selection = ref<any[]>([])
+const handleSelectionChange = (val: any[]) => {
+  selection.value = val
+}
+
+// 保存
+const handleSave = (row: any) => {
+}
+
+// 批量保存
+const handleBatchSave = () => {
+}
+
+// 批量删除
+const handleBatchDelete = () => {
+  selection.value.forEach((row) => {
+    spatialSelectStore.removeFinishedSelection(row.dataSourceName)
+    emitCesiumEvent('spatialSelectionTableOperationClicked', {
+      type: 'delete',
+      dataSourceName: row.dataSourceName,
+      sourceType: row.sourceType,
+    })
+  })
+  selection.value = []
+}
+
 // 删除
 const handleDelete = (row: any) => {
   spatialSelectStore.removeFinishedSelection(row.dataSourceName)
@@ -74,20 +101,41 @@ const handleView = (row: any) => {
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     centroidLngLatAlt:row.centroidLngLatAlt,
     type:'detail',
+    dataSourceName:row.dataSourceName,
+    sourceType:row.sourceType,
   })
 }
 </script>
 
 <template>
   <div class="spatial-selection-table">
-<!--    {{finishedGraphicsArray}}-->
+    <!-- 批量操作栏：有勾选时才显示 -->
+    <div v-show="selection.length > 0" class="action-bar">
+      <span class="action-bar__count">已选 {{ selection.length }} 条</span>
+      <el-button type="primary" size="small" @click="handleBatchSave">批量保存</el-button>
+      <el-popconfirm
+        :title="`确认删除选中的 ${selection.length} 条记录？`"
+        confirm-button-text="删除"
+        cancel-button-text="取消"
+        @confirm="handleBatchDelete"
+      >
+        <template #reference>
+          <el-button type="danger" size="small">批量删除</el-button>
+        </template>
+      </el-popconfirm>
+    </div>
+
     <el-table
       :data="pagedData"
       border
       stripe
       style="width: 100%"
       row-key="dataSourceName"
+      @selection-change="handleSelectionChange"
     >
+      <!-- 勾选列 -->
+      <el-table-column type="selection" width="45" align="center" />
+
       <!-- sourceType -->
       <el-table-column label="类型" prop="sourceType" align="center">
         <template #default="{ row }">
@@ -125,7 +173,7 @@ const handleView = (row: any) => {
       </el-table-column>
 
       <!-- 面积 -->
-      <el-table-column label="面积" align="center">
+      <el-table-column label="面积" align="center" width="150px">
         <template #default="{ row }">
           {{ row.label?.areaInfo?.formattedAreaStr ?? '—' }}
         </template>
@@ -262,9 +310,10 @@ const handleView = (row: any) => {
       </el-table-column>
 
       <!-- 操作 -->
-      <el-table-column label="操作" width="120" align="center" fixed="right">
+      <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+          <el-button type="success" link size="small" @click="handleSave(row)">保存</el-button>
           <el-popconfirm
             title="确认删除该选区？"
             confirm-button-text="删除"
@@ -298,6 +347,23 @@ const handleView = (row: any) => {
 <style scoped lang="scss">
 .spatial-selection-table {
   width: 100%;
+}
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  background: var(--el-color-primary-light-9);
+  border: 1px solid var(--el-color-primary-light-7);
+  border-radius: 4px;
+}
+
+.action-bar__count {
+  flex: 1;
+  font-size: 13px;
+  color: var(--el-color-primary);
 }
 
 .pagination-wrapper {

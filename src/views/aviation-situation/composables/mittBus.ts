@@ -8,7 +8,7 @@ import type { AirportBaseProperties, AirportSelectedData } from "@/views/aviatio
 import type {  SpatialSelectionData} from '@/views/aviation-situation/types/shared'
 import {
   SpatialSelectionTableRowOperation
-} from '@/views/aviation-situation/types/spatial-selection'
+} from '@/views/aviation-situation/types/draw-tools'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'

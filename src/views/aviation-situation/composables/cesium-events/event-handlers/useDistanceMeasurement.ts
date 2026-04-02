@@ -16,7 +16,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
-import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tool.ts"
+import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tools.ts"
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -323,7 +323,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     viewer.value?.dataSources.add(newDataSource)
 
-    const spatialSelectionData={
+    const distanceMeasurementData={
       dataSourceName:uniqueId,
       type:'polyline',
       sourceType:'distanceMeasurement',

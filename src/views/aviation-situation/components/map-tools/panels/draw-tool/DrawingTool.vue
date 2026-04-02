@@ -1,68 +1,38 @@
 <script lang="ts" setup>
-//SpatialSelect.vue
+import { ref } from 'vue'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 import DraftDistanceMeasurement from './tables/distance-measurement/DraftDistanceMeasurement.vue'
+import SavedDistanceMeasurement from './tables/distance-measurement/SavedDistanceMeasurement.vue'
 import DraftSpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'
+import SavedSpatialSelection from './tables/spatial-selection/SavedSpatialSelection.vue'
 
 const spatialSelectStore = useSpatialSelectStore()
+
+const activeSection = ref<'distance' | 'spatial'>('distance')
+const distanceTab = ref<'draft' | 'saved'>('draft')
+const spatialTab = ref<'draft' | 'saved'>('draft')
+
 const operationTypes = [
-  {
-    value: 'none',
-    label: '无操作',
-  },
-  {
-    value: 'distanceMeasurement',
-    label: '距离测绘',
-  },
-  {
-    value: 'spatialSelection',
-    label: '框选',
-  },
+  { value: 'none', label: '无操作' },
+  { value: 'distanceMeasurement', label: '距离测绘' },
+  { value: 'spatialSelection', label: '框选' },
 ]
 const spatialSelectionSubtypes = [
-  {
-    value: 'none',
-    label: '无操作',
-  },
-  {
-    value: 'polygon',
-    label: '多边形空域筛选',
-  },
-  {
-    value: 'circle',
-    label: '圆形空域筛选',
-  },
-  {
-    value: 'rectangle',
-    label: '矩形空域筛选',
-  },
-  {
-    value: 'hemisphere',
-    label: '半球空域筛选',
-  },
+  { value: 'none', label: '无操作' },
+  { value: 'polygon', label: '多边形空域筛选' },
+  { value: 'circle', label: '圆形空域筛选' },
+  // { value: 'rectangle', label: '矩形空域筛选' },
+  { value: 'hemisphere', label: '半球空域筛选' },
 ]
 const spatialSelectionTargets = [
-  {
-    value: 'measurement',
-    label: '仅测绘',
-  },
-  {
-    value: 'aircraft',
-    label: '仅飞机',
-  },
-  {
-    value: 'airport',
-    label: '仅机场',
-  },
-  {
-    value: 'all',
-    label: '全部',
-  },
+  { value: 'measurement', label: '仅测绘' },
+  { value: 'aircraft', label: '仅飞机' },
+  { value: 'airport', label: '仅机场' },
+  { value: 'all', label: '全部' },
 ]
 
 const operationTypeChange = (val: string): void => {
   if (val === 'distanceMeasurement') {
-
   }
 }
 const spatialSelectionSubtypeChange = (): void => {}
@@ -118,20 +88,61 @@ const spatialSelectionTargetChange = (): void => {}
           </el-select>
         </el-form-item>
       </span>
-
-      <!--      <el-form-item>-->
-      <!--        <el-button type="primary" @click="onAirportSubmit">确认</el-button>-->
-      <!--        <el-button @click="resetAirportForm(spatialSelectFormRef)">重置</el-button>-->
-      <!--      </el-form-item>-->
     </el-form>
 
-    <DraftDistanceMeasurement/>
-    <DraftSpatialSelection/>
+    <!-- 外层：距离测绘 / 空间选择 -->
+    <el-tabs v-model="activeSection" type="card" class="section-tabs">
+      <!-- 距离测绘 -->
+      <el-tab-pane label="距离测绘" name="distance">
+        <div class="tab-pane-body">
+          <div class="sub-tab-bar">
+            <el-radio-group v-model="distanceTab" size="small">
+              <el-radio-button value="draft">草稿</el-radio-button>
+              <el-radio-button value="saved">已保存</el-radio-button>
+            </el-radio-group>
+          </div>
+          <div class="sub-tab-body">
+            <DraftDistanceMeasurement v-show="distanceTab === 'draft'" />
+            <SavedDistanceMeasurement v-show="distanceTab === 'saved'" />
+          </div>
+        </div>
+      </el-tab-pane>
+
+      <!-- 空间选择 -->
+      <el-tab-pane label="空间选择" name="spatial">
+        <div class="tab-pane-body">
+          <div class="sub-tab-bar">
+            <el-radio-group v-model="spatialTab" size="small">
+              <el-radio-button value="draft">草稿</el-radio-button>
+              <el-radio-button value="saved">已保存</el-radio-button>
+            </el-radio-group>
+          </div>
+          <div class="sub-tab-body">
+            <DraftSpatialSelection v-show="spatialTab === 'draft'" />
+            <SavedSpatialSelection v-show="spatialTab === 'saved'" />
+          </div>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <style scoped lang="scss">
 :deep(.el-select) {
   width: 145px;
+}
+
+.tab-pane-body {
+  margin: 0 10px;
+
+  .sub-tab-body {
+    margin-top: 10px;
+  }
+}
+
+:deep(.section-tabs) {
+  .el-tabs__header {
+    margin: 0;
+  }
 }
 </style>
