@@ -443,15 +443,16 @@ export function isPointInSelectionRegion(
     graphic,
     centerLngLatAltArray,
   } = selectionRegion
-  const radius=selectionRegion.label.radiusInfo.radius
 
   if (sourceType === 'polygonSpatialSelection') {
     return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
   }
   if (sourceType === 'circleSpatialSelection') {
+    const radius=selectionRegion.label.radiusInfo.radius
     return isInCircle(lngLat, centerLngLatAltArray, radius)
   }
   if (sourceType === 'hemisphereSpatialSelection') {
+    const radius=selectionRegion.label.radiusInfo.radius
     return isInsideHemisphere(lngLat, centerLngLatAltArray, radius)
   }
   return false

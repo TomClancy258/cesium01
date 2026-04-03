@@ -250,9 +250,19 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     // 2. 创建动态位置的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       ():string => {
-        return `周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n
-      面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n
-      半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`;
+        const spatialSelectForm=spatialSelectStore.spatialSelectForm
+        const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+        let text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`;
+        if(spatialSelectForm.operationType==='spatialSelection'){
+          if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
+            text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+text
+          }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
+            text=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
+          }else if(spatialSelectForm.spatialSelectionTarget==='all'){
+            text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
+          }
+        }
+        return text
       },
       false,
     );
@@ -272,7 +282,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         dataSourceName: circleUniqueId,
         originalEllipseMaterial:circleConfig.ellipse?.material,
         label:{
-          originalFillColor:circleConfig.label?.fillColor
+          originalFillColor:circleConfig.label?.fillColor,
         },
         ellipse:{
           originalMaterial:circleConfig.ellipse?.material,
@@ -287,28 +297,24 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
     const circleConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicCircle,dataSourceName,viewer);
 
-    circleConfig.label.text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n
-      面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n
-      半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`
+    circleConfig.label.text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`
+
+    const spatialSelectForm=spatialSelectStore.spatialSelectForm
+    const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+    if(spatialSelectForm.operationType==='spatialSelection'){
+      if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
+        circleConfig.label.text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+circleConfig.label.text
+      }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
+        circleConfig.label.text=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+circleConfig.label.text
+      }else if(spatialSelectForm.spatialSelectionTarget==='all'){
+        circleConfig.label.text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+circleConfig.label.text
+      }
+    }
 
     circleConfig.ellipse.semiMajorAxis=dynamicCircleState.radiusInfo.radius
     circleConfig.ellipse.semiMinorAxis=dynamicCircleState.radiusInfo.radius
 
     // const originalFillColor=circleConfig.properties.label.originalFillColor
-
-    const properties={
-      operationType:'spatialSelection',
-      sourceType: 'circleSpatialSelection',
-      type: 'ellipse',
-      dataSourceName: dataSourceName,
-      originalCircleMaterial:circleConfig.ellipse?.material,
-      // label:{
-      //   originalFillColor:originalFillColor,
-      // },
-      ellipse:{
-        originalMaterial:circleConfig.ellipse?.material,
-      }
-    } as EntityProperties
 
     // circleConfig.show=false
     circleConfig.point.show=false
@@ -316,11 +322,13 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     circleConfig.ellipse.outline=false
 
     // circleConfig.label.fillColor=Cesium.Color.TRANSPARENT
-
+    circleConfig.properties.label.perimeterInfo={...dynamicCircleState.perimeterInfo}
+    circleConfig.properties.label.areaInfo={...dynamicCircleState.areaInfo}
+    circleConfig.properties.label.radiusInfo={...dynamicCircleState.radiusInfo}
+    console.log("circleConfig", circleConfig);
     // 4. 组装实体并添加
     const entity=viewer.value.entities.add({
       id: dataSourceName,
-      properties,
       ...circleConfig, // 复用通用样式，消除重复代码
     });
 
@@ -443,8 +451,8 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     }
 
     spatialSelectStore.setOperationType('none');
+    spatialSelectStore.clearActiveAviationSpatialSelection()
   }
-
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");

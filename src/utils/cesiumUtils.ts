@@ -30,6 +30,7 @@ export const cloneEntityAsConfig = (
   };
   if (sourceEntity.properties) {
     const props = sourceEntity.properties.getValue() as EntityProperties
+    props.dataSourceName=newEntityId
     cloneConfig.properties=props
   }
 

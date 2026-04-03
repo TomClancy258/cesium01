@@ -3,41 +3,38 @@ import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
-import { useKeyboardEvents } from '../useKeyboardEvents';
-import {
-  calculateSurfaceDistance,
-  getSurfaceMidpoint
-} from '@/utils/geoUtils'
-import type { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
-import {
-  BOX_SELECTION_STYLE,
-} from '@/views/aviation-situation/constants/cesiumStyleConstants'
+import { useKeyboardEvents } from '../useKeyboardEvents'
+import { calculateSurfaceDistance, getSurfaceMidpoint } from '@/utils/geoUtils'
+import type {
+  DrawingDataSource,
+  LngLatAlt,
+  SpatialSelectionData,
+} from '@/views/aviation-situation/types/shared'
+import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
-import {useDynamicSegmentDistanceLabel} from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
+import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
-import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection"
-import {
-  emitCesiumEvent, onCesiumEvent
-} from '@/views/aviation-situation/composables/mittBus'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import * as turf from '@turf/turf'
 
-import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tools.ts"
+import type { SegmentDistancesState } from '@/views/aviation-situation/types/draw-tools.ts'
 
 interface DynamicPolygonState {
-  lngLatAltArray: number[]; // 经纬度+海拔数组（3个一组）
-  pointCount: number; // 坐标点数量（一组算一个）
-  polygonHierarchy: Cesium.PolygonHierarchy;
+  lngLatAltArray: number[] // 经纬度+海拔数组（3个一组）
+  pointCount: number // 坐标点数量（一组算一个）
+  polygonHierarchy: Cesium.PolygonHierarchy
 }
 
 /** 单条距离测绘的完整结构 */
 export interface PolygonSpatialSelectionSession {
-  dataSource: Cesium.CustomDataSource|null
+  dataSource: Cesium.CustomDataSource | null
   surveyPoints: Cesium.Entity[]
   segmentDistanceLabels: Cesium.Entity[]
-  dynamicPolygon: Cesium.Entity|null
+  dynamicPolygon: Cesium.Entity | null
 }
 
 /**
@@ -46,30 +43,40 @@ export interface PolygonSpatialSelectionSession {
  * @returns Polyline样式配置
  */
 const createDynamicPolygonConfig = (
-  positions: Cesium.Cartesian3[] | Cesium.CallbackProperty | null = null
-):Cesium.Entity.ConstructorOptions => {
+  positions: Cesium.Cartesian3[] | Cesium.CallbackProperty | null = null,
+): Cesium.Entity.ConstructorOptions => {
   const baseConfig: Cesium.Entity.ConstructorOptions = {
     show: true,
     polygon: {
       outlineWidth: BOX_SELECTION_STYLE.POLYGON.OUTLINE_WIDTH,
-      outlineColor:BOX_SELECTION_STYLE.POLYGON.OUTLINE_COLOR,
+      outlineColor: BOX_SELECTION_STYLE.POLYGON.OUTLINE_COLOR,
       outline: BOX_SELECTION_STYLE.POLYGON.OUTLINE,
-      height:BOX_SELECTION_STYLE.POLYGON.HEIGHT,
+      height: BOX_SELECTION_STYLE.POLYGON.HEIGHT,
 
       material: BOX_SELECTION_STYLE.POLYGON.MATERIAL,
       arcType: BOX_SELECTION_STYLE.POLYGON.ARC_TYPE,
     },
-  };
+  }
   // 动态/静态文本、位置单独赋值
-  if (positions) baseConfig.polygon.hierarchy = positions;
+  if (positions) baseConfig.polygon.hierarchy = positions
 
-  return baseConfig;
-};
+  return baseConfig
+}
 
-export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager,perimeterAndAreaLabel) => {
-  const measurementSelectionStore=useMeasurementSelectionStore()
-  const lastButOneDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastButOnePolygonSpatialSelectionDynamicSegmentLengthLabel')
-  const lastDynamicSegmentLengthLabel=useDynamicSegmentDistanceLabel(viewer,'lastPolygonSpatialSelectionDynamicSegmentLengthLabel')
+export const usePolygonSpatialSelection = (
+  viewer: ShallowRef<Cesium.Viewer | null>,
+  mouseFollowPointLabelManager,
+  perimeterAndAreaLabel,
+) => {
+  const measurementSelectionStore = useMeasurementSelectionStore()
+  const lastButOneDynamicSegmentLengthLabel = useDynamicSegmentDistanceLabel(
+    viewer,
+    'lastButOnePolygonSpatialSelectionDynamicSegmentLengthLabel',
+  )
+  const lastDynamicSegmentLengthLabel = useDynamicSegmentDistanceLabel(
+    viewer,
+    'lastPolygonSpatialSelectionDynamicSegmentLengthLabel',
+  )
 
   const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
@@ -78,8 +85,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
   const activePolygonSpatialSelection: PolygonSpatialSelectionSession = {
     //该距离测绘折线的全部
     dataSource: null,
-    surveyPoints:[],
-    segmentDistanceLabels:[],
+    surveyPoints: [],
+    segmentDistanceLabels: [],
     //该距离测绘的折线
     dynamicPolygon: null,
   }
@@ -87,141 +94,173 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
   const dynamicPolygonState: DynamicPolygonState = {
     lngLatAltArray: [],
     pointCount: 0,
-    polygonHierarchy:new Cesium.PolygonHierarchy([]),
-  };
+    polygonHierarchy: new Cesium.PolygonHierarchy([]),
+  }
 
-  const segmentDistancesState:SegmentDistancesState = {
-    distances:[]
-  };
+  const segmentDistancesState: SegmentDistancesState = {
+    distances: [],
+  }
 
   const polygonSpatialSelection = (cartesian2: Cesium.Cartesian2): void => {
     const ray: Cesium.Ray = viewer.value.camera.getPickRay(cartesian2)
-    const cartesian3 :Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
+    const cartesian3: Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
     if (!cartesian3) {
       return
     }
 
     // 复用抽离后的更新逻辑
-    mouseFollowPointLabelManager.updateTempPointLabel(cartesian3);
+    mouseFollowPointLabelManager.updateTempPointLabel(cartesian3)
 
-    const lngLatAlt:LngLatAlt  = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
+    const lngLatAlt: LngLatAlt = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt
 
-    addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height);
-    updateSegmentDistanceLabel();
+    addDynamicLineSegment(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
+    updateSegmentDistanceLabel()
   }
 
-  const addDynamicLineSegment = (longitude:number,latitude:number,height:number) => {
-    if (dynamicPolygonState.pointCount>=1) {
-      const lastPointIndex:number=dynamicPolygonState.pointCount*3
-      dynamicPolygonState.lngLatAltArray[lastPointIndex]=longitude
-      dynamicPolygonState.lngLatAltArray[lastPointIndex+1]=latitude
-      dynamicPolygonState.lngLatAltArray[lastPointIndex+2]=height
+  const addDynamicLineSegment = (longitude: number, latitude: number, height: number) => {
+    if (dynamicPolygonState.pointCount >= 1) {
+      const lastPointIndex: number = dynamicPolygonState.pointCount * 3
+      dynamicPolygonState.lngLatAltArray[lastPointIndex] = longitude
+      dynamicPolygonState.lngLatAltArray[lastPointIndex + 1] = latitude
+      dynamicPolygonState.lngLatAltArray[lastPointIndex + 2] = height
 
-      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+      const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
+        dynamicPolygonState.lngLatAltArray,
+      )
       // dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
       dynamicPolygonState.polygonHierarchy.positions = positions
     }
   }
 
   const updateSegmentDistanceLabel = () => {
-    if (dynamicPolygonState.pointCount>=1) {
-      const lastPointIndex:number=dynamicPolygonState.pointCount*3
-      const lastPositions:number[]=[
+    if (dynamicPolygonState.pointCount >= 1) {
+      const lastPointIndex: number = dynamicPolygonState.pointCount * 3
+      const lastPositions: number[] = [
         dynamicPolygonState.lngLatAltArray[lastPointIndex],
-        dynamicPolygonState.lngLatAltArray[lastPointIndex+1],
-        dynamicPolygonState.lngLatAltArray[lastPointIndex+2],
+        dynamicPolygonState.lngLatAltArray[lastPointIndex + 1],
+        dynamicPolygonState.lngLatAltArray[lastPointIndex + 2],
       ]
-      const lastButOnePointIndex:number=(dynamicPolygonState.pointCount-1)*3
-      const lastButOnePositions:number[]=[
+      const lastButOnePointIndex: number = (dynamicPolygonState.pointCount - 1) * 3
+      const lastButOnePositions: number[] = [
         dynamicPolygonState.lngLatAltArray[lastButOnePointIndex],
-        dynamicPolygonState.lngLatAltArray[lastButOnePointIndex+1],
-        dynamicPolygonState.lngLatAltArray[lastButOnePointIndex+2],
+        dynamicPolygonState.lngLatAltArray[lastButOnePointIndex + 1],
+        dynamicPolygonState.lngLatAltArray[lastButOnePointIndex + 2],
       ]
 
-      const firstPositions:number[]=[
+      const firstPositions: number[] = [
         dynamicPolygonState.lngLatAltArray[0],
         dynamicPolygonState.lngLatAltArray[1],
         dynamicPolygonState.lngLatAltArray[2],
       ]
 
-      const lastButOneDistance:number=calculateSurfaceDistance(lastButOnePositions,lastPositions)
-      const lastButOneSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(lastButOnePositions,lastPositions)
-      lastButOneDynamicSegmentLengthLabel.updateTempSegmentDistanceLabel(lastButOneSegmentMidLngLatAlt,lastButOneDistance)
+      const lastButOneDistance: number = calculateSurfaceDistance(
+        lastButOnePositions,
+        lastPositions,
+      )
+      const lastButOneSegmentMidLngLatAlt: LngLatAlt = getSurfaceMidpoint(
+        lastButOnePositions,
+        lastPositions,
+      )
+      lastButOneDynamicSegmentLengthLabel.updateTempSegmentDistanceLabel(
+        lastButOneSegmentMidLngLatAlt,
+        lastButOneDistance,
+      )
 
-      if (dynamicPolygonState.pointCount>=2) {
-        const lastDistance:number=calculateSurfaceDistance(firstPositions,lastPositions)
-        const lastSegmentMidLngLatAlt:LngLatAlt=getSurfaceMidpoint(firstPositions,lastPositions)
-        lastDynamicSegmentLengthLabel.updateTempSegmentDistanceLabel(lastSegmentMidLngLatAlt,lastDistance)
+      if (dynamicPolygonState.pointCount >= 2) {
+        const lastDistance: number = calculateSurfaceDistance(firstPositions, lastPositions)
+        const lastSegmentMidLngLatAlt: LngLatAlt = getSurfaceMidpoint(firstPositions, lastPositions)
+        lastDynamicSegmentLengthLabel.updateTempSegmentDistanceLabel(
+          lastSegmentMidLngLatAlt,
+          lastDistance,
+        )
 
-        const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
-        perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(dynamicPolygonState.lngLatAltArray,polygon)
+        const polygon: turf.Feature<turf.Polygon> = createPolygonFromLngLatAltArray(
+          dynamicPolygonState.lngLatAltArray,
+        )
+        perimeterAndAreaLabel.updateTempPerimeterAndAreaLabel(
+          dynamicPolygonState.lngLatAltArray,
+          polygon,
+        )
 
-        const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+        const spatialSelectionTarget: string =
+          spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-        const spatialSelectionData:SpatialSelectionData={
-          dataSourceName:activePolygonSpatialSelection.dataSource.name,
-          type:'polygon',
-          sourceType:'polygonSpatialSelection',
-          graphic:polygon,
-          isActive: true
+        const spatialSelectionData: SpatialSelectionData = {
+          dataSourceName: activePolygonSpatialSelection.dataSource.name,
+          type: 'polygon',
+          sourceType: 'polygonSpatialSelection',
+          graphic: polygon,
+          isActive: true,
         }
 
         if (spatialSelectionTarget === 'aircraft') {
-          emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-        }
-        else if(spatialSelectionTarget === 'airport') {
-          emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-        }else if(spatialSelectionTarget === 'all') {
-          emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-          emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+          emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
+        } else if (spatialSelectionTarget === 'airport') {
+          emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
+        } else if (spatialSelectionTarget === 'all') {
+          emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
+          emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
         }
       }
     }
   }
 
-  let unsubAircraftFiltered: () => void;
+  let unsubAircraftFiltered: () => void
 
   const subscribePolygonSpatialSelectionEvents = () => {
     unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
       updateSegmentDistanceLabel()
-    });
+    })
   }
 
   const confirmSurveyPoint = () => {
-    const pointLabelProperties:EntityProperties={
-      operationType:'spatialSelection',
-      sourceType:'polygonSpatialSelection',
-      type:'tempSurveyPoint',
-      dataSourceName:activePolygonSpatialSelection.dataSource.name,
+    const pointLabelProperties: EntityProperties = {
+      operationType: 'spatialSelection',
+      sourceType: 'polygonSpatialSelection',
+      type: 'tempSurveyPoint',
+      dataSourceName: activePolygonSpatialSelection.dataSource.name,
     }
-    const lngLatAlt: LngLatAlt =mouseFollowPointLabelManager.addTempPointLabelToDataSource(activePolygonSpatialSelection,pointLabelProperties)
+    const lngLatAlt: LngLatAlt = mouseFollowPointLabelManager.addTempPointLabelToDataSource(
+      activePolygonSpatialSelection,
+      pointLabelProperties,
+    )
 
-    dynamicPolygonState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
-    const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
-    dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+    dynamicPolygonState.lngLatAltArray.push(
+      lngLatAlt.longitude,
+      lngLatAlt.latitude,
+      lngLatAlt.height,
+    )
+    const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
+      dynamicPolygonState.lngLatAltArray,
+    )
+    dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy(positions)
     dynamicPolygonState.pointCount++
 
     if (dynamicPolygonState.pointCount >= 2) {
-      const properties:EntityProperties={
-        operationType:'spatialSelection',
-        sourceType:'polygonSpatialSelection',
-        type:'tempSegmentLengthLabel',
-        dataSourceName:activePolygonSpatialSelection.dataSource.name,
+      const properties: EntityProperties = {
+        operationType: 'spatialSelection',
+        sourceType: 'polygonSpatialSelection',
+        type: 'tempSegmentLengthLabel',
+        dataSourceName: activePolygonSpatialSelection.dataSource.name,
       }
-      lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,properties,true,)
+      lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(
+        activePolygonSpatialSelection,
+        properties,
+        true,
+      )
 
       segmentDistancesState.distances.push(
-        lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance
+        lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
       )
     }
   }
 
   const initActivePolygonSpatialSelection = (): void => {
-    const dataSourceUniqueId:string = generateBizUniqueId('activePolygonSpatialSelection')
-    activePolygonSpatialSelection.dataSource=new Cesium.CustomDataSource(dataSourceUniqueId)
+    const dataSourceUniqueId: string = generateBizUniqueId('activePolygonSpatialSelection')
+    activePolygonSpatialSelection.dataSource = new Cesium.CustomDataSource(dataSourceUniqueId)
 
-    const drawingDataSourceData:DrawingDataSource={
-      name:dataSourceUniqueId
+    const drawingDataSourceData: DrawingDataSource = {
+      name: dataSourceUniqueId,
     }
     measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
 
@@ -230,70 +269,71 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     // dynamicPolygonState.positions = Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray);
 
     // 2. 创建动态位置的CallbackProperty
-    const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
-      () => {
-          return dynamicPolygonState.polygonHierarchy;
-      },
-      false,
-    );
+    const positionCallback: Cesium.CallbackProperty = new Cesium.CallbackProperty(() => {
+      return dynamicPolygonState.polygonHierarchy
+    }, false)
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
-    const polygonConfig:Cesium.Entity.ConstructorOptions = createDynamicPolygonConfig(positionCallback);
-    const polygonUniqueId:string = generateBizUniqueId('activePolygonSpatialSelectionPolyline')
+    const polygonConfig: Cesium.Entity.ConstructorOptions =
+      createDynamicPolygonConfig(positionCallback)
+    const polygonUniqueId: string = generateBizUniqueId('activePolygonSpatialSelectionPolyline')
 
     // 4. 组装实体并添加
-    activePolygonSpatialSelection.dynamicPolygon = activePolygonSpatialSelection.dataSource.entities.add({
-      id: polygonUniqueId,
-      properties: {
-        operationType:'spatialSelection',
-        sourceType: 'polygonSpatialSelection',
-        type: 'polygon',
-        dataSourceName: dataSourceUniqueId,
-        originalPolygonMaterial:polygonConfig.polygon?.material,
-        polygon:{
-          originalMaterial:polygonConfig.polygon?.material
+    activePolygonSpatialSelection.dynamicPolygon =
+      activePolygonSpatialSelection.dataSource.entities.add({
+        id: polygonUniqueId,
+        properties: {
+          operationType: 'spatialSelection',
+          sourceType: 'polygonSpatialSelection',
+          type: 'polygon',
+          dataSourceName: dataSourceUniqueId,
+          originalPolygonMaterial: polygonConfig.polygon?.material,
+          polygon: {
+            originalMaterial: polygonConfig.polygon?.material,
+          },
         },
-      },
-      ...polygonConfig,
-    });
+        ...polygonConfig,
+      })
 
     viewer.value?.dataSources.add(activePolygonSpatialSelection.dataSource)
   }
 
-  const cloneDynamicPolygonToDataSource=(dataSource,dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('polygonSpatialSelectionPolygon')
+  const cloneDynamicPolygonToDataSource = (dataSource, dataSourceName: string) => {
+    const uniqueId: string = generateBizUniqueId('polygonSpatialSelectionPolygon')
 
     // 2. 创建动态位置的CallbackProperty
-    const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolygonState.lngLatAltArray)
+    const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
+      dynamicPolygonState.lngLatAltArray,
+    )
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）
-    const polygonConfig:Cesium.Entity.ConstructorOptions = createDynamicPolygonConfig(positions);
-    polygonConfig.polygon.outline=false
+    const polygonConfig: Cesium.Entity.ConstructorOptions = createDynamicPolygonConfig(positions)
+    polygonConfig.polygon.outline = false
 
     // 4. 组装实体并添加
     dataSource.entities.add({
       id: uniqueId,
       properties: {
-        operationType:'spatialSelection',
+        operationType: 'spatialSelection',
         sourceType: 'polygonSpatialSelection',
         type: 'polygon',
         dataSourceName: dataSourceName,
-        originalPolygonMaterial:polygonConfig.polygon?.material,
-        polygon:{
-          originalMaterial:polygonConfig.polygon?.material
+        originalPolygonMaterial: polygonConfig.polygon?.material,
+        polygon: {
+          originalMaterial: polygonConfig.polygon?.material,
         },
       } as EntityProperties,
       ...polygonConfig, // 复用通用样式，消除重复代码
-    });
+    })
   }
 
   /**
    * 重置计划轨迹
    */
   const resetDynamicPolygonState = (): void => {
-    dynamicPolygonState.lngLatAltArray = [];
-    dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy([]);
-    dynamicPolygonState.pointCount = 0;
+    dynamicPolygonState.lngLatAltArray = []
+    dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy([])
+    dynamicPolygonState.pointCount = 0
   }
 
   /**
@@ -301,18 +341,20 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
    * @param polygonState 动态折线状态
    */
   const cleanTempMouseMovePoints = (polygonState: DynamicPolygonState): void => {
-    const polygonPositionsLen:number = polygonState.lngLatAltArray.length;
-    const polygonPointCount:number = polygonPositionsLen / 3;
+    const polygonPositionsLen: number = polygonState.lngLatAltArray.length
+    const polygonPointCount: number = polygonPositionsLen / 3
     // 若坐标数组长度 = 确认点数 +1（说明有鼠标移动的临时点），则删除最后3个元素
     if (polygonPointCount === polygonState.pointCount + 1) {
-      polygonState.lngLatAltArray.splice(polygonState.pointCount * 3, 3);
+      polygonState.lngLatAltArray.splice(polygonState.pointCount * 3, 3)
 
-      const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(polygonState.lngLatAltArray)
-      polygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
+      const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
+        polygonState.lngLatAltArray,
+      )
+      polygonState.polygonHierarchy = new Cesium.PolygonHierarchy(positions)
     }
-  };
+  }
 
-  const resetPolygonSpatialSelectionSession=()=>{
+  const resetPolygonSpatialSelectionSession = () => {
     removeTempSegmentDistanceLabels()
     cleanupActivePolygonSpatialSelection()
     resetDynamicPolygonState()
@@ -325,7 +367,10 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'polygon') {
+        if (
+          newForm.operationType === 'spatialSelection' &&
+          newForm.spatialSelectionSubtype === 'polygon'
+        ) {
           resetPolygonSpatialSelectionSession()
           initActivePolygonSpatialSelection()
         } else {
@@ -339,194 +384,219 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
     )
   }
 
-  const finishPolygonSpatialSelection=(): void => {
-    if (dynamicPolygonState.pointCount <=2) {
+  const finishPolygonSpatialSelection = (): void => {
+    if (dynamicPolygonState.pointCount <= 2) {
       return
     }
 
-    cleanTempMouseMovePoints(dynamicPolygonState);
+    cleanTempMouseMovePoints(dynamicPolygonState)
 
-    const uniqueId:string = generateBizUniqueId('polygonSpatialSelectionDataSource')
-    const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
-    cloneDynamicPolygonToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
+    const uniqueId: string = generateBizUniqueId('polygonSpatialSelectionDataSource')
+    const newDataSource: Cesium.CustomDataSource = new Cesium.CustomDataSource(uniqueId)
+    cloneDynamicPolygonToDataSource(newDataSource, uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const PerimeterAndAreaLabelProperties:EntityProperties={
-      operationType:'spatialSelection',
-      sourceType:'polygonSpatialSelection',
-      type:'perimeterAndAreaLabel',
-      dataSourceName:uniqueId,
+    const PerimeterAndAreaLabelProperties: EntityProperties = {
+      operationType: 'spatialSelection',
+      sourceType: 'polygonSpatialSelection',
+      type: 'perimeterAndAreaLabel',
+      dataSourceName: uniqueId,
 
-      aircraft:{
-        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+      aircraft: {
+        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
       },
-      airport:{
-        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+      airport: {
+        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
       },
-      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
-      label:{
-        perimeterInfo:{
-          perimeter:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
-          formattedPerimeterStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr
+      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label: {
+        perimeterInfo: {
+          perimeter: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
+          formattedPerimeterStr:
+            perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr,
         },
-        areaInfo:{
-          area:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
-          formattedAreaStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr
+        areaInfo: {
+          area: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
+          formattedAreaStr:
+            perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr,
         },
-      }
+      },
     }
 
-    const polygon:turf.Feature<turf.Polygon>=createPolygonFromLngLatAltArray(dynamicPolygonState.lngLatAltArray)
-    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(newDataSource,dynamicPolygonState.lngLatAltArray,PerimeterAndAreaLabelProperties,polygon); //周长和面积Label，存放在dataSource.entities里的index=1的位置
+    const polygon: turf.Feature<turf.Polygon> = createPolygonFromLngLatAltArray(
+      dynamicPolygonState.lngLatAltArray,
+    )
+    perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToDataSource(
+      newDataSource,
+      dynamicPolygonState.lngLatAltArray,
+      PerimeterAndAreaLabelProperties,
+      polygon,
+    ) //周长和面积Label，存放在dataSource.entities里的index=1的位置
 
-    const surveyPointProperties:EntityProperties={
-      operationType:'spatialSelection',
-      sourceType:'polygonSpatialSelection',
-      type:'surveyPoint',
-      dataSourceName:activePolygonSpatialSelection.dataSource?.name,
+    const surveyPointProperties: EntityProperties = {
+      operationType: 'spatialSelection',
+      sourceType: 'polygonSpatialSelection',
+      type: 'surveyPoint',
+      dataSourceName: activePolygonSpatialSelection.dataSource?.name,
     }
-    lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(activePolygonSpatialSelection,surveyPointProperties,true,)
-    cloneSurveyPointsAndLabelsToDataSource(newDataSource,uniqueId)
+    lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(
+      activePolygonSpatialSelection,
+      surveyPointProperties,
+      true,
+    )
+    cloneSurveyPointsAndLabelsToDataSource(newDataSource, uniqueId)
 
     segmentDistancesState.distances.push(
-      lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance
+      lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
     )
 
     // polygonSpatialSelectionDataSources.push(newDataSource);
     // polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
 
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget: string =
+      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-    const spatialSelectionData={
-      dataSourceName:uniqueId,
-      type:'polygon',
-      sourceType:'polygonSpatialSelection',
-      graphic:polygon,
-      isActive:false,
-      centroidLngLatAlt:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
-      aircraft:{
-        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+    const spatialSelectionData = {
+      dataSourceName: uniqueId,
+      type: 'polygon',
+      sourceType: 'polygonSpatialSelection',
+      graphic: polygon,
+      isActive: false,
+      centroidLngLatAlt: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
+      aircraft: {
+        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
       },
-      airport:{
-        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+      airport: {
+        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
       },
-      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
-      label:{
-        perimeterInfo:{
-          perimeter:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
-          formattedPerimeterStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr
+      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label: {
+        perimeterInfo: {
+          perimeter: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
+          formattedPerimeterStr:
+            perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr,
         },
-        areaInfo:{
-          area:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
-          formattedAreaStr:perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr
+        areaInfo: {
+          area: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.area,
+          formattedAreaStr:
+            perimeterAndAreaLabel.tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr,
         },
       },
-      polygonState:{
+      polygonState: {
         lngLatAltArray: dynamicPolygonState.lngLatAltArray,
         pointCount: dynamicPolygonState.pointCount,
       },
-      segmentDistancesState:segmentDistancesState
+      segmentDistancesState: segmentDistancesState,
     }
     if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-    }
-    else if(spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-    }else if(spatialSelectionTarget === 'all') {
-      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-    }else if(spatialSelectionTarget === 'measurement') {
+      emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
+    } else if (spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
+    } else if (spatialSelectionTarget === 'all') {
+      emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
+      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
+    } else if (spatialSelectionTarget === 'measurement') {
       // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
+      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
     }
 
-    spatialSelectStore.setOperationType('none');
-    spatialSelectStore.clearActiveAircraftSpatialSelection()
-    spatialSelectStore.clearActiveAirportSpatialSelection()
+    spatialSelectStore.setOperationType('none')
+    spatialSelectStore.clearActiveAviationSpatialSelection()
   }
 
-  const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
-    for (let i:number = 0; i < activePolygonSpatialSelection.segmentDistanceLabels.length; i++) {
-      const oldPointEntity:Cesium.Entity = activePolygonSpatialSelection.surveyPoints[i];
-      const oldLabelEntity:Cesium.Entity = activePolygonSpatialSelection.segmentDistanceLabels[i];
-      const pointUniqueId:string = generateBizUniqueId('pointLabelEntity');
-      const labelUniqueId:string = generateBizUniqueId('LabelEntity');
+  const cloneSurveyPointsAndLabelsToDataSource = (
+    dataSource: Cesium.CustomDataSource,
+    uniqueId: string,
+  ): void => {
+    for (let i: number = 0; i < activePolygonSpatialSelection.segmentDistanceLabels.length; i++) {
+      const oldPointEntity: Cesium.Entity = activePolygonSpatialSelection.surveyPoints[i]
+      const oldLabelEntity: Cesium.Entity = activePolygonSpatialSelection.segmentDistanceLabels[i]
+      const pointUniqueId: string = generateBizUniqueId('pointLabelEntity')
+      const labelUniqueId: string = generateBizUniqueId('LabelEntity')
 
       // --- A. 克隆 Point (创建新对象) ---
       if (oldPointEntity) {
-        const pointCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldPointEntity, pointUniqueId,viewer);
+        const pointCloneConfig: Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(
+          oldPointEntity,
+          pointUniqueId,
+          viewer,
+        )
         // const pointOriginalFillColor=pointCloneConfig.properties.label.originalFillColor
 
-        pointCloneConfig.properties={
-          type:'surveyPoint',
-          sourceType:'polygonSpatialSelection',
-          operationType:'spatialSelection',
-          dataSourceName:uniqueId,
+        pointCloneConfig.properties = {
+          type: 'surveyPoint',
+          sourceType: 'polygonSpatialSelection',
+          operationType: 'spatialSelection',
+          dataSourceName: uniqueId,
           // label:{
           //   originalFillColor:pointOriginalFillColor,
           // }
         }
         // pointCloneConfig.label.show=false
         // pointCloneConfig.point.show=false
-        pointCloneConfig.show=false
+        pointCloneConfig.show = false
 
         // pointCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
-        dataSource.entities.add(pointCloneConfig);
+        dataSource.entities.add(pointCloneConfig)
       }
 
       // --- B. 克隆 Label (关键：固化 text) ---
       if (oldLabelEntity) {
-        const labelCloneConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(oldLabelEntity, labelUniqueId,viewer);
-        const labelOriginalFillColor=labelCloneConfig.properties.label.originalFillColor
+        const labelCloneConfig: Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(
+          oldLabelEntity,
+          labelUniqueId,
+          viewer,
+        )
+        const labelOriginalFillColor = labelCloneConfig.properties.label.originalFillColor
 
-        labelCloneConfig.properties={
-          type:'segmentLengthLabel',
-          sourceType:'polygonSpatialSelection',
-          operationType:'spatialSelection',
-          dataSourceName:uniqueId,
-          label:{
-            originalFillColor:labelOriginalFillColor,
-          }
+        labelCloneConfig.properties = {
+          type: 'segmentLengthLabel',
+          sourceType: 'polygonSpatialSelection',
+          operationType: 'spatialSelection',
+          dataSourceName: uniqueId,
+          label: {
+            originalFillColor: labelOriginalFillColor,
+          },
         }
         // labelCloneConfig.label.show=false
-        labelCloneConfig.show=false
+        labelCloneConfig.show = false
 
         // labelCloneConfig.label.fillColor=Cesium.Color.TRANSPARENT
-        dataSource.entities.add(labelCloneConfig);
+        dataSource.entities.add(labelCloneConfig)
       }
     }
   }
 
-  const cleanupActivePolygonSpatialSelection=()=>{
-    activePolygonSpatialSelection.surveyPoints=[]
-    activePolygonSpatialSelection.segmentDistanceLabels=[]
-    viewer.value.dataSources.remove(activePolygonSpatialSelection.dataSource);
-
+  const cleanupActivePolygonSpatialSelection = () => {
+    activePolygonSpatialSelection.surveyPoints = []
+    activePolygonSpatialSelection.segmentDistanceLabels = []
+    viewer.value.dataSources.remove(activePolygonSpatialSelection.dataSource)
   }
 
-  const removeTempSegmentDistanceLabels=()=>{
+  const removeTempSegmentDistanceLabels = () => {
     lastButOneDynamicSegmentLengthLabel.removeTempSegmentDistanceLabel()
     lastDynamicSegmentLengthLabel.removeTempSegmentDistanceLabel()
   }
 
-  const addTempSegmentLengthLabels=()=>{
+  const addTempSegmentLengthLabels = () => {
     lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToViewer()
     lastDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToViewer()
   }
 
   const handleEsc = () => {
-    console.log("ESC pressed - Resetting distance surveying");
+    console.log('ESC pressed - Resetting distance surveying')
     emitCesiumEvent('clearAviationActiveSpatialSelection')
-    spatialSelectStore.setOperationType('none');
-  };
+    spatialSelectStore.setOperationType('none')
+  }
 
   const handleBackspace = () => {
-    console.log("Backspace pressed - Removing last point");
+    console.log('Backspace pressed - Removing last point')
 
     // 回退最后一个坐标点
     if (dynamicPolygonState.pointCount >= 2) {
-      const pointEntity: Cesium.Entity | undefined = activePolygonSpatialSelection.surveyPoints.pop()
+      const pointEntity: Cesium.Entity | undefined =
+        activePolygonSpatialSelection.surveyPoints.pop()
       const labelEntity: Cesium.Entity | undefined =
         activePolygonSpatialSelection.segmentDistanceLabels.pop()
       activePolygonSpatialSelection.dataSource.entities.remove(pointEntity)
@@ -545,7 +615,8 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       updateSegmentDistanceLabel()
     }
     if (dynamicPolygonState.pointCount === 1) {
-      const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      const spatialSelectionTarget: string =
+        spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
       emitCesiumEvent('clearAviationActiveSpatialSelection')
 
@@ -558,18 +629,20 @@ export const usePolygonSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nu
       //   emitCesiumEvent('clearAirportActiveSpatialSelection')
       // }
     }
-  };
+  }
 
   // 仅在距离测绘模式下监听键盘事件
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'
-  );
+    () =>
+      spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection' &&
+      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'polygon',
+  )
 
   onUnmounted(() => {
     unwatchSpatialSelectForm?.()
-    unbindKeyboardEvents();
+    unbindKeyboardEvents()
     unsubAircraftFiltered()
   })
 

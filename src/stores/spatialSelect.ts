@@ -123,6 +123,11 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     region.airport.icaoSet.add(icao)
   }
 
+  const clearActiveAviationSpatialSelection=()=>{
+    clearActiveAircraftSpatialSelection()
+    clearActiveAirportSpatialSelection()
+  }
+
   return {
     spatialSelectForm,
     activeSpatialSelection,
@@ -147,5 +152,7 @@ export const useSpatialSelectStore = defineStore('spatialSelect', () => {
     triggerFinishedGraphicMapUpdate,
     clearFinishedSelectionAirportIcaoSets,
     addAirportToFinishedSelection,
+
+    clearActiveAviationSpatialSelection,
   }
 })
