@@ -50,6 +50,7 @@ export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|n
     sourceType:properties.sourceType,
     operationType:properties.operationType,
     dataSourceName:properties.dataSourceName,
+    isDraft:  properties.isDraft,
   }
   measurementSelectionStore.setSelected(selected)
 }

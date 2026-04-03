@@ -36,7 +36,8 @@ export interface MeasurementSelectedData {
   type:string,
   sourceType:string,
   operationType:string,
-  dataSourceName:string
+  dataSourceName:string,
+  isDraft:boolean,
 }
 
 export interface DynamicPolylineState {
@@ -155,4 +156,8 @@ export interface SelectionRegionBase {
     pointCount: number,
   },
   segmentDistancesState: SegmentDistancesState;
+}
+
+export interface ClearAviationSpatialSelectionDataBase {
+  isActive:boolean
 }

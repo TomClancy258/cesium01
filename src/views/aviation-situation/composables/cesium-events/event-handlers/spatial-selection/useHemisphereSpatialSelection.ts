@@ -12,7 +12,12 @@ import {
   calculatePerimeterFromGraphic,
   calculateSurfaceDistance, createCircleFromCenterAndRadius, formatArea, formatDistance,
 } from '@/utils/geoUtils'
-import { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import {
+  type ClearAviationSpatialSelectionData,
+  DrawingDataSource,
+  LngLatAlt,
+  SpatialSelectionData
+} from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
@@ -292,7 +297,8 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
       // },
       ellipsoid:{
         originalMaterial:hemisphereConfig.ellipsoid?.material,
-      }
+      },
+      isDraft:true
     } as EntityProperties
 
     // hemisphereConfig.show=false
@@ -350,7 +356,8 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
           initActiveHemisphereSpatialSelection()
         } else {
           resetHemisphereSpatialSelectionSession()
-          emitCesiumEvent('clearAviationActiveSpatialSelection')
+          emitCesiumEvent('clearAircraftSpatialSelection')
+          emitCesiumEvent('clearAirportSpatialSelection')
         }
       },
       {
@@ -385,6 +392,7 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
       type:'ellipsoid',
       // graphic:hemisphere,
       isActive:false,
+      isDraft:true,
       radius:dynamicHemisphereState.radiusInfo.radius,
       centerLngLatAltArray:center,
     }
@@ -404,7 +412,21 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
-    emitCesiumEvent('clearAviationActiveSpatialSelection')
+
+    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+
+    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
+      isActive:true
+    }
+    if (spatialSelectionTarget === 'aircraft') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'all') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }
+
     spatialSelectStore.setOperationType('none');
   };
 
@@ -421,7 +443,7 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
     // if (dynamicHemisphereState.pointCount === 1) {
     //   const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
     //
-    //   emitCesiumEvent('clearAviationActiveSpatialSelection')
+    //   emitCesiumEvent('clearAviationSpatialSelection')
     // }
   };
 

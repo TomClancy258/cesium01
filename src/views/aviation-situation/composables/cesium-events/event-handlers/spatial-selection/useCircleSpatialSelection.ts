@@ -13,7 +13,12 @@ import {
   calculatePerimeterFromGraphic,
   calculateSurfaceDistance, createCircleFromCenterAndRadius, formatArea, formatDistance,
 } from '@/utils/geoUtils'
-import { DrawingDataSource, LngLatAlt,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import {
+  type ClearAviationSpatialSelectionData,
+  DrawingDataSource,
+  LngLatAlt,
+  SpatialSelectionData
+} from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
@@ -325,6 +330,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     circleConfig.properties.label.perimeterInfo={...dynamicCircleState.perimeterInfo}
     circleConfig.properties.label.areaInfo={...dynamicCircleState.areaInfo}
     circleConfig.properties.label.radiusInfo={...dynamicCircleState.radiusInfo}
+    circleConfig.properties.isDraft=true
     console.log("circleConfig", circleConfig);
     // 4. 组装实体并添加
     const entity=viewer.value.entities.add({
@@ -374,7 +380,8 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
           initActiveCircleSpatialSelection()
         } else {
           resetCircleSpatialSelectionSession()
-          emitCesiumEvent('clearAviationActiveSpatialSelection')
+          emitCesiumEvent('clearAircraftSpatialSelection')
+          emitCesiumEvent('clearAirportSpatialSelection')
         }
       },
       {
@@ -409,6 +416,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       type:'ellipse',
       // graphic:circle,
       isActive:false,
+      isDraft:true,
       centroidLngLatAlt: {
         longitude:lngLatAltArray[0],
         latitude:lngLatAltArray[1],
@@ -439,8 +447,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     }
     if (spatialSelectionTarget === 'aircraft') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-    }
-    else if(spatialSelectionTarget === 'airport') {
+    }else if(spatialSelectionTarget === 'airport') {
       emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
     }else if(spatialSelectionTarget === 'all') {
       emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
@@ -456,7 +463,20 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
-    emitCesiumEvent('clearAviationActiveSpatialSelection')
+    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+
+    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
+      isActive:true
+    }
+    if (spatialSelectionTarget === 'aircraft') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'all') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }
+
     spatialSelectStore.setOperationType('none');
   };
 
@@ -473,7 +493,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     // if (dynamicCircleState.pointCount === 1) {
     //   const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
     //
-    //   emitCesiumEvent('clearAviationActiveSpatialSelection')
+    //   emitCesiumEvent('clearAviationSpatialSelection')
     // }
   };
 

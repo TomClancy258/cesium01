@@ -9,6 +9,7 @@ import type {
   DrawingDataSource,
   LngLatAlt,
   SpatialSelectionData,
+  ClearAviationSpatialSelectionData
 } from '@/views/aviation-situation/types/shared'
 import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
@@ -242,6 +243,7 @@ export const usePolygonSpatialSelection = (
         sourceType: 'polygonSpatialSelection',
         type: 'tempSegmentLengthLabel',
         dataSourceName: activePolygonSpatialSelection.dataSource.name,
+        isDraft:true,
       }
       lastButOneDynamicSegmentLengthLabel.addTempSegmentDistanceLabelToDataSource(
         activePolygonSpatialSelection,
@@ -291,6 +293,7 @@ export const usePolygonSpatialSelection = (
           polygon: {
             originalMaterial: polygonConfig.polygon?.material,
           },
+          isDraft:true,
         },
         ...polygonConfig,
       })
@@ -317,6 +320,7 @@ export const usePolygonSpatialSelection = (
         operationType: 'spatialSelection',
         sourceType: 'polygonSpatialSelection',
         type: 'polygon',
+        isDraft:true,
         dataSourceName: dataSourceName,
         originalPolygonMaterial: polygonConfig.polygon?.material,
         polygon: {
@@ -375,7 +379,8 @@ export const usePolygonSpatialSelection = (
           initActivePolygonSpatialSelection()
         } else {
           resetPolygonSpatialSelectionSession()
-          emitCesiumEvent('clearAviationActiveSpatialSelection')
+          emitCesiumEvent('clearAircraftSpatialSelection')
+          emitCesiumEvent('clearAirportSpatialSelection')
         }
       },
       {
@@ -400,7 +405,7 @@ export const usePolygonSpatialSelection = (
       sourceType: 'polygonSpatialSelection',
       type: 'perimeterAndAreaLabel',
       dataSourceName: uniqueId,
-
+      isDraft:true,
       aircraft: {
         icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
       },
@@ -462,6 +467,7 @@ export const usePolygonSpatialSelection = (
       sourceType: 'polygonSpatialSelection',
       graphic: polygon,
       isActive: false,
+      isDraft:true,
       centroidLngLatAlt: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
       aircraft: {
         icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
@@ -500,6 +506,19 @@ export const usePolygonSpatialSelection = (
       emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
     }
 
+
+    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
+      isActive:true
+    }
+    if (spatialSelectionTarget === 'aircraft') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'all') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }
+
     spatialSelectStore.setOperationType('none')
     spatialSelectStore.clearActiveAviationSpatialSelection()
   }
@@ -528,6 +547,7 @@ export const usePolygonSpatialSelection = (
           sourceType: 'polygonSpatialSelection',
           operationType: 'spatialSelection',
           dataSourceName: uniqueId,
+          isDraft:true,
           // label:{
           //   originalFillColor:pointOriginalFillColor,
           // }
@@ -558,6 +578,7 @@ export const usePolygonSpatialSelection = (
           label: {
             originalFillColor: labelOriginalFillColor,
           },
+          isDraft:true,
         }
         // labelCloneConfig.label.show=false
         labelCloneConfig.show = false
@@ -586,7 +607,20 @@ export const usePolygonSpatialSelection = (
 
   const handleEsc = () => {
     console.log('ESC pressed - Resetting distance surveying')
-    emitCesiumEvent('clearAviationActiveSpatialSelection')
+
+    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+
+    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
+      isActive:true
+    }
+    if (spatialSelectionTarget === 'aircraft') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'airport') {
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }else if(spatialSelectionTarget === 'all') {
+      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+    }
     spatialSelectStore.setOperationType('none')
   }
 
@@ -615,19 +649,19 @@ export const usePolygonSpatialSelection = (
       updateSegmentDistanceLabel()
     }
     if (dynamicPolygonState.pointCount === 1) {
-      const spatialSelectionTarget: string =
-        spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-      emitCesiumEvent('clearAviationActiveSpatialSelection')
-
-      // if (spatialSelectionTarget === 'aircraft') {
-      //   emitCesiumEvent('clearAircraftActiveSpatialSelection')
-      // }else if(spatialSelectionTarget === 'airport') {
-      //   emitCesiumEvent('clearAirportActiveSpatialSelection')
-      // }else if(spatialSelectionTarget === 'all') {
-      //   emitCesiumEvent('clearAircraftActiveSpatialSelection')
-      //   emitCesiumEvent('clearAirportActiveSpatialSelection')
-      // }
+      const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
+        isActive:true
+      }
+      if (spatialSelectionTarget === 'aircraft') {
+        emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+      }else if(spatialSelectionTarget === 'airport') {
+        emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+      }else if(spatialSelectionTarget === 'all') {
+        emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
+        emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
+      }
     }
   }
 

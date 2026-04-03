@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 const distanceMeasurementStore = useDistanceMeasurementStore()
 const { finishedGraphicsArray } = storeToRefs(distanceMeasurementStore)
+const measurementSelectionStore = useMeasurementSelectionStore()
 
 // 分页
 const currentPage = ref(1)
@@ -25,11 +27,37 @@ const handleCurrentChange = (val: number) => {
   currentPage.value = val
 }
 
+// 表格 ref（用于编程式勾选）
+const tableRef = ref()
+
 // 勾选
 const selection = ref<any[]>([])
 const handleSelectionChange = (val: any[]) => {
   selection.value = val
 }
+
+// 响应 store 中 selected 变化：跳页并勾选对应行
+watch(
+  () => measurementSelectionStore.selected,
+  async (selected) => {
+    if (!selected) {
+      tableRef.value?.clearSelection()
+      // const rows=tableRef.value?.getSelectionRows()
+      return
+    }
+    if (selected.operationType !== 'distanceMeasurement' || !selected.isDraft) return
+    const index = finishedGraphicsArray.value.findIndex(
+      (row) => row.dataSourceName === selected.dataSourceName
+    )
+    if (index === -1) return
+    currentPage.value = Math.floor(index / pageSize.value) + 1
+    await nextTick()
+    const row = pagedData.value[index % pageSize.value]
+    if (!row || !tableRef.value) return
+    tableRef.value.clearSelection()
+    tableRef.value.toggleRowSelection(row, true)
+  }
+)
 
 // sourceType 映射
 const sourceTypeMap: Record<string, string> = {
@@ -119,6 +147,7 @@ const handleBatchDelete = () => {
     </div>
 
     <el-table
+      ref="tableRef"
       :data="pagedData"
       border
       stripe
@@ -127,7 +156,7 @@ const handleBatchDelete = () => {
       @selection-change="handleSelectionChange"
     >
       <!-- 勾选列 -->
-      <el-table-column type="selection" width="45" align="center" />
+      <el-table-column type="selection" width="45" align="center" :reserve-selection="true" />
 
       <!-- 类型 -->
       <el-table-column label="类型" prop="sourceType" align="center" width="100">

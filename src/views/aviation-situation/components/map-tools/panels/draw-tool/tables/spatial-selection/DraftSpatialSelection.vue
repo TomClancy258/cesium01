@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, nextTick, reactive } from 'vue'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 
 const spatialSelectStore = useSpatialSelectStore()
 const { finishedGraphicsArray } = storeToRefs(spatialSelectStore)
+const measurementSelectionStore = useMeasurementSelectionStore()
 
 // 分页
 const currentPage = ref(1)
@@ -58,10 +60,66 @@ const getPaths = (row: any): string[] => {
   return row.polygonState?.lngLatAltArray ?? []
 }
 
+// 表格 ref（用于编程式勾选）
+const tableRef = ref()
+
 // 勾选
 const selection = ref<any[]>([])
 const handleSelectionChange = (val: any[]) => {
   selection.value = val
+}
+
+// 响应 store 中 selected 变化：跳页并勾选对应行
+watch(
+  () => measurementSelectionStore.selected,
+  async (selected) => {
+    if (!selected) {
+      tableRef.value?.clearSelection()
+      return
+    }
+    if (selected.operationType !== 'spatialSelection' || !selected.isDraft) return
+    const index = finishedGraphicsArray.value.findIndex(
+      (row) => row.dataSourceName === selected.dataSourceName
+    )
+    if (index === -1) return
+    currentPage.value = Math.floor(index / pageSize.value) + 1
+    await nextTick()
+    const row = pagedData.value[index % pageSize.value]
+    if (!row || !tableRef.value) return
+    tableRef.value.clearSelection()
+    tableRef.value.toggleRowSelection(row, true)
+  }
+)
+
+// 飞机列表 popover 状态（同一时间只有一个 popover 打开）
+const aircraftPopover = reactive({
+  searchQuery: '',
+  currentPage: 1,
+  pageSize: 10,
+  sourceRow: null as any,
+})
+
+const aircraftPopoverFiltered = computed(() => {
+  const set = aircraftPopover.sourceRow?.aircraft?.icao24Set
+  if (!set) return []
+  const all = [...set] as string[]
+  const q = aircraftPopover.searchQuery.trim().toLowerCase()
+  return q ? all.filter((id) => id.toLowerCase().includes(q)) : all
+})
+
+const aircraftPopoverPaged = computed(() =>
+  aircraftPopoverFiltered.value
+    .slice(
+      (aircraftPopover.currentPage - 1) * aircraftPopover.pageSize,
+      aircraftPopover.currentPage * aircraftPopover.pageSize,
+    )
+    .map((id) => ({ icao24: id })),
+)
+
+const onAircraftPopoverShow = (row: any) => {
+  aircraftPopover.searchQuery = ''
+  aircraftPopover.currentPage = 1
+  aircraftPopover.sourceRow = row
 }
 
 // 保存
@@ -75,23 +133,20 @@ const handleBatchSave = () => {
 // 批量删除
 const handleBatchDelete = () => {
   selection.value.forEach((row) => {
-    spatialSelectStore.removeFinishedSelection(row.dataSourceName)
-    emitCesiumEvent('spatialSelectionTableOperationClicked', {
-      type: 'delete',
-      dataSourceName: row.dataSourceName,
-      sourceType: row.sourceType,
-    })
+    handleDelete(row)
   })
   selection.value = []
 }
 
 // 删除
 const handleDelete = (row: any) => {
-  spatialSelectStore.removeFinishedSelection(row.dataSourceName)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
-    type:'delete',
+    operationType:'delete',
     dataSourceName:row.dataSourceName,
     sourceType:row.sourceType,
+    spatialSelectionTarget:row.spatialSelectionTarget,
+    aircraft:{...row.aircraft},
+    airport:{...row.airport},
   })
 }
 
@@ -100,7 +155,7 @@ const handleView = (row: any) => {
   console.log('查看', row)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     centroidLngLatAlt:row.centroidLngLatAlt,
-    type:'detail',
+    operationType:'detail',
     dataSourceName:row.dataSourceName,
     sourceType:row.sourceType,
   })
@@ -126,6 +181,7 @@ const handleView = (row: any) => {
     </div>
 
     <el-table
+      ref="tableRef"
       :data="pagedData"
       border
       stripe
@@ -134,7 +190,7 @@ const handleView = (row: any) => {
       @selection-change="handleSelectionChange"
     >
       <!-- 勾选列 -->
-      <el-table-column type="selection" width="45" align="center" />
+      <el-table-column type="selection" width="45" align="center" :reserve-selection="true" />
 
       <!-- sourceType -->
       <el-table-column label="类型" prop="sourceType" align="center">
@@ -225,14 +281,15 @@ const handleView = (row: any) => {
           <template v-else>
             <el-popover
               placement="top"
-              :width="260"
-              trigger="hover"
-              popper-class="spatial-popover"
+              :width="500"
+              trigger="click"
+              popper-class="aircraft-list-popover"
+              @show="onAircraftPopoverShow(row)"
             >
               <template #reference>
                 <div class="tag-preview">
                   <el-tag
-                    v-for="(id, idx) in [...row.aircraft.icao24Set].slice(0, 2)"
+                    v-for="id in [...row.aircraft.icao24Set].slice(0, 2)"
                     :key="id"
                     size="small"
                     type="primary"
@@ -245,16 +302,44 @@ const handleView = (row: any) => {
                   >+{{ row.aircraft.icao24Set.size - 2 }}</el-tag>
                 </div>
               </template>
-              <div class="popover-title">全部飞机 icao24（{{ row.aircraft.icao24Set.size }} 架）</div>
-              <div class="popover-list">
-                <div
-                  v-for="id in row.aircraft.icao24Set"
-                  :key="id"
-                  class="popover-item"
-                >
-                  <span class="popover-value">{{ id }}</span>
-                </div>
+              <div class="popover-title">
+                全部飞机 icao24（{{ row.aircraft.icao24Set.size }} 架）
               </div>
+              <el-input
+                v-model="aircraftPopover.searchQuery"
+                placeholder="搜索 icao24"
+                size="small"
+                clearable
+                style="margin-bottom: 8px"
+                @input="aircraftPopover.currentPage = 1"
+              />
+              <el-table
+                :data="aircraftPopoverPaged"
+                size="small"
+                border
+                style="width: 100%"
+              >
+                <el-table-column label="icao24" prop="icao24" />
+                <el-table-column label="操作" width="70" align="center">
+                  <template #default="{ row: item }">
+                    <el-button
+                      type="primary"
+                      link
+                      size="small"
+                      @click="emitCesiumEvent('aircraftFilterTableDetailClicked', item.icao24)"
+                    >查看</el-button>
+                  </template>
+                </el-table-column>
+              </el-table>
+              <el-pagination
+                v-model:current-page="aircraftPopover.currentPage"
+                v-model:page-size="aircraftPopover.pageSize"
+                :total="aircraftPopoverFiltered.length"
+                layout="prev, pager, next, jumper"
+                size="small"
+                background
+                style="margin-top: 8px; justify-content: flex-end"
+              />
             </el-popover>
           </template>
         </template>
@@ -383,6 +468,17 @@ const handleView = (row: any) => {
 
 <!-- 全局样式，放到全局 scss 或 App.vue 的非 scoped style 中 -->
 <style lang="scss">
+.aircraft-list-popover {
+  .popover-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--el-text-color-primary);
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--el-border-color-lighter);
+  }
+}
+
 .spatial-popover {
   .popover-title {
     font-size: 12px;

@@ -9,8 +9,12 @@ import {
   SpatialSelectionTableRowDelete,
 } from '@/views/aviation-situation/types/draw-tools'
 import { handleSpatialSelectionLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/spatial-selection'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { useSpatialSelectStore } from '@/stores/spatialSelect'
 
 export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
+  const spatialSelectStore = useSpatialSelectStore()
+
   const initSpatialSelection = () => {
     subscribeSpatialSelectionEvents()
   }
@@ -20,7 +24,7 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
     unsubSpatialSelectionTableDetailClicked = onCesiumEvent(
       'spatialSelectionTableOperationClicked',
       (spatialSelectionTableRowOperation: SpatialSelectionTableRowOperation) => {
-        if (spatialSelectionTableRowOperation.type === 'detail') {
+        if (spatialSelectionTableRowOperation.operationType === 'detail') {
           const spatialSelectionTableRowDetail =
             spatialSelectionTableRowOperation as SpatialSelectionTableRowDetail
           let entity:Cesium.Entity|null=null
@@ -43,16 +47,45 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
             handleSpatialSelectionLeftClick(viewer, entity, properties)
             flyToLngLatAlt(viewer, spatialSelectionTableRowDetail.centroidLngLatAlt, 1000000)
           }
-        } else if (spatialSelectionTableRowOperation.type === 'delete') {
+        } else if (spatialSelectionTableRowOperation.operationType === 'delete') {
           const spatialSelectionTableRowDelete =
             spatialSelectionTableRowOperation as SpatialSelectionTableRowDelete
           const dataSourceName = spatialSelectionTableRowDelete.dataSourceName
+          spatialSelectStore.removeFinishedSelection(dataSourceName)
+          console.log("spatialSelectionTableRowDelete", spatialSelectionTableRowDelete);
           if (
             spatialSelectionTableRowDelete.sourceType === 'polygonSpatialSelection' ||
             spatialSelectionTableRowDelete.sourceType === 'distanceMeasurement'
           ) {
             const dataSource = viewer.value.dataSources.getByName(dataSourceName)[0]
             viewer.value.dataSources.remove(dataSource, true)
+
+            if (spatialSelectionTableRowDelete.sourceType === 'polygonSpatialSelection') {
+              if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'aircraft') {
+                emitCesiumEvent('clearAircraftSpatialSelection', {
+                  isActive:false,
+                  dataSourceName,
+                  aircraft:{...spatialSelectionTableRowDelete.aircraft},
+                })
+              }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'airport') {
+                emitCesiumEvent('clearAirportSpatialSelection', {
+                  isActive:false,
+                  dataSourceName,
+                  airport:{...spatialSelectionTableRowDelete.airport},
+                })
+              }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'all') {
+                emitCesiumEvent('clearAircraftSpatialSelection', {
+                  isActive:false,
+                  dataSourceName,
+                  aircraft:{...spatialSelectionTableRowDelete.aircraft},
+                })
+                emitCesiumEvent('clearAirportSpatialSelection', {
+                  isActive:false,
+                  dataSourceName,
+                  airport:{...spatialSelectionTableRowDelete.airport},
+                })
+              }
+            }
           }else if(spatialSelectionTableRowDelete.sourceType === 'circleSpatialSelection') {
             viewer.value.entities.removeById(dataSourceName)
           }

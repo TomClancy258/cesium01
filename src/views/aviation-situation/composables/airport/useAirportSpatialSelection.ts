@@ -13,7 +13,7 @@ import {
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 import { buildRegionFromData, isPointInSelectionRegion } from '@/utils/geoUtils.ts'
-import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'
+import type { SelectionRegionBase,ClearAirportSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
 
 interface Options {
@@ -32,12 +32,12 @@ export function useAirportSpatialSelection({
   const spatialSelectStore = useSpatialSelectStore()
 
   // ---- active 选区 ----
-  const activeIdSet = new Set<string>()
+  // const activeIdSet = new Set<string>()
   let activeDataSourceName = ''
 
   const activateSpatialSelection = (data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
-    activeIdSet.clear()
+    // activeIdSet.clear()
     spatialSelectStore.clearActiveAirportSpatialSelection()
 
     matchedIcaoSet.forEach((icao) => {
@@ -48,7 +48,7 @@ export function useAirportSpatialSelection({
       const inGraphic = isPointInSelectionRegion(lngLat, data as any)
 
       if (inGraphic) {
-        activeIdSet.add(icao)
+        // activeIdSet.add(icao)
         spatialSelectStore.addAirportToActiveSpatialSelection(icao)
         highlightBillboardOnSpatialSelection(
           data.dataSourceName,
@@ -62,18 +62,19 @@ export function useAirportSpatialSelection({
   }
 
   const clearActiveSpatialSelection = () => {
-    activeIdSet.forEach((id) => {
+    spatialSelectStore.activeSpatialSelection.airport.icaoSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
       clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
     })
-    activeIdSet.clear()
+    spatialSelectStore.clearActiveAirportSpatialSelection()
   }
 
   // ---- finished 选区 ----
   const finishedSpatialSelection = () => {
     // 注意：机场侧不调用 clearFinishedSelectionAircraftIcao24Sets
     // 那是飞机侧的职责，避免两侧互相清空
+    spatialSelectStore.clearFinishedSelectionAirportIcaoSets()
 
     for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
       if (selectionRegion.spatialSelectionTarget === 'measurement') continue
@@ -144,14 +145,22 @@ export function useAirportSpatialSelection({
         // 机场侧只需触发自己的 finishedSpatialSelection 即可
         const region: SelectionRegionBase = buildRegionFromData(data)
         spatialSelectStore.addFinishedSelection(region)
-        // if (data.spatialSelectionTarget !== 'measurement') {
-        //   finishedSpatialSelection()
-        // }
+        if (data.spatialSelectionTarget !== 'measurement') {
+          finishedSpatialSelection()
+        }
       }
     })
 
-    unsubClearActive = onCesiumEvent('clearAviationActiveSpatialSelection', () => {
-      clearActiveSpatialSelection()
+    unsubClearActive = onCesiumEvent('clearAirportSpatialSelection', (clearAirportSpatialSelectionData:ClearAirportSpatialSelectionData|undefined) => {
+      if (clearAirportSpatialSelectionData===undefined||clearAirportSpatialSelectionData.isActive) {
+        clearActiveSpatialSelection()
+      }else{
+        clearAirportSpatialSelectionData.airport.icaoSet.forEach((icao) => {
+          const item = renderMap.get(icao)
+          if (!item) return
+          clearSpatialSelectedHighlight(clearAirportSpatialSelectionData.dataSourceName, item.billboard)
+        })
+      }
     })
   }
 

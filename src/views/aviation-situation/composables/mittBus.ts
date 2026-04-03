@@ -1,10 +1,10 @@
 // src/views/aviation-situation/composables/mittBus.ts
 import mitt from 'mitt';
-import type {
+import {
   AircraftBaseProperties,
-  AircraftSelectedData,
+  AircraftSelectedData, ClearAircraftSpatialSelectionData
 } from '@/views/aviation-situation/types/aircraft'
-import type { AirportBaseProperties, AirportSelectedData } from "@/views/aviation-situation/types/airport"
+import type { AirportBaseProperties, AirportSelectedData,ClearAirportSpatialSelectionData } from "@/views/aviation-situation/types/airport"
 import type {  SpatialSelectionData} from '@/views/aviation-situation/types/shared'
 import {
   SpatialSelectionTableRowOperation
@@ -22,7 +22,9 @@ export type CesiumMouseEventName =
   | 'airportSpatialSelect'
   // | 'aircraftsSynced'
   | 'aircraftFilterTableDetailClicked'
-  | 'spatialSelectionTableOperationClicked';
+  | 'spatialSelectionTableOperationClicked'
+  | 'clearAircraftSpatialSelection'
+  | 'clearAirportSpatialSelection';
 
 // 2. 相机事件类型
 export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
@@ -46,6 +48,8 @@ export interface EventCallbackMap {
   // aircraftsSynced: (aircraftsSyncData:AircraftsSyncData) => void;
   aircraftFilterTableDetailClicked: (icao24:string) => void;
   spatialSelectionTableOperationClicked: (spatialSelectionTableRowOperation:SpatialSelectionTableRowOperation) => void;
+  clearAircraftSpatialSelection: (clearAircraftSpatialSelectionData:ClearAircraftSpatialSelectionData|undefined) => void;
+  clearAirportSpatialSelection: (clearAirportSpatialSelectionData:ClearAirportSpatialSelectionData|undefined) => void;
 }
 
 // 4. 合并所有事件类型

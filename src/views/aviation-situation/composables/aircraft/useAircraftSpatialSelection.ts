@@ -10,9 +10,10 @@ import {
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
 import { isPointInSelectionRegion } from '@/utils/geoUtils.ts'
-import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'
+import type { SelectionRegionBase,ClearAviationSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
 import {buildRegionFromData} from "@/utils/geoUtils.ts"
+import { ClearAircraftSpatialSelectionData } from '@/views/aviation-situation/types/aircraft'
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
@@ -30,12 +31,12 @@ export function useAircraftSpatialSelection({
   const spatialSelectStore = useSpatialSelectStore()
 
   // ---- active 选区 ----
-  const activeIdSet = new Set<string>()
+  // const activeIdSet = new Set<string>()
   let activeDataSourceName = ''
 
   const activateSpatialSelection = (data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
-    activeIdSet.clear()
+    // activeIdSet.clear()
     spatialSelectStore.clearActiveAircraftSpatialSelection()
 
     matchedIcao24Set.forEach((icao24) => {
@@ -46,7 +47,7 @@ export function useAircraftSpatialSelection({
       const inGraphic = isPointInSelectionRegion(lngLat, data as any)
 
       if (inGraphic) {
-        activeIdSet.add(icao24)
+        // activeIdSet.add(icao24)
         spatialSelectStore.addAircraftToActiveSpatialSelection(icao24)
         highlightBillboardOnSpatialSelection(
           data.dataSourceName,
@@ -60,12 +61,12 @@ export function useAircraftSpatialSelection({
   }
 
   const clearActiveSpatialSelection = () => {
-    activeIdSet.forEach((id) => {
+    spatialSelectStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
       clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
     })
-    activeIdSet.clear()
+    spatialSelectStore.clearActiveAircraftSpatialSelection()
   }
 
   // ---- finished 选区 ----
@@ -133,7 +134,6 @@ export function useAircraftSpatialSelection({
       }else if(selectionRegion.sourceType === 'circleSpatialSelection'){
         const entity = viewer.value.entities.getById(dataSourceName)
         const props = entity.properties.getValue() as EntityProperties
-        console.log("props", props);
         const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}\n半径：${props.label.radiusInfo.formattedRadiusStr}`
 
         const target = selectionRegion.spatialSelectionTarget
@@ -166,8 +166,16 @@ export function useAircraftSpatialSelection({
       }
     })
 
-    unsubClearActive = onCesiumEvent('clearAviationActiveSpatialSelection', () => {
-      clearActiveSpatialSelection()
+    unsubClearActive = onCesiumEvent('clearAircraftSpatialSelection', (clearAircraftSpatialSelectionData:ClearAircraftSpatialSelectionData|undefined) => {
+      if (clearAircraftSpatialSelectionData===undefined||clearAircraftSpatialSelectionData.isActive) {
+        clearActiveSpatialSelection()
+      }else{
+        clearAircraftSpatialSelectionData.aircraft.icao24Set.forEach((icao24) => {
+          const item = renderMap.get(icao24)
+          if (!item) return
+          clearSpatialSelectedHighlight(clearAircraftSpatialSelectionData.dataSourceName, item.billboard)
+        })
+      }
     })
   }
 

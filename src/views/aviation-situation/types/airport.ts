@@ -1,5 +1,11 @@
-import type { AviationGraphicBase, AviationPrimitivesBase, TooltipState } from './shared'
+import type {
+  AviationGraphicBase,
+  AviationPrimitivesBase,
+  ClearAviationSpatialSelectionDataBase,
+  TooltipState
+} from './shared'
 import * as Cesium from "cesium"
+import type { SpatialSelectionAircraft } from '@/views/aviation-situation/types/draw-tools'
 
 export interface AirportBaseProperties{
   type: 'label' | 'billboard'
@@ -44,3 +50,10 @@ export type AirportPrimitives = AviationPrimitivesBase;
 // 机场图元容器 = 通用容器 + 机场图元
 // export interface AirportGraphic extends AviationGraphicBase<AirportPrimitives> {}
 export type AirportGraphic = AviationGraphicBase<AirportPrimitives>;
+
+export type ClearActiveAirportSpatialSelectionData=ClearAviationSpatialSelectionDataBase
+export interface ClearFinishedAirportSpatialSelectionData extends ClearAviationSpatialSelectionDataBase{
+  airport:SpatialSelectionAircraft,
+  dataSourceName:string
+}
+export type ClearAirportSpatialSelectionData =ClearActiveAirportSpatialSelectionData|ClearFinishedAirportSpatialSelectionData|undefined

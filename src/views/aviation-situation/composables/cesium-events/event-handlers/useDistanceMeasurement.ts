@@ -174,6 +174,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         sourceType:'distanceMeasurement',
         type:'tempSegmentDistanceLabel',
         dataSourceName:activeDistanceSurvey.dataSource.name,
+        isDraft:true,
       }
       segmentDistanceLabelManager.addTempSegmentDistanceLabelToDataSource(activeDistanceSurvey,properties)
       segmentDistancesState.distances.push(
@@ -214,6 +215,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         polyline:{
           originalMaterial:polylineConfig.polyline?.material
         },
+        isDraft:true,
       },
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
@@ -242,6 +244,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         polyline:{
           originalMaterial:polylineConfig.polyline?.material
         },
+        isDraft:true,
       } as EntityProperties,
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
@@ -314,6 +317,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       sourceType:'distanceMeasurement',
       type:'totalDistanceLabel',
       dataSourceName:uniqueId,
+      isDraft:true,
     }
     totalDistanceLabelManager.addTempTotalDistanceLabelToDataSource(newDataSource, midLngLatAlt, dynamicPolylineState.lngLatAltArray,properties);
 
@@ -341,7 +345,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       segmentDistancesState:{...segmentDistancesState}
     }
 
-    distanceMeasurementStore.addFinishedSelection(spatialSelectionData)
+    distanceMeasurementStore.addFinishedSelection(distanceMeasurementData)
 
     spatialSelectStore.setOperationType('none');
   }
@@ -362,6 +366,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
           sourceType:'distanceMeasurement',
           operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
+          isDraft:true,
           // label:{
           //   originalFillColor:pointOriginalFillColor,
           // }
@@ -384,6 +389,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
           sourceType:'distanceMeasurement',
           operationType:'distanceMeasurement',
           dataSourceName:uniqueId,
+          isDraft:true,
           // label:{
           //   originalFillColor:labelOriginalFillColor,
           // }
@@ -405,6 +411,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
         sourceType:'distanceMeasurement',
         operationType:'distanceMeasurement',
         dataSourceName:uniqueId,
+        isDraft:true,
         // label:{
         //   originalFillColor:pointOriginalFillColor,
         // }

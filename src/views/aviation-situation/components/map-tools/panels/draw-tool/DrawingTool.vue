@@ -1,16 +1,32 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import DraftDistanceMeasurement from './tables/distance-measurement/DraftDistanceMeasurement.vue'
 import SavedDistanceMeasurement from './tables/distance-measurement/SavedDistanceMeasurement.vue'
 import DraftSpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'
 import SavedSpatialSelection from './tables/spatial-selection/SavedSpatialSelection.vue'
 
 const spatialSelectStore = useSpatialSelectStore()
+const measurementSelectionStore = useMeasurementSelectionStore()
 
 const activeSection = ref<'distance' | 'spatial'>('distance')
 const distanceTab = ref<'draft' | 'saved'>('draft')
 const spatialTab = ref<'draft' | 'saved'>('draft')
+
+watch(
+  () => measurementSelectionStore.selected,
+  (selected) => {
+    if (!selected) return
+    if (selected.operationType === 'spatialSelection') {
+      activeSection.value = 'spatial'
+      spatialTab.value = selected.isDraft ? 'draft' : 'saved'
+    } else if (selected.operationType === 'distanceMeasurement') {
+      activeSection.value = 'distance'
+      distanceTab.value = selected.isDraft ? 'draft' : 'saved'
+    }
+  }
+)
 
 const operationTypes = [
   { value: 'none', label: '无操作' },

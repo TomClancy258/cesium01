@@ -1,6 +1,7 @@
-import type {TooltipState,AviationPrimitivesBase,AviationGraphicBase} from './shared'
+import type {TooltipState,AviationPrimitivesBase,AviationGraphicBase,ClearAviationSpatialSelectionDataBase} from './shared'
 import type {Aircraft} from "@/network/aircraft/types/aircraft"
 import * as Cesium from "cesium"
+import type {SpatialSelectionAircraft} from "./draw-tools"
 
 export interface AircraftBaseProperties {
   type: 'label' | 'billboard'
@@ -87,3 +88,10 @@ export interface AircraftsSyncData {
   data: Aircraft[],
   status: 'ok' | 'empty' | 'error'
 }
+
+export type ClearActiveAircraftSpatialSelectionData=ClearAviationSpatialSelectionDataBase
+export interface ClearFinishedAircraftSpatialSelectionData extends ClearAviationSpatialSelectionDataBase{
+  aircraft:SpatialSelectionAircraft,
+  dataSourceName:string
+}
+export type ClearAircraftSpatialSelectionData =ClearActiveAircraftSpatialSelectionData|ClearFinishedAircraftSpatialSelectionData|undefined
