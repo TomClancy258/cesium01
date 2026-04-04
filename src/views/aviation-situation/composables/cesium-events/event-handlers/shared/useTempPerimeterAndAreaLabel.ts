@@ -12,6 +12,7 @@ import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import * as turf from '@turf/turf'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import {buildSpatialSelectionLabelText} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils.ts"
 
 import {useSpatialSelectStore} from "@/stores/spatialSelect"
 
@@ -78,19 +79,17 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 
 // 1. 创建动态文本的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
+      const text=`周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
       const spatialSelectForm=spatialSelectStore.spatialSelectForm
       const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
-      let text=`周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
-      if(spatialSelectForm.operationType==='spatialSelection'){
-        if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
-          text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+text
-        }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
-          text=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
-        }else if(spatialSelectForm.spatialSelectionTarget==='all'){
-          text=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+text
-        }
-      }
-      return text
+
+      return buildSpatialSelectionLabelText(
+        text,
+        spatialSelectForm.operationType,
+        spatialSelectForm.spatialSelectionTarget,
+        activeSpatialSelection.aircraft.icao24Set.size,
+        activeSpatialSelection.airport.icaoSet.size,
+      )
     }, false);
 
     // 2. 创建动态位置的CallbackProperty
@@ -126,19 +125,18 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     const formattedAreaStr:string=formatArea(area)
 
     // 1. 生成静态文本
-    let staticText:string = `周长：${formattedPerimeterStr}\n面积：${formattedAreaStr}`;
+    const baseText:string = `周长：${formattedPerimeterStr}\n面积：${formattedAreaStr}`;
 
     const spatialSelectForm=spatialSelectStore.spatialSelectForm
     const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
-    if(spatialSelectForm.operationType==='spatialSelection'){
-      if(spatialSelectForm.spatialSelectionTarget==='aircraft'){
-        staticText=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n`+staticText
-      }else if(spatialSelectForm.spatialSelectionTarget==='airport'){
-        staticText=`机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+staticText
-      }else if(spatialSelectForm.spatialSelectionTarget==='all'){
-        staticText=`飞机：${activeSpatialSelection.aircraft.icao24Set.size} 架\n机场：${activeSpatialSelection.airport.icaoSet.size} 个\n`+staticText
-      }
-    }
+
+    const staticText= buildSpatialSelectionLabelText(
+      baseText,
+      spatialSelectForm.operationType,
+      spatialSelectForm.spatialSelectionTarget,
+      activeSpatialSelection.aircraft.icao24Set.size,
+      activeSpatialSelection.airport.icaoSet.size,
+    )
 
     const center = turf.centerOfMass(graphic);
     const centerCoord = center.geometry.coordinates;

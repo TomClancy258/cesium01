@@ -131,7 +131,8 @@ export function useAircraftSpatialSelection({
         } else if (target === 'all') {
           metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.icao24Set.size} 架\n机场：${selectionRegion.airport.icaoSet.size} 个\n${base}`
         }
-      }else if(selectionRegion.sourceType === 'circleSpatialSelection'){
+      }else if(selectionRegion.sourceType === 'circleSpatialSelection'||
+        selectionRegion.sourceType === 'hemisphereSpatialSelection'){
         const entity = viewer.value.entities.getById(dataSourceName)
         const props = entity.properties.getValue() as EntityProperties
         const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}\n半径：${props.label.radiusInfo.formattedRadiusStr}`

@@ -169,6 +169,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
       if (billboardPicked) {
         const properties = billboardPicked.primitive.properties as MapBillboardLabelProperties
+        console.log("properties", properties);
         if (properties.type !== 'billboard') return
         if (properties.sourceType === 'aircraft') {
           handleAircraftLeftClick(properties, billboardPicked)
@@ -190,6 +191,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         if (!entity.properties) return
 
         const properties = entity.properties.getValue() as EntityProperties
+        console.log("properties", properties);
         if (properties.operationType === 'distanceMeasurement') {
           handleSpatialSelectionLeftClick(viewer, entity, properties)
         } else if (properties.operationType === 'spatialSelection') {

@@ -38,9 +38,9 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
             const values: Cesium.Entity[] = dataSource.entities.values
             entity = values[0]
 
-          }else if(spatialSelectionTableRowDetail.sourceType === 'circleSpatialSelection') {
+          }else if(spatialSelectionTableRowDetail.sourceType === 'circleSpatialSelection'||
+            spatialSelectionTableRowDetail.sourceType === 'hemisphereSpatialSelection') {
             entity=viewer.value.entities.getById(dataSourceName)
-
           }
           if (entity) {
             properties = entity.properties.getValue() as EntityProperties
@@ -59,36 +59,38 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
           ) {
             const dataSource = viewer.value.dataSources.getByName(dataSourceName)[0]
             viewer.value.dataSources.remove(dataSource, true)
-
-            if (spatialSelectionTableRowDelete.sourceType === 'polygonSpatialSelection') {
-              if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'aircraft') {
-                emitCesiumEvent('clearAircraftSpatialSelection', {
-                  isActive:false,
-                  dataSourceName,
-                  aircraft:{...spatialSelectionTableRowDelete.aircraft},
-                })
-              }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'airport') {
-                emitCesiumEvent('clearAirportSpatialSelection', {
-                  isActive:false,
-                  dataSourceName,
-                  airport:{...spatialSelectionTableRowDelete.airport},
-                })
-              }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'all') {
-                emitCesiumEvent('clearAircraftSpatialSelection', {
-                  isActive:false,
-                  dataSourceName,
-                  aircraft:{...spatialSelectionTableRowDelete.aircraft},
-                })
-                emitCesiumEvent('clearAirportSpatialSelection', {
-                  isActive:false,
-                  dataSourceName,
-                  airport:{...spatialSelectionTableRowDelete.airport},
-                })
-              }
-            }
-          }else if(spatialSelectionTableRowDelete.sourceType === 'circleSpatialSelection') {
+          }else if(spatialSelectionTableRowDelete.sourceType === 'circleSpatialSelection'||
+            spatialSelectionTableRowDelete.sourceType === 'hemisphereSpatialSelection') {
             viewer.value.entities.removeById(dataSourceName)
           }
+
+          if (spatialSelectionTableRowDelete.sourceType != 'distanceMeasurement') {
+            if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'aircraft') {
+              emitCesiumEvent('clearAircraftSpatialSelection', {
+                isActive:false,
+                dataSourceName,
+                aircraft:{...spatialSelectionTableRowDelete.aircraft},
+              })
+            }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'airport') {
+              emitCesiumEvent('clearAirportSpatialSelection', {
+                isActive:false,
+                dataSourceName,
+                airport:{...spatialSelectionTableRowDelete.airport},
+              })
+            }else if (spatialSelectionTableRowDelete.spatialSelectionTarget === 'all') {
+              emitCesiumEvent('clearAircraftSpatialSelection', {
+                isActive:false,
+                dataSourceName,
+                aircraft:{...spatialSelectionTableRowDelete.aircraft},
+              })
+              emitCesiumEvent('clearAirportSpatialSelection', {
+                isActive:false,
+                dataSourceName,
+                airport:{...spatialSelectionTableRowDelete.airport},
+              })
+            }
+          }
+
           ElMessage({
             message: '删除成功',
             type: 'success',

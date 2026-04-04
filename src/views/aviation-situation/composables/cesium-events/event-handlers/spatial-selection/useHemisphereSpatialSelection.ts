@@ -3,62 +3,67 @@ import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
-import type {
-  TempPointLabelPosition,
-} from '../shared/useMouseFollowPointLabel'
-import { useKeyboardEvents } from '../useKeyboardEvents';
+import type { TempPointLabelPosition } from '../shared/useMouseFollowPointLabel'
+import { useKeyboardEvents } from '../useKeyboardEvents'
 import {
   calculateAreaFromGraphic,
   calculatePerimeterFromGraphic,
-  calculateSurfaceDistance, createCircleFromCenterAndRadius, formatArea, formatDistance,
+  calculateSurfaceDistance,
+  createCircleFromCenterAndRadius,
+  formatArea,
+  formatDistance,
 } from '@/utils/geoUtils'
 import {
-  type ClearAviationSpatialSelectionData,
   DrawingDataSource,
   LngLatAlt,
-  SpatialSelectionData
+  SpatialSelectionData,
 } from '@/views/aviation-situation/types/shared'
 import {
-  BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
+  BOX_SELECTION_STYLE,
+  TEMP_POINT_LABEL_STYLE,
+  TEMP_TOTAL_LENGTH_LABEL_STYLE,
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import {buildSpatialSelectionLabelText} from "./shared/spatialSelectionLabelUtils"
 
-import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection"
+import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import {
-  emitCesiumEvent, onCesiumEvent
-} from '@/views/aviation-situation/composables/mittBus'
+  emitSpatialSelectByTarget,
+  emitClearSpatialSelectionByTarget,
+} from '../shared/spatialSelectionEventEmitters'
+import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
 
 export interface PerimeterInfo {
-  perimeter: number;
-  formattedPerimeterStr: string;
+  perimeter: number
+  formattedPerimeterStr: string
 }
 
 export interface AreaInfo {
-  area: number;
-  formattedAreaStr: string;
+  area: number
+  formattedAreaStr: string
 }
 
 export interface RadiusInfo {
-  radius: number;
-  radii: Cesium.Cartesian3;
-  formattedRadiusStr: string;
+  radius: number
+  radii: Cesium.Cartesian3
+  formattedRadiusStr: string
 }
 
 interface DynamicHemisphereState {
-  lngLatAltArray:number[],
-  pointCount:number,
-  perimeterInfo: PerimeterInfo;
-  areaInfo: AreaInfo;
-  radiusInfo: RadiusInfo;
+  lngLatAltArray: number[]
+  pointCount: number
+  perimeterInfo: PerimeterInfo
+  areaInfo: AreaInfo
+  radiusInfo: RadiusInfo
 }
 
 /** 单条距离测绘的完整结构 */
 export interface HemisphereSpatialSelectionSession {
-  dataSource: Cesium.CustomDataSource|null
+  dataSource: Cesium.CustomDataSource | null
   surveyPoints: Cesium.Entity[]
   segmentDistanceLabels: Cesium.Entity[]
-  dynamicHemisphere: Cesium.Entity|null
+  dynamicHemisphere: Cesium.Entity | null
 }
 
 /**
@@ -67,10 +72,10 @@ export interface HemisphereSpatialSelectionSession {
  * @returns Polyline样式配置
  */
 const createDynamicHemisphereConfig = (
-  radii:Cesium.Cartesian3|Cesium.CallbackProperty,
-  text:string|Cesium.CallbackProperty,
-  position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null
-):Cesium.Entity.ConstructorOptions => {
+  radii: Cesium.Cartesian3 | Cesium.CallbackProperty,
+  text: string | Cesium.CallbackProperty,
+  position: Cesium.Cartesian3 | Cesium.CallbackProperty | null = null,
+): Cesium.Entity.ConstructorOptions => {
   const baseConfig: Cesium.Entity.ConstructorOptions = {
     show: true,
     label: {
@@ -94,264 +99,259 @@ const createDynamicHemisphereConfig = (
       material: BOX_SELECTION_STYLE.ELLIPSOID.MATERIAL,
       outline: BOX_SELECTION_STYLE.ELLIPSOID.OUTLINE,
       outlineColor: BOX_SELECTION_STYLE.ELLIPSOID.OUTLINE_COLOR,
-      minimumCone: BOX_SELECTION_STYLE.ELLIPSOID.MINIMUM_CONE,   // 顶部
-      maximumCone: BOX_SELECTION_STYLE.ELLIPSOID.MAXIMUM_CONE,  // 赤道，只保留上半球
+      minimumCone: BOX_SELECTION_STYLE.ELLIPSOID.MINIMUM_CONE, // 顶部
+      maximumCone: BOX_SELECTION_STYLE.ELLIPSOID.MAXIMUM_CONE, // 赤道，只保留上半球
       heightReference: BOX_SELECTION_STYLE.ELLIPSOID.HEIGHT_REFERENCE,
     },
-  };
+  }
   // 动态/静态文本、位置单独赋值
-  if (position) baseConfig.position = position;
-  if (text) baseConfig.label.text = text;
+  if (position) baseConfig.position = position
+  if (text) baseConfig.label.text = text
 
-  return baseConfig;
-};
+  return baseConfig
+}
 
-export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager) => {
-  const measurementSelectionStore=useMeasurementSelectionStore()
+export const useHemisphereSpatialSelection = (
+  viewer: ShallowRef<Cesium.Viewer | null>,
+  mouseFollowPointLabelManager,
+) => {
+  const measurementSelectionStore = useMeasurementSelectionStore()
   const spatialSelectStore = useSpatialSelectStore()
+  const simulatedWebSocketStore = useSimulatedWebSocketStore()
 
   // const hemisphereEntities: Cesium.Entity[] = []
-  const hemisphereMap: Map<string,Cesium.Entity>=new Map<string, Cesium.Entity>()
-  let dynamicHemisphere:Cesium.Entity|null= null
+  // const hemisphereMap: Map<string, Cesium.Entity> = new Map<string, Cesium.Entity>()
+  let dynamicHemisphere: Cesium.Entity | null = null
 
   let dynamicHemisphereState: DynamicHemisphereState = {
     lngLatAltArray: [],
-    pointCount:0,
-    perimeterInfo:{
-      perimeter:0,
-      formattedPerimeterStr:'',
+    pointCount: 0,
+    perimeterInfo: {
+      perimeter: 0,
+      formattedPerimeterStr: '',
     },
-    areaInfo:{
-      area:0,
-      formattedAreaStr:'',
+    areaInfo: {
+      area: 0,
+      formattedAreaStr: '',
     },
-    radiusInfo:{
-      radius:0,
-      radii:new Cesium.Cartesian3(0,0,0),
-      formattedRadiusStr:'',
+    radiusInfo: {
+      radius: 0,
+      radii: new Cesium.Cartesian3(0, 0, 0),
+      formattedRadiusStr: '',
     },
-  };
+  }
 
   const hemisphereSpatialSelection = (cartesian2: Cesium.Cartesian2): void => {
     const ray: Cesium.Ray = viewer.value.camera.getPickRay(cartesian2)
-    const cartesian3 :Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
+    const cartesian3: Cesium.Cartesian3 = viewer.value.scene.globe.pick(ray, viewer.value.scene)
     if (!cartesian3) {
       return
     }
 
     // 复用抽离后的更新逻辑
-    mouseFollowPointLabelManager.updateTempPointLabel(cartesian3);
+    mouseFollowPointLabelManager.updateTempPointLabel(cartesian3)
 
-    updateDynamicHemisphere();
+    updateDynamicHemisphere()
   }
 
   const updateDynamicHemisphere = () => {
-    const lngLatAlt:LngLatAlt = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt;
+    const lngLatAlt: LngLatAlt = mouseFollowPointLabelManager.tempPointLabel.position.lngLatAlt
 
-    if (dynamicHemisphereState.pointCount===1) {
-      const lngLatAltArray=dynamicHemisphereState.lngLatAltArray
+    if (dynamicHemisphereState.pointCount === 1) {
+      const lngLatAltArray = dynamicHemisphereState.lngLatAltArray
 
-      lngLatAltArray[3]=lngLatAlt.longitude
-      lngLatAltArray[4]=lngLatAlt.latitude
-      lngLatAltArray[5]=lngLatAlt.height
+      lngLatAltArray[3] = lngLatAlt.longitude
+      lngLatAltArray[4] = lngLatAlt.latitude
+      lngLatAltArray[5] = lngLatAlt.height
 
-      const startPoint = [
-        lngLatAltArray[0],
-        lngLatAltArray[1],
-        lngLatAltArray[2],
-      ];
-      const endPoint = [
-        lngLatAltArray[3],
-        lngLatAltArray[4],
-        lngLatAltArray[5],
-      ];
-      const radius = calculateSurfaceDistance(startPoint, endPoint);
-      dynamicHemisphereState.radiusInfo.radius=radius;
+      const startPoint = [lngLatAltArray[0], lngLatAltArray[1], lngLatAltArray[2]]
+      const endPoint = [lngLatAltArray[3], lngLatAltArray[4], lngLatAltArray[5]]
+      const radius = calculateSurfaceDistance(startPoint, endPoint)
+      dynamicHemisphereState.radiusInfo.radius = radius
       dynamicHemisphereState.radiusInfo.radii.x = radius
       dynamicHemisphereState.radiusInfo.radii.y = radius
       dynamicHemisphereState.radiusInfo.radii.z = radius
-      dynamicHemisphereState.radiusInfo.formattedRadiusStr=formatDistance(radius);
+      dynamicHemisphereState.radiusInfo.formattedRadiusStr = formatDistance(radius)
 
-      const circle= createCircleFromCenterAndRadius(startPoint,radius)
+      const circle = createCircleFromCenterAndRadius(startPoint, radius)
 
-      const perimeter=calculatePerimeterFromGraphic(circle)
-      dynamicHemisphereState.perimeterInfo.perimeter=perimeter;
-      dynamicHemisphereState.perimeterInfo.formattedPerimeterStr=formatDistance(perimeter);
+      const perimeter = calculatePerimeterFromGraphic(circle)
+      dynamicHemisphereState.perimeterInfo.perimeter = perimeter
+      dynamicHemisphereState.perimeterInfo.formattedPerimeterStr = formatDistance(perimeter)
 
-      const area=calculateAreaFromGraphic(circle)
-      dynamicHemisphereState.areaInfo.area=area;
-      dynamicHemisphereState.areaInfo.formattedAreaStr=formatArea(area);
+      const area = calculateAreaFromGraphic(circle)
+      dynamicHemisphereState.areaInfo.area = area
+      dynamicHemisphereState.areaInfo.formattedAreaStr = formatArea(area)
 
-      const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
-
-      const spatialSelectionData:SpatialSelectionData={
-        dataSourceName:dynamicHemisphere.id,
-        sourceType: 'hemisphereSpatialSelection',
-        type:'ellipsoid',
-        radius:radius,
-        centerLngLatAltArray:startPoint,
-        isActive: true
-      }
-      if (spatialSelectionTarget === 'aircraft') {
-        emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-      }
-      else if(spatialSelectionTarget === 'airport') {
-        emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-      }else if(spatialSelectionTarget === 'all') {
-        emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-        emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-      }
+      emitActiveCircleSpatialSelect(startPoint, radius)
     }
   }
 
-  let unsubAircraftFiltered: () => void;
+  let unsubAircraftFiltered: () => void
 
   const subscribeHemisphereSpatialSelectionEvents = () => {
     unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
       updateDynamicHemisphere()
-    });
+    })
   }
 
   const confirmSurveyPoint = () => {
     if (dynamicHemisphereState.pointCount >= 2) {
       return
     }
-    const position:TempPointLabelPosition=mouseFollowPointLabelManager.tempPointLabel.position
-    const lngLatAlt: LngLatAlt =position.lngLatAlt;
-    const cartesian3: Cesium.Cartesian3 =position.cartesian3;
+    const position: TempPointLabelPosition = mouseFollowPointLabelManager.tempPointLabel.position
+    const lngLatAlt: LngLatAlt = position.lngLatAlt
+    const cartesian3: Cesium.Cartesian3 = position.cartesian3
 
-    dynamicHemisphereState.lngLatAltArray.push(lngLatAlt.longitude, lngLatAlt.latitude, lngLatAlt.height)
+    dynamicHemisphereState.lngLatAltArray.push(
+      lngLatAlt.longitude,
+      lngLatAlt.latitude,
+      lngLatAlt.height,
+    )
     dynamicHemisphereState.pointCount++
 
     if (dynamicHemisphereState.pointCount === 1) {
-      dynamicHemisphere.position=cartesian3
+      dynamicHemisphere.position = cartesian3
     }
   }
 
   const initActiveHemisphereSpatialSelection = (): void => {
-    const hemisphereUniqueId:string = generateBizUniqueId('activeHemisphereSpatialSelection')
+    const hemisphereUniqueId: string = generateBizUniqueId('activeHemisphereSpatialSelection')
 
-    const drawingDataSourceData:DrawingDataSource={
-      name:hemisphereUniqueId
+    const drawingDataSourceData: DrawingDataSource = {
+      name: hemisphereUniqueId,
     }
     measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
 
     // 2. 创建动态位置的CallbackProperty
-    const radiiCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
-      () => {
-          return dynamicHemisphereState.radiusInfo.radii;
-      },
-      false,
-    );
+    const radiiCallback: Cesium.CallbackProperty = new Cesium.CallbackProperty(() => {
+      return dynamicHemisphereState.radiusInfo.radii
+    }, false)
     // 2. 创建动态位置的CallbackProperty
-    const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
-      ():string => {
-        return `周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n
-      面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n
-      半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`;
-      },
-      false,
-    );
+    const textCallback: Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
+      const text = `周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`
+      const spatialSelectForm=spatialSelectStore.spatialSelectForm
+      const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
 
-    const hemisphereConfig:Cesium.Entity.ConstructorOptions = createDynamicHemisphereConfig(radiiCallback,textCallback);
+      return buildSpatialSelectionLabelText(
+        text,
+        spatialSelectForm.operationType,
+        spatialSelectForm.spatialSelectionTarget,
+        activeSpatialSelection.aircraft.icao24Set.size,
+        activeSpatialSelection.airport.icaoSet.size,
+      )
+    }, false)
+
+    const hemisphereConfig: Cesium.Entity.ConstructorOptions = createDynamicHemisphereConfig(
+      radiiCallback,
+      textCallback,
+    )
     // 4. 组装实体并添加
     dynamicHemisphere = viewer.value.entities.add({
       id: hemisphereUniqueId,
       properties: {
-        operationType:'spatialSelection',
+        operationType: 'spatialSelection',
         sourceType: 'hemisphereSpatialSelection',
         type: 'ellipsoid',
         dataSourceName: hemisphereUniqueId,
-        label:{
-          originalFillColor:hemisphereConfig.label?.fillColor
+        label: {
+          originalFillColor: hemisphereConfig.label?.fillColor,
         },
-        ellipsoid:{
-          originalMaterial:hemisphereConfig.ellipsoid?.material,
-        }
+        ellipsoid: {
+          originalMaterial: hemisphereConfig.ellipsoid?.material,
+        },
+        isDraft: true,
       },
       ...hemisphereConfig,
-    });
+    })
   }
 
-  const cloneDynamicHemisphereToDataSource=(dataSourceName:string)=>{
-    const uniqueId:string = generateBizUniqueId('hemisphereSpatialSelectionHemisphere')
+  const cloneDynamicHemisphereToDataSource = (dataSourceName: string) => {
 
-    const hemisphereConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicHemisphere,uniqueId,viewer);
+    const hemisphereConfig: Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(
+      dynamicHemisphere,
+      dataSourceName,
+      viewer,
+    )
 
-    hemisphereConfig.label.text=`周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n
-      面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n
-      半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`
+    const spatialSelectForm = spatialSelectStore.spatialSelectForm
+    const activeSpatialSelection = spatialSelectStore.activeSpatialSelection
+    hemisphereConfig.label.text = `周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`
+    hemisphereConfig.label.text=buildSpatialSelectionLabelText(
+      hemisphereConfig.label.text,
+      spatialSelectForm.operationType,
+      spatialSelectForm.spatialSelectionTarget,
+      activeSpatialSelection.aircraft.icao24Set.size,
+      activeSpatialSelection.airport.icaoSet.size,
+    )
 
-    const radius=dynamicHemisphereState.radiusInfo.radius
-    hemisphereConfig.ellipsoid.radii=new Cesium.Cartesian3(radius,radius,radius)
+    const radius = dynamicHemisphereState.radiusInfo.radius
+    hemisphereConfig.ellipsoid.radii = new Cesium.Cartesian3(radius, radius, radius)
 
     // const originalFillColor=hemisphereConfig.properties.label.originalFillColor
 
-    const properties={
-      operationType:'spatialSelection',
-      sourceType: 'hemisphereSpatialSelection',
-      type: 'ellipsoid',
-      dataSourceName: dataSourceName,
-      // label:{
-      //   originalFillColor:originalFillColor,
-      // },
-      ellipsoid:{
-        originalMaterial:hemisphereConfig.ellipsoid?.material,
-      },
-      isDraft:true
-    } as EntityProperties
-
     // hemisphereConfig.show=false
-    hemisphereConfig.point.show=false
-    hemisphereConfig.label.show=false
+    hemisphereConfig.point.show = false
+    hemisphereConfig.label.show = false
 
     // hemisphereConfig.label.fillColor=Cesium.Color.TRANSPARENT
 
+    hemisphereConfig.properties.label.perimeterInfo={...dynamicHemisphereState.perimeterInfo}
+    hemisphereConfig.properties.label.areaInfo={...dynamicHemisphereState.areaInfo}
+    hemisphereConfig.properties.label.radiusInfo={
+      radius:radius,
+      formattedRadiusStr:dynamicHemisphereState.radiusInfo.formattedRadiusStr,
+    }
+    hemisphereConfig.properties.isDraft=true
+
     // 4. 组装实体并添加
-    const entity=viewer.value.entities.add({
-      id: uniqueId,
-      properties,
+    const entity = viewer.value.entities.add({
+      id: dataSourceName,
       ...hemisphereConfig, // 复用通用样式，消除重复代码
-    });
+    })
 
     // hemisphereEntities.push(entity)
-    hemisphereMap.set(uniqueId,entity)
+    // hemisphereMap.set(dataSourceName, entity)
   }
 
   /**
    * 重置计划轨迹
    */
   const resetDynamicHemisphereState = (): void => {
-    dynamicHemisphereState={
+    dynamicHemisphereState = {
       lngLatAltArray: [],
-      pointCount:0,
-      perimeterInfo:{
-        perimeter:0,
-        formattedPerimeterStr:'',
+      pointCount: 0,
+      perimeterInfo: {
+        perimeter: 0,
+        formattedPerimeterStr: '',
       },
-      areaInfo:{
-        area:0,
-        formattedAreaStr:'',
+      areaInfo: {
+        area: 0,
+        formattedAreaStr: '',
       },
-      radiusInfo:{
-        radius:0,
-        radii:new Cesium.Cartesian3(0,0,0),
-        formattedRadiusStr:'',
+      radiusInfo: {
+        radius: 0,
+        radii: new Cesium.Cartesian3(0, 0, 0),
+        formattedRadiusStr: '',
       },
-    };
+    }
   }
 
-  const resetHemisphereSpatialSelectionSession=()=>{
-    viewer.value?.entities.remove(dynamicHemisphere);
+  const resetHemisphereSpatialSelectionSession = () => {
+    viewer.value?.entities.remove(dynamicHemisphere)
     resetDynamicHemisphereState()
   }
 
   let unwatchSpatialSelectForm: () => void
+  let unwatchSimulatedWebSocketStore: () => void
   const setupSpatialSelectFormWatch = (): void => {
     unwatchSpatialSelectForm = watch(
       () => spatialSelectStore.spatialSelectForm,
       (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
-        if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'hemisphere') {
+        if (
+          newForm.operationType === 'spatialSelection' &&
+          newForm.spatialSelectionSubtype === 'hemisphere'
+        ) {
           resetHemisphereSpatialSelectionSession()
           initActiveHemisphereSpatialSelection()
         } else {
@@ -364,100 +364,139 @@ export const useHemisphereSpatialSelection = (viewer: ShallowRef<Cesium.Viewer |
         deep: true,
       },
     )
+
+    unwatchSimulatedWebSocketStore = watch(
+      () => simulatedWebSocketStore.index,
+      (newIndex: number, oldIndex: number) => {
+        if (dynamicHemisphereState.pointCount === 2) {
+          const lngLatAltArray = dynamicHemisphereState.lngLatAltArray
+
+          const startPoint = [lngLatAltArray[0], lngLatAltArray[1], lngLatAltArray[2]]
+          const endPoint = [lngLatAltArray[3], lngLatAltArray[4], lngLatAltArray[5]]
+          const radius = calculateSurfaceDistance(startPoint, endPoint)
+          emitActiveCircleSpatialSelect(startPoint, radius)
+        }
+      },
+    )
   }
 
-  const finishHemisphereSpatialSelection=(): void => {
-    if (dynamicHemisphereState.pointCount <=1) {
+  const emitActiveCircleSpatialSelect = (startPoint: number[], radius: number): void => {
+    const spatialSelectionTarget: string =
+      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionData: SpatialSelectionData = {
+      dataSourceName: dynamicHemisphere.id,
+      sourceType: 'hemisphereSpatialSelection',
+      type: 'ellipsoid',
+      label: {
+        radiusInfo: {
+          radius: radius,
+        },
+      },
+      centerLngLatAltArray: startPoint,
+      isActive: true,
+    }
+    emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
+  }
+
+  const finishHemisphereSpatialSelection = (): void => {
+    if (dynamicHemisphereState.pointCount <= 1) {
       return
     }
 
-    const uniqueId:string = generateBizUniqueId('hemisphereSpatialSelectionDataSource')
-    const newDataSource:Cesium.CustomDataSource=new Cesium.CustomDataSource(uniqueId)
-    cloneDynamicHemisphereToDataSource(newDataSource,uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
+    const uniqueId: string = generateBizUniqueId('hemisphereSpatialSelectionHemisphere')
+    cloneDynamicHemisphereToDataSource(uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const lngLatAltArray=dynamicHemisphereState.lngLatAltArray
-    const center:LngLatAlt=[
-      lngLatAltArray[0],
-      lngLatAltArray[1],
-      lngLatAltArray[2],
-    ]
+    const lngLatAltArray = dynamicHemisphereState.lngLatAltArray
+    const center: LngLatAlt = [lngLatAltArray[0], lngLatAltArray[1], lngLatAltArray[2]]
 
     // const hemisphere:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicHemisphereState.radiusInfo.radius)
 
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget: string =
+      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-    const spatialSelectionData:SpatialSelectionData={
-      dataSourceName:uniqueId,
+    const spatialSelectionData: SpatialSelectionData = {
+      dataSourceName: uniqueId,
       sourceType: 'hemisphereSpatialSelection',
-      type:'ellipsoid',
+      type: 'ellipsoid',
       // graphic:hemisphere,
-      isActive:false,
-      isDraft:true,
-      radius:dynamicHemisphereState.radiusInfo.radius,
-      centerLngLatAltArray:center,
+      isActive: false,
+      isDraft: true,
+      centroidLngLatAlt: {
+        longitude: lngLatAltArray[0],
+        latitude: lngLatAltArray[1],
+        height: lngLatAltArray[2],
+      },
+      centerLngLatAltArray: center,
+      aircraft: {
+        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
+      },
+      airport: {
+        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
+      },
+      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      label: {
+        perimeterInfo: {
+          perimeter: dynamicHemisphereState.perimeterInfo.perimeter,
+          formattedPerimeterStr: dynamicHemisphereState.perimeterInfo.formattedPerimeterStr,
+        },
+        areaInfo: {
+          area: dynamicHemisphereState.areaInfo.area,
+          formattedAreaStr: dynamicHemisphereState.areaInfo.formattedAreaStr,
+        },
+        radiusInfo: {
+          radius: dynamicHemisphereState.radiusInfo.radius,
+          formattedRadiusStr: dynamicHemisphereState.radiusInfo.formattedRadiusStr,
+        },
+      },
     }
-    if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-    }
-    else if(spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-    }else if(spatialSelectionTarget === 'all') {
-      emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-      emitCesiumEvent('airportSpatialSelect',spatialSelectionData)
-    }
+    emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
+    emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none');
+    spatialSelectStore.setOperationType('none')
+    spatialSelectStore.clearActiveAviationSpatialSelection()
   }
 
-
   const handleEsc = () => {
-    console.log("ESC pressed - Resetting distance surveying");
+    console.log('ESC pressed - Resetting distance surveying')
 
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget: string =
+      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
-      isActive:true
-    }
-    if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'all') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }
+    emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none');
-  };
+    spatialSelectStore.setOperationType('none')
+  }
 
   const handleBackspace = () => {
-    console.log("Backspace pressed - Removing last point");
+    console.log('Backspace pressed - Removing last point')
 
     // 回退最后一个坐标点
     if (dynamicHemisphereState.pointCount === 2) {
       dynamicHemisphereState.lngLatAltArray.splice((dynamicHemisphereState.pointCount - 1) * 3, 3)
       dynamicHemisphereState.pointCount--
 
-      updateDynamicHemisphere();
+      updateDynamicHemisphere()
     }
     // if (dynamicHemisphereState.pointCount === 1) {
     //   const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
     //
     //   emitCesiumEvent('clearAviationSpatialSelection')
     // }
-  };
+  }
 
   // 仅在距离测绘模式下监听键盘事件
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&
-      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='hemisphere'
-  );
+    () =>
+      spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection' &&
+      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'hemisphere',
+  )
 
   onUnmounted(() => {
     unwatchSpatialSelectForm?.()
-    unbindKeyboardEvents();
+    unwatchSimulatedWebSocketStore?.()
+    unbindKeyboardEvents()
     unsubAircraftFiltered()
   })
 

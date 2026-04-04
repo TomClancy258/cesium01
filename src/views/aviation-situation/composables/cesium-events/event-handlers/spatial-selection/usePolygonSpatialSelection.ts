@@ -9,7 +9,6 @@ import type {
   DrawingDataSource,
   LngLatAlt,
   SpatialSelectionData,
-  ClearAviationSpatialSelectionData
 } from '@/views/aviation-situation/types/shared'
 import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
@@ -20,6 +19,7 @@ import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/compo
 
 import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatialSelectionEventEmitters'
 import * as turf from '@turf/turf'
 
 import type { SegmentDistancesState } from '@/views/aviation-situation/types/draw-tools.ts'
@@ -194,14 +194,7 @@ export const usePolygonSpatialSelection = (
           isActive: true,
         }
 
-        if (spatialSelectionTarget === 'aircraft') {
-          emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
-        } else if (spatialSelectionTarget === 'airport') {
-          emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
-        } else if (spatialSelectionTarget === 'all') {
-          emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
-          emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
-        }
+        emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
       }
     }
   }
@@ -494,30 +487,8 @@ export const usePolygonSpatialSelection = (
       },
       segmentDistancesState: segmentDistancesState,
     }
-    if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
-    } else if (spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
-    } else if (spatialSelectionTarget === 'all') {
-      emitCesiumEvent('aircraftSpatialSelect', spatialSelectionData)
-      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
-    } else if (spatialSelectionTarget === 'measurement') {
-      // emitCesiumEvent('aircraftSpatialSelect',spatialSelectionData)
-      emitCesiumEvent('airportSpatialSelect', spatialSelectionData)
-    }
-
-
-    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
-      isActive:true
-    }
-    if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'all') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }
+    emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
+    emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
     spatialSelectStore.setOperationType('none')
     spatialSelectStore.clearActiveAviationSpatialSelection()
@@ -609,18 +580,7 @@ export const usePolygonSpatialSelection = (
     console.log('ESC pressed - Resetting distance surveying')
 
     const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
-
-    const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
-      isActive:true
-    }
-    if (spatialSelectionTarget === 'aircraft') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'airport') {
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }else if(spatialSelectionTarget === 'all') {
-      emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-      emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-    }
+    emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
     spatialSelectStore.setOperationType('none')
   }
 
@@ -651,17 +611,7 @@ export const usePolygonSpatialSelection = (
     if (dynamicPolygonState.pointCount === 1) {
       const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
 
-      const clearAviationSpatialSelectionData:ClearAviationSpatialSelectionData={
-        isActive:true
-      }
-      if (spatialSelectionTarget === 'aircraft') {
-        emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-      }else if(spatialSelectionTarget === 'airport') {
-        emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-      }else if(spatialSelectionTarget === 'all') {
-        emitCesiumEvent('clearAircraftSpatialSelection',clearAviationSpatialSelectionData)
-        emitCesiumEvent('clearAirportSpatialSelection',clearAviationSpatialSelectionData)
-      }
+      emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
     }
   }
 
