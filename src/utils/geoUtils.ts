@@ -3,6 +3,7 @@ import type { LngLatAlt, TooltipState,SelectionRegionBase } from '@/views/aviati
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 import {ShallowRef} from "vue"
+import {LngLatAltArray} from "@/views/aviation-situation/types/shared.ts"
 
 export function isValidCoordinate(
   longitude: unknown,
@@ -476,7 +477,7 @@ export function buildRegionFromData(data: SpatialSelectionData): SelectionRegion
       radiusInfo: { ...data.label.radiusInfo },
     },
     polygonState: { ...data.polygonState },
-    segmentDistancesState: {...data.segmentDistancesState},
+    segments: [...(data.segments ?? [])],
   }
 }
 

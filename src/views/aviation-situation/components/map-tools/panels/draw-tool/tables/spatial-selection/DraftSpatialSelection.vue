@@ -6,6 +6,8 @@ import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import AircraftIcaoPopover from './popover/AircraftIcaoPopover.vue'
 import AirportIcaoPopover from './popover/AirportIcaoPopover.vue'
+import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
+import SegmentsPopover from '../../popover/SegmentsPopover.vue'
 
 const spatialSelectionStore = useSpatialSelectionStore()
 const { finishedGraphicsArray } = storeToRefs(spatialSelectionStore)
@@ -55,11 +57,6 @@ const formatRadius = (row: any) => {
   const r = row.label?.radiusInfo?.radius
   if (r == null) return '—'
   return r >= 1000 ? `${(r / 1000).toFixed(2)} km` : `${r.toFixed(0)} m`
-}
-
-// paths 格式化
-const getPaths = (row: any): string[] => {
-  return row.polygonState?.lngLatAltArray ?? []
 }
 
 // 表格 ref（用于编程式勾选）
@@ -125,8 +122,8 @@ const handleDelete = (row: any) => {
 const handleView = (row: any) => {
   console.log('查看', row)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
-    centroidLngLatAlt:row.centroidLngLatAlt,
     operationType:'detail',
+    centroidLngLatAlt:row.centroidLngLatAlt,
     dataSourceName:row.dataSourceName,
     sourceType:row.sourceType,
   })
@@ -193,7 +190,7 @@ const handleView = (row: any) => {
       </el-table-column>
 
       <!-- 周长 -->
-      <el-table-column label="周长" align="center">
+      <el-table-column label="周长" align="center" width="100px">
         <template #default="{ row }">
           {{ row.label?.perimeterInfo?.formattedPerimeterStr ?? '—' }}
         </template>
@@ -206,35 +203,32 @@ const handleView = (row: any) => {
         </template>
       </el-table-column>
 
-      <!-- 路径 paths -->
+      <!-- 测绘点数 -->
+      <el-table-column label="测绘点数" align="center" width="90">
+        <template #default="{ row }">
+          {{ row.polygonState?.lngLatAltList?.length ?? '—' }}
+        </template>
+      </el-table-column>
+
+      <!-- 测绘点 -->
+      <el-table-column label="测绘点" align="center" width="250">
+        <template #default="{ row }">
+          <SurveyPointsPopover
+            :lngLatAltList="row.polygonState?.lngLatAltList"
+            :dataSourceName="row.dataSourceName"
+            :sourceType="row.sourceType"
+          />
+        </template>
+      </el-table-column>
+
+      <!-- 路径 -->
       <el-table-column label="路径" align="center">
         <template #default="{ row }">
-          <template v-if="getPaths(row).length === 0">—</template>
-          <template v-else>
-            <el-popover
-              placement="top"
-              :width="280"
-              trigger="hover"
-              popper-class="spatial-popover"
-            >
-              <template #reference>
-                <el-tag type="info" size="small" style="cursor: default">
-                  {{ getPaths(row).length }} 个点
-                </el-tag>
-              </template>
-              <div class="popover-title">路径坐标（{{ getPaths(row).length }} 个点）</div>
-              <div class="popover-list">
-                <div
-                  v-for="(pt, idx) in getPaths(row)"
-                  :key="idx"
-                  class="popover-item"
-                >
-                  <span class="popover-index">{{ idx + 1 }}</span>
-                  <span class="popover-value">{{ Array.isArray(pt) ? pt.map((v: number) => v.toFixed(4)).join(', ') : pt }}</span>
-                </div>
-              </div>
-            </el-popover>
-          </template>
+          <SegmentsPopover
+            :segments="row.segments"
+            :dataSourceName="row.dataSourceName"
+            :sourceType="row.sourceType"
+          />
         </template>
       </el-table-column>
 
@@ -331,43 +325,3 @@ const handleView = (row: any) => {
 
 </style>
 
-<!-- 全局样式，放到全局 scss 或 App.vue 的非 scoped style 中 -->
-<style lang="scss">
-.spatial-popover {
-  .popover-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--el-text-color-primary);
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid var(--el-border-color-lighter);
-  }
-
-  .popover-list {
-    max-height: 200px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .popover-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    line-height: 1.6;
-  }
-
-  .popover-index {
-    min-width: 18px;
-    color: var(--el-text-color-secondary);
-    font-size: 11px;
-  }
-
-  .popover-value {
-    color: var(--el-text-color-primary);
-    word-break: break-all;
-  }
-}
-</style>

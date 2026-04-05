@@ -15,8 +15,8 @@ import {
 } from '@/utils/geoUtils'
 import {
   DrawingDataSource,
-  LngLatAlt,
-  SpatialSelectionData,
+  LngLatAlt, LngLatAltArray,
+  SpatialSelectionData
 } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
@@ -407,9 +407,9 @@ export const useHemisphereSpatialSelection = (
     cloneDynamicHemisphereToDataSource(uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
     const lngLatAltArray = dynamicHemisphereState.lngLatAltArray
-    const center: LngLatAlt = [lngLatAltArray[0], lngLatAltArray[1], lngLatAltArray[2]]
+    const centerLngLatAltArray: LngLatAltArray = [lngLatAltArray[0], lngLatAltArray[1], lngLatAltArray[2]]
 
-    // const hemisphere:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicHemisphereState.radiusInfo.radius)
+    // const hemisphere:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(centerLngLatAltArray,dynamicHemisphereState.radiusInfo.radius)
 
     const spatialSelectionTarget: string =
       drawingToolStore.drawingToolForm.spatialSelectionTarget
@@ -426,7 +426,7 @@ export const useHemisphereSpatialSelection = (
         latitude: lngLatAltArray[1],
         height: lngLatAltArray[2],
       },
-      centerLngLatAltArray: center,
+      centerLngLatAltArray: centerLngLatAltArray,
       aircraft: {
         icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
       },

@@ -6,6 +6,8 @@ import type {
   SegmentDistancesState
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection'
 
+export type LngLatAltArray=[number,number,number]
+
 interface TooltipPosition {
   left: number
   top: number

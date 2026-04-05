@@ -15,7 +15,8 @@ import {
 import {
   DrawingDataSource,
   LngLatAlt,
-  SpatialSelectionData
+  SpatialSelectionData,
+  LngLatAltArray
 } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
@@ -388,13 +389,13 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     cloneDynamicCircleToDataSource(uniqueId)
 
     const lngLatAltArray=dynamicCircleState.lngLatAltArray
-    const center:LngLatAlt=[
+    const centerLngLatAltArray:LngLatAltArray=[
       lngLatAltArray[0],
       lngLatAltArray[1],
       lngLatAltArray[2],
     ]
 
-    // const circle:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicCircleState.radiusInfo.radius)
+    // const circle:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(centerLngLatAltArray,dynamicCircleState.radiusInfo.radius)
 
     const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
 
@@ -410,7 +411,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         latitude:lngLatAltArray[1],
         height: lngLatAltArray[2]
       },
-      centerLngLatAltArray:center,
+      centerLngLatAltArray:centerLngLatAltArray,
       aircraft:{
         icao24Set:new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set)
       },

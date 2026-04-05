@@ -23,7 +23,12 @@ export type SpatialSelectionTableRowDelete = SpatialSelectionTableRowBase
 
 export type SpatialSelectionTableRowOperation =SpatialSelectionTableRowDelete|SpatialSelectionTableRowDetail
 
+export interface Segment{
+  distance:number,
+  midLngLatAlt:LngLatAlt,
+}
+
 export interface SegmentDistancesState{
-  distances: number[]
+  segments: Segment[]
 }
 

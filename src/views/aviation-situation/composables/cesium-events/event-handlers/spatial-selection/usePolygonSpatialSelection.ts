@@ -23,6 +23,11 @@ import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '..
 import * as turf from '@turf/turf'
 
 import type { SegmentDistancesState } from '@/views/aviation-situation/types/draw-tools.ts'
+import {
+  buildLngLatAltList,
+  buildSegments,
+  SegmentResult
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils'
 
 interface DynamicPolygonState {
   lngLatAltArray: number[] // 经纬度+海拔数组（3个一组）
@@ -99,7 +104,7 @@ export const usePolygonSpatialSelection = (
   }
 
   const segmentDistancesState: SegmentDistancesState = {
-    distances: [],
+    segments: [],
   }
 
   const polygonSpatialSelection = (cartesian2: Cesium.Cartesian2): void => {
@@ -244,9 +249,10 @@ export const usePolygonSpatialSelection = (
         true,
       )
 
-      segmentDistancesState.distances.push(
-        lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
-      )
+      segmentDistancesState.segments.push({
+          distance:lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
+          midLngLatAlt:lastButOneDynamicSegmentLengthLabel.tempSegmentDistanceLabel.position.lngLatAlt
+        })
     }
   }
 
@@ -356,7 +362,7 @@ export const usePolygonSpatialSelection = (
     cleanupActivePolygonSpatialSelection()
     resetDynamicPolygonState()
 
-    segmentDistancesState.distances = []
+    segmentDistancesState.segments = []
   }
 
   let unwatchDrawingToolForm: () => void
@@ -443,13 +449,17 @@ export const usePolygonSpatialSelection = (
     )
     cloneSurveyPointsAndLabelsToDataSource(newDataSource, uniqueId)
 
-    segmentDistancesState.distances.push(
-      lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
-    )
+    segmentDistancesState.segments.push({
+      distance:lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.distanceInfo.distance,
+      midLngLatAlt:lastDynamicSegmentLengthLabel.tempSegmentDistanceLabel.position.lngLatAlt
+    })
 
     // polygonSpatialSelectionDataSources.push(newDataSource);
     // polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
+
+    const segmentResults:SegmentResult[]=buildSegments(dynamicPolygonState.lngLatAltArray,segmentDistancesState.segments)
+    const lngLatAltList:LngLatAlt[]=buildLngLatAltList(dynamicPolygonState.lngLatAltArray)
 
     const spatialSelectionTarget: string =
       drawingToolStore.drawingToolForm.spatialSelectionTarget
@@ -482,11 +492,13 @@ export const usePolygonSpatialSelection = (
         },
       },
       polygonState: {
-        lngLatAltArray: dynamicPolygonState.lngLatAltArray,
-        pointCount: dynamicPolygonState.pointCount,
+        // lngLatAltArray: dynamicPolygonState.lngLatAltArray,
+        // pointCount: dynamicPolygonState.pointCount,
+        lngLatAltList
       },
-      segmentDistancesState: segmentDistancesState,
+      segments:segmentResults,
     }
+    console.log("spatialSelectionDataaaaaaaaaaa", spatialSelectionData);
     emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
@@ -602,7 +614,7 @@ export const usePolygonSpatialSelection = (
       )
       dynamicPolygonState.polygonHierarchy = new Cesium.PolygonHierarchy(positions)
 
-      segmentDistancesState.distances.pop()
+      segmentDistancesState.segments.pop()
 
       // 删除最后三个元素 (lon, lat, alt)
       dynamicPolygonState.pointCount--
