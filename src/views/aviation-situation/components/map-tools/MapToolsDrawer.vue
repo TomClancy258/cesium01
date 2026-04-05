@@ -8,7 +8,7 @@ import AirportFilter from '@/views/aviation-situation/components/map-tools/panel
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { useDrawingToolStore } from '@/stores/drawingTool'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
@@ -28,10 +28,10 @@ const activeIndex = ref('aircraftFilter')
 
 const activeName = ref('')
 
-const measurementSelectionStore = useMeasurementSelectionStore()
+const drawingToolStore = useDrawingToolStore()
 
 watch(
-  () => measurementSelectionStore.selected,
+  () => drawingToolStore.selected,
   (selected) => {
     if (!selected) return
     activeIndex.value='spatialSelection'

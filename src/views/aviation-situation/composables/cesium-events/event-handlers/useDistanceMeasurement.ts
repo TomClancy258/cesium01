@@ -1,7 +1,6 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/useDistanceSurvey.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { useKeyboardEvents } from './useKeyboardEvents';
 import {
@@ -14,7 +13,7 @@ import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constan
 import {cloneEntityAsConfig} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { useDrawingToolStore,type DrawingToolForm } from '@/stores/drawingTool'
 import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
 import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tools.ts"
 
@@ -77,10 +76,9 @@ const getLastLineSegmentMidLngLatAlt = (polylineState: DynamicPolylineState): Ln
 };
 
 export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>, mouseFollowPointLabelManager, segmentDistanceLabelManager, totalDistanceLabelManager) => {
-  const measurementSelectionStore=useMeasurementSelectionStore()
+  const drawingToolStore=useDrawingToolStore()
   const distanceMeasurementStore=useDistanceMeasurementStore()
 
-  const spatialSelectStore = useSpatialSelectStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
   // const distanceMeasurementDataSources: Cesium.CustomDataSource[] = []
   // const distanceMeasurementDataSourceMap=new Map<string,Cesium.CustomDataSource>()
@@ -190,7 +188,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     const drawingDataSourceData:DrawingDataSource={
       name:dataSourceUniqueId
     }
-    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
+    drawingToolStore.setDrawingDataSource(drawingDataSourceData)
     // 2. 创建动态位置的CallbackProperty
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
@@ -280,11 +278,11 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     resetDynamicPolylineState()
   }
 
-  let unwatchSpatialSelectForm: () => void
-  const setupSpatialSelectFormWatch = (): void => {
-    unwatchSpatialSelectForm = watch(
-      () => spatialSelectStore.spatialSelectForm,
-      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+  let unwatchDrawingToolForm: () => void
+  const setupDrawingToolWatch = (): void => {
+    unwatchDrawingToolForm = watch(
+      () => drawingToolStore.drawingToolForm,
+      (newForm: DrawingToolForm, oldForm: DrawingToolForm) => {
         if (newForm.operationType === 'distanceMeasurement') {
           resetDistanceMeasurementSession()
           initActiveDistanceSurvey()
@@ -347,7 +345,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     distanceMeasurementStore.addFinishedSelection(distanceMeasurementData)
 
-    spatialSelectStore.setOperationType('none');
+    drawingToolStore.setOperationType('none');
   }
 
   const cloneSurveyPointsAndLabelsToDataSource=(dataSource: Cesium.CustomDataSource,uniqueId:string):void=>{
@@ -433,7 +431,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
-    spatialSelectStore.setOperationType('none');
+    drawingToolStore.setOperationType('none');
   };
 
   const handleBackspace = () => {
@@ -463,18 +461,18 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType === 'distanceMeasurement'
+    () => drawingToolStore.drawingToolForm.operationType === 'distanceMeasurement'
   );
 
   onUnmounted(() => {
-    unwatchSpatialSelectForm?.()
+    unwatchDrawingToolForm?.()
     unbindKeyboardEvents();
   })
 
   return {
     distanceMeasurement,
     confirmSurveyPoint,
-    setupSpatialSelectFormWatch,
+    setupDrawingToolWatch,
     finishDistanceSurvey,
   }
 }

@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
+import {  useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { useKeyboardEvents } from '../useKeyboardEvents'
 import { calculateSurfaceDistance, getSurfaceMidpoint } from '@/utils/geoUtils'
@@ -17,7 +17,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawingTool'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatialSelectionEventEmitters'
 import * as turf from '@turf/turf'
@@ -69,7 +69,7 @@ export const usePolygonSpatialSelection = (
   mouseFollowPointLabelManager,
   perimeterAndAreaLabel,
 ) => {
-  const measurementSelectionStore = useMeasurementSelectionStore()
+  const drawingToolStore = useDrawingToolStore()
   const lastButOneDynamicSegmentLengthLabel = useDynamicSegmentDistanceLabel(
     viewer,
     'lastButOnePolygonSpatialSelectionDynamicSegmentLengthLabel',
@@ -79,7 +79,7 @@ export const usePolygonSpatialSelection = (
     'lastPolygonSpatialSelectionDynamicSegmentLengthLabel',
   )
 
-  const spatialSelectStore = useSpatialSelectStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
   //存放全部距离测绘折线（可以绘制多条）的数组
   // const polygonSpatialSelectionDataSources: Cesium.CustomDataSource[] = []
   // const polygonSpatialSelectionDataSourceMap=new Map<string,Cesium.CustomDataSource>()
@@ -184,7 +184,7 @@ export const usePolygonSpatialSelection = (
         )
 
         const spatialSelectionTarget: string =
-          spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+          drawingToolStore.drawingToolForm.spatialSelectionTarget
 
         const spatialSelectionData: SpatialSelectionData = {
           dataSourceName: activePolygonSpatialSelection.dataSource.name,
@@ -257,7 +257,7 @@ export const usePolygonSpatialSelection = (
     const drawingDataSourceData: DrawingDataSource = {
       name: dataSourceUniqueId,
     }
-    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
+    drawingToolStore.setDrawingDataSource(drawingDataSourceData)
 
     addTempSegmentLengthLabels()
 
@@ -359,11 +359,11 @@ export const usePolygonSpatialSelection = (
     segmentDistancesState.distances = []
   }
 
-  let unwatchSpatialSelectForm: () => void
-  const setupSpatialSelectFormWatch = (): void => {
-    unwatchSpatialSelectForm = watch(
-      () => spatialSelectStore.spatialSelectForm,
-      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+  let unwatchDrawingToolForm: () => void
+  const setupDrawingToolWatch = (): void => {
+    unwatchDrawingToolForm = watch(
+      () => drawingToolStore.drawingToolForm,
+      (newForm: DrawingToolForm, oldForm: DrawingToolForm) => {
         if (
           newForm.operationType === 'spatialSelection' &&
           newForm.spatialSelectionSubtype === 'polygon'
@@ -400,12 +400,12 @@ export const usePolygonSpatialSelection = (
       dataSourceName: uniqueId,
       isDraft:true,
       aircraft: {
-        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
+        icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
       },
       airport: {
-        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
+        icaoSet: new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet),
       },
-      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      spatialSelectionTarget: drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label: {
         perimeterInfo: {
           perimeter: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
@@ -452,7 +452,7 @@ export const usePolygonSpatialSelection = (
     viewer.value?.dataSources.add(newDataSource)
 
     const spatialSelectionTarget: string =
-      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      drawingToolStore.drawingToolForm.spatialSelectionTarget
 
     const spatialSelectionData = {
       dataSourceName: uniqueId,
@@ -463,12 +463,12 @@ export const usePolygonSpatialSelection = (
       isDraft:true,
       centroidLngLatAlt: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
       aircraft: {
-        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
+        icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
       },
       airport: {
-        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
+        icaoSet: new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet),
       },
-      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      spatialSelectionTarget: drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label: {
         perimeterInfo: {
           perimeter: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.perimeterInfo.perimeter,
@@ -490,8 +490,8 @@ export const usePolygonSpatialSelection = (
     emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none')
-    spatialSelectStore.clearActiveAviationSpatialSelection()
+    drawingToolStore.setOperationType('none')
+    spatialSelectionStore.clearActiveAviationSpatialSelection()
   }
 
   const cloneSurveyPointsAndLabelsToDataSource = (
@@ -579,9 +579,9 @@ export const usePolygonSpatialSelection = (
   const handleEsc = () => {
     console.log('ESC pressed - Resetting distance surveying')
 
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
-    spatialSelectStore.setOperationType('none')
+    drawingToolStore.setOperationType('none')
   }
 
   const handleBackspace = () => {
@@ -609,7 +609,7 @@ export const usePolygonSpatialSelection = (
       updateSegmentDistanceLabel()
     }
     if (dynamicPolygonState.pointCount === 1) {
-      const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
 
       emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
     }
@@ -620,12 +620,12 @@ export const usePolygonSpatialSelection = (
     handleEsc,
     handleBackspace,
     () =>
-      spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection' &&
-      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'polygon',
+      drawingToolStore.drawingToolForm.operationType === 'spatialSelection' &&
+      drawingToolStore.drawingToolForm.spatialSelectionSubtype === 'polygon',
   )
 
   onUnmounted(() => {
-    unwatchSpatialSelectForm?.()
+    unwatchDrawingToolForm?.()
     unbindKeyboardEvents()
     unsubAircraftFiltered()
   })
@@ -633,7 +633,7 @@ export const usePolygonSpatialSelection = (
   return {
     polygonSpatialSelection,
     confirmSurveyPoint,
-    setupSpatialSelectFormWatch,
+    setupDrawingToolWatch,
     finishPolygonSpatialSelection,
     subscribePolygonSpatialSelectionEvents,
   }

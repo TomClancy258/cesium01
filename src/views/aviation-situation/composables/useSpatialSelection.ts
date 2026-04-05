@@ -10,10 +10,10 @@ import {
 } from '@/views/aviation-situation/types/draw-tools'
 import { handleSpatialSelectionLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/spatial-selection'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import { useSpatialSelectionStore } from '@/stores/spatialSelection'
 
 export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
-  const spatialSelectStore = useSpatialSelectStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
 
   const initSpatialSelection = () => {
     subscribeSpatialSelectionEvents()
@@ -51,7 +51,7 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
           const spatialSelectionTableRowDelete =
             spatialSelectionTableRowOperation as SpatialSelectionTableRowDelete
           const dataSourceName = spatialSelectionTableRowDelete.dataSourceName
-          spatialSelectStore.removeFinishedSelection(dataSourceName)
+          spatialSelectionStore.removeFinishedSelection(dataSourceName)
           console.log("spatialSelectionTableRowDelete", spatialSelectionTableRowDelete);
           if (
             spatialSelectionTableRowDelete.sourceType === 'polygonSpatialSelection' ||

@@ -12,9 +12,6 @@ import {
   handleSpatialSelectionLeftClick
 } from './event-handlers/interaction/spatial-selection'
 
-import { SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
-const spatialSelectStore=useSpatialSelectStore()
-
 import {useAviationSelectionStore} from "@/stores/aviationSelection"
 const aviationSelectionStore=useAviationSelectionStore()
 
@@ -53,7 +50,7 @@ import {
 
 import { onUnmounted, watch } from 'vue'
 
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawingTool'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import {
   useHemisphereSpatialSelection
@@ -61,7 +58,7 @@ import {
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
-  const measurementSelectionStore=useMeasurementSelectionStore()
+  const drawingToolStore=useDrawingToolStore()
 
   let handler: Cesium.ScreenSpaceEventHandler | null = null
   const mouseFollowPointLabelManager = useMouseFollowPointLabel(viewer);
@@ -72,14 +69,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const {
     distanceMeasurement,
     confirmSurveyPoint:confirmDistanceSurveySurveyPoint,
-    setupSpatialSelectFormWatch:setupDistanceSurveySpatialFormWatch,
+    setupDrawingToolWatch:setupDistanceSurveySpatialFormWatch,
     finishDistanceSurvey,
   }=useDistanceMeasurement(viewer,mouseFollowPointLabelManager,segmentDistanceLabelManager,totalDistanceLabelManager)
 
   const {
     polygonSpatialSelection,
     confirmSurveyPoint:confirmPolygonSpatialSelectionSurveyPoint,
-    setupSpatialSelectFormWatch:setupPolygonSpatialSelectionSpatialFormWatch,
+    setupDrawingToolWatch:setupPolygonSpatialSelectionSpatialFormWatch,
     finishPolygonSpatialSelection,
     subscribePolygonSpatialSelectionEvents,
   }=usePolygonSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
@@ -87,7 +84,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const {
     circleSpatialSelection,
     confirmSurveyPoint:confirmCircleSpatialSelectionSurveyPoint,
-    setupSpatialSelectFormWatch:setupCircleSpatialSelectionSpatialFormWatch,
+    setupDrawingToolWatch:setupCircleSpatialSelectionSpatialFormWatch,
     finishCircleSpatialSelection,
     subscribeCircleSpatialSelectionEvents,
   }=useCircleSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
@@ -95,7 +92,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const {
     hemisphereSpatialSelection,
     confirmSurveyPoint:confirmHemisphereSpatialSelectionSurveyPoint,
-    setupSpatialSelectFormWatch:setupHemisphereSpatialSelectionSpatialFormWatch,
+    setupDrawingToolWatch:setupHemisphereSpatialSelectionSpatialFormWatch,
     finishHemisphereSpatialSelection,
     subscribeHemisphereSpatialSelectionEvents,
   }=useHemisphereSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
@@ -118,14 +115,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 鼠标移动
     handler.setInputAction((movement: Cesium.ScreenSpaceEventHandler.MotionEvent) => {
       // console.log("MOUSE_MOVE");
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
+      if(drawingToolStore.drawingToolForm.operationType==='distanceMeasurement'){
         distanceMeasurement(movement.endPosition)
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
-        if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+      }else if(drawingToolStore.drawingToolForm.operationType==='spatialSelection'){
+        if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='polygon'){
           polygonSpatialSelection(movement.endPosition)
-        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+        }else if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='circle'){
           circleSpatialSelection(movement.endPosition)
-        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='hemisphere'){
+        }else if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='hemisphere'){
           hemisphereSpatialSelection(movement.endPosition)
         }
       }
@@ -135,18 +132,18 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 左键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
       // ✅ 测绘模式下，优先处理点位确认，不需要 pick 任何对象
-      if (spatialSelectStore.spatialSelectForm.operationType === 'distanceMeasurement') {
+      if (drawingToolStore.drawingToolForm.operationType === 'distanceMeasurement') {
         confirmDistanceSurveySurveyPoint()
         return  // ✅ 直接 return，不走后续 pick 逻辑
       }
-      if (spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection') {
-        if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'polygon') {
+      if (drawingToolStore.drawingToolForm.operationType === 'spatialSelection') {
+        if (drawingToolStore.drawingToolForm.spatialSelectionSubtype === 'polygon') {
           confirmPolygonSpatialSelectionSurveyPoint()
           return
-        } else if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'circle') {
+        } else if (drawingToolStore.drawingToolForm.spatialSelectionSubtype === 'circle') {
           confirmCircleSpatialSelectionSurveyPoint()
           return
-        } else if (spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'hemisphere') {
+        } else if (drawingToolStore.drawingToolForm.spatialSelectionSubtype === 'hemisphere') {
           confirmHemisphereSpatialSelectionSurveyPoint()
           return
         }
@@ -158,7 +155,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       if (pickedObjects.length === 0) {
         aviationSelectionStore.clearSelected()
         aviationSelectionStore.clearLastSelectedIcao24()
-        measurementSelectionStore.clearSelected()
+        drawingToolStore.clearSelected()
         clearSelectedEntityHighlight()
         return
       }
@@ -197,7 +194,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         } else if (properties.operationType === 'spatialSelection') {
           handleSpatialSelectionLeftClick(viewer, entity, properties)
         } else {
-          measurementSelectionStore.clearSelected()
+          drawingToolStore.clearSelected()
           clearSelectedEntityHighlight()
         }
         return
@@ -206,21 +203,21 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       // ✅ drillPick 有结果但都不是我们关心的类型
       aviationSelectionStore.clearSelected()
       aviationSelectionStore.clearLastSelectedIcao24()
-      measurementSelectionStore.clearSelected()
+      drawingToolStore.clearSelected()
       clearSelectedEntityHighlight()
 
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 
     // 右键点击
     handler.setInputAction((click: Cesium.ScreenSpaceEventHandler.ClickEvent) => {
-      if(spatialSelectStore.spatialSelectForm.operationType==='distanceMeasurement'){
+      if(drawingToolStore.drawingToolForm.operationType==='distanceMeasurement'){
         finishDistanceSurvey()
-      }else if(spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'){
-        if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='polygon'){
+      }else if(drawingToolStore.drawingToolForm.operationType==='spatialSelection'){
+        if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='polygon'){
           finishPolygonSpatialSelection()
-        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'){
+        }else if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='circle'){
           finishCircleSpatialSelection()
-        }else if(spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='hemisphere'){
+        }else if(drawingToolStore.drawingToolForm.spatialSelectionSubtype==='hemisphere'){
           finishHemisphereSpatialSelection()
         }
       }
@@ -235,7 +232,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       console.log("LEFT_DOWN");
     }, Cesium.ScreenSpaceEventType.LEFT_DOWN)
 
-    setupSpatialSelectFormWatch()
+    setupDrawingToolWatch()
     setupDistanceSurveySpatialFormWatch()
     setupPolygonSpatialSelectionSpatialFormWatch()
     setupCircleSpatialSelectionSpatialFormWatch()
@@ -318,16 +315,16 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     eventNames.forEach(name => mittBus.off(name))
   }
 
-  let unwatchSpatialSelectForm: () => void
-  const setupSpatialSelectFormWatch = (): void => {
-    unwatchSpatialSelectForm = watch(
-      () => spatialSelectStore.spatialSelectForm,
-      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+  let unwatchDrawingToolForm: () => void
+  const setupDrawingToolWatch = (): void => {
+    unwatchDrawingToolForm = watch(
+      () => drawingToolStore.drawingToolForm,
+      (newForm: DrawingToolForm, oldForm: DrawingToolForm) => {
         if (newForm.operationType != 'none'||(newForm.operationType==='spatialSelection'&&newForm.spatialSelectionSubtype!='none')) {
           mouseFollowPointLabelManager.setTempPointLabelVisibility(true)
         }else{
           mouseFollowPointLabelManager.setTempPointLabelVisibility(false)
-          measurementSelectionStore.clearDrawingDataSource()
+          drawingToolStore.clearDrawingDataSource()
         }
 
         if (newForm.operationType === 'distanceMeasurement') {
@@ -351,7 +348,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   }
 
   onUnmounted(()=>{
-    unwatchSpatialSelectForm()
+    unwatchDrawingToolForm()
   })
 
   return { initEvents, destroyEvents }

@@ -14,7 +14,8 @@ import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {buildSpatialSelectionLabelText} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils.ts"
 
-import {useSpatialSelectStore} from "@/stores/spatialSelect"
+import {useSpatialSelectionStore} from "@/stores/spatialSelection"
+import {useDrawingToolStore} from "@/stores/drawingTool"
 
 export interface PerimeterInfo {
   perimeter: number;
@@ -49,7 +50,8 @@ export interface TempPerimeterAndAreaLabel {
 }
 
 export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
-  const spatialSelectStore=useSpatialSelectStore()
+  const spatialSelectionStore=useSpatialSelectionStore()
+  const drawingToolStore=useDrawingToolStore()
   // 初始化临时坐标标签
   const tempPerimeterAndAreaLabel: TempPerimeterAndAreaLabel  = {
     entity: null,
@@ -80,13 +82,13 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
 // 1. 创建动态文本的CallbackProperty
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
       const text=`周长：${tempPerimeterAndAreaLabel.perimeterInfo.formattedPerimeterStr}\n面积：${tempPerimeterAndAreaLabel.areaInfo.formattedAreaStr}`;
-      const spatialSelectForm=spatialSelectStore.spatialSelectForm
-      const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+      const drawingToolForm=drawingToolStore.drawingToolForm
+      const activeSpatialSelection=spatialSelectionStore.activeSpatialSelection
 
       return buildSpatialSelectionLabelText(
         text,
-        spatialSelectForm.operationType,
-        spatialSelectForm.spatialSelectionTarget,
+        drawingToolForm.operationType,
+        drawingToolForm.spatialSelectionTarget,
         activeSpatialSelection.aircraft.icao24Set.size,
         activeSpatialSelection.airport.icaoSet.size,
       )
@@ -127,13 +129,13 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
     // 1. 生成静态文本
     const baseText:string = `周长：${formattedPerimeterStr}\n面积：${formattedAreaStr}`;
 
-    const spatialSelectForm=spatialSelectStore.spatialSelectForm
-    const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+    const drawingToolForm=drawingToolStore.drawingToolForm
+    const activeSpatialSelection=spatialSelectionStore.activeSpatialSelection
 
     const staticText= buildSpatialSelectionLabelText(
       baseText,
-      spatialSelectForm.operationType,
-      spatialSelectForm.spatialSelectionTarget,
+      drawingToolForm.operationType,
+      drawingToolForm.spatialSelectionTarget,
       activeSpatialSelection.aircraft.icao24Set.size,
       activeSpatialSelection.airport.icaoSet.size,
     )

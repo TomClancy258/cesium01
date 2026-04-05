@@ -1,5 +1,11 @@
-import type { ClearAviationSpatialSelectionData, SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import type {
+  ClearAviationSpatialSelectionData,
+  SelectionRegionBase,
+  SpatialSelectionData
+} from '@/views/aviation-situation/types/shared'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { buildRegionFromData } from '@/utils/geoUtils'
+import {useSpatialSelectionStore} from "@/stores/spatialSelection"
 
 export const emitSpatialSelectByTarget = (
   target: string,
@@ -13,7 +19,11 @@ export const emitSpatialSelectByTarget = (
     emitCesiumEvent('aircraftSpatialSelect', data)
     emitCesiumEvent('airportSpatialSelect', data)
   } else if (target === 'measurement') {
-    emitCesiumEvent('airportSpatialSelect', data)
+    if (!data.isActive) {
+      const region: SelectionRegionBase = buildRegionFromData(data)
+      const spatialSelectionStore=useSpatialSelectionStore()
+      spatialSelectionStore.addFinishedSelection(region)
+    }
   }
 }
 

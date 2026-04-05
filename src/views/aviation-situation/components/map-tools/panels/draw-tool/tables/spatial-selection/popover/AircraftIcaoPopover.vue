@@ -33,7 +33,7 @@ const paged = computed(() =>
   <template v-else>
     <el-popover
       placement="top"
-      :width="500"
+      width="30%"
       trigger="click"
       popper-class="aircraft-list-popover"
       @show="onShow"

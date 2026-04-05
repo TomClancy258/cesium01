@@ -31,7 +31,7 @@ export interface LngLatAlt {
   height: number
 }
 
-export interface MeasurementSelectedData {
+export interface DrawingToolSelectedData {
   id:string,
   type:string,
   sourceType:string,
@@ -117,7 +117,7 @@ export interface AviationGraphicBase<T extends AviationPrimitivesBase = Aviation
   primitives: T;
 }
 
-export interface MeasurementEntitiesResult {
+export interface DrawingToolEntitiesResult {
   measurementEntities: Cesium.Entity[];
   highlightEntity: Cesium.Entity | null;
 }

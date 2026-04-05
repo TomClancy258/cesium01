@@ -8,7 +8,7 @@ import {
   clearSpatialSelectedHighlight,
 } from '@/views/aviation-situation/composables/useBillboardHighlightManager.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
-import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import { useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { isPointInSelectionRegion } from '@/utils/geoUtils.ts'
 import type { SelectionRegionBase,ClearAviationSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
@@ -28,7 +28,7 @@ export function useAircraftSpatialSelection({
   renderMap,
   spatialSelectedImageUrl,
 }: Options) {
-  const spatialSelectStore = useSpatialSelectStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
 
   // ---- active 选区 ----
   // const activeIdSet = new Set<string>()
@@ -37,7 +37,7 @@ export function useAircraftSpatialSelection({
   const activateSpatialSelection = (data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
     // activeIdSet.clear()
-    spatialSelectStore.clearActiveAircraftSpatialSelection()
+    spatialSelectionStore.clearActiveAircraftSpatialSelection()
 
     matchedIcao24Set.forEach((icao24) => {
       const item = renderMap.get(icao24)
@@ -48,7 +48,7 @@ export function useAircraftSpatialSelection({
 
       if (inGraphic) {
         // activeIdSet.add(icao24)
-        spatialSelectStore.addAircraftToActiveSpatialSelection(icao24)
+        spatialSelectionStore.addAircraftToActiveSpatialSelection(icao24)
         highlightBillboardOnSpatialSelection(
           data.dataSourceName,
           item.billboard,
@@ -61,12 +61,12 @@ export function useAircraftSpatialSelection({
   }
 
   const clearActiveSpatialSelection = () => {
-    spatialSelectStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {
+    spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
       clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
     })
-    spatialSelectStore.clearActiveAircraftSpatialSelection()
+    spatialSelectionStore.clearActiveAircraftSpatialSelection()
   }
 
   // ---- finished 选区 ----
@@ -76,7 +76,7 @@ export function useAircraftSpatialSelection({
    */
   const finishedSpatialSelection = () => {
     // 1. 清空所有 finished 选区的飞机 icao24 集合
-    spatialSelectStore.clearFinishedSelectionAircraftIcao24Sets()
+    spatialSelectionStore.clearFinishedSelectionAircraftIcao24Sets()
 
     // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
     matchedIcao24Set.forEach((icao24) => {
@@ -85,7 +85,7 @@ export function useAircraftSpatialSelection({
 
       const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
 
-      for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+      for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
         // measurement 类型不参与实体统计
         if (selectionRegion.spatialSelectionTarget === 'measurement') continue
 
@@ -95,7 +95,7 @@ export function useAircraftSpatialSelection({
         const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
 
         if (inGraphic) {
-          spatialSelectStore.addAircraftToFinishedSelection(dataSourceName, icao24)
+          spatialSelectionStore.addAircraftToFinishedSelection(dataSourceName, icao24)
           highlightBillboardOnSpatialSelection(
             dataSourceName,
             item.billboard,
@@ -108,13 +108,13 @@ export function useAircraftSpatialSelection({
     })
 
     // 3. 触发响应式更新，并刷新各选区 label
-    spatialSelectStore.triggerFinishedGraphicMapUpdate()
+    spatialSelectionStore.triggerFinishedGraphicMapUpdate()
     updateFinishedSelectionLabels()
   }
 
   /** 更新各 finished 选区的 label 文字（飞机数量部分） */
   const updateFinishedSelectionLabels = () => {
-    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
       if (selectionRegion.sourceType === 'polygonSpatialSelection'){
         const dataSources = viewer.value.dataSources.getByName(dataSourceName)
         if (!dataSources.length) continue
@@ -160,7 +160,7 @@ export function useAircraftSpatialSelection({
         activateSpatialSelection(data)
       } else {
         const region: SelectionRegionBase = buildRegionFromData(data)
-        spatialSelectStore.addFinishedSelection(region)
+        spatialSelectionStore.addFinishedSelection(region)
         if (region.spatialSelectionTarget !== 'measurement') {
           finishedSpatialSelection()
         }

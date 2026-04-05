@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useHemisphereSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
+import {  useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { generateBizUniqueId } from '@/utils/uuid'
 import type { TempPointLabelPosition } from '../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../useKeyboardEvents'
@@ -26,7 +26,7 @@ import {
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import {buildSpatialSelectionLabelText} from "./shared/spatialSelectionLabelUtils"
 
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import {type DrawingToolForm, useDrawingToolStore } from '@/stores/drawingTool'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import {
   emitSpatialSelectByTarget,
@@ -115,8 +115,8 @@ export const useHemisphereSpatialSelection = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   mouseFollowPointLabelManager,
 ) => {
-  const measurementSelectionStore = useMeasurementSelectionStore()
-  const spatialSelectStore = useSpatialSelectStore()
+  const drawingToolStore = useDrawingToolStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
 
   // const hemisphereEntities: Cesium.Entity[] = []
@@ -221,7 +221,7 @@ export const useHemisphereSpatialSelection = (
     const drawingDataSourceData: DrawingDataSource = {
       name: hemisphereUniqueId,
     }
-    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
+    drawingToolStore.setDrawingDataSource(drawingDataSourceData)
 
     // 2. 创建动态位置的CallbackProperty
     const radiiCallback: Cesium.CallbackProperty = new Cesium.CallbackProperty(() => {
@@ -230,13 +230,13 @@ export const useHemisphereSpatialSelection = (
     // 2. 创建动态位置的CallbackProperty
     const textCallback: Cesium.CallbackProperty = new Cesium.CallbackProperty((): string => {
       const text = `周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`
-      const spatialSelectForm=spatialSelectStore.spatialSelectForm
-      const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+      const drawingToolForm=drawingToolStore.drawingToolForm
+      const activeSpatialSelection=spatialSelectionStore.activeSpatialSelection
 
       return buildSpatialSelectionLabelText(
         text,
-        spatialSelectForm.operationType,
-        spatialSelectForm.spatialSelectionTarget,
+        drawingToolForm.operationType,
+        drawingToolForm.spatialSelectionTarget,
         activeSpatialSelection.aircraft.icao24Set.size,
         activeSpatialSelection.airport.icaoSet.size,
       )
@@ -274,13 +274,13 @@ export const useHemisphereSpatialSelection = (
       viewer,
     )
 
-    const spatialSelectForm = spatialSelectStore.spatialSelectForm
-    const activeSpatialSelection = spatialSelectStore.activeSpatialSelection
+    const drawingToolForm = drawingToolStore.drawingToolForm
+    const activeSpatialSelection = spatialSelectionStore.activeSpatialSelection
     hemisphereConfig.label.text = `周长：${dynamicHemisphereState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicHemisphereState.areaInfo.formattedAreaStr}\n半径：${dynamicHemisphereState.radiusInfo.formattedRadiusStr}`
     hemisphereConfig.label.text=buildSpatialSelectionLabelText(
       hemisphereConfig.label.text,
-      spatialSelectForm.operationType,
-      spatialSelectForm.spatialSelectionTarget,
+      drawingToolForm.operationType,
+      drawingToolForm.spatialSelectionTarget,
       activeSpatialSelection.aircraft.icao24Set.size,
       activeSpatialSelection.airport.icaoSet.size,
     )
@@ -342,12 +342,12 @@ export const useHemisphereSpatialSelection = (
     resetDynamicHemisphereState()
   }
 
-  let unwatchSpatialSelectForm: () => void
+  let unwatchDrawingToolForm: () => void
   let unwatchSimulatedWebSocketStore: () => void
-  const setupSpatialSelectFormWatch = (): void => {
-    unwatchSpatialSelectForm = watch(
-      () => spatialSelectStore.spatialSelectForm,
-      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+  const setupDrawingToolWatch = (): void => {
+    unwatchDrawingToolForm = watch(
+      () => drawingToolStore.drawingToolForm,
+      (newForm: DrawingToolForm, oldForm: DrawingToolForm) => {
         if (
           newForm.operationType === 'spatialSelection' &&
           newForm.spatialSelectionSubtype === 'hemisphere'
@@ -382,7 +382,7 @@ export const useHemisphereSpatialSelection = (
 
   const emitActiveCircleSpatialSelect = (startPoint: number[], radius: number): void => {
     const spatialSelectionTarget: string =
-      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      drawingToolStore.drawingToolForm.spatialSelectionTarget
     const spatialSelectionData: SpatialSelectionData = {
       dataSourceName: dynamicHemisphere.id,
       sourceType: 'hemisphereSpatialSelection',
@@ -412,7 +412,7 @@ export const useHemisphereSpatialSelection = (
     // const hemisphere:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicHemisphereState.radiusInfo.radius)
 
     const spatialSelectionTarget: string =
-      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      drawingToolStore.drawingToolForm.spatialSelectionTarget
 
     const spatialSelectionData: SpatialSelectionData = {
       dataSourceName: uniqueId,
@@ -428,12 +428,12 @@ export const useHemisphereSpatialSelection = (
       },
       centerLngLatAltArray: center,
       aircraft: {
-        icao24Set: new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set),
+        icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
       },
       airport: {
-        icaoSet: new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet),
+        icaoSet: new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet),
       },
-      spatialSelectionTarget: spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      spatialSelectionTarget: drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label: {
         perimeterInfo: {
           perimeter: dynamicHemisphereState.perimeterInfo.perimeter,
@@ -452,19 +452,19 @@ export const useHemisphereSpatialSelection = (
     emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none')
-    spatialSelectStore.clearActiveAviationSpatialSelection()
+    drawingToolStore.setOperationType('none')
+    spatialSelectionStore.clearActiveAviationSpatialSelection()
   }
 
   const handleEsc = () => {
     console.log('ESC pressed - Resetting distance surveying')
 
     const spatialSelectionTarget: string =
-      spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+      drawingToolStore.drawingToolForm.spatialSelectionTarget
 
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none')
+    drawingToolStore.setOperationType('none')
   }
 
   const handleBackspace = () => {
@@ -478,7 +478,7 @@ export const useHemisphereSpatialSelection = (
       updateDynamicHemisphere()
     }
     // if (dynamicHemisphereState.pointCount === 1) {
-    //   const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    //   const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
     //
     //   emitCesiumEvent('clearAviationSpatialSelection')
     // }
@@ -489,12 +489,12 @@ export const useHemisphereSpatialSelection = (
     handleEsc,
     handleBackspace,
     () =>
-      spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection' &&
-      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype === 'hemisphere',
+      drawingToolStore.drawingToolForm.operationType === 'spatialSelection' &&
+      drawingToolStore.drawingToolForm.spatialSelectionSubtype === 'hemisphere',
   )
 
   onUnmounted(() => {
-    unwatchSpatialSelectForm?.()
+    unwatchDrawingToolForm?.()
     unwatchSimulatedWebSocketStore?.()
     unbindKeyboardEvents()
     unsubAircraftFiltered()
@@ -503,7 +503,7 @@ export const useHemisphereSpatialSelection = (
   return {
     hemisphereSpatialSelection,
     confirmSurveyPoint,
-    setupSpatialSelectFormWatch,
+    setupDrawingToolWatch,
     finishHemisphereSpatialSelection,
     subscribeHemisphereSpatialSelectionEvents,
   }

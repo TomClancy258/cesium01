@@ -22,8 +22,8 @@ import {clearSelectedHighlight} from "./composables/useBillboardHighlightManager
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
 
-import {useSpatialSelectStore} from "@/stores/spatialSelect.ts"
-import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection.ts"
+import {useSpatialSelectionStore} from "@/stores/spatialSelection.ts"
+import {useDrawingToolStore} from "@/stores/drawingTool.ts"
 import {useDistanceMeasurementStore} from "@/stores/distanceMeasurement.ts"
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
@@ -32,8 +32,8 @@ const aviationSelectionStore = useAviationSelectionStore()
 const aircraftStore = useAircraftStore()
 const airportStore = useAirportStore()
 
-const spatialSelectStore = useSpatialSelectStore()
-const measurementSelectionStore = useMeasurementSelectionStore()
+const spatialSelectionStore = useSpatialSelectionStore()
+const drawingToolStore = useDrawingToolStore()
 const distanceMeasurementStore = useDistanceMeasurementStore()
 
 // 初始化飞机/机场模块（内部已自动订阅事件）
@@ -100,13 +100,13 @@ onUnmounted(() => {
   aircraftStore.resetAircraftTrajectoryOptions()
   airportStore.resetAirportFilterForm()
 
-  spatialSelectStore.resetSpatialSelectFilterForm()
-  spatialSelectStore.clearActiveAircraftSpatialSelection()
-  spatialSelectStore.clearActiveAirportSpatialSelection()
-  spatialSelectStore.clearAllFinishedSelections()
+  drawingToolStore.resetSpatialSelectFilterForm()
+  spatialSelectionStore.clearActiveAircraftSpatialSelection()
+  spatialSelectionStore.clearActiveAirportSpatialSelection()
+  spatialSelectionStore.clearAllFinishedSelections()
 
-  measurementSelectionStore.clearDrawingDataSource()
-  measurementSelectionStore.clearSelected()
+  drawingToolStore.clearDrawingDataSource()
+  drawingToolStore.clearSelected()
 
 
   distanceMeasurementStore.clearAllFinishedSelections()

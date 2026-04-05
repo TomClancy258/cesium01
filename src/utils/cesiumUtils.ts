@@ -7,7 +7,7 @@ import {
 import { ShallowRef } from 'cesium'
 import {EntityProperties} from "@/views/aviation-situation/types/entity"
 
-import type {MeasurementEntitiesResult} from "@/views/aviation-situation/types/shared"
+import type {DrawingToolEntitiesResult} from "@/views/aviation-situation/types/shared"
 
 /**
  * 克隆 Cesium Entity 的 Label/Point 样式（通用工具函数）
@@ -228,11 +228,11 @@ export const createTempPointLabelStyleConfig = (
  * @param properties 实体属性
  * @returns 显示的实体数组
  */
-export const getMeasurementEntitiesAndHighlightEntity = (
+export const getDrawingToolEntitiesAndHighlightEntity = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   properties: EntityProperties,
   startIndex:number=1,
-): MeasurementEntitiesResult |undefined => {
+): DrawingToolEntitiesResult |undefined => {
   // 重置显示的实体数组
   const measurementEntities:Cesium.Entity[]=[]
 

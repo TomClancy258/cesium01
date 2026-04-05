@@ -1,14 +1,14 @@
 <script setup lang="ts">
  import {computed} from 'vue'
- import { useSpatialSelectStore } from '@/stores/spatialSelect'
- const spatialSelectStore = useSpatialSelectStore()
+ import { useDrawingToolStore } from '@/stores/drawingTool'
+ const drawingToolStore = useDrawingToolStore()
 
  const isHintVisible = computed(() => {
-   return spatialSelectStore.spatialSelectForm.operationType != 'none'
+   return drawingToolStore.drawingToolForm.operationType != 'none'
  })
 
  const hintTitle = computed(() => {
-   const operationType = spatialSelectStore.spatialSelectForm.operationType;
+   const operationType = drawingToolStore.drawingToolForm.operationType;
    if (operationType === 'distanceMeasurement') {
      return '距离测绘';
    } else if (operationType === 'spatialSelection') {

@@ -5,11 +5,11 @@ import {
   highlightEntityAndSetSelected
 } from '@/views/aviation-situation/composables/useEntityHighlightManager.ts'
 import { ShallowRef } from 'vue'
-import type { MeasurementSelectedData, MeasurementEntitiesResult } from '@/views/aviation-situation/types/shared'
-import { useMeasurementSelectionStore } from "@/stores/drawingToolSelection.ts"
-import { getMeasurementEntitiesAndHighlightEntity } from "@/utils/cesiumUtils"
+import type { DrawingToolSelectedData, DrawingToolEntitiesResult } from '@/views/aviation-situation/types/shared'
+import { useDrawingToolStore } from "@/stores/drawingTool.ts"
+import { getDrawingToolEntitiesAndHighlightEntity } from "@/utils/cesiumUtils"
 
-const measurementSelectionStore = useMeasurementSelectionStore()
+const drawingToolStore = useDrawingToolStore()
 
 // ---- 颜色配置表 ----
 const HOVER_COLORS: Partial<Record<string, string>> = {
@@ -33,13 +33,13 @@ function resolveSelectionResult(
   viewer: ShallowRef<Cesium.Viewer | null>,
   entity: Cesium.Entity,
   properties: EntityProperties,
-): MeasurementEntitiesResult | undefined {
+): DrawingToolEntitiesResult | undefined {
   const { sourceType } = properties
   if (sourceType === 'distanceMeasurement') {
-    return getMeasurementEntitiesAndHighlightEntity(viewer, properties, 2)
+    return getDrawingToolEntitiesAndHighlightEntity(viewer, properties, 2)
   }
   if (sourceType === 'polygonSpatialSelection') {
-    return getMeasurementEntitiesAndHighlightEntity(viewer, properties, 1)
+    return getDrawingToolEntitiesAndHighlightEntity(viewer, properties, 1)
   }
   if (sourceType === 'circleSpatialSelection'||sourceType === 'hemisphereSpatialSelection') {
     return { highlightEntity: entity, measurementEntities: [entity] }
@@ -50,8 +50,8 @@ function resolveSelectionResult(
 // ---- 公共：绘制中则跳过 ----
 function isDrawing(dataSourceName: string): boolean {
   return (
-    !!measurementSelectionStore.drawingDataSource &&
-    measurementSelectionStore.drawingDataSource.name === dataSourceName
+    !!drawingToolStore.drawingDataSource &&
+    drawingToolStore.drawingDataSource.name === dataSourceName
   )
 }
 
@@ -90,7 +90,7 @@ export const handleSpatialSelectionLeftClick = (
     result.measurementEntities,
   )
 
-  const selected: MeasurementSelectedData = {
+  const selected: DrawingToolSelectedData = {
     id:              entity.id,
     type:            properties.type,
     sourceType:      properties.sourceType,
@@ -98,5 +98,5 @@ export const handleSpatialSelectionLeftClick = (
     dataSourceName:  properties.dataSourceName,
     isDraft:  properties.isDraft,
   }
-  measurementSelectionStore.setSelected(selected)
+  drawingToolStore.setSelected(selected)
 }

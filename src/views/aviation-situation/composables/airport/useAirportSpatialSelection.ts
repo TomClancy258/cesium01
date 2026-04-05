@@ -11,7 +11,7 @@ import {
   clearSpatialSelectedHighlight,
 } from '@/views/aviation-situation/composables/useBillboardHighlightManager.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
-import { useSpatialSelectStore } from '@/stores/spatialSelect'
+import { useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { buildRegionFromData, isPointInSelectionRegion } from '@/utils/geoUtils.ts'
 import type { SelectionRegionBase,ClearAirportSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
@@ -29,7 +29,7 @@ export function useAirportSpatialSelection({
   renderMap,
   spatialSelectedImageUrl,
 }: Options) {
-  const spatialSelectStore = useSpatialSelectStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
 
   // ---- active 选区 ----
   // const activeIdSet = new Set<string>()
@@ -38,7 +38,7 @@ export function useAirportSpatialSelection({
   const activateSpatialSelection = (data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
     // activeIdSet.clear()
-    spatialSelectStore.clearActiveAirportSpatialSelection()
+    spatialSelectionStore.clearActiveAirportSpatialSelection()
 
     matchedIcaoSet.forEach((icao) => {
       const item = renderMap.get(icao)
@@ -49,7 +49,7 @@ export function useAirportSpatialSelection({
 
       if (inGraphic) {
         // activeIdSet.add(icao)
-        spatialSelectStore.addAirportToActiveSpatialSelection(icao)
+        spatialSelectionStore.addAirportToActiveSpatialSelection(icao)
         highlightBillboardOnSpatialSelection(
           data.dataSourceName,
           item.billboard,
@@ -62,21 +62,21 @@ export function useAirportSpatialSelection({
   }
 
   const clearActiveSpatialSelection = () => {
-    spatialSelectStore.activeSpatialSelection.airport.icaoSet.forEach((id) => {
+    spatialSelectionStore.activeSpatialSelection.airport.icaoSet.forEach((id) => {
       const item = renderMap.get(id)
       if (!item) return
       clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
     })
-    spatialSelectStore.clearActiveAirportSpatialSelection()
+    spatialSelectionStore.clearActiveAirportSpatialSelection()
   }
 
   // ---- finished 选区 ----
   const finishedSpatialSelection = () => {
     // 注意：机场侧不调用 clearFinishedSelectionAircraftIcao24Sets
     // 那是飞机侧的职责，避免两侧互相清空
-    spatialSelectStore.clearFinishedSelectionAirportIcaoSets()
+    spatialSelectionStore.clearFinishedSelectionAirportIcaoSets()
 
-    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
       if (selectionRegion.spatialSelectionTarget === 'measurement') continue
 
       // 该选区不关心机场，跳过
@@ -90,7 +90,7 @@ export function useAirportSpatialSelection({
 
         if (inGraphic) {
           // 更新 store 里该选区的机场 icao 集合
-          spatialSelectStore.addAirportToFinishedSelection(dataSourceName, icao)
+          spatialSelectionStore.addAirportToFinishedSelection(dataSourceName, icao)
           highlightBillboardOnSpatialSelection(
             dataSourceName,
             item.billboard,
@@ -102,12 +102,12 @@ export function useAirportSpatialSelection({
       })
     }
 
-    spatialSelectStore.triggerFinishedGraphicMapUpdate()
+    spatialSelectionStore.triggerFinishedGraphicMapUpdate()
     // updateFinishedSelectionLabels()
   }
 
   const updateFinishedSelectionLabels = () => {
-    for (const [dataSourceName, selectionRegion] of spatialSelectStore.finishedGraphicMap) {
+    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
       if (selectionRegion.sourceType !== 'polygonSpatialSelection') continue
       if (selectionRegion.spatialSelectionTarget === 'aircraft') continue // 飞机侧负责
 
@@ -144,7 +144,7 @@ export function useAirportSpatialSelection({
         // finished 选区已由飞机侧写入 store（两者共用同一 finishedGraphicMap）
         // 机场侧只需触发自己的 finishedSpatialSelection 即可
         const region: SelectionRegionBase = buildRegionFromData(data)
-        spatialSelectStore.addFinishedSelection(region)
+        spatialSelectionStore.addFinishedSelection(region)
         if (data.spatialSelectionTarget !== 'measurement') {
           finishedSpatialSelection()
         }

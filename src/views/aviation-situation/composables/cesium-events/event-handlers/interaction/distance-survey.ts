@@ -6,22 +6,22 @@ import {
   highlightEntityAndSetSelected
 } from '@/views/aviation-situation/composables/useEntityHighlightManager.ts'
 import { ShallowRef } from 'vue'
-import type { MeasurementSelectedData } from '@/views/aviation-situation/types/shared'
-import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection.ts"
-const measurementSelectionStore=useMeasurementSelectionStore()
+import type { DrawingToolSelectedData } from '@/views/aviation-situation/types/shared'
+import {useDrawingToolStore} from "@/stores/drawingTool.ts"
+const drawingToolStore=useDrawingToolStore()
 
-import {getMeasurementEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
+import {getDrawingToolEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
 
 
 export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
   const dataSourceName:string=properties.dataSourceName
   if (
-    measurementSelectionStore.drawingDataSource &&
-    measurementSelectionStore.drawingDataSource.name === dataSourceName
+    drawingToolStore.drawingDataSource &&
+    drawingToolStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  const result:MeasurementEntitiesResult | undefined =getMeasurementEntitiesAndHighlightEntity(viewer, properties,2)
+  const result:DrawingToolEntitiesResult | undefined =getDrawingToolEntitiesAndHighlightEntity(viewer, properties,2)
   highlightEntityOnHover(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
@@ -33,18 +33,18 @@ export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>
 export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
   const dataSourceName:string=properties.dataSourceName
   if (
-    measurementSelectionStore.drawingDataSource &&
-    measurementSelectionStore.drawingDataSource.name === dataSourceName
+    drawingToolStore.drawingDataSource &&
+    drawingToolStore.drawingDataSource.name === dataSourceName
   ) {
     return
   }
-  const result:MeasurementEntitiesResult | undefined =getMeasurementEntitiesAndHighlightEntity(viewer, properties,2)
+  const result:DrawingToolEntitiesResult | undefined =getDrawingToolEntitiesAndHighlightEntity(viewer, properties,2)
   highlightEntityAndSetSelected(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }
     ]
   },result.measurementEntities)
-  const selected:MeasurementSelectedData={
+  const selected:DrawingToolSelectedData={
     id:entity.id,
     type:properties.type,
     sourceType:properties.sourceType,
@@ -52,5 +52,5 @@ export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|n
     dataSourceName:properties.dataSourceName,
     isDraft:  properties.isDraft,
   }
-  measurementSelectionStore.setSelected(selected)
+  drawingToolStore.setSelected(selected)
 }

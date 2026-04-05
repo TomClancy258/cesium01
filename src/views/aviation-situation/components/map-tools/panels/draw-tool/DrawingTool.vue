@@ -1,21 +1,19 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { useSpatialSelectStore } from '@/stores/spatialSelect'
-import { useMeasurementSelectionStore } from '@/stores/drawingToolSelection'
+import { useDrawingToolStore } from '@/stores/drawingTool'
 import DraftDistanceMeasurement from './tables/distance-measurement/DraftDistanceMeasurement.vue'
 import SavedDistanceMeasurement from './tables/distance-measurement/SavedDistanceMeasurement.vue'
 import DraftSpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'
 import SavedSpatialSelection from './tables/spatial-selection/SavedSpatialSelection.vue'
 
-const spatialSelectStore = useSpatialSelectStore()
-const measurementSelectionStore = useMeasurementSelectionStore()
+const drawingToolStore = useDrawingToolStore()
 
 const activeSection = ref<'distance' | 'spatial'>('distance')
 const distanceTab = ref<'draft' | 'saved'>('draft')
 const spatialTab = ref<'draft' | 'saved'>('draft')
 
 watch(
-  () => measurementSelectionStore.selected,
+  () => drawingToolStore.selected,
   (selected) => {
     if (!selected) return
     if (selected.operationType === 'spatialSelection') {
@@ -58,14 +56,14 @@ const spatialSelectionTargetChange = (): void => {}
 <template>
   <div>
     <el-form
-      :model="spatialSelectStore.spatialSelectForm"
-      ref="spatialSelectFormRef"
+      :model="drawingToolStore.drawingToolForm"
+      ref="drawingToolFormRef"
       label-width="85px"
       :inline="true"
     >
       <el-form-item label="操作类型" prop="operationType">
         <el-select
-          v-model="spatialSelectStore.spatialSelectForm.operationType"
+          v-model="drawingToolStore.drawingToolForm.operationType"
           @change="operationTypeChange"
         >
           <el-option
@@ -76,10 +74,10 @@ const spatialSelectionTargetChange = (): void => {}
           />
         </el-select>
       </el-form-item>
-      <span v-show="spatialSelectStore.spatialSelectForm.operationType === 'spatialSelection'">
+      <span v-show="drawingToolStore.drawingToolForm.operationType === 'spatialSelection'">
         <el-form-item label="框选子类型" prop="spatialSelectionSubtype">
           <el-select
-            v-model="spatialSelectStore.spatialSelectForm.spatialSelectionSubtype"
+            v-model="drawingToolStore.drawingToolForm.spatialSelectionSubtype"
             @change="spatialSelectionSubtypeChange"
           >
             <el-option
@@ -92,7 +90,7 @@ const spatialSelectionTargetChange = (): void => {}
         </el-form-item>
         <el-form-item label="框选目标" prop="spatialSelectionTarget">
           <el-select
-            v-model="spatialSelectStore.spatialSelectForm.spatialSelectionTarget"
+            v-model="drawingToolStore.drawingToolForm.spatialSelectionTarget"
             @change="spatialSelectionTargetChange"
           >
             <el-option

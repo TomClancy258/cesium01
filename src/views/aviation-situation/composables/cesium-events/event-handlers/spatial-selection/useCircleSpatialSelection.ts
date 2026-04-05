@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useCircleSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import { type SpatialSelectForm, useSpatialSelectStore } from '@/stores/spatialSelect'
+import {useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { generateBizUniqueId } from '@/utils/uuid'
 import type {
   TempPointLabelPosition,
@@ -22,7 +22,7 @@ import {
 } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 
-import {useMeasurementSelectionStore} from "@/stores/drawingToolSelection"
+import {useDrawingToolStore,type DrawingToolForm} from "@/stores/drawingTool"
 import {
   emitCesiumEvent, onCesiumEvent
 } from '@/views/aviation-situation/composables/mittBus'
@@ -109,8 +109,8 @@ const createDynamicCircleConfig = (
 };
 
 export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | null>,mouseFollowPointLabelManager) => {
-  const measurementSelectionStore=useMeasurementSelectionStore()
-  const spatialSelectStore = useSpatialSelectStore()
+  const drawingToolStore=useDrawingToolStore()
+  const spatialSelectionStore = useSpatialSelectionStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
 
   // const circleEntities: Cesium.Entity[] = []
@@ -148,7 +148,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   }
 
   const emitActiveCircleSpatialSelect = (startPoint: number[], radius: number): void => {
-    const spatialSelectionTarget: string = spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget: string = drawingToolStore.drawingToolForm.spatialSelectionTarget
     const spatialSelectionData: SpatialSelectionData = {
       dataSourceName: dynamicCircle.id,
       sourceType: 'circleSpatialSelection',
@@ -220,7 +220,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     const drawingDataSourceData:DrawingDataSource={
       name:circleUniqueId
     }
-    measurementSelectionStore.setDrawingDataSource(drawingDataSourceData)
+    drawingToolStore.setDrawingDataSource(drawingDataSourceData)
 
     // 2. 创建动态位置的CallbackProperty
     const radiusCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
@@ -233,13 +233,13 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     const textCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       ():string => {
         const text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`;
-        const spatialSelectForm=spatialSelectStore.spatialSelectForm
-        const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+        const drawingToolForm=drawingToolStore.drawingToolForm
+        const activeSpatialSelection=spatialSelectionStore.activeSpatialSelection
 
         return buildSpatialSelectionLabelText(
           text,
-          spatialSelectForm.operationType,
-          spatialSelectForm.spatialSelectionTarget,
+          drawingToolForm.operationType,
+          drawingToolForm.spatialSelectionTarget,
           activeSpatialSelection.aircraft.icao24Set.size,
           activeSpatialSelection.airport.icaoSet.size,
         )
@@ -277,14 +277,14 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
     const circleConfig:Cesium.Entity.ConstructorOptions = cloneEntityAsConfig(dynamicCircle,dataSourceName,viewer);
 
-    const spatialSelectForm=spatialSelectStore.spatialSelectForm
-    const activeSpatialSelection=spatialSelectStore.activeSpatialSelection
+    const drawingToolForm=drawingToolStore.drawingToolForm
+    const activeSpatialSelection=spatialSelectionStore.activeSpatialSelection
 
     circleConfig.label.text=`周长：${dynamicCircleState.perimeterInfo.formattedPerimeterStr}\n面积：${dynamicCircleState.areaInfo.formattedAreaStr}\n半径：${dynamicCircleState.radiusInfo.formattedRadiusStr}`
     circleConfig.label.text=buildSpatialSelectionLabelText(
       circleConfig.label.text,
-      spatialSelectForm.operationType,
-      spatialSelectForm.spatialSelectionTarget,
+      drawingToolForm.operationType,
+      drawingToolForm.spatialSelectionTarget,
       activeSpatialSelection.aircraft.icao24Set.size,
       activeSpatialSelection.airport.icaoSet.size,
     )
@@ -343,13 +343,13 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     resetDynamicCircleState()
   }
 
-  let unwatchSpatialSelectForm: () => void
+  let unwatchDrawingToolForm: () => void
   let unwatchSimulatedWebSocketStore: () => void
 
-  const setupSpatialSelectFormWatch = (): void => {
-    unwatchSpatialSelectForm = watch(
-      () => spatialSelectStore.spatialSelectForm,
-      (newForm: SpatialSelectForm, oldForm: SpatialSelectForm) => {
+  const setupDrawingToolWatch = (): void => {
+    unwatchDrawingToolForm = watch(
+      () => drawingToolStore.drawingToolForm,
+      (newForm: DrawingToolForm, oldForm: DrawingToolForm) => {
         if (newForm.operationType === 'spatialSelection'&&newForm.spatialSelectionSubtype === 'circle') {
           resetCircleSpatialSelectionSession()
           initActiveCircleSpatialSelection()
@@ -396,7 +396,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
     // const circle:turf.Feature<turf.Polygon>=createCircleFromCenterAndRadius(center,dynamicCircleState.radiusInfo.radius)
 
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
 
     const spatialSelectionData:SpatialSelectionData={
       dataSourceName:uniqueId,
@@ -412,12 +412,12 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       },
       centerLngLatAltArray:center,
       aircraft:{
-        icao24Set:new Set<string>(spatialSelectStore.activeSpatialSelection.aircraft.icao24Set)
+        icao24Set:new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set)
       },
       airport:{
-        icaoSet:new Set<string>(spatialSelectStore.activeSpatialSelection.airport.icaoSet)
+        icaoSet:new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet)
       },
-      spatialSelectionTarget:spatialSelectStore.spatialSelectForm.spatialSelectionTarget,
+      spatialSelectionTarget:drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label:{
         perimeterInfo:{
           perimeter:dynamicCircleState.perimeterInfo.perimeter,
@@ -436,17 +436,17 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none');
-    spatialSelectStore.clearActiveAviationSpatialSelection()
+    drawingToolStore.setOperationType('none');
+    spatialSelectionStore.clearActiveAviationSpatialSelection()
   }
 
   const handleEsc = () => {
     console.log("ESC pressed - Resetting distance surveying");
-    const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
 
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 
-    spatialSelectStore.setOperationType('none');
+    drawingToolStore.setOperationType('none');
   };
 
   const handleBackspace = () => {
@@ -460,7 +460,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
       updateDynamicCircle();
     }
     // if (dynamicCircleState.pointCount === 1) {
-    //   const spatialSelectionTarget:string=spatialSelectStore.spatialSelectForm.spatialSelectionTarget
+    //   const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
     //
     //   emitCesiumEvent('clearAviationSpatialSelection')
     // }
@@ -470,12 +470,12 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   const { unbindKeyboardEvents } = useKeyboardEvents(
     handleEsc,
     handleBackspace,
-    () => spatialSelectStore.spatialSelectForm.operationType==='spatialSelection'&&
-      spatialSelectStore.spatialSelectForm.spatialSelectionSubtype==='circle'
+    () => drawingToolStore.drawingToolForm.operationType==='spatialSelection'&&
+      drawingToolStore.drawingToolForm.spatialSelectionSubtype==='circle'
   );
 
   onUnmounted(() => {
-    unwatchSpatialSelectForm?.()
+    unwatchDrawingToolForm?.()
     unwatchSimulatedWebSocketStore?.()
     unbindKeyboardEvents();
     unsubAircraftFiltered()
@@ -484,7 +484,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
   return {
     circleSpatialSelection,
     confirmSurveyPoint,
-    setupSpatialSelectFormWatch,
+    setupDrawingToolWatch,
     finishCircleSpatialSelection,
     subscribeCircleSpatialSelectionEvents,
   }
