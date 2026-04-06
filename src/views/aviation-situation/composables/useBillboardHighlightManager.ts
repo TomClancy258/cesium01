@@ -8,8 +8,6 @@ import type { AirportSelectedData } from '@/views/aviation-situation/types/airpo
 let hoveredBillboard: Cesium.Billboard | null = null
 let selectedBillboard: Cesium.Billboard | null = null
 
-const aviationSelectionStore = useAviationSelectionStore()
-
 // 工具方法：恢复原始图片
 const restoreBillboardImage = (billboard: Cesium.Billboard) => {
   if (billboard.properties.spatialSelectionImage) {
@@ -103,13 +101,14 @@ export function highlightBillboardAndSetSelected(
   selectedBillboard = billboard
   billboard.image = highlightImage
   // 同步Pinia（必选，支撑UI联动）
+  const aviationSelectionStore = useAviationSelectionStore()
   aviationSelectionStore.setSelected(selectedData)
 }
 
 /**
  * 清除hover：视觉+同步Pinia
  */
-export function clearHoveredHighlight(): void {
+export function clearHoveredBillboardHighlight(): void {
   if (hoveredBillboard && hoveredBillboard !== selectedBillboard) {
     restoreBillboardImage(hoveredBillboard)
     hoveredBillboard = null
@@ -120,10 +119,11 @@ export function clearHoveredHighlight(): void {
 /**
  * 清除选中：视觉+同步Pinia
  */
-export function clearSelectedHighlight(): void {
+export function clearSelectedBillboardHighlight(): void {
   if (selectedBillboard) {
     restoreBillboardImage(selectedBillboard)
     selectedBillboard = null
+    const aviationSelectionStore = useAviationSelectionStore()
     aviationSelectionStore.clearSelected()
   }
 }
@@ -131,9 +131,9 @@ export function clearSelectedHighlight(): void {
 /**
  * 清除所有高亮
  */
-export function clearAllHighlight(): void {
-  clearHoveredHighlight()
-  clearSelectedHighlight()
+export function clearAllBillboardHighlight(): void {
+  clearHoveredBillboardHighlight()
+  clearSelectedBillboardHighlight()
 }
 
 // 暴露实例获取方法（供外部校验用，如判断是否选中）

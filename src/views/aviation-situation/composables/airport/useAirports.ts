@@ -31,7 +31,7 @@ import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/compo
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
-  clearHoveredHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
+  clearHoveredBillboardHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
 } from '../useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
@@ -332,7 +332,7 @@ export function useAirports(viewer) {
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
       hideAirportTooltip() // 替换原方法
-      clearHoveredHighlight()
+      clearHoveredBillboardHighlight()
     })
 
     // 订阅机场点击事件

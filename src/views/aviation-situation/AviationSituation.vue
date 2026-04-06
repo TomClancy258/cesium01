@@ -17,7 +17,7 @@ import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
-import {clearSelectedHighlight} from "./composables/useBillboardHighlightManager"
+import {clearSelectedBillboardHighlight} from "./composables/useBillboardHighlightManager"
 
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
@@ -25,6 +25,9 @@ import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCa
 import {useSpatialSelectionStore} from "@/stores/spatialSelection.ts"
 import {useDrawingToolStore} from "@/stores/drawingTool.ts"
 import {useDistanceMeasurementStore} from "@/stores/distanceMeasurement.ts"
+
+import {clearAllBillboardHighlight} from "@/views/aviation-situation/composables/useBillboardHighlightManager.ts"
+import {clearAllEntityHighlight} from "@/views/aviation-situation/composables/useEntityHighlightManager.ts"
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
@@ -108,9 +111,10 @@ onUnmounted(() => {
   drawingToolStore.clearDrawingDataSource()
   drawingToolStore.clearSelected()
 
-
   distanceMeasurementStore.clearAllFinishedSelections()
 
+  clearAllBillboardHighlight()
+  clearAllEntityHighlight()
 })
 
 // 提供过滤/显隐方法（原有逻辑保留）
@@ -130,7 +134,7 @@ provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
     <AltitudeLegend/>
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
-    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedHighlight"/>
+    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight"/>
     <MapToolsDrawer/>
   </div>
 </template>

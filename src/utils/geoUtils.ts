@@ -506,7 +506,12 @@ export function buildRegionFromData(data: FinishedSpatialSelectionData): Selecti
   }
 }
 
-export const flyToLngLatAlt = (viewer:ShallowRef<Cesium.Viewer>,lngLatAlt: LngLatAlt,offsetHeight:number=500000): void => {
+export const flyToLngLatAlt = (
+  viewer:ShallowRef<Cesium.Viewer>,
+  lngLatAlt: LngLatAlt,
+  offsetHeight:number=500000,
+  duration:number=1.5
+): void => {
   viewer.value.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(
       lngLatAlt.longitude,
@@ -518,6 +523,6 @@ export const flyToLngLatAlt = (viewer:ShallowRef<Cesium.Viewer>,lngLatAlt: LngLa
       // pitch: Cesium.Math.toRadians(-90), // 俯视
       // roll: 0
     },
-    duration: 1.5
+    duration: duration
   })
 }

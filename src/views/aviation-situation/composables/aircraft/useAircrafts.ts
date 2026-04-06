@@ -19,7 +19,7 @@ type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'ori
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
-  clearHoveredHighlight,
+  clearHoveredBillboardHighlight,
 } from '../useBillboardHighlightManager'
 import { useAviationSelectionStore } from '@/stores/aviationSelection'
 import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
@@ -484,7 +484,7 @@ export function useAircrafts(viewer) {
     // Leave事件
     unsubAircraftLeave = onCesiumEvent('aircraftLeave', () => {
       hideAircraftTooltip() // 替换原方法
-      clearHoveredHighlight()
+      clearHoveredBillboardHighlight()
     })
 
     // 点击事件

@@ -1,4 +1,4 @@
-import { onUnmounted, ShallowRef, watch } from 'vue'
+import { onUnmounted, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import { flyToLngLatAlt } from '@/utils/geoUtils'

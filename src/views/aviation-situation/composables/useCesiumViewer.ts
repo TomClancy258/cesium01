@@ -32,11 +32,11 @@ export function useCesiumViewer(containerId = 'cesium-container') {
     viewer.value.scene.debugShowFramesPerSecond = true
     viewer.value._cesiumWidget._creditContainer.style.display = 'none'
 
-    // 设置初始视角
-    viewer.value.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(-125.0, 49.0, 6000000),
-      duration: 0,
-    })
+    flyToLngLatAlt(viewer,{
+      longitude:-125.0,
+      latitude:49.0,
+      height:6000000,
+    },0,0)
   }
 
   const destroyViewer = (): void => {

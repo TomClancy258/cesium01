@@ -25,8 +25,8 @@ export const useAircraftStore = defineStore('aircraft', () => {
     matchedAircrafts.value.set(aircraft.icao24, aircraft)
   }
   const commitMatchedAircrafts = () => {
-    // triggerRef(matchedAircrafts)
-    matchedAircrafts.value = new Map(matchedAircrafts.value)
+    triggerRef(matchedAircrafts)
+    // matchedAircrafts.value = new Map(matchedAircrafts.value)
   }
 
   // 仅提供数据重置方法（纯数据操作）
