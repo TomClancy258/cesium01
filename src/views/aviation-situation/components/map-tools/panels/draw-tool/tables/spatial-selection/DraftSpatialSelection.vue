@@ -8,6 +8,7 @@ import AircraftIcaoPopover from './popover/AircraftIcaoPopover.vue'
 import AirportIcaoPopover from './popover/AirportIcaoPopover.vue'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
 import SegmentsPopover from '../../popover/SegmentsPopover.vue'
+import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'
 
 const spatialSelectionStore = useSpatialSelectionStore()
 const { finishedGraphicsArray } = storeToRefs(spatialSelectionStore)
@@ -53,7 +54,7 @@ const formatCoord = (arr: number[] | undefined) => {
 }
 
 // 半径格式化
-const formatRadius = (row: any) => {
+const formatRadius = (row: DistanceMeasurementData) => {
   const r = row.label?.radiusInfo?.radius
   if (r == null) return '—'
   return r >= 1000 ? `${(r / 1000).toFixed(2)} km` : `${r.toFixed(0)} m`
@@ -63,8 +64,8 @@ const formatRadius = (row: any) => {
 const tableRef = ref()
 
 // 勾选
-const selection = ref<any[]>([])
-const handleSelectionChange = (val: any[]) => {
+const selection = ref<DistanceMeasurementData[]>([])
+const handleSelectionChange = (val: DistanceMeasurementData[]) => {
   selection.value = val
 }
 
@@ -91,7 +92,7 @@ watch(
 )
 
 // 保存
-const handleSave = (row: any) => {
+const handleSave = (row: DistanceMeasurementData) => {
 }
 
 // 批量保存
@@ -107,7 +108,7 @@ const handleBatchDelete = () => {
 }
 
 // 删除
-const handleDelete = (row: any) => {
+const handleDelete = (row: DistanceMeasurementData) => {
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     operationType:'delete',
     dataSourceName:row.dataSourceName,
@@ -119,7 +120,7 @@ const handleDelete = (row: any) => {
 }
 
 // 详情（占位，按需实现）
-const handleView = (row: any) => {
+const handleView = (row: DistanceMeasurementData) => {
   console.log('详情', row)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     operationType:'detail',
@@ -235,28 +236,28 @@ const handleView = (row: any) => {
       <!-- 飞机数量 -->
       <el-table-column label="飞机数" width="80px" align="center">
         <template #default="{ row }">
-          {{ row.aircraft?.icao24Set?.size ?? 0 }}
+          {{ row.aircraft?.aircraftMap?.size ?? 0 }}
         </template>
       </el-table-column>
 
       <!-- 飞机 icao24 -->
       <el-table-column label="飞机 icao24" width="200px" align="center">
         <template #default="{ row }">
-          <AircraftIcaoPopover :icao24-set="row.aircraft?.icao24Set" />
+          <AircraftIcaoPopover :aircraft-map="row.aircraft?.aircraftMap" />
         </template>
       </el-table-column>
 
       <!-- 机场数量 -->
       <el-table-column label="机场数" width="80px" align="center">
         <template #default="{ row }">
-          {{ row.airport?.icaoSet?.size ?? 0 }}
+          {{ row.airport?.airportMap?.size ?? 0 }}
         </template>
       </el-table-column>
 
       <!-- 机场 icao -->
       <el-table-column label="机场 icao" width="200px" align="center">
         <template #default="{ row }">
-          <AirportIcaoPopover :icao-set="row.airport?.icaoSet" />
+          <AirportIcaoPopover :airport-map="row.airport?.airportMap" />
         </template>
       </el-table-column>
 

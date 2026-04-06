@@ -52,7 +52,7 @@ const handleView = (row: SegmentResult) => {
   <template v-else>
     <el-popover
       placement="top"
-      width="50%"
+      width="40%"
       trigger="hover"
       popper-class="segments-popover"
       @show="onShow"

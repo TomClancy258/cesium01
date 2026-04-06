@@ -299,6 +299,7 @@ export function useAirports(viewer) {
       label.show = match
     })
     // finishedSpatialSelection()
+    airportStore.commitMatchedAirports()
     emitCesiumEvent('aviationFiltered')
     // 高亮匹配项
     if (matchedAirportCount.value === 0) {

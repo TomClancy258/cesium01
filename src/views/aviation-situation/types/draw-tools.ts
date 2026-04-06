@@ -1,10 +1,12 @@
 import { LngLatAlt, SegmentResult } from '@/views/aviation-situation/types/shared'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
 
 export interface SpatialSelectionAircraft{
-  icao24Set:Set<string>
+  aircraftMap: Map<string, Aircraft>
 }
 export interface SpatialSelectionAirport{
-  icaoSet:Set<string>
+  airportMap: Map<string, Airport>
 }
 
 export interface SpatialSelectionTableRowBase{

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive,shallowRef } from 'vue'
+import { reactive, shallowRef, computed, triggerRef } from 'vue'
 import type {AircraftTrajectoryOptions,AircraftFilterForm} from '@/views/aviation-situation/types/aircraft'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 
@@ -15,12 +15,17 @@ export const useAircraftStore = defineStore('aircraft', () => {
     visible: true
   })
 
-  const matchedAircrafts=shallowRef<Aircraft[]>([])
-  const clearMatchedAircrafts=()=>{
-    matchedAircrafts.value=[]
+  const matchedAircrafts = shallowRef<Map<string, Aircraft>>(new Map())
+  const matchedAircraftsArray = computed(() => [...matchedAircrafts.value.values()])
+
+  const clearMatchedAircrafts = () => {
+    matchedAircrafts.value = new Map()
   }
-  const addMatchedAircrafts=(aircraft:Aircraft)=>{
-    matchedAircrafts.value.push(aircraft)
+  const addMatchedAircrafts = (aircraft: Aircraft) => {
+    matchedAircrafts.value.set(aircraft.icao24, aircraft)
+  }
+  const commitMatchedAircrafts = () => {
+    matchedAircrafts.value = new Map(matchedAircrafts.value)
   }
 
   // 仅提供数据重置方法（纯数据操作）
@@ -54,7 +59,9 @@ export const useAircraftStore = defineStore('aircraft', () => {
     resetAircraftTrajectoryOptions,
 
     matchedAircrafts,
+    matchedAircraftsArray,
     clearMatchedAircrafts,
     addMatchedAircrafts,
+    commitMatchedAircrafts,
   }
 })

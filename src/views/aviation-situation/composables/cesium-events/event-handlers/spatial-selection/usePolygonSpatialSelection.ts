@@ -11,6 +11,8 @@ import type {
   SpatialSelectionData,
   FinishedPolygonSpatialSelectionData,
 } from '@/views/aviation-situation/types/shared'
+import type { Airport } from '@/network/airport/type'
+import { useAirportStore } from '@/stores/airport'
 import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
@@ -29,6 +31,8 @@ import {
   buildLngLatAltList,
   buildSegments,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils'
+import { Aircraft } from '@/network/aircraft/types/aircraft'
+import {useAircraftStore} from '@/stores/aircraft'
 
 interface DynamicPolygonState {
   lngLatAltArray: number[] // 经纬度+海拔数组（3个一组）
@@ -76,6 +80,8 @@ export const usePolygonSpatialSelection = (
   perimeterAndAreaLabel,
 ) => {
   const drawingToolStore = useDrawingToolStore()
+  const aircraftStore = useAircraftStore()
+  const airportStore = useAirportStore()
   const lastButOneDynamicSegmentLengthLabel = useDynamicSegmentDistanceLabel(
     viewer,
     'lastButOnePolygonSpatialSelectionDynamicSegmentLengthLabel',
@@ -472,9 +478,20 @@ export const usePolygonSpatialSelection = (
     ]
     const segmentResults:SegmentResult[]=buildSegments(lngLatAltRingArray,segmentDistancesState.segments)
 
-
     const spatialSelectionTarget: string =
       drawingToolStore.drawingToolForm.spatialSelectionTarget
+
+    const aircraftMap = new Map<string, Aircraft>()
+    for (const icao24 of spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set) {
+      const aircraft = aircraftStore.matchedAircrafts.get(icao24)
+      if (aircraft) aircraftMap.set(icao24, aircraft)
+    }
+
+    const airportMap = new Map<string, Airport>()
+    for (const icao of spatialSelectionStore.activeSpatialSelection.airport.icaoSet) {
+      const airport = airportStore.matchedAirports.get(icao)
+      if (airport) airportMap.set(icao, airport)
+    }
 
     const spatialSelectionData: FinishedPolygonSpatialSelectionData = {
       dataSourceName: uniqueId,
@@ -484,12 +501,8 @@ export const usePolygonSpatialSelection = (
       isActive: false,
       isDraft:true,
       centroidLngLatAlt: perimeterAndAreaLabel.tempPerimeterAndAreaLabel.position.lngLatAlt,
-      aircraft: {
-        icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
-      },
-      airport: {
-        icaoSet: new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet),
-      },
+      aircraft: { aircraftMap },
+      airport: { airportMap },
       spatialSelectionTarget: drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label: {
         perimeterInfo: {

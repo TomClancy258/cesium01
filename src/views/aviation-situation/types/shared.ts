@@ -1,5 +1,7 @@
 import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelectedData} from "./aircraft"
 import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 
@@ -75,8 +77,8 @@ export interface SpatialSelectionRadiusInfo {
 }
 
 interface SpatialSelectionAviationIds {
-  aircraft: { icao24Set: Set<string> }
-  airport: { icaoSet: Set<string> }
+  aircraft: { aircraftMap: Map<string, Aircraft> }
+  airport: { airportMap: Map<string, Airport> }
 }
 
 // === Active (in-progress) spatial selection states ===
@@ -200,8 +202,8 @@ export interface SelectionRegionBase {
   graphic?: Graphic
   centroidLngLatAlt?: LngLatAlt
   centerLngLatAltArray?: number[]
-  aircraft: { icao24Set: Set<string> }
-  airport: { icaoSet: Set<string> }
+  aircraft: { aircraftMap: Map<string, Aircraft> }
+  airport: { airportMap: Map<string, Airport> }
   spatialSelectionTarget: string
   label: {
     perimeterInfo?: SpatialSelectionPerimeterInfo

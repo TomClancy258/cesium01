@@ -1,14 +1,17 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import zhCn from 'element-plus/es/locale/lang/zh-cn'
 </script>
 
 <template>
-  <nav>
-    <RouterLink to="/AviationSituation">AviationSituation</RouterLink> |
-    <RouterLink to="/User">User</RouterLink>
-  </nav>
+  <el-config-provider :locale="zhCn">
+    <nav>
+      <RouterLink to="/AviationSituation">AviationSituation</RouterLink> |
+      <RouterLink to="/User">User</RouterLink>
+    </nav>
 
-  <RouterView />
+    <RouterView />
+  </el-config-provider>
 </template>
 
 <style lang="scss" scoped>

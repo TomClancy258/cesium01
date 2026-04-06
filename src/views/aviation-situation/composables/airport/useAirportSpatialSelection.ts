@@ -72,9 +72,9 @@ export function useAirportSpatialSelection({
 
   // ---- finished 选区 ----
   const finishedSpatialSelection = () => {
-    // 注意：机场侧不调用 clearFinishedSelectionAircraftIcao24Sets
+    // 注意：机场侧不调用 clearFinishedSelectionAircraftMaps
     // 那是飞机侧的职责，避免两侧互相清空
-    spatialSelectionStore.clearFinishedSelectionAirportIcaoSets()
+    spatialSelectionStore.clearFinishedSelectionAirportMaps()
 
     for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
       if (selectionRegion.spatialSelectionTarget === 'measurement') continue
@@ -89,8 +89,7 @@ export function useAirportSpatialSelection({
         const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
 
         if (inGraphic) {
-          // 更新 store 里该选区的机场 icao 集合
-          spatialSelectionStore.addAirportToFinishedSelection(dataSourceName, icao)
+          spatialSelectionStore.addAirportToFinishedSelection(dataSourceName, item.data)
           highlightBillboardOnSpatialSelection(
             dataSourceName,
             item.billboard,
@@ -102,7 +101,7 @@ export function useAirportSpatialSelection({
       })
     }
 
-    spatialSelectionStore.triggerFinishedGraphicMapUpdate()
+    spatialSelectionStore.commitFinishedAirportMaps()
     // updateFinishedSelectionLabels()
   }
 
@@ -122,7 +121,7 @@ export function useAirportSpatialSelection({
 
       const target = selectionRegion.spatialSelectionTarget
       if (target === 'airport') {
-        metricsLabelEntity.label.text = `机场：${selectionRegion.airport.icaoSet.size} 个\n${base}`
+        metricsLabelEntity.label.text = `机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
       } else if (target === 'all') {
         // all 由两侧共同写入，这里只更新机场部分不够——
         // 建议：all 的 label 由一个独立的 watcher 统一负责，
@@ -155,11 +154,11 @@ export function useAirportSpatialSelection({
       if (clearAirportSpatialSelectionData===undefined||clearAirportSpatialSelectionData.isActive) {
         clearActiveSpatialSelection()
       }else{
-        clearAirportSpatialSelectionData.airport.icaoSet.forEach((icao) => {
+        for (const icao of clearAirportSpatialSelectionData.airport.airportMap.keys()) {
           const item = renderMap.get(icao)
           if (!item) return
           clearSpatialSelectedHighlight(clearAirportSpatialSelectionData.dataSourceName, item.billboard)
-        })
+        }
       }
     })
   }

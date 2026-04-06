@@ -458,6 +458,7 @@ export function useAircrafts(viewer) {
     aircraftGraphic.primitives.selectedAircraft.routePolylines.show = isSelectedAircraftMatched
     aircraftGraphic.primitiveContainer.show = form.visible
 
+    aircraftStore.commitMatchedAircrafts()
     finishedSpatialSelection()
     emitCesiumEvent('aviationFiltered')
     // emitCesiumEvent('aircraftsSynced', { data: matchedAircrafts, status: 'ok' })

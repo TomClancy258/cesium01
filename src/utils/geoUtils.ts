@@ -475,8 +475,8 @@ export function buildRegionFromData(data: FinishedSpatialSelectionData): Selecti
     type: data.type,
     sourceType: data.sourceType,
     centroidLngLatAlt: data.centroidLngLatAlt,
-    aircraft: { icao24Set: new Set(data.aircraft.icao24Set) },
-    airport: { icaoSet: new Set(data.airport.icaoSet) },
+    aircraft: { aircraftMap: new Map(data.aircraft.aircraftMap) },
+    airport: { airportMap: new Map(data.airport.airportMap) },
     spatialSelectionTarget: data.spatialSelectionTarget,
   }
 

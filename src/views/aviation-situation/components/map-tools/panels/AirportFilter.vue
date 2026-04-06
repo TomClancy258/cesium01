@@ -18,7 +18,7 @@ const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return airportStore.matchedAirports.slice(start, start + pageSize.value)
+  return airportStore.matchedAirportsArray.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -93,7 +93,7 @@ watch(
   <!-- 机场数据表格 -->
   <el-table :data="pagedData" border stripe size="small" style="width: 100%">
     <el-table-column prop="icao"      label="ICAO"   fixed />
-    <el-table-column prop="iata"      label="IATA"   />
+<!--    <el-table-column prop="iata"      label="IATA"   />-->
     <el-table-column prop="name"      label="机场名称" />
     <el-table-column prop="city"      label="城市"   />
     <el-table-column prop="country"   label="国家"   />
@@ -114,7 +114,7 @@ watch(
     v-model:current-page="currentPage"
     v-model:page-size="pageSize"
     :page-sizes="[10, 20, 50, 100]"
-    :total="airportStore.matchedAirports.length"
+    :total="airportStore.matchedAirportsArray.length"
     layout="total, sizes, prev, pager, next, jumper"
     @current-change="handlePageChange"
     @size-change="handleSizeChange"

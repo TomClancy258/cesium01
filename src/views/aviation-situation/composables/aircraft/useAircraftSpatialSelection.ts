@@ -75,8 +75,8 @@ export function useAircraftSpatialSelection({
    * 当 filterAircrafts 或新增 finished 选区时调用
    */
   const finishedSpatialSelection = () => {
-    // 1. 清空所有 finished 选区的飞机 icao24 集合
-    spatialSelectionStore.clearFinishedSelectionAircraftIcao24Sets()
+    // 1. 清空所有 finished 选区的飞机 Map
+    spatialSelectionStore.clearFinishedSelectionAircraftMaps()
 
     // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
     matchedIcao24Set.forEach((icao24) => {
@@ -95,7 +95,7 @@ export function useAircraftSpatialSelection({
         const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
 
         if (inGraphic) {
-          spatialSelectionStore.addAircraftToFinishedSelection(dataSourceName, icao24)
+          spatialSelectionStore.addAircraftToFinishedSelection(dataSourceName, item.data)
           highlightBillboardOnSpatialSelection(
             dataSourceName,
             item.billboard,
@@ -107,8 +107,8 @@ export function useAircraftSpatialSelection({
       }
     })
 
-    // 3. 触发响应式更新，并刷新各选区 label
-    spatialSelectionStore.triggerFinishedGraphicMapUpdate()
+    // 3. 提交新 Map 引用 + 触发响应式更新，并刷新各选区 label
+    spatialSelectionStore.commitFinishedAircraftMaps()
     updateFinishedSelectionLabels()
   }
 
@@ -127,9 +127,9 @@ export function useAircraftSpatialSelection({
 
         const target = selectionRegion.spatialSelectionTarget
         if (target === 'aircraft') {
-          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.icao24Set.size} 架\n${base}`
+          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n${base}`
         } else if (target === 'all') {
-          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.icao24Set.size} 架\n机场：${selectionRegion.airport.icaoSet.size} 个\n${base}`
+          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
         }
       }else if(selectionRegion.sourceType === 'circleSpatialSelection'||
         selectionRegion.sourceType === 'hemisphereSpatialSelection'){
@@ -139,9 +139,9 @@ export function useAircraftSpatialSelection({
 
         const target = selectionRegion.spatialSelectionTarget
         if (target === 'aircraft') {
-          entity.label.text = `飞机：${selectionRegion.aircraft.icao24Set.size} 架\n${base}`
+          entity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n${base}`
         } else if (target === 'all') {
-          entity.label.text = `飞机：${selectionRegion.aircraft.icao24Set.size} 架\n机场：${selectionRegion.airport.icaoSet.size} 个\n${base}`
+          entity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
         }
       }
 
@@ -171,11 +171,11 @@ export function useAircraftSpatialSelection({
       if (clearAircraftSpatialSelectionData===undefined||clearAircraftSpatialSelectionData.isActive) {
         clearActiveSpatialSelection()
       }else{
-        clearAircraftSpatialSelectionData.aircraft.icao24Set.forEach((icao24) => {
+        for (const icao24 of clearAircraftSpatialSelectionData.aircraft.aircraftMap.keys()) {
           const item = renderMap.get(icao24)
           if (!item) return
           clearSpatialSelectedHighlight(clearAircraftSpatialSelectionData.dataSourceName, item.billboard)
-        })
+        }
       }
     })
   }

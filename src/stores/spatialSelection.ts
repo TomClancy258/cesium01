@@ -1,7 +1,9 @@
 //src/stores/spatialSelection.ts
 import { defineStore } from 'pinia'
-import { reactive, shallowRef,computed,triggerRef } from 'vue'
+import { reactive, shallowRef, computed, triggerRef } from 'vue'
 import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
 
 export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
 
@@ -57,40 +59,46 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
     triggerRef(finishedGraphicMap)
   }
 
-  const clearFinishedSelectionAircraftIcao24Sets=()=> {
+  const clearFinishedSelectionAircraftMaps = () => {
     for (const [, selectionRegion] of finishedGraphicMap.value) {
-      // selectionRegion.aircraft.icao24Set.clear()
-      // 创建新对象引用，确保 prop 变化被 Vue 检测到
-      selectionRegion.aircraft = { icao24Set: new Set() }
+      selectionRegion.aircraft = { aircraftMap: new Map() }
     }
   }
 
-  const addAircraftToFinishedSelection = (dataSourceName: string, icao24: string) => {
+  const addAircraftToFinishedSelection = (dataSourceName: string, aircraft: Aircraft) => {
     const region = finishedGraphicMap.value.get(dataSourceName)
     if (!region) return
-    // region.aircraft.icao24Set.add(icao24)
-    // 创建新 Set 引用而非原地 .add()，确保 prop 变化被 Vue 检测到
-    region.aircraft = { icao24Set: new Set([...region.aircraft.icao24Set, icao24]) }
-    // 注意：不在这里 triggerRef，由调用方批量完成后统一触发
+    region.aircraft.aircraftMap.set(aircraft.icao24, aircraft)
+  }
+
+  const commitFinishedAircraftMaps = () => {
+    for (const [, region] of finishedGraphicMap.value) {
+      region.aircraft = { aircraftMap: new Map(region.aircraft.aircraftMap) }
+    }
+    triggerRef(finishedGraphicMap)
   }
 
   const triggerFinishedGraphicMapUpdate = () => {
     triggerRef(finishedGraphicMap)
   }
 
-  // 在 spatialSelection.ts 里补充（对应飞机侧的 addAircraftToFinishedSelection）
-  const clearFinishedSelectionAirportIcaoSets = () => {
+  const clearFinishedSelectionAirportMaps = () => {
     for (const [, selectionRegion] of finishedGraphicMap.value) {
-      // selectionRegion.airport.icaoSet.clear()
-      selectionRegion.airport = { icaoSet: new Set() }
+      selectionRegion.airport = { airportMap: new Map() }
     }
   }
 
-  const addAirportToFinishedSelection = (dataSourceName: string, icao: string) => {
+  const addAirportToFinishedSelection = (dataSourceName: string, airport: Airport) => {
     const region = finishedGraphicMap.value.get(dataSourceName)
     if (!region) return
-    // region.airport.icaoSet.add(icao)
-    region.airport = { icaoSet: new Set([...region.airport.icaoSet, icao]) }
+    region.airport.airportMap.set(airport.icao, airport)
+  }
+
+  const commitFinishedAirportMaps = () => {
+    for (const [, region] of finishedGraphicMap.value) {
+      region.airport = { airportMap: new Map(region.airport.airportMap) }
+    }
+    triggerRef(finishedGraphicMap)
   }
 
   const clearActiveAviationSpatialSelection=()=>{
@@ -113,11 +121,13 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
     addFinishedSelection,
     removeFinishedSelection,
     clearAllFinishedSelections,
-    clearFinishedSelectionAircraftIcao24Sets,
+    clearFinishedSelectionAircraftMaps,
     addAircraftToFinishedSelection,
+    commitFinishedAircraftMaps,
     triggerFinishedGraphicMapUpdate,
-    clearFinishedSelectionAirportIcaoSets,
+    clearFinishedSelectionAirportMaps,
     addAirportToFinishedSelection,
+    commitFinishedAirportMaps,
 
     clearActiveAviationSpatialSelection,
   }

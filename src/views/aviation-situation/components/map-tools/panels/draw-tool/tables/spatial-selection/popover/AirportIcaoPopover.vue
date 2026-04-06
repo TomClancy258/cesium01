@@ -1,39 +1,59 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import type { Airport } from '@/network/airport/type'
 
 const props = defineProps<{
-  icaoSet?: Set<string>
+  airportMap?: Map<string, Airport>
 }>()
 
-const searchQuery = ref('')
+const filterIcao = ref('')
+const filterName = ref('')
+const filterCountry = ref('')
 const currentPage = ref(1)
-const pageSize = ref(10)
+const pageSize = ref(5)
 
 const onShow = () => {
-  searchQuery.value = ''
+  filterIcao.value = ''
+  filterName.value = ''
+  filterCountry.value = ''
+  currentPage.value = 1
+}
+
+const resetFilter = () => {
+  filterIcao.value = ''
+  filterName.value = ''
+  filterCountry.value = ''
   currentPage.value = 1
 }
 
 const filtered = computed(() => {
-  const all = [...(props.icaoSet ?? [])] as string[]
-  const q = searchQuery.value.trim().toLowerCase()
-  return q ? all.filter((id) => id.toLowerCase().includes(q)) : all
+  const all = [...(props.airportMap?.values() ?? [])]
+  const icao = filterIcao.value.trim().toLowerCase()
+  const name = filterName.value.trim().toLowerCase()
+  const country = filterCountry.value.trim().toLowerCase()
+  return all.filter(
+    (a) =>
+      (!icao || a.icao.toLowerCase().includes(icao)) &&
+      (!name || a.name.toLowerCase().includes(name)) &&
+      (!country || a.country.toLowerCase().includes(country)),
+  )
 })
 
 const paged = computed(() =>
-  filtered.value
-    .slice((currentPage.value - 1) * pageSize.value, currentPage.value * pageSize.value)
-    .map((id) => ({ icao: id })),
+  filtered.value.slice(
+    (currentPage.value - 1) * pageSize.value,
+    currentPage.value * pageSize.value,
+  ),
 )
 </script>
 
 <template>
-  <template v-if="!icaoSet?.size">—</template>
+  <template v-if="!airportMap?.size">—</template>
   <template v-else>
     <el-popover
       placement="top"
-      width="30%"
+      width="70%"
       trigger="click"
       popper-class="airport-list-popover"
       @show="onShow"
@@ -41,32 +61,46 @@ const paged = computed(() =>
       <template #reference>
         <div class="tag-preview">
           <el-tag
-            v-for="id in [...icaoSet].slice(0, 2)"
-            :key="id"
+            v-for="a in [...airportMap.values()].slice(0, 2)"
+            :key="a.icao"
             size="small"
             type="success"
             style="margin: 1px"
-          >{{ id }}</el-tag>
+          >{{ a.icao }}</el-tag>
           <el-tag
-            v-if="icaoSet.size > 2"
+            v-if="airportMap.size > 2"
             size="small"
             type="warning"
-          >+{{ icaoSet.size - 2 }}</el-tag>
+          >+{{ airportMap.size - 2 }}</el-tag>
         </div>
       </template>
 
-      <div class="popover-title">全部机场 icao（{{ icaoSet.size }} 个）</div>
-      <el-input
-        v-model="searchQuery"
-        placeholder="搜索机场 icao"
-        size="small"
-        clearable
-        style="margin-bottom: 8px"
-        @input="currentPage = 1"
-      />
+      <div class="popover-title">全部机场（{{ airportMap.size }} 个）</div>
+
+      <el-form :inline="true" size="default" style="margin-bottom: 4px">
+        <el-form-item label="icao">
+          <el-input v-model="filterIcao" clearable @input="currentPage = 1" />
+        </el-form-item>
+        <el-form-item label="机场名称">
+          <el-input v-model="filterName" clearable @input="currentPage = 1" />
+        </el-form-item>
+        <el-form-item label="机场国家">
+          <el-input v-model="filterCountry" clearable @input="currentPage = 1" />
+        </el-form-item>
+        <el-form-item>
+          <el-button @click="resetFilter">重置</el-button>
+        </el-form-item>
+      </el-form>
+
       <el-table :data="paged" size="small" border style="width: 100%">
-        <el-table-column label="icao" prop="icao" />
-        <el-table-column label="操作" width="70" align="center">
+        <el-table-column prop="icao"      label="ICAO"    fixed />
+        <el-table-column prop="name"      label="机场名称" />
+        <el-table-column prop="city"      label="城市"    />
+        <el-table-column prop="country"   label="国家"    />
+        <el-table-column prop="latitude"  label="纬度"    />
+        <el-table-column prop="longitude" label="经度"    />
+        <el-table-column prop="elevation" label="海拔(ft)" />
+        <el-table-column label="操作" width="70" align="center" fixed="right">
           <template #default="{ row }">
             <el-button
               type="primary"
@@ -81,7 +115,8 @@ const paged = computed(() =>
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :total="filtered.length"
-        layout="prev, pager, next, jumper"
+        :page-sizes="[5, 10, 20, 30]"
+        layout="total, sizes, prev, pager, next, jumper"
         size="small"
         background
         style="margin-top: 8px; justify-content: flex-end"

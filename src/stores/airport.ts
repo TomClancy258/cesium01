@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, shallowRef } from 'vue'
+import { reactive, shallowRef, computed } from 'vue'
 import type { Airport } from '@/network/airport/type'
 
 // 定义筛选表单类型（包含visible）
@@ -21,12 +21,17 @@ export const useAirportStore = defineStore('Airport', () => {
     alwaysVisible: false // 飞机显示状态
   })
 
-  const matchedAirports=shallowRef<Airport[]>([])
-  const clearMatchedAirports=()=>{
-    matchedAirports.value=[]
+  const matchedAirports = shallowRef<Map<string, Airport>>(new Map())
+  const matchedAirportsArray = computed(() => [...matchedAirports.value.values()])
+
+  const clearMatchedAirports = () => {
+    matchedAirports.value = new Map()
   }
-  const addMatchedAirports=(airport:Airport)=>{
-    matchedAirports.value.push(airport)
+  const addMatchedAirports = (airport: Airport) => {
+    matchedAirports.value.set(airport.icao, airport)
+  }
+  const commitMatchedAirports = () => {
+    matchedAirports.value = new Map(matchedAirports.value)
   }
 
   // 仅提供数据重置方法（纯数据操作）
@@ -43,7 +48,9 @@ export const useAirportStore = defineStore('Airport', () => {
     resetAirportFilterForm,
 
     matchedAirports,
+    matchedAirportsArray,
     clearMatchedAirports,
     addMatchedAirports,
+    commitMatchedAirports,
   }
 })

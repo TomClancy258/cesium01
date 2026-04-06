@@ -22,7 +22,7 @@ const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return aircraftStore.matchedAircrafts.slice(start, start + pageSize.value)
+  return aircraftStore.matchedAircraftsArray.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -70,6 +70,7 @@ const onDetail = (row: Aircraft) => {
     <el-form
       :model="aircraftStore.aircraftFilterForm"
       :inline="true"
+      size="default"
       ref="aircraftFilterFormRef"
       label-width="100px"
     >
@@ -143,7 +144,7 @@ const onDetail = (row: Aircraft) => {
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
       :page-sizes="[10, 20, 50, 100]"
-      :total="aircraftStore.matchedAircrafts.length"
+      :total="aircraftStore.matchedAircraftsArray.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"

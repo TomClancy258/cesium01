@@ -2,6 +2,10 @@
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import {  useSpatialSelectionStore } from '@/stores/spatialSelection'
+import { useAircraftStore } from '@/stores/aircraft'
+import { useAirportStore } from '@/stores/airport'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
 import { generateBizUniqueId } from '@/utils/uuid'
 import type { TempPointLabelPosition } from '../shared/useMouseFollowPointLabel'
 import { useKeyboardEvents } from '../useKeyboardEvents'
@@ -118,6 +122,8 @@ export const useHemisphereSpatialSelection = (
 ) => {
   const drawingToolStore = useDrawingToolStore()
   const spatialSelectionStore = useSpatialSelectionStore()
+  const aircraftStore = useAircraftStore()
+  const airportStore = useAirportStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
 
   // const hemisphereEntities: Cesium.Entity[] = []
@@ -429,10 +435,24 @@ export const useHemisphereSpatialSelection = (
       },
       centerLngLatAltArray: centerLngLatAltArray,
       aircraft: {
-        icao24Set: new Set<string>(spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set),
+        aircraftMap: (() => {
+          const map = new Map<string, Aircraft>()
+          for (const icao24 of spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set) {
+            const aircraft = aircraftStore.matchedAircrafts.get(icao24)
+            if (aircraft) map.set(icao24, aircraft)
+          }
+          return map
+        })()
       },
       airport: {
-        icaoSet: new Set<string>(spatialSelectionStore.activeSpatialSelection.airport.icaoSet),
+        airportMap: (() => {
+          const map = new Map<string, Airport>()
+          for (const icao of spatialSelectionStore.activeSpatialSelection.airport.icaoSet) {
+            const airport = airportStore.matchedAirports.get(icao)
+            if (airport) map.set(icao, airport)
+          }
+          return map
+        })()
       },
       spatialSelectionTarget: drawingToolStore.drawingToolForm.spatialSelectionTarget,
       label: {
