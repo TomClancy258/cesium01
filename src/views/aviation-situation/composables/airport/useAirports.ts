@@ -12,7 +12,7 @@ import type {
   AirportFilterForm,
   AirportGraphic,
 } from '@/views/aviation-situation/types/airport'
-import { isValidCoordinate, updateTooltip,getCameraHeight } from '@/utils/geoUtils'
+import { isValidCoordinate, updateTooltip, getCameraHeight, flyToLngLatAlt } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 
@@ -40,6 +40,13 @@ import { AviationRenderItem,SpatialSelectionData } from '@/views/aviation-situat
 type AirportRenderItem = AviationRenderItem<Airport>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAirportSpatialSelection } from './useAirportSpatialSelection'
+import type { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
+import {
+  handleAircraftLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft'
+import {
+  handleAirportLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
@@ -164,10 +171,12 @@ export function useAirports(viewer) {
       } else {
         console.warn('机场数据为空或格式错误:', data)
         clearAirports()
+        airportStore.clearMatchedAirports()
       }
     } catch (error) {
       console.error('加载机场数据失败:', error)
       clearAirports()
+      airportStore.clearMatchedAirports()
     }
   }
 
@@ -251,6 +260,7 @@ export function useAirports(viewer) {
 
   const filterAirports = useDebounceFn((): void => {
     matchedAirportCount.value = 0
+    airportStore.clearMatchedAirports()
 
     const DEFAULT_ALPHA: number = 0.0
     const HIGHLIGHT_ALPHA: number = 1.0
@@ -276,6 +286,7 @@ export function useAirports(viewer) {
       const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
         matchedIcaoSet.add(airport.icao)
+        airportStore.addMatchedAirports(airport)
         matchedAirportCount.value++
         // matchedBillboard=billboard
       }
@@ -306,6 +317,7 @@ export function useAirports(viewer) {
   let unsubAirportLeave: () => void
   let unsubAirportLeftClick: () => void
   let unsubMouseWheel: () => void
+  let unSubAirportFilterTableDetailClick: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -335,7 +347,26 @@ export function useAirports(viewer) {
       handleCameraMoveEnd(viewer.value.camera)
     })
 
+    unSubAirportFilterTableDetailClick = onCesiumEvent('airportFilterTableDetailClicked', (icao:string) => {
+      flyToAirportByIcao(icao)
+    })
+
   }
+
+  const flyToAirportByIcao = (icao: string): void => {
+    const airportRenderItem = airportRenderMap.get(icao)
+    if (!airportRenderItem) return
+    const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
+    handleAirportLeftClick(properties,{
+      primitive:airportRenderItem.billboard
+    })
+    flyToLngLatAlt(viewer,{
+      longitude:airportRenderItem.data.longitude,
+      latitude:airportRenderItem.data.latitude,
+      height:airportRenderItem.data.elevation,
+    }, 300000)
+  }
+
 
   const clearAirports = (): void => {
     airportGraphic.primitives.billboards.removeAll()
@@ -363,6 +394,7 @@ export function useAirports(viewer) {
     unsubAirportLeftClick?.()
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
+    unSubAirportFilterTableDetailClick?.()
 
     unwatchAirportFilterForm?.()
 

@@ -1,5 +1,5 @@
 import { Segment } from '@/views/aviation-situation/types/draw-tools'
-import { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import { LngLatAlt, SegmentResult } from '@/views/aviation-situation/types/shared'
 
 export const buildSpatialSelectionLabelText=(
   text:string,
@@ -18,13 +18,6 @@ export const buildSpatialSelectionLabelText=(
     }
   }
   return text
-}
-
-export interface SegmentResult{
-  startLngLatAlt:LngLatAlt
-  endLngLatAlt:LngLatAlt
-  midLngLatAlt:LngLatAlt
-  distance:number
 }
 
 export const buildSegments = (lngLatAltArray: number[], segments: Segment[]):SegmentResult[] => {

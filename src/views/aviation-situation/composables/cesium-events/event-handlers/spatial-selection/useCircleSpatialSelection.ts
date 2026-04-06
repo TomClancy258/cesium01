@@ -16,7 +16,8 @@ import {
   DrawingDataSource,
   LngLatAlt,
   SpatialSelectionData,
-  LngLatAltArray
+  LngLatAltArray,
+  FinishedCircleSpatialSelectionData,
 } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
@@ -399,7 +400,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
 
     const spatialSelectionTarget:string=drawingToolStore.drawingToolForm.spatialSelectionTarget
 
-    const spatialSelectionData:SpatialSelectionData={
+    const spatialSelectionData: FinishedCircleSpatialSelectionData = {
       dataSourceName:uniqueId,
       sourceType: 'circleSpatialSelection',
       type:'ellipse',

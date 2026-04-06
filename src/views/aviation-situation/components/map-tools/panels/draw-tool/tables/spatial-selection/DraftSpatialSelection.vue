@@ -118,9 +118,9 @@ const handleDelete = (row: any) => {
   })
 }
 
-// 查看（占位，按需实现）
+// 详情（占位，按需实现）
 const handleView = (row: any) => {
-  console.log('查看', row)
+  console.log('详情', row)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     operationType:'detail',
     centroidLngLatAlt:row.centroidLngLatAlt,
@@ -173,14 +173,14 @@ const handleView = (row: any) => {
       </el-table-column>
 
       <!-- 半径 -->
-      <el-table-column label="半径" align="center">
+      <el-table-column label="半径" align="center" width="100px">
         <template #default="{ row }">
           {{ formatRadius(row) }}
         </template>
       </el-table-column>
 
       <!-- 圆心坐标 -->
-      <el-table-column label="圆心坐标" align="center">
+      <el-table-column label="圆心坐标" width="250px" align="center">
         <template #default="{ row }">
           <span v-if="row.centerLngLatAltArray?.length">
             {{ formatCoord(row.centerLngLatAltArray) }}
@@ -263,7 +263,7 @@ const handleView = (row: any) => {
       <!-- 操作 -->
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+          <el-button type="primary" link size="small" @click="handleView(row)">详情</el-button>
           <el-button type="success" link size="small" @click="handleSave(row)">保存</el-button>
           <el-popconfirm
             title="确认删除该选区？"

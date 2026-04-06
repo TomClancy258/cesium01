@@ -1,5 +1,13 @@
 //geoUtils.ts
-import type { LngLatAlt, TooltipState,SelectionRegionBase } from '@/views/aviation-situation/types/shared'
+import {
+  LngLatAlt,
+  TooltipState,
+  SelectionRegionBase,
+  FinishedSpatialSelectionData,
+  FinishedPolygonSpatialSelectionData,
+  FinishedCircleSpatialSelectionData,
+  FinishedHemisphereSpatialSelectionData
+} from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 import {ShallowRef} from "vue"
@@ -459,25 +467,42 @@ export function isPointInSelectionRegion(
   return false
 }
 
-// 从 SpatialSelectionData 构建 SelectionRegionBase（避免直接持有原始对象引用）
-export function buildRegionFromData(data: SpatialSelectionData): SelectionRegionBase {
-  return {
+// 从 FinishedSpatialSelectionData 构建 SelectionRegionBase（避免直接持有原始对象引用）
+export function buildRegionFromData(data: FinishedSpatialSelectionData): SelectionRegionBase {
+  // 公共字段（三种 variant 都有）
+  const base = {
     dataSourceName: data.dataSourceName,
-    graphic: data.graphic,
-    centroidLngLatAlt:data.centroidLngLatAlt,
     type: data.type,
     sourceType: data.sourceType,
-    centerLngLatAltArray: data.centerLngLatAltArray,
+    centroidLngLatAlt: data.centroidLngLatAlt,
     aircraft: { icao24Set: new Set(data.aircraft.icao24Set) },
     airport: { icaoSet: new Set(data.airport.icaoSet) },
     spatialSelectionTarget: data.spatialSelectionTarget,
+  }
+
+  // early return 使 TS 在每个分支内完成判别式窄化，无需任何 as 断言
+  if (data.sourceType === 'polygonSpatialSelection') {
+    return {
+      ...base,
+      graphic: data.graphic,
+      label: {
+        perimeterInfo: { ...data.label.perimeterInfo },
+        areaInfo: { ...data.label.areaInfo },
+      },
+      polygonState: { ...data.polygonState },
+      segments: [...data.segments],
+    }
+  }
+
+  // circleSpatialSelection | hemisphereSpatialSelection
+  return {
+    ...base,
+    centerLngLatAltArray: [...data.centerLngLatAltArray],
     label: {
       perimeterInfo: { ...data.label.perimeterInfo },
       areaInfo: { ...data.label.areaInfo },
       radiusInfo: { ...data.label.radiusInfo },
     },
-    polygonState: { ...data.polygonState },
-    segments: [...(data.segments ?? [])],
   }
 }
 

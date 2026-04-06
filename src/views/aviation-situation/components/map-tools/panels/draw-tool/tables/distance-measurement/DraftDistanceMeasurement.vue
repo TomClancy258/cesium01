@@ -6,6 +6,7 @@ import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
 import SegmentsPopover from '../../popover/SegmentsPopover.vue'
+import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'
 
 const distanceMeasurementStore = useDistanceMeasurementStore()
 const { finishedGraphicsArray } = storeToRefs(distanceMeasurementStore)
@@ -33,8 +34,8 @@ const handleCurrentChange = (val: number) => {
 const tableRef = ref()
 
 // 勾选
-const selection = ref<any[]>([])
-const handleSelectionChange = (val: any[]) => {
+const selection = ref<DistanceMeasurementData[]>([])
+const handleSelectionChange = (val: DistanceMeasurementData[]) => {
   selection.value = val
 }
 
@@ -66,7 +67,7 @@ const sourceTypeMap: Record<string, string> = {
 }
 
 // 删除
-const handleDelete = (row: any) => {
+const handleDelete = (row: DistanceMeasurementData) => {
   distanceMeasurementStore.removeFinishedSelection(row.dataSourceName)
   emitCesiumEvent('spatialSelectionTableOperationClicked', {
     operationType: 'delete',
@@ -75,7 +76,7 @@ const handleDelete = (row: any) => {
   })
 }
 
-// 查看（飞到质心）
+// 详情（飞到质心）
 const handleView = (row: any) => {
   emitCesiumEvent('spatialSelectionTableOperationClicked', {
     operationType: 'detail',
@@ -85,7 +86,7 @@ const handleView = (row: any) => {
   })
 }
 
-const handleSave = (row: any) => {
+const handleSave = (row: DistanceMeasurementData) => {
 }
 
 // 批量保存
@@ -182,7 +183,7 @@ const handleBatchDelete = () => {
       <!-- 操作 -->
       <el-table-column label="操作" width="150" align="center" fixed="right">
         <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+          <el-button type="primary" link size="small" @click="handleView(row)">详情</el-button>
           <el-button type="success" link size="small" @click="handleSave(row)">保存</el-button>
           <el-popconfirm
             title="确认删除该测绘记录？"

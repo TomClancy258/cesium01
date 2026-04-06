@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import { reactive } from 'vue'
+import { reactive, shallowRef } from 'vue'
+import type { Airport } from '@/network/airport/type'
 
 // 定义筛选表单类型（包含visible）
 interface AirportFilterForm {
@@ -20,6 +21,14 @@ export const useAirportStore = defineStore('Airport', () => {
     alwaysVisible: false // 飞机显示状态
   })
 
+  const matchedAirports=shallowRef<Airport[]>([])
+  const clearMatchedAirports=()=>{
+    matchedAirports.value=[]
+  }
+  const addMatchedAirports=(airport:Airport)=>{
+    matchedAirports.value.push(airport)
+  }
+
   // 仅提供数据重置方法（纯数据操作）
   const resetAirportFilterForm = () => {
     airportFilterForm.icao = ''
@@ -31,6 +40,10 @@ export const useAirportStore = defineStore('Airport', () => {
 
   return {
     airportFilterForm,
-    resetAirportFilterForm
+    resetAirportFilterForm,
+
+    matchedAirports,
+    clearMatchedAirports,
+    addMatchedAirports,
   }
 })

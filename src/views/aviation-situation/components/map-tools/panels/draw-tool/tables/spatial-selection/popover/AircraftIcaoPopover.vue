@@ -73,7 +73,7 @@ const paged = computed(() =>
               link
               size="small"
               @click="emitCesiumEvent('aircraftFilterTableDetailClicked', row.icao24)"
-            >查看</el-button>
+            >详情</el-button>
           </template>
         </el-table-column>
       </el-table>

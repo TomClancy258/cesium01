@@ -27,7 +27,6 @@ const paged = computed(() =>
 )
 
 const formatPoint = (pt: LngLatAlt) =>{
-console.log("pt", pt);
   return `${pt.longitude.toFixed(4)}°, ${pt.latitude.toFixed(4)}°, ${pt.height.toFixed(1)}m`
 }
 
@@ -82,7 +81,7 @@ const handleView = (row: SegmentResult) => {
         </el-table-column>
         <el-table-column label="操作" width="70" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link size="small" @click="handleView(row)">查看</el-button>
+            <el-button type="primary" link size="small" @click="handleView(row)">详情</el-button>
           </template>
         </el-table-column>
       </el-table>

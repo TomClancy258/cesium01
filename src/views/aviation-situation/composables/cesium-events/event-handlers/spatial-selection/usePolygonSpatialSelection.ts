@@ -9,6 +9,7 @@ import type {
   DrawingDataSource,
   LngLatAlt,
   SpatialSelectionData,
+  FinishedPolygonSpatialSelectionData,
 } from '@/views/aviation-situation/types/shared'
 import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
@@ -23,10 +24,10 @@ import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '..
 import * as turf from '@turf/turf'
 
 import type { SegmentDistancesState } from '@/views/aviation-situation/types/draw-tools.ts'
+import type { SegmentResult } from '@/views/aviation-situation/types/shared'
 import {
   buildLngLatAltList,
   buildSegments,
-  SegmentResult
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils'
 
 interface DynamicPolygonState {
@@ -458,13 +459,24 @@ export const usePolygonSpatialSelection = (
     // polygonSpatialSelectionDataSourceMap.set(uniqueId,newDataSource);
     viewer.value?.dataSources.add(newDataSource)
 
-    const segmentResults:SegmentResult[]=buildSegments(dynamicPolygonState.lngLatAltArray,segmentDistancesState.segments)
     const lngLatAltList:LngLatAlt[]=buildLngLatAltList(dynamicPolygonState.lngLatAltArray)
+    // const lngLatAltRingList:LngLatAlt[]=[...lngLatAltList,{
+    //   longitude:dynamicPolygonState.lngLatAltArray[0],
+    //   latitude:dynamicPolygonState.lngLatAltArray[1],
+    //   height:dynamicPolygonState.lngLatAltArray[2],
+    // }]
+    const lngLatAltRingArray:number[]=[...dynamicPolygonState.lngLatAltArray,
+      dynamicPolygonState.lngLatAltArray[0],
+      dynamicPolygonState.lngLatAltArray[1],
+      dynamicPolygonState.lngLatAltArray[2],
+    ]
+    const segmentResults:SegmentResult[]=buildSegments(lngLatAltRingArray,segmentDistancesState.segments)
+
 
     const spatialSelectionTarget: string =
       drawingToolStore.drawingToolForm.spatialSelectionTarget
 
-    const spatialSelectionData = {
+    const spatialSelectionData: FinishedPolygonSpatialSelectionData = {
       dataSourceName: uniqueId,
       type: 'polygon',
       sourceType: 'polygonSpatialSelection',
@@ -494,11 +506,11 @@ export const usePolygonSpatialSelection = (
       polygonState: {
         // lngLatAltArray: dynamicPolygonState.lngLatAltArray,
         // pointCount: dynamicPolygonState.pointCount,
-        lngLatAltList
+        lngLatAltList,
+        // lngLatAltRingList,
       },
       segments:segmentResults,
     }
-    console.log("spatialSelectionDataaaaaaaaaaa", spatialSelectionData);
     emitSpatialSelectByTarget(spatialSelectionTarget, spatialSelectionData)
     emitClearSpatialSelectionByTarget(spatialSelectionTarget, { isActive: true })
 

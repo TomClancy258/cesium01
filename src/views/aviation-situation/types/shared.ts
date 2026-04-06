@@ -2,9 +2,6 @@ import type {AircraftBillboardProperties,AircraftLabelProperties,AircraftSelecte
 import type {AirportBillboardProperties,AirportLabelProperties,AirportSelectedData} from "./airport"
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
-import type {
-  SegmentDistancesState
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection'
 
 export type LngLatAltArray=[number,number,number]
 
@@ -54,58 +51,129 @@ export interface DrawingDataSource{
 
 export type Graphic = turf.Feature<turf.Polygon> | turf.Feature<turf.Point>
 
-// 定义公共字段
-interface BaseSpatialSelectionData {
-  dataSourceName: string;
-  isActive: boolean;
-  sourceType: 'polygonSpatialSelection'|'circleSpatialSelection';
+export interface SegmentResult {
+  startLngLatAlt: LngLatAlt
+  endLngLatAlt: LngLatAlt
+  midLngLatAlt: LngLatAlt
+  distance: number
 }
 
-// Circle 类型
-export interface CircleSpatialSelectionData extends BaseSpatialSelectionData {
-  type: 'circle';
-  radius: number;
-  centerLngLatAltArray: number[];
+// === Spatial selection label sub-types ===
+export interface SpatialSelectionPerimeterInfo {
+  perimeter: number
+  formattedPerimeterStr: string
 }
 
-// Polygon 类型
-export interface PolygonSpatialSelectionData extends BaseSpatialSelectionData {
-  type: 'polygon';
-  graphic: Graphic; // 假设 Graphic 已定义
+export interface SpatialSelectionAreaInfo {
+  area: number
+  formattedAreaStr: string
 }
 
-// 联合类型
+export interface SpatialSelectionRadiusInfo {
+  radius: number
+  formattedRadiusStr: string
+}
+
+interface SpatialSelectionAviationIds {
+  aircraft: { icao24Set: Set<string> }
+  airport: { icaoSet: Set<string> }
+}
+
+// === Active (in-progress) spatial selection states ===
+export interface ActivePolygonSpatialSelectionData {
+  dataSourceName: string
+  type: 'polygon'
+  sourceType: 'polygonSpatialSelection'
+  graphic: Graphic
+  isActive: true
+}
+
+export interface ActiveCircleSpatialSelectionData {
+  dataSourceName: string
+  type: 'ellipse'
+  sourceType: 'circleSpatialSelection'
+  centerLngLatAltArray: number[]
+  label: { radiusInfo: { radius: number } }
+  isActive: true
+}
+
+export interface ActiveHemisphereSpatialSelectionData {
+  dataSourceName: string
+  type: 'ellipsoid'
+  sourceType: 'hemisphereSpatialSelection'
+  centerLngLatAltArray: number[]
+  label: { radiusInfo: { radius: number } }
+  isActive: true
+}
+
+// === Finished spatial selection states ===
+export interface FinishedPolygonSpatialSelectionData extends SpatialSelectionAviationIds {
+  dataSourceName: string
+  type: 'polygon'
+  sourceType: 'polygonSpatialSelection'
+  graphic: Graphic
+  isActive: false
+  isDraft: boolean
+  centroidLngLatAlt: LngLatAlt
+  spatialSelectionTarget: string
+  label: {
+    perimeterInfo: SpatialSelectionPerimeterInfo
+    areaInfo: SpatialSelectionAreaInfo
+  }
+  polygonState: {
+    lngLatAltList: LngLatAlt[]
+  }
+  segments: SegmentResult[]
+}
+
+export interface FinishedCircleSpatialSelectionData extends SpatialSelectionAviationIds {
+  dataSourceName: string
+  type: 'ellipse'
+  sourceType: 'circleSpatialSelection'
+  isActive: false
+  isDraft: boolean
+  centroidLngLatAlt: LngLatAlt
+  centerLngLatAltArray: LngLatAltArray
+  spatialSelectionTarget: string
+  label: {
+    perimeterInfo: SpatialSelectionPerimeterInfo
+    areaInfo: SpatialSelectionAreaInfo
+    radiusInfo: SpatialSelectionRadiusInfo
+  }
+}
+
+export interface FinishedHemisphereSpatialSelectionData extends SpatialSelectionAviationIds {
+  dataSourceName: string
+  type: 'ellipsoid'
+  sourceType: 'hemisphereSpatialSelection'
+  isActive: false
+  isDraft: boolean
+  centroidLngLatAlt: LngLatAlt
+  centerLngLatAltArray: LngLatAltArray
+  spatialSelectionTarget: string
+  label: {
+    perimeterInfo: SpatialSelectionPerimeterInfo
+    areaInfo: SpatialSelectionAreaInfo
+    radiusInfo: SpatialSelectionRadiusInfo
+  }
+}
+
+export type FinishedSpatialSelectionData =
+  | FinishedPolygonSpatialSelectionData
+  | FinishedCircleSpatialSelectionData
+  | FinishedHemisphereSpatialSelectionData
+
 export type SpatialSelectionData =
-  | CircleSpatialSelectionData
-  | PolygonSpatialSelectionData;
+  | ActivePolygonSpatialSelectionData
+  | ActiveCircleSpatialSelectionData
+  | ActiveHemisphereSpatialSelectionData
+  | FinishedSpatialSelectionData
 
 // 通用 RenderItem（用泛型）
 export interface AviationRenderItem<T> {
   data: T
   billboard: Cesium.Billboard
   label: Cesium.Label
-}
-
-// 统一 SelectionRegion（使用 genericIdSet）
-export interface SelectionRegion {
-  type: string
-  graphic?: Graphic
-  radius: number
-  sourceType: 'polygonSpatialSelection'|'circleSpatialSelection';
-  centerLngLatAltArray: number[]
-  idSet: Set<string> // ✅ 统一叫 idSet，不再区分 icao / icao24
-}
-
-export interface SpatialSelectionActive {
-  type: string
-  dataSourceName: string
-  graphic: Graphic
-  idSet: Set<string> // ✅ 同上
-}
-
-export interface SpatialSelection {
-  finishedGraphicMap: Map<string, SelectionRegion>
-  active: SpatialSelectionActive
 }
 
 
@@ -126,40 +194,26 @@ export interface DrawingToolEntitiesResult {
 
 
 export interface SelectionRegionBase {
-  dataSourceName: string;
-  graphic: Graphic;
-  type:string,
-  radius: number,
-  sourceType: string;
-  centerLngLatAltArray: number[],
-  aircraft: {
-    icao24Set: Set<string>;
-  };
-  airport: {
-    icaoSet: Set<string>;
-  };
-  spatialSelectionTarget: string;
+  dataSourceName: string
+  type: string
+  sourceType: string
+  graphic?: Graphic
+  centroidLngLatAlt?: LngLatAlt
+  centerLngLatAltArray?: number[]
+  aircraft: { icao24Set: Set<string> }
+  airport: { icaoSet: Set<string> }
+  spatialSelectionTarget: string
   label: {
-    perimeterInfo: {
-      perimeter: number;
-      formattedPerimeterStr: string;
-    };
-    areaInfo: {
-      area: number;
-      formattedAreaStr: string;
-    };
-    radiusInfo: {
-      radius: number;
-      formattedRadiusStr: string;
-    };
-  };
-  polygonState:{
-    lngLatAltArray: number[],
-    pointCount: number,
-  },
-  segmentDistancesState: SegmentDistancesState;
+    perimeterInfo?: SpatialSelectionPerimeterInfo
+    areaInfo?: SpatialSelectionAreaInfo
+    radiusInfo?: SpatialSelectionRadiusInfo
+  }
+  polygonState?: { lngLatAltList?: LngLatAlt[] }
+  segments?: SegmentResult[]
 }
 
 export interface ClearAviationSpatialSelectionDataBase {
   isActive:boolean
 }
+
+export type ClearAviationSpatialSelectionData = ClearAviationSpatialSelectionDataBase

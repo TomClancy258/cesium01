@@ -15,12 +15,12 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 import { useDrawingToolStore,type DrawingToolForm } from '@/stores/drawingTool'
 import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
-import type {SegmentDistancesState} from "@/views/aviation-situation/types/draw-tools.ts"
+import type { SegmentDistancesState, DistanceMeasurementData } from "@/views/aviation-situation/types/draw-tools.ts"
 import {
   buildLngLatAltList,
-  buildSegments, SegmentResult,
-  SegmentResults
+  buildSegments,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils.ts'
+import type { SegmentResult } from '@/views/aviation-situation/types/shared'
 
 /** 单条距离测绘的完整结构 */
 export interface DistanceSurveySession {
@@ -335,7 +335,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     const segmentResults:SegmentResult[]=buildSegments(dynamicPolylineState.lngLatAltArray,segmentDistancesState.segments)
     const lngLatAltList:LngLatAlt[]=buildLngLatAltList(dynamicPolylineState.lngLatAltArray)
 
-    const distanceMeasurementData={
+    const distanceMeasurementData: DistanceMeasurementData = {
       dataSourceName:uniqueId,
       type:'polyline',
       sourceType:'distanceMeasurement',

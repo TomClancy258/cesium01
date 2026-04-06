@@ -1,4 +1,4 @@
-import { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import { LngLatAlt, SegmentResult } from '@/views/aviation-situation/types/shared'
 
 export interface SpatialSelectionAircraft{
   icao24Set:Set<string>
@@ -30,5 +30,22 @@ export interface Segment{
 
 export interface SegmentDistancesState{
   segments: Segment[]
+}
+
+export interface DistanceMeasurementData {
+  dataSourceName: string
+  type: 'polyline'
+  sourceType: 'distanceMeasurement'
+  centroidLngLatAlt: LngLatAlt
+  label: {
+    distanceInfo: {
+      perimeter: number
+      formattedPerimeterStr: string
+    }
+  }
+  polylineState: {
+    lngLatAltList: LngLatAlt[]
+  }
+  segments: SegmentResult[]
 }
 

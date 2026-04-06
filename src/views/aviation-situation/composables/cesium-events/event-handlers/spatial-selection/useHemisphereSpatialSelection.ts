@@ -16,7 +16,8 @@ import {
 import {
   DrawingDataSource,
   LngLatAlt, LngLatAltArray,
-  SpatialSelectionData
+  SpatialSelectionData,
+  FinishedHemisphereSpatialSelectionData,
 } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE,
@@ -414,7 +415,7 @@ export const useHemisphereSpatialSelection = (
     const spatialSelectionTarget: string =
       drawingToolStore.drawingToolForm.spatialSelectionTarget
 
-    const spatialSelectionData: SpatialSelectionData = {
+    const spatialSelectionData: FinishedHemisphereSpatialSelectionData = {
       dataSourceName: uniqueId,
       sourceType: 'hemisphereSpatialSelection',
       type: 'ellipsoid',
