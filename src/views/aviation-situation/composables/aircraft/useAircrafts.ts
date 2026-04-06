@@ -27,7 +27,7 @@ import { useAircraftStore } from '@/stores/aircraft'
 import { useDebounceFn } from '@vueuse/core'
 import type {
   AviationSelectedData,
-  AviationRenderItem, MapBillboardLabelProperties
+  AviationRenderItem,
 } from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
 import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
@@ -63,10 +63,6 @@ export function useAircrafts(viewer) {
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
   const aircraftStore = useAircraftStore()
 
-  const matchedIcao24Set = new Set<string>()
-
-  const matchedAircraftCount = ref<number>(0)
-  let matchedAircrafts:Aircraft[] =[]
   const aircraftRenderMap = new Map<string, AircraftRenderItem>()
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
@@ -118,7 +114,6 @@ export function useAircrafts(viewer) {
 
   const { finishedSpatialSelection, subscribeSpatialSelectionEvents } = useAircraftSpatialSelection({
     viewer,
-    matchedIcao24Set,
     renderMap: aircraftRenderMap,
     spatialSelectedImageUrl: airplaneSpatialSelectedSvgRawDataUrl,
   })
@@ -414,10 +409,8 @@ export function useAircrafts(viewer) {
 
   // ========== 筛选逻辑 ==========
   const filterAircrafts = useDebounceFn((): void => {
-    matchedIcao24Set.clear()
     // matchedAircrafts=[]
     aircraftStore.clearMatchedAircrafts()
-    matchedAircraftCount.value = 0
 
     const form = aircraftStore.aircraftFilterForm
     const query: AircraftFilterQuery = {
@@ -439,10 +432,8 @@ export function useAircrafts(viewer) {
           (p.originCountry ?? '').toLowerCase().includes(query.originCountry))
 
       if (match) {
-        matchedIcao24Set.add(aircraft.icao24)
         // matchedAircrafts.push(aircraft)
         aircraftStore.addMatchedAircrafts(aircraft)
-        matchedAircraftCount.value++
 
         const selected = aviationSelectionStore.selected
         if (selected?.sourceType === 'aircraft' && p.icao24 === selected.icao24) {
@@ -523,7 +514,6 @@ export function useAircrafts(viewer) {
     aircraftGraphic.primitives.billboards?.removeAll()
     aircraftGraphic.primitives.labels?.removeAll()
     aircraftRenderMap.clear() // ✅ 一行搞定
-    matchedAircraftCount.value = 0
     clearAircraftRoute()
   }
 
@@ -564,7 +554,5 @@ export function useAircrafts(viewer) {
     hideAircraftTooltip,
     tooltip,
     filterAircrafts,
-    matchedAircraftCount,
-    matchedAircrafts,
   }
 }

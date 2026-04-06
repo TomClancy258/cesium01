@@ -19,7 +19,8 @@ export const useAircraftStore = defineStore('aircraft', () => {
   const matchedAircraftsArray = computed(() => [...matchedAircrafts.value.values()])
 
   const clearMatchedAircrafts = () => {
-    matchedAircrafts.value = new Map()
+    // matchedAircrafts.value = new Map()
+    matchedAircrafts.value.clear()
   }
   const addMatchedAircrafts = (aircraft: Aircraft) => {
     matchedAircrafts.value.set(aircraft.icao24, aircraft)

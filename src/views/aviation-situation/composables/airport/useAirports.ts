@@ -31,19 +31,15 @@ import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/compo
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
-  clearHoveredBillboardHighlight, highlightBillboardOnSpatialSelection, clearSpatialSelectedHighlight
+  clearHoveredBillboardHighlight,
 } from '../useBillboardHighlightManager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
-import { AviationRenderItem,SpatialSelectionData } from '@/views/aviation-situation/types/shared'
+import { AviationRenderItem } from '@/views/aviation-situation/types/shared'
 type AirportRenderItem = AviationRenderItem<Airport>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAirportSpatialSelection } from './useAirportSpatialSelection'
-import type { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
-import {
-  handleAircraftLeftClick
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft'
 import {
   handleAirportLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
@@ -53,9 +49,6 @@ export function useAirports(viewer) {
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
 
-  const matchedIcaoSet = new Set<string>()
-
-  const matchedAirportCount = ref<number>(0)
   const airportRenderMap = new Map<string, AirportRenderItem>()
 
   const airportGraphic: AirportGraphic = markRaw({
@@ -80,9 +73,8 @@ export function useAirports(viewer) {
     latitude: 0,
   })
 
-  const { subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
+  const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
     viewer,
-    matchedIcaoSet,
     renderMap: airportRenderMap,
     spatialSelectedImageUrl: airportSpatialSelectedSvgRawDataUrl,
   })
@@ -259,7 +251,6 @@ export function useAirports(viewer) {
   }
 
   const filterAirports = useDebounceFn((): void => {
-    matchedAirportCount.value = 0
     airportStore.clearMatchedAirports()
 
     const DEFAULT_ALPHA: number = 0.0
@@ -285,9 +276,7 @@ export function useAirports(viewer) {
 
       const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
-        matchedIcaoSet.add(airport.icao)
         airportStore.addMatchedAirports(airport)
-        matchedAirportCount.value++
         // matchedBillboard=billboard
       }
 
@@ -298,19 +287,10 @@ export function useAirports(viewer) {
       billboard.show = match
       label.show = match
     })
-    // finishedSpatialSelection()
     airportStore.commitMatchedAirports()
+    finishedSpatialSelection()
     emitCesiumEvent('aviationFiltered')
     // 高亮匹配项
-    if (matchedAirportCount.value === 0) {
-      // ElNotification({
-      //   title: '提示',
-      //   message: '未查询到匹配的机场信息，请检查筛选条件后重试',
-      //   type: 'warning',
-      // });
-    } else if (matchedAirportCount.value === 1) {
-      // flyToPositionWithHeightOffset(viewer.value, matchedBillboard.position, 500000);
-    }
   }, 300)
 
   // ===== 新增：内部订阅机场事件 =====
@@ -410,7 +390,5 @@ export function useAirports(viewer) {
     tooltip,
 
     filterAirports,
-
-    matchedAirportCount,
   }
 }

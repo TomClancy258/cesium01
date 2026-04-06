@@ -10,25 +10,26 @@ import {
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
 import { useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { isPointInSelectionRegion } from '@/utils/geoUtils.ts'
-import type { SelectionRegionBase,ClearAviationSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
+import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
 import {buildRegionFromData} from "@/utils/geoUtils.ts"
 import { ClearAircraftSpatialSelectionData } from '@/views/aviation-situation/types/aircraft'
+import {useAircraftStore} from '@/stores/aircraft'
+import {updateFinishedSelectionLabels} from "@/views/aviation-situation/composables/shared/useFinishedSelectionLabels.ts"
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
-  matchedIcao24Set: Set<string>
   renderMap: Map<string, AviationRenderItem<Aircraft>>
   spatialSelectedImageUrl: string
 }
 
 export function useAircraftSpatialSelection({
   viewer,
-  matchedIcao24Set,
   renderMap,
   spatialSelectedImageUrl,
 }: Options) {
   const spatialSelectionStore = useSpatialSelectionStore()
+  const aircraftStore = useAircraftStore()
 
   // ---- active 选区 ----
   // const activeIdSet = new Set<string>()
@@ -39,7 +40,7 @@ export function useAircraftSpatialSelection({
     // activeIdSet.clear()
     spatialSelectionStore.clearActiveAircraftSpatialSelection()
 
-    matchedIcao24Set.forEach((icao24) => {
+    aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
       const item = renderMap.get(icao24)
       if (!item) return
 
@@ -79,7 +80,7 @@ export function useAircraftSpatialSelection({
     spatialSelectionStore.clearFinishedSelectionAircraftMaps()
 
     // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
-    matchedIcao24Set.forEach((icao24) => {
+    aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
       const item = renderMap.get(icao24)
       if (!item) return
 
@@ -109,46 +110,9 @@ export function useAircraftSpatialSelection({
 
     // 3. 提交新 Map 引用 + 触发响应式更新，并刷新各选区 label
     spatialSelectionStore.commitFinishedAircraftMaps()
-    updateFinishedSelectionLabels()
+    updateFinishedSelectionLabels(viewer)
   }
 
-  /** 更新各 finished 选区的 label 文字（飞机数量部分） */
-  const updateFinishedSelectionLabels = () => {
-    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
-      if (selectionRegion.sourceType === 'polygonSpatialSelection'){
-        const dataSources = viewer.value.dataSources.getByName(dataSourceName)
-        if (!dataSources.length) continue
-
-        const values = dataSources[0].entities.values
-        const metricsLabelEntity = values[1]
-        const props = metricsLabelEntity.properties.getValue() as EntityProperties
-
-        const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}`
-
-        const target = selectionRegion.spatialSelectionTarget
-        if (target === 'aircraft') {
-          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n${base}`
-        } else if (target === 'all') {
-          metricsLabelEntity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
-        }
-      }else if(selectionRegion.sourceType === 'circleSpatialSelection'||
-        selectionRegion.sourceType === 'hemisphereSpatialSelection'){
-        const entity = viewer.value.entities.getById(dataSourceName)
-        const props = entity.properties.getValue() as EntityProperties
-        const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}\n半径：${props.label.radiusInfo.formattedRadiusStr}`
-
-        const target = selectionRegion.spatialSelectionTarget
-        if (target === 'aircraft') {
-          entity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n${base}`
-        } else if (target === 'all') {
-          entity.label.text = `飞机：${selectionRegion.aircraft.aircraftMap.size} 架\n机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
-        }
-      }
-
-
-      // airport-only 的 label 由 useAirportSpatialSelection 负责
-    }
-  }
 
   // ---- 事件订阅 ----
   let unsubSpatialSelect: () => void

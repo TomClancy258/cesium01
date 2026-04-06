@@ -14,22 +14,22 @@ import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts
 import { useSpatialSelectionStore } from '@/stores/spatialSelection'
 import { buildRegionFromData, isPointInSelectionRegion } from '@/utils/geoUtils.ts'
 import type { SelectionRegionBase,ClearAirportSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
-import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
+import {useAirportStore} from '@/stores/airport'
+import {updateFinishedSelectionLabels} from "@/views/aviation-situation/composables/shared/useFinishedSelectionLabels.ts"
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
-  matchedIcaoSet: Set<string>
   renderMap: Map<string, AviationRenderItem<Airport>>
   spatialSelectedImageUrl: string
 }
 
 export function useAirportSpatialSelection({
   viewer,
-  matchedIcaoSet,
   renderMap,
   spatialSelectedImageUrl,
 }: Options) {
   const spatialSelectionStore = useSpatialSelectionStore()
+  const airportStore = useAirportStore()
 
   // ---- active 选区 ----
   // const activeIdSet = new Set<string>()
@@ -40,7 +40,7 @@ export function useAirportSpatialSelection({
     // activeIdSet.clear()
     spatialSelectionStore.clearActiveAirportSpatialSelection()
 
-    matchedIcaoSet.forEach((icao) => {
+    airportStore.matchedAirports.keys().forEach((icao) => {
       const item = renderMap.get(icao)
       if (!item) return
 
@@ -81,7 +81,7 @@ export function useAirportSpatialSelection({
 
       // 该选区不关心机场，跳过
       if (selectionRegion.spatialSelectionTarget === 'aircraft') continue
-      matchedIcaoSet.forEach((icao) => {
+      airportStore.matchedAirports.keys().forEach((icao) => {
         const item = renderMap.get(icao)
         if (!item) return
 
@@ -102,33 +102,7 @@ export function useAirportSpatialSelection({
     }
 
     spatialSelectionStore.commitFinishedAirportMaps()
-    // updateFinishedSelectionLabels()
-  }
-
-  const updateFinishedSelectionLabels = () => {
-    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
-      if (selectionRegion.sourceType !== 'polygonSpatialSelection') continue
-      if (selectionRegion.spatialSelectionTarget === 'aircraft') continue // 飞机侧负责
-
-      const dataSources = viewer.value.dataSources.getByName(dataSourceName)
-      if (!dataSources.length) continue
-
-      const values = dataSources[0].entities.values
-      const metricsLabelEntity = values[1]
-      const props = metricsLabelEntity.properties.getValue() as EntityProperties
-
-      const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}`
-
-      const target = selectionRegion.spatialSelectionTarget
-      if (target === 'airport') {
-        metricsLabelEntity.label.text = `机场：${selectionRegion.airport.airportMap.size} 个\n${base}`
-      } else if (target === 'all') {
-        // all 由两侧共同写入，这里只更新机场部分不够——
-        // 建议：all 的 label 由一个独立的 watcher 统一负责，
-        // 监听 finishedGraphicMap 变化后重新拼接
-        // 此处暂留给飞机侧（它在 all 时也写 label，机场侧跳过）
-      }
-    }
+    updateFinishedSelectionLabels(viewer)
   }
 
   // ---- 事件订阅 ----
@@ -169,6 +143,7 @@ export function useAirportSpatialSelection({
   })
 
   return {
+    finishedSpatialSelection,
     subscribeSpatialSelectionEvents,
   }
 }
