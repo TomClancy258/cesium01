@@ -59,6 +59,7 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
     triggerRef(finishedGraphicMap)
   }
 
+
   const clearFinishedSelectionAircraftMaps = () => {
     for (const [, selectionRegion] of finishedGraphicMap.value) {
       selectionRegion.aircraft = { aircraftMap: new Map() }

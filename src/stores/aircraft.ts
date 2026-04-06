@@ -25,6 +25,7 @@ export const useAircraftStore = defineStore('aircraft', () => {
     matchedAircrafts.value.set(aircraft.icao24, aircraft)
   }
   const commitMatchedAircrafts = () => {
+    // triggerRef(matchedAircrafts)
     matchedAircrafts.value = new Map(matchedAircrafts.value)
   }
 
