@@ -6,16 +6,15 @@ import type { Aircraft } from '@/network/aircraft/type'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
-} from '@/views/aviation-situation/composables/useBillboardHighlightManager.ts'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus.ts'
-import { useSpatialSelectionStore } from '@/stores/spatialSelection'
-import { isPointInSelectionRegion } from '@/utils/geoUtils.ts'
+} from '@/views/aviation-situation/composables/billboard-highlight-manager.ts'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus.ts'
+import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'
-import type { EntityProperties } from '@/views/aviation-situation/types/entity.ts'
-import {buildRegionFromData} from "@/utils/geoUtils.ts"
+import {buildRegionFromData,isPointInSelectionRegion} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
 import { ClearAircraftSpatialSelectionData } from '@/views/aviation-situation/types/aircraft'
 import {useAircraftStore} from '@/stores/aircraft'
-import {updateFinishedSelectionLabels} from "@/views/aviation-situation/composables/shared/useFinishedSelectionLabels.ts"
+import {updateFinishedSelectionLabels} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
+import { useThrottleFn } from '@vueuse/core'
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
@@ -35,7 +34,7 @@ export function useAircraftSpatialSelection({
   // const activeIdSet = new Set<string>()
   let activeDataSourceName = ''
 
-  const activateSpatialSelection = (data: SpatialSelectionData) => {
+  const activateSpatialSelection = useThrottleFn((data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
     // activeIdSet.clear()
     spatialSelectionStore.clearActiveAircraftSpatialSelection()
@@ -59,7 +58,9 @@ export function useAircraftSpatialSelection({
         clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
       }
     })
-  }
+  },200,true,true)
+  // },100,true,true)
+// },500,true,true)
 
   const clearActiveSpatialSelection = () => {
     spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {

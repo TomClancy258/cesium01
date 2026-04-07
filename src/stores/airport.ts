@@ -1,21 +1,17 @@
 import { defineStore } from 'pinia'
 import { reactive, shallowRef, computed, triggerRef } from 'vue'
 import type { Airport } from '@/network/airport/type'
+import type { AirportFilterForm } from '@/views/aviation-situation/types/airport.ts'
+import {
+  selectedContinentCountryValues
+} from '@/views/aviation-situation/constants/airport-filter-data'
 
-// 定义筛选表单类型（包含visible）
-interface AirportFilterForm {
-  icao: '',
-  country: '',
-  name: '',
-  visible: boolean // 飞机显示状态
-  alwaysVisible: boolean
-}
-
-export const useAirportStore = defineStore('Airport', () => {
+export const useAirportStore = defineStore('useAirportStore', () => {
   // 仅存储筛选表单数据
   const airportFilterForm = reactive<AirportFilterForm>({
     icao: '',
-    country: '',
+    // country: '',
+    countries: selectedContinentCountryValues,
     name: '',
     visible: true, // 飞机显示状态
     alwaysVisible: false // 飞机显示状态
@@ -39,7 +35,8 @@ export const useAirportStore = defineStore('Airport', () => {
   // 仅提供数据重置方法（纯数据操作）
   const resetAirportFilterForm = () => {
     airportFilterForm.icao = ''
-    airportFilterForm.country = ''
+    // airportFilterForm.country = ''
+    airportFilterForm.countries = selectedContinentCountryValues
     airportFilterForm.name = ''
     airportFilterForm.visible = true
     airportFilterForm.alwaysVisible = false

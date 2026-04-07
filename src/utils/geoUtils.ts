@@ -1,12 +1,6 @@
 //geoUtils.ts
 import {
   LngLatAlt,
-  TooltipState,
-  SelectionRegionBase,
-  FinishedSpatialSelectionData,
-  FinishedPolygonSpatialSelectionData,
-  FinishedCircleSpatialSelectionData,
-  FinishedHemisphereSpatialSelectionData
 } from '@/views/aviation-situation/types/shared'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
@@ -29,17 +23,6 @@ export function isValidCoordinate(
     isFinite(latitude) &&
     isFinite(altitude)
   )
-}
-
-export function updateTooltip<T>(
-  tooltip: TooltipState<T>,
-  screenPosition: Cartesian2,
-  properties: T
-): void {
-  tooltip.position.left = screenPosition.x + 10
-  tooltip.position.top = screenPosition.y + 50
-  tooltip.properties = { ...properties }
-  tooltip.visible = true
 }
 
 /**
@@ -440,70 +423,6 @@ function interpolateGeodesicEdge(
 export const isInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
   const distance=calculateSurfaceDistance(lngLatAltArray,center)
   return distance <= radius;
-}
-
-
-export function isPointInSelectionRegion(
-  lngLat: [number, number],
-  selectionRegion: SelectionRegionBase,
-): boolean {
-  const {
-    sourceType,
-    graphic,
-    centerLngLatAltArray,
-  } = selectionRegion
-
-  if (sourceType === 'polygonSpatialSelection') {
-    return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
-  }
-  if (sourceType === 'circleSpatialSelection') {
-    const radius=selectionRegion.label.radiusInfo.radius
-    return isInCircle(lngLat, centerLngLatAltArray, radius)
-  }
-  if (sourceType === 'hemisphereSpatialSelection') {
-    const radius=selectionRegion.label.radiusInfo.radius
-    return isInsideHemisphere(lngLat, centerLngLatAltArray, radius)
-  }
-  return false
-}
-
-// 从 FinishedSpatialSelectionData 构建 SelectionRegionBase（避免直接持有原始对象引用）
-export function buildRegionFromData(data: FinishedSpatialSelectionData): SelectionRegionBase {
-  // 公共字段（三种 variant 都有）
-  const base = {
-    dataSourceName: data.dataSourceName,
-    type: data.type,
-    sourceType: data.sourceType,
-    centroidLngLatAlt: data.centroidLngLatAlt,
-    aircraft: { aircraftMap: new Map(data.aircraft.aircraftMap) },
-    airport: { airportMap: new Map(data.airport.airportMap) },
-    spatialSelectionTarget: data.spatialSelectionTarget,
-  }
-
-  // early return 使 TS 在每个分支内完成判别式窄化，无需任何 as 断言
-  if (data.sourceType === 'polygonSpatialSelection') {
-    return {
-      ...base,
-      graphic: data.graphic,
-      label: {
-        perimeterInfo: { ...data.label.perimeterInfo },
-        areaInfo: { ...data.label.areaInfo },
-      },
-      polygonState: { ...data.polygonState },
-      segments: [...data.segments],
-    }
-  }
-
-  // circleSpatialSelection | hemisphereSpatialSelection
-  return {
-    ...base,
-    centerLngLatAltArray: [...data.centerLngLatAltArray],
-    label: {
-      perimeterInfo: { ...data.label.perimeterInfo },
-      areaInfo: { ...data.label.areaInfo },
-      radiusInfo: { ...data.label.radiusInfo },
-    },
-  }
 }
 
 export const flyToLngLatAlt = (

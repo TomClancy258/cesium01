@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
-import { useDrawingToolStore } from '@/stores/drawingTool'
+import { useDistanceMeasurementStore } from '@/stores/distance-measurement'
+import { useDrawingToolStore } from '@/stores/drawing-tool'
 import { storeToRefs } from 'pinia'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
 import SegmentsPopover from '../../popover/SegmentsPopover.vue'
 import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'

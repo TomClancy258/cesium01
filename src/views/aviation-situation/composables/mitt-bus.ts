@@ -1,4 +1,4 @@
-// src/views/aviation-situation/composables/mittBus.ts
+// src/views/aviation-situation/composables/mitt-bus.ts
 import mitt from 'mitt';
 import {
   AircraftBaseProperties,

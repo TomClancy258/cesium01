@@ -3,11 +3,11 @@
 import { inject, ref, watch, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useAirportStore } from '@/stores/airport'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Airport } from '@/network/airport/type'
+import { airportTreeData } from '@/views/aviation-situation/constants/airport-filter-data'
 
 const filterAirports = inject('filterAirports')
-const matchedAirportCount = inject('matchedAirportCount')
 
 const airportStore = useAirportStore()
 const airportFilterFormRef = ref<FormInstance>()
@@ -67,8 +67,22 @@ watch(
     <el-form-item label="机场名称" prop="name">
       <el-input v-model="airportStore.airportFilterForm.name" clearable placeholder="三/四字码"/>
     </el-form-item>
-    <el-form-item label="机场国家" prop="country">
-      <el-input v-model="airportStore.airportFilterForm.country" clearable/>
+<!--    <el-form-item label="机场国家" prop="country">-->
+<!--      <el-input v-model="airportStore.airportFilterForm.country" clearable/>-->
+<!--    </el-form-item>-->
+    <el-form-item label="机场国家" prop="countries">
+      <el-tree-select
+        clearable
+        v-model="airportStore.airportFilterForm.countries"
+        :data="airportTreeData"
+        multiple
+        collapse-tags
+        collapse-tags-tooltip
+        :max-collapse-tags="24"
+        :render-after-expand="false"
+        show-checkbox
+        style="width: 55vw"
+      />
     </el-form-item>
 
 <!--    <el-row>-->

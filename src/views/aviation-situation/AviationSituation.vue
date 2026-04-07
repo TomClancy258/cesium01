@@ -13,21 +13,21 @@ import { useSpatialSelection } from './composables/useSpatialSelection'
 
 import MapToolsDrawer from "./components/map-tools/MapToolsDrawer.vue"
 import DetailDrawer from "./components/detail/DetailDrawer.vue"
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
-import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
-import {clearSelectedBillboardHighlight} from "./composables/useBillboardHighlightManager"
+import { useSimulatedWebSocketStore } from '@/stores/simulate-websocket'
+import {clearSelectedBillboardHighlight} from "./composables/billboard-highlight-manager"
 
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
-import { initCesiumCameraEvents  } from './composables/cesium-events/useCesiumCameraEvents'
+import { initCesiumCameraEvents  } from './composables/cesium-events/cesium-camera-events'
 
-import {useSpatialSelectionStore} from "@/stores/spatialSelection.ts"
-import {useDrawingToolStore} from "@/stores/drawingTool.ts"
-import {useDistanceMeasurementStore} from "@/stores/distanceMeasurement.ts"
+import {useSpatialSelectionStore} from "@/stores/spatial-selection.ts"
+import {useDrawingToolStore} from "@/stores/drawing-tool.ts"
+import {useDistanceMeasurementStore} from "@/stores/distance-measurement.ts"
 
-import {clearAllBillboardHighlight} from "@/views/aviation-situation/composables/useBillboardHighlightManager.ts"
-import {clearAllEntityHighlight} from "@/views/aviation-situation/composables/useEntityHighlightManager.ts"
+import {clearAllBillboardHighlight} from "@/views/aviation-situation/composables/billboard-highlight-manager.ts"
+import {clearAllEntityHighlight} from "@/views/aviation-situation/composables/entity-highlight-manager.ts"
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')

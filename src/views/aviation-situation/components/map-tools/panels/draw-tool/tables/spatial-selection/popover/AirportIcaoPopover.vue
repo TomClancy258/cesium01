@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Airport } from '@/network/airport/type'
 
 const props = defineProps<{

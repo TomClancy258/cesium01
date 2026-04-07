@@ -1,22 +1,18 @@
 <script setup lang="ts">
 //src/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue
-import { ref, inject, onMounted, onUnmounted, computed } from 'vue'
+import { ref, inject, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useAircraftStore } from '@/stores/aircraft'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import type { AircraftsSyncData } from '@/views/aviation-situation/types/aircraft'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import {aircraftTreeData} from "@/views/aviation-situation/constants/aircraft-filter-data.ts"
 
 const filterAircrafts = inject('filterAircrafts')
-const flyToMatchedAircrafts = inject('flyToMatchedAircrafts')
-const matchedAircraftCount = inject('matchedAircraftCount')
-const matchedAircrafts = inject('matchedAircrafts')
 
 const aircraftStore = useAircraftStore()
 const aircraftFilterFormRef = ref<FormInstance>()
 
 // ========== 表格与分页 ==========
-const tableData = ref<Aircraft[]>([])
 const currentPage = ref(1)
 const pageSize = ref(10)
 
@@ -33,29 +29,12 @@ const handleSizeChange = (size: number) => {
   currentPage.value = 1
 }
 
-// ========== 事件订阅 ==========
-// let unsubAircraftsSync: () => void
-
-// onMounted(() => {
-//   unsubAircraftsSync = onCesiumEvent('aircraftsSynced', (aircraftsSyncData: AircraftsSyncData) => {
-//     if (aircraftsSyncData.status === 'ok') {
-//       tableData.value = aircraftsSyncData.data
-//     } else {
-//       tableData.value = []
-//     }
-//     // currentPage.value = 1
-//   })
-// })
-//
-// onUnmounted(() => {
-//   unsubAircraftsSync?.()
-// })
-
 // ========== 表单操作 ==========
 const onAircraftSubmit = () => filterAircrafts()
 const resetAircraftForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return
   formEl.resetFields()
+  // aircraftStore.resetAircraftFilterForm()
 }
 
 const onDetail = (row: Aircraft) => {
@@ -80,14 +59,28 @@ const onDetail = (row: Aircraft) => {
       <el-form-item label="航空器名称" prop="callsign">
         <el-input v-model="aircraftStore.aircraftFilterForm.callsign" clearable />
       </el-form-item>
-      <el-form-item label="航空器国家" prop="originCountry">
-        <el-input v-model="aircraftStore.aircraftFilterForm.originCountry" clearable />
-      </el-form-item>
+<!--      <el-form-item label="航空器国家" prop="originCountry">-->
+<!--        <el-input v-model="aircraftStore.aircraftFilterForm.originCountry" clearable />-->
+<!--      </el-form-item>-->
       <el-form-item label="起飞机场" prop="startAirport">
         <el-input v-model="aircraftStore.aircraftFilterForm.startAirport" clearable placeholder="三/四字码" />
       </el-form-item>
       <el-form-item label="目的机场" prop="endAirport">
         <el-input v-model="aircraftStore.aircraftFilterForm.endAirport" clearable placeholder="三/四字码" />
+      </el-form-item>
+      <el-form-item label="航空器国家" prop="originCountries">
+        <el-tree-select
+          clearable
+          v-model="aircraftStore.aircraftFilterForm.originCountries"
+          :data="aircraftTreeData"
+          multiple
+          collapse-tags
+          collapse-tags-tooltip
+          :max-collapse-tags="24"
+          :render-after-expand="false"
+          show-checkbox
+          style="width: 65vw"
+        />
       </el-form-item>
       <el-form-item label="显示飞机图标" prop="visible">
         <el-checkbox v-model="aircraftStore.aircraftFilterForm.visible" />

@@ -76,11 +76,6 @@ export interface SpatialSelectionRadiusInfo {
   formattedRadiusStr: string
 }
 
-interface SpatialSelectionAviationIds {
-  aircraft: { aircraftMap: Map<string, Aircraft> }
-  airport: { airportMap: Map<string, Airport> }
-}
-
 // === Active (in-progress) spatial selection states ===
 export interface ActivePolygonSpatialSelectionData {
   dataSourceName: string
@@ -109,34 +104,33 @@ export interface ActiveHemisphereSpatialSelectionData {
 }
 
 // === Finished spatial selection states ===
-export interface FinishedPolygonSpatialSelectionData extends SpatialSelectionAviationIds {
+// 基类：所有已完成选区的公共字段
+interface FinishedSpatialSelectionBase {
   dataSourceName: string
-  type: 'polygon'
-  sourceType: 'polygonSpatialSelection'
-  graphic: Graphic
   isActive: false
   isDraft: boolean
   centroidLngLatAlt: LngLatAlt
   spatialSelectionTarget: string
+  aircraft: { aircraftMap: Map<string, Aircraft> }
+  airport: { airportMap: Map<string, Airport> }
+}
+
+export interface FinishedPolygonSpatialSelectionData extends FinishedSpatialSelectionBase {
+  type: 'polygon'
+  sourceType: 'polygonSpatialSelection'
+  graphic: Graphic
   label: {
     perimeterInfo: SpatialSelectionPerimeterInfo
     areaInfo: SpatialSelectionAreaInfo
   }
-  polygonState: {
-    lngLatAltList: LngLatAlt[]
-  }
+  polygonState: { lngLatAltList: LngLatAlt[] }
   segments: SegmentResult[]
 }
 
-export interface FinishedCircleSpatialSelectionData extends SpatialSelectionAviationIds {
-  dataSourceName: string
+export interface FinishedCircleSpatialSelectionData extends FinishedSpatialSelectionBase {
   type: 'ellipse'
   sourceType: 'circleSpatialSelection'
-  isActive: false
-  isDraft: boolean
-  centroidLngLatAlt: LngLatAlt
   centerLngLatAltArray: LngLatAltArray
-  spatialSelectionTarget: string
   label: {
     perimeterInfo: SpatialSelectionPerimeterInfo
     areaInfo: SpatialSelectionAreaInfo
@@ -144,15 +138,10 @@ export interface FinishedCircleSpatialSelectionData extends SpatialSelectionAvia
   }
 }
 
-export interface FinishedHemisphereSpatialSelectionData extends SpatialSelectionAviationIds {
-  dataSourceName: string
+export interface FinishedHemisphereSpatialSelectionData extends FinishedSpatialSelectionBase {
   type: 'ellipsoid'
   sourceType: 'hemisphereSpatialSelection'
-  isActive: false
-  isDraft: boolean
-  centroidLngLatAlt: LngLatAlt
   centerLngLatAltArray: LngLatAltArray
-  spatialSelectionTarget: string
   label: {
     perimeterInfo: SpatialSelectionPerimeterInfo
     areaInfo: SpatialSelectionAreaInfo

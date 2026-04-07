@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import type { SegmentResult } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import type { SegmentResult } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils'
 import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
 
 const props = defineProps<{

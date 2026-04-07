@@ -11,7 +11,7 @@ import type {
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
-import {useAviationSelectionStore} from '@/stores/aviationSelection'
+import {useAviationSelectionStore} from '@/stores/aviation-selection'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 
 const aircraftStore=useAircraftStore()

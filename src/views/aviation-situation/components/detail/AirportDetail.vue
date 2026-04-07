@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 
 const aviationSelectionStore=useAviationSelectionStore()
 

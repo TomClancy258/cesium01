@@ -1,8 +1,8 @@
 //src/views/aviation-situation/composables/aircraft/useAircrafts.ts
 import { watch, onUnmounted, ref } from 'vue'
 import * as Cesium from 'cesium'
-import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import type {
@@ -15,14 +15,14 @@ import type {
 } from '@/views/aviation-situation/types/aircraft'
 import { flyToLngLatAlt, getCameraHeight, isValidCoordinate } from '@/utils/geoUtils'
 
-type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountry'>
+type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountries'>
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredBillboardHighlight,
-} from '../useBillboardHighlightManager'
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
-import { useSimulatedWebSocketStore } from '@/stores/simulateWebSocket'
+} from '../billboard-highlight-manager'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { useSimulatedWebSocketStore } from '@/stores/simulate-websocket'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useDebounceFn } from '@vueuse/core'
 import type {
@@ -37,7 +37,7 @@ import {
   airplaneHoveredSvgRawDataUrl,
   airplaneSelectedSvgRawDataUrl,
   airplaneSpatialSelectedSvgRawDataUrl,
-} from './aircraftConstants'
+} from './aircraft-constants'
 type AircraftRenderItem = AviationRenderItem<Aircraft>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAircraftSpatialSelection } from './useAircraftSpatialSelection'
@@ -409,15 +409,16 @@ export function useAircrafts(viewer) {
 
   // ========== 筛选逻辑 ==========
   const filterAircrafts = useDebounceFn((): void => {
-    // matchedAircrafts=[]
     aircraftStore.clearMatchedAircrafts()
 
     const form = aircraftStore.aircraftFilterForm
     const query: AircraftFilterQuery = {
       icao24: form.icao24?.trim().toLowerCase(),
       callsign: form.callsign?.trim().toLowerCase(),
-      originCountry: form.originCountry?.trim().toLowerCase(),
+      originCountries: form.originCountries,
     }
+
+    const originCountriesSet = new Set(query.originCountries)
 
     let isSelectedAircraftMatched = false
 
@@ -428,8 +429,8 @@ export function useAircrafts(viewer) {
       const match =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
-        (!query.originCountry ||
-          (p.originCountry ?? '').toLowerCase().includes(query.originCountry))
+        originCountriesSet.has(p.originCountry)
+        // (!originCountriesSet.size || originCountriesSet.has(p.originCountry))
 
       if (match) {
         // matchedAircrafts.push(aircraft)

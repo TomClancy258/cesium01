@@ -1,4 +1,4 @@
-//src/stores/spatialSelection.ts
+//src/stores/spatial-selection.ts
 import { defineStore } from 'pinia'
 import { reactive, shallowRef, computed, triggerRef } from 'vue'
 import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared'

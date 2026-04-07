@@ -3,9 +3,9 @@ import type {
   SelectionRegionBase,
   SpatialSelectionData
 } from '@/views/aviation-situation/types/shared'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import { buildRegionFromData } from '@/utils/geoUtils'
-import {useSpatialSelectionStore} from "@/stores/spatialSelection"
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { buildRegionFromData } from '@/views/aviation-situation/utils/spatial-selection-utils.ts'
+import {useSpatialSelectionStore} from "@/stores/spatial-selection"
 
 export const emitSpatialSelectByTarget = (
   target: string,

@@ -1,13 +1,13 @@
-//src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distanceMeasurement.ts
+//src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distance-measurement.ts
 import * as Cesium from 'cesium'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   highlightEntityOnHover,
   highlightEntityAndSetSelected
-} from '@/views/aviation-situation/composables/useEntityHighlightManager.ts'
+} from '@/views/aviation-situation/composables/entity-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData } from '@/views/aviation-situation/types/shared'
-import {useDrawingToolStore} from "@/stores/drawingTool.ts"
+import {useDrawingToolStore} from "@/stores/drawing-tool.ts"
 const drawingToolStore=useDrawingToolStore()
 
 import {getDrawingToolEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"

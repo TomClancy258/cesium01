@@ -6,7 +6,7 @@ import type { DrawerProps } from 'element-plus'
 import AircraftDetail from './AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
 
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 const aviationSelectionStore = useAviationSelectionStore()
 
 const direction = ref<DrawerProps['direction']>('ltr')

@@ -3,7 +3,7 @@ import 'cesium/Build/Cesium/Widgets/widgets.css'
 
 import { onUnmounted, ShallowRef, shallowRef } from 'vue'
 import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
 
 export function useCesiumViewer(containerId = 'cesium-container') {

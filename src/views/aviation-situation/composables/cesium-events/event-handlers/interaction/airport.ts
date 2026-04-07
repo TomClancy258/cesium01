@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/cesium-events/event-handlers/airport-interaction.ts
-import {emitCesiumEvent} from "@/views/aviation-situation/composables/mittBus"
+import {emitCesiumEvent} from "@/views/aviation-situation/composables/mitt-bus"
 import {
   AirportBaseProperties,
   AirportBillboardProperties, AirportSelectedData

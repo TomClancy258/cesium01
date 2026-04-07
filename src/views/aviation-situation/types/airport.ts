@@ -32,9 +32,12 @@ export interface AirportLabelProperties extends AirportBaseProperties {
 export type AirportTooltipState = TooltipState<AirportBaseProperties>
 
 export interface AirportFilterForm {
-  icao: string
-  country: string
-  name: string
+  icao: '',
+  // country: '',
+  countries: string[],
+  name: '',
+  visible: boolean // 飞机显示状态
+  alwaysVisible: boolean
 }
 
 export interface AirportSelectedData {

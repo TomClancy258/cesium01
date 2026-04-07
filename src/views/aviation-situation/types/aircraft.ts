@@ -35,6 +35,7 @@ export type AircraftTooltipState = TooltipState<AircraftBaseProperties>
 export interface AircraftFilterForm {
   icao24: string
   originCountry: string
+  originCountries: string[]
   callsign: string
   startAirport: string
   endAirport: string

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 const aviationSelectionStore = useAviationSelectionStore()
 
 const isAltitudeLegendVisible = computed(() => {

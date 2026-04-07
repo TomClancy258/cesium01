@@ -1,6 +1,6 @@
 import { reactive } from 'vue'
 import type { Cartesian2 } from 'cesium'
-import { updateTooltip } from '@/utils/geoUtils'
+import { updateTooltip } from '@/views/aviation-situation/utils/spatial-selection-utils.ts'
 
 // 通用Tooltip基础属性（适配飞机/机场等航空气象要素）
 export interface AviationTooltipBaseProperties {

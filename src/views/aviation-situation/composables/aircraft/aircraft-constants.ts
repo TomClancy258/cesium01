@@ -1,4 +1,4 @@
-//aircraftConstants.ts
+//aircraft-constants.ts
 import airplaneBlueSvgRaw from '@/assets/img/airplane/svg/airplane-blue.svg?raw'
 import airplaneHoveredSvgRaw from '@/assets/img/airplane/svg/airplane-hovered.svg?raw'
 import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.svg?raw'

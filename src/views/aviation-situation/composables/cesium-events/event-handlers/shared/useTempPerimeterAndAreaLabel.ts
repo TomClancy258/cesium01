@@ -12,10 +12,10 @@ import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import * as turf from '@turf/turf'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
-import {buildSpatialSelectionLabelText} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils.ts"
+import {buildSpatialSelectionLabelText} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils.ts"
 
-import {useSpatialSelectionStore} from "@/stores/spatialSelection"
-import {useDrawingToolStore} from "@/stores/drawingTool"
+import {useSpatialSelectionStore} from "@/stores/spatial-selection"
+import {useDrawingToolStore} from "@/stores/drawing-tool"
 
 export interface PerimeterInfo {
   perimeter: number;

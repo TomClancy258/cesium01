@@ -3,7 +3,7 @@ import {
   BOX_SELECTION_STYLE,
   TEMP_POINT_LABEL_STYLE,
   TEMP_TOTAL_LENGTH_LABEL_STYLE
-} from '@/views/aviation-situation/constants/cesiumStyleConstants'
+} from '@/views/aviation-situation/constants/cesium-style-constants'
 import { ShallowRef } from 'cesium'
 import {EntityProperties} from "@/views/aviation-situation/types/entity"
 

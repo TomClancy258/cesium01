@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useCircleSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import {useSpatialSelectionStore } from '@/stores/spatialSelection'
+import {useSpatialSelectionStore } from '@/stores/spatial-selection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
@@ -25,16 +25,16 @@ import {
 } from '@/views/aviation-situation/types/shared'
 import {
   BOX_SELECTION_STYLE, TEMP_POINT_LABEL_STYLE, TEMP_TOTAL_LENGTH_LABEL_STYLE
-} from '@/views/aviation-situation/constants/cesiumStyleConstants'
+} from '@/views/aviation-situation/constants/cesium-style-constants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 
-import {useDrawingToolStore,type DrawingToolForm} from "@/stores/drawingTool"
+import {useDrawingToolStore,type DrawingToolForm} from "@/stores/drawing-tool"
 import {
   emitCesiumEvent, onCesiumEvent
-} from '@/views/aviation-situation/composables/mittBus'
-import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatialSelectionEventEmitters'
-import {useSimulatedWebSocketStore} from "@/stores/simulateWebSocket.ts"
-import {buildSpatialSelectionLabelText} from "./shared/spatialSelectionLabelUtils"
+} from '@/views/aviation-situation/composables/mitt-bus'
+import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatial-selection-event-emitters'
+import {useSimulatedWebSocketStore} from "@/stores/simulate-websocket.ts"
+import {buildSpatialSelectionLabelText} from "./shared/spatial-selection-label-utils"
 
 export interface PerimeterInfo {
   perimeter: number;

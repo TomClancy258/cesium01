@@ -9,17 +9,17 @@ import {
   getSurfaceMidpoint
 } from '@/utils/geoUtils'
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
-import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesiumStyleConstants"
+import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesium-style-constants"
 import {cloneEntityAsConfig} from "@/utils/cesiumUtils"
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
-import { useDrawingToolStore,type DrawingToolForm } from '@/stores/drawingTool'
-import { useDistanceMeasurementStore } from '@/stores/distanceMeasurement'
+import { useDrawingToolStore,type DrawingToolForm } from '@/stores/drawing-tool'
+import { useDistanceMeasurementStore } from '@/stores/distance-measurement'
 import type { SegmentDistancesState, DistanceMeasurementData } from "@/views/aviation-situation/types/draw-tools.ts"
 import {
   buildLngLatAltList,
   buildSegments,
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils.ts'
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils.ts'
 import type { SegmentResult } from '@/views/aviation-situation/types/shared'
 
 /** 单条距离测绘的完整结构 */
@@ -43,7 +43,7 @@ const createDynamicPolylineConfig = (
     polyline: {
       width: DISTANCE_SURVEY_POLYLINE_STYLE.POLYLINE.WIDTH,
       material: DISTANCE_SURVEY_POLYLINE_STYLE.POLYLINE.MATERIAL,
-      clampToGround: DISTANCE_SURVEY_POLYLINE_STYLE.POLYLINE.CLAMP_TO_GROUND, // 折线贴地（关键配置）
+      // clampToGround: DISTANCE_SURVEY_POLYLINE_STYLE.POLYLINE.CLAMP_TO_GROUND, // 折线贴地（关键配置）
       arcType: DISTANCE_SURVEY_POLYLINE_STYLE.POLYLINE.ARC_TYPE,
     },
   };

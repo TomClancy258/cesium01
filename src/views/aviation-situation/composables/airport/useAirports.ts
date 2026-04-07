@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/useAirports.ts
-import { reactive, onUnmounted, markRaw, ref, watch } from 'vue'
+import { onUnmounted, markRaw, watch } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -8,11 +8,10 @@ import type {
   AirportBillboardProperties,
   AirportLabelProperties,
   AirportSelectedData,
-  AirportTooltipState,
   AirportFilterForm,
   AirportGraphic,
 } from '@/views/aviation-situation/types/airport'
-import { isValidCoordinate, updateTooltip, getCameraHeight, flyToLngLatAlt } from '@/utils/geoUtils'
+import { isValidCoordinate, getCameraHeight, flyToLngLatAlt } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 
@@ -25,14 +24,14 @@ const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompone
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
-import { useCesiumCameraEvent } from '../cesium-events/useCesiumCameraEvents' // 替换原导入
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events' // 替换原导入
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredBillboardHighlight,
-} from '../useBillboardHighlightManager'
+} from '../billboard-highlight-manager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
@@ -43,6 +42,8 @@ import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 import {
   handleAirportLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
+type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries'>
+
 
 export function useAirports(viewer) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
@@ -257,13 +258,14 @@ export function useAirports(viewer) {
     const HIGHLIGHT_ALPHA: number = 1.0
     const form: AirportFilterForm = airportStore.airportFilterForm
 
-    const query: AirportFilterForm = {
+    const query: AircraftFilterQuery = {
       icao: form.icao?.trim().toLowerCase(),
-      country: form.country?.trim().toLowerCase(),
+      // country: form.country?.trim().toLowerCase(),
       name: form.name?.trim().toLowerCase(),
+      countries: form.countries,
     }
 
-    const matchedBillboard: null | Cesium.Billboard = null
+    const countriesSet = new Set(query.countries)
 
     airportRenderMap.forEach(({  data: airport, billboard, label }) => {
       const p = billboard.properties as AirportBaseProperties
@@ -272,9 +274,10 @@ export function useAirports(viewer) {
       const match: boolean =
         (!query.icao || p.icao.toLowerCase().includes(query.icao)) &&
         (!query.name || p.name.toLowerCase().includes(query.name)) &&
-        (!query.country || p.country.toLowerCase().includes(query.country))
+        countriesSet.has(p.country)
+        // (!query.country || p.country.toLowerCase().includes(query.country))
 
-      const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
+      // const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
         airportStore.addMatchedAirports(airport)
         // matchedBillboard=billboard

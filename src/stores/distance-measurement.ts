@@ -1,4 +1,4 @@
-//src/stores/distanceMeasurement.ts
+//src/stores/distance-measurement.ts
 import { defineStore } from 'pinia'
 import { shallowRef,computed,triggerRef } from 'vue'
 import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'

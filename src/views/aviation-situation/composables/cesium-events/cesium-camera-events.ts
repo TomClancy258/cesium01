@@ -1,7 +1,7 @@
-//src/views/aviation-situation/composables/cesium-events/useCesiumCameraEvents.ts
+//src/views/aviation-situation/composables/cesium-events/cesium-camera-events.ts
 import { onUnmounted } from 'vue'
 import type { ShallowRef, Viewer } from 'cesium'
-import mittBus, { CameraEvent, CesiumCameraEventName } from '../mittBus'
+import mittBus, { CameraEvent, CesiumCameraEventName } from '../mitt-bus'
 
 // 初始化相机事件监听（发布到 mitt 总线）
 export function initCesiumCameraEvents(viewer: ShallowRef<Viewer | null>) {

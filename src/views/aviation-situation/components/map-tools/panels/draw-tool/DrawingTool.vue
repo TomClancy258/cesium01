@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
-import { useDrawingToolStore } from '@/stores/drawingTool'
+import { useDrawingToolStore } from '@/stores/drawing-tool'
 import DraftDistanceMeasurement from './tables/distance-measurement/DraftDistanceMeasurement.vue'
 import SavedDistanceMeasurement from './tables/distance-measurement/SavedDistanceMeasurement.vue'
 import DraftSpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'

@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { useSpatialSelectionStore } from '@/stores/spatialSelection'
-import { useDrawingToolStore } from '@/stores/drawingTool'
+import { useSpatialSelectionStore } from '@/stores/spatial-selection'
+import { useDrawingToolStore } from '@/stores/drawing-tool'
 import { storeToRefs } from 'pinia'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import AircraftIcaoPopover from './popover/AircraftIcaoPopover.vue'
 import AirportIcaoPopover from './popover/AirportIcaoPopover.vue'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'

@@ -8,7 +8,7 @@ import AirportFilter from '@/views/aviation-situation/components/map-tools/panel
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
-import { useDrawingToolStore } from '@/stores/drawingTool'
+import { useDrawingToolStore } from '@/stores/drawing-tool'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
@@ -47,7 +47,7 @@ watch(
         <Fold />
       </el-icon>
     </div>
-    <el-drawer v-model="drawer" :with-header="true" size="25%"
+    <el-drawer v-model="drawer" :with-header="true" size="30%"
                :direction="direction" :modal="false"
                :modal-penetrable="true" class="map-tools-drawer">
       <div class="drawer-body">

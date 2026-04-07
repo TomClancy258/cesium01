@@ -4,8 +4,8 @@ import { getAircraftRouteFull } from '@/network/aircraft'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
 import type { AircraftSelectedData,AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
-import { altitudeColorMap } from '../aircraftConstants'
-import {useAviationSelectionStore} from '@/stores/aviationSelection'
+import { altitudeColorMap } from '../aircraft-constants'
+import {useAviationSelectionStore} from '@/stores/aviation-selection'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   let aircraftRoutePoints: RoutePoint[] = []

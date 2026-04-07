@@ -1,4 +1,23 @@
 // types/aircraft.ts
+export const FLIGHT_COUNTRY_ALIASES = {
+  'Russian Federation': 'Russia',
+  'Republic of Korea': 'South Korea',
+  "Lao People's Democratic Republic": 'Laos',
+  'Libyan Arab Jamahiriya': 'Libya',
+  'Islamic Republic of Iran': 'Iran',
+  'Kingdom of the Netherlands': 'Netherlands',
+  'Republic of Moldova': 'Moldova',
+  'Viet Nam': 'Vietnam',
+  'Fiji': 'Fiji',           // Oceania
+  'Haiti': 'Haiti',          // North America
+  'Maldives': 'Maldives',    // Asia
+  'Nepal': 'Nepal',          // Asia
+  'Papua New Guinea': 'Papua New Guinea', // Oceania
+  'Paraguay': 'Paraguay',    // South America
+  'Rwanda': 'Rwanda',        // Africa
+  'San Marino': 'San Marino', // Europe
+  'Seychelles': 'Seychelles', // Africa
+};
 
 /**
  * OpenSky 飞机原始元组（根据 data.json）
@@ -57,7 +76,7 @@ export function tupleToAircraft(tuple: AircraftTuple): Aircraft {
 
   return {
     icao24: tuple[0],
-    originCountry: tuple[2],
+    originCountry: FLIGHT_COUNTRY_ALIASES[tuple[2]] ?? tuple[2],
     latitude: tuple[6],          // ✅ 正确索引
     longitude: tuple[5],         // ✅ 正确索引
     baroAltitude: tuple[7],      // ✅ 正确索引

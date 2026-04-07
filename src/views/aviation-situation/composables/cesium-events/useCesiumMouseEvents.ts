@@ -1,7 +1,7 @@
 //src/views/aviation-situation/composables/cesium-events/useCesiumMouseEvents.ts
 import * as Cesium from 'cesium'
 import { useThrottleFn } from '@vueuse/core'
-import mittBus, { CesiumMouseEventName } from '../mittBus'
+import mittBus, { CesiumMouseEventName } from '../mitt-bus'
 import type { MapBillboardLabelProperties } from "../../types/shared"
 import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
 
@@ -12,7 +12,7 @@ import {
   handleSpatialSelectionLeftClick
 } from './event-handlers/interaction/spatial-selection'
 
-import {useAviationSelectionStore} from "@/stores/aviationSelection"
+import {useAviationSelectionStore} from "@/stores/aviation-selection"
 const aviationSelectionStore=useAviationSelectionStore()
 
 import {
@@ -30,7 +30,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   clearHoveredEntityHighlight,
   clearSelectedEntityHighlight
-} from '@/views/aviation-situation/composables/useEntityHighlightManager'
+} from '@/views/aviation-situation/composables/entity-highlight-manager'
 
 import {
   useMouseFollowPointLabel
@@ -50,8 +50,8 @@ import {
 
 import { onUnmounted, watch } from 'vue'
 
-import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawingTool'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawing-tool'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import {
   useHemisphereSpatialSelection
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useHemisphereSpatialSelection'
@@ -296,7 +296,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // ✅ 什么都没拾取到
     aviationBillboardLeave()
     clearHoveredEntityHighlight()
-  }, 100)
+  }, 100,true,true)
+  // }, 500,true,true)
 
   const aviationBillboardLeave=()=>{
     emitCesiumEvent('aircraftLeave');

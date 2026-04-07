@@ -1,6 +1,6 @@
 import { onUnmounted, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
@@ -9,8 +9,8 @@ import {
   SpatialSelectionTableRowDelete,
 } from '@/views/aviation-situation/types/draw-tools'
 import { handleSpatialSelectionLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/spatial-selection'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import { useSpatialSelectionStore } from '@/stores/spatialSelection'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 
 export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
   const spatialSelectionStore = useSpatialSelectionStore()

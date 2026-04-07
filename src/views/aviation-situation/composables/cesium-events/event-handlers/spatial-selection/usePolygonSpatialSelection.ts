@@ -1,7 +1,7 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
-import {  useSpatialSelectionStore } from '@/stores/spatialSelection'
+import {  useSpatialSelectionStore } from '@/stores/spatial-selection'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { useKeyboardEvents } from '../useKeyboardEvents'
 import { calculateSurfaceDistance, getSurfaceMidpoint } from '@/utils/geoUtils'
@@ -13,16 +13,16 @@ import type {
 } from '@/views/aviation-situation/types/shared'
 import type { Airport } from '@/network/airport/type'
 import { useAirportStore } from '@/stores/airport'
-import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesiumStyleConstants'
+import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesium-style-constants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 
 import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
-import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawingTool'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mittBus'
-import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatialSelectionEventEmitters'
+import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawing-tool'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatial-selection-event-emitters'
 import * as turf from '@turf/turf'
 
 import type { SegmentDistancesState } from '@/views/aviation-situation/types/draw-tools.ts'
@@ -30,7 +30,7 @@ import type { SegmentResult } from '@/views/aviation-situation/types/shared'
 import {
   buildLngLatAltList,
   buildSegments,
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatialSelectionLabelUtils'
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils'
 import { Aircraft } from '@/network/aircraft/types/aircraft'
 import {useAircraftStore} from '@/stores/aircraft'
 

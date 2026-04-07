@@ -1,6 +1,6 @@
 <script setup lang="ts">
  import {computed} from 'vue'
- import { useDrawingToolStore } from '@/stores/drawingTool'
+ import { useDrawingToolStore } from '@/stores/drawing-tool'
  const drawingToolStore = useDrawingToolStore()
 
  const isHintVisible = computed(() => {

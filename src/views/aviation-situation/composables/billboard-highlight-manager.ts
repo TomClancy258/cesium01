@@ -1,6 +1,6 @@
 // src/views/aviation-situation/composables/useHighlightManager.ts
 import * as Cesium from 'cesium'
-import { useAviationSelectionStore } from '@/stores/aviationSelection'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
 
