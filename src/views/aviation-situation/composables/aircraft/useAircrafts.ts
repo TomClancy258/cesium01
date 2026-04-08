@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/aircraft/useAircrafts.ts
-import { watch, onUnmounted, ref } from 'vue'
+import { watch, onUnmounted, ref, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
@@ -58,7 +58,7 @@ const getColorByAltitude = (altitude: number): Cesium.Color => {
     : Cesium.Color.fromCssColorString('rgba(128, 128, 128, 0.8)')
 }
 
-export function useAircrafts(viewer) {
+export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   const aviationSelectionStore = useAviationSelectionStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
   const aircraftStore = useAircraftStore()

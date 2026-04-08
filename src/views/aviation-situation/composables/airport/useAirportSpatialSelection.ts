@@ -48,7 +48,7 @@ export function useAirportSpatialSelection({
       if (!item) return
 
       const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
-      const inGraphic = isPointInSelectionRegion(lngLat, data as any)
+      const inGraphic = isPointInSelectionRegion(lngLat, data)
 
       if (inGraphic) {
         // activeIdSet.add(icao)

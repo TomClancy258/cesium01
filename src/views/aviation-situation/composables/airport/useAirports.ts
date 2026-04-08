@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/useAirports.ts
-import { onUnmounted, markRaw, watch } from 'vue'
+import { onUnmounted, markRaw, watch,ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -45,7 +45,7 @@ import {
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries'>
 
 
-export function useAirports(viewer) {
+export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
