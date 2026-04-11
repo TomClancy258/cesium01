@@ -86,6 +86,8 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
     const form:AirportFilterForm = airportStore.airportFilterForm;
+    const cameraHeight1:number = getCameraHeight(camera);
+    console.log("cameraHeight1", cameraHeight1);
 
     if (!form.visible) {
       setAirportsVisible(false);

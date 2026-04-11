@@ -1,48 +1,18 @@
-# vite-vue3-ts-cesium-eslint01
+# 三维航空态势可视化系统
 
-This template should help get you started developing with Vue 3 in Vite.
+基于 CesiumJS 实现的全球三维航空态势可视化平台。
 
-## Recommended IDE Setup
+## 技术栈
+Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+## 核心功能
+- 1万+航班、2万+机场实时三维渲染
+- 模拟WebSocket实时数据更新
+- 空间测绘工具链（距离/多边形/圆形/半球）
+- 轨迹增量更新
+- 本地离线地图瓦片支持
 
-## Recommended Browser Setup
-
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
-
-```sh
-pnpm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
-pnpm dev
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-pnpm build
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-pnpm lint
-```
+## 性能优化
+- 使用Primitive替代Entity，渲染帧率稳定50fps+
+- 首屏加载从4s降至1s以内
+- drillPick节流优化，hover帧率从30fps以下提升至50fps+
