@@ -19,13 +19,13 @@ Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia
 
 ## 界面截图
 **测绘+框选**（支持多边形/圆形/半球实时测绘，框选碰撞检测）
-<img width="1267" height="645" alt="测绘+框选" src="https://github.com/user-attachments/assets/d3e860c6-57cb-41fe-819c-74302c246849" />
+<img width="1901" height="860" alt="测绘+框选" src="https://github.com/user-attachments/assets/650ef8e2-5067-4ceb-b271-46f96c4687a4" />
 
 **测绘和table联动**（测绘区域内节点实时筛选联动）
-<img width="1267" height="652" alt="测绘和table联动" src="https://github.com/user-attachments/assets/b631348b-d56f-431a-96f4-8bf54033addf" />
+<img width="3818" height="1784" alt="测绘和table联动" src="https://github.com/user-attachments/assets/89746512-7857-45c5-aed0-3d18daab944d" />
 
 **飞机航线和table联动**（1万+飞机节点实时渲染，点击航线与表格双向联动）
-<img width="1265" height="642" alt="飞机航线和table联动" src="https://github.com/user-attachments/assets/26e436d0-2130-4838-9171-5c343f3b37e6" />
+<img width="3804" height="1816" alt="飞机航线和table联动" src="https://github.com/user-attachments/assets/53e8b18a-b954-4a46-8a7c-a86779f6f143" />
 
 **机场和table联动**（2万+机场节点，BillboardCollection批量渲染，稳定50fps+）
-<img width="1267" height="640" alt="机场table联动" src="https://github.com/user-attachments/assets/42dee339-e025-43ce-9a81-9a2cdc6fef5c" />
+<img width="3806" height="1774" alt="机场table联动" src="https://github.com/user-attachments/assets/7b837614-6695-4151-ae3c-6ed7c05d1c46" />
