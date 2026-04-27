@@ -15,6 +15,7 @@ export const handleAirportHover = (properties: AirportBillboardProperties, scree
     name: properties.name,
     longitude: properties.longitude,
     latitude: properties.latitude,
+    elevation: properties.elevation,
   }
   emitCesiumEvent('airportHover', baseProperties, screenPosition, pickedObject.primitive)
 }
@@ -23,7 +24,12 @@ export const handleAirportHover = (properties: AirportBillboardProperties, scree
 export const handleAirportLeftClick = (properties: AirportBillboardProperties, pickedObject: Cesium.PickedObject):void => {
   const airportSelectedData:AirportSelectedData = {
     sourceType: properties.sourceType,
-    icao: properties.icao
+    icao: properties.icao,
+    country: properties.country,
+    latitude: properties.latitude,
+    longitude: properties.longitude,
+    elevation: properties.elevation,
+    name: properties.name,
   }
   emitCesiumEvent('airportLeftClick', airportSelectedData, pickedObject.primitive)
 }

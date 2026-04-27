@@ -54,6 +54,9 @@ export interface AircraftTrajectoryOptions {
 export interface AircraftSelectedData {
   sourceType: 'aircraft';
   icao24: string;
+  originCountry: string;
+  callsign: string;
+  heading: string;
   position:{
     latitude: number,
     longitude: number,

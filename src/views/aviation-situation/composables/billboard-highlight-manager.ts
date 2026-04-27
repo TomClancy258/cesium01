@@ -30,11 +30,14 @@ export function highlightBillboardOnSpatialSelection(
   }
 
   const dataSourceNameSet:Set<string>=billboard.properties.dataSourceNameSet
+  const wasEmpty = dataSourceNameSet.size === 0
   dataSourceNameSet.add(dataSourceName)
 
-  billboard.image = highlightImage
-
-  billboard.properties.spatialSelectionImage = highlightImage
+  // 只在第一次添加时才改图片，避免冗余赋值
+  if (wasEmpty) {
+    billboard.image = highlightImage
+    billboard.properties.spatialSelectionImage = highlightImage
+  }
 }
 
 export function clearSpatialSelectedHighlight(dataSourceName,billboard): void {
@@ -47,6 +50,7 @@ export function clearSpatialSelectedHighlight(dataSourceName,billboard): void {
   const dataSourceNameSet:Set<string>=billboard.properties.dataSourceNameSet
   dataSourceNameSet.delete(dataSourceName)
 
+  // 只在最后一个区域移除时才改回原始图片，避免冗余赋值
   if (dataSourceNameSet.size === 0) {
     billboard.image = billboard.properties.originalImage
     billboard.properties.spatialSelectionImage = undefined

@@ -72,6 +72,7 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
     name: '',
     longitude: 0,
     latitude: 0,
+    elevation: 0,
   })
 
   const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
@@ -212,6 +213,7 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
         name: airport.name,
         longitude,
         latitude,
+        elevation,
         originalColor: billboard.color,
         originalImage: billboard.image,
         dataSourceNameSet: new Set<string>(),
@@ -245,6 +247,7 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
         name: airport.name,
         longitude,
         latitude,
+        elevation,
         originalFillColor: label.fillColor,
         dataSourceNameSet: new Set<string>(),
       } satisfies AirportLabelProperties

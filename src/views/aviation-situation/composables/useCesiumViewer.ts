@@ -37,6 +37,10 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       latitude:49.0,
       height:6000000,
     },0,0)
+
+    // const center = Cesium.Cartesian3.fromDegrees(-98.0, 40.0);
+    // viewer.value.camera.lookAt(center, new Cesium.Cartesian3(0.0, -4790000.0, 3930000.0));
+
   }
 
   const destroyViewer = (): void => {

@@ -31,6 +31,10 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
     activeSpatialSelection.aircraft.icao24Set.clear()
   }
 
+  const batchSetAircraftSpatialSelection = (icao24s: string[]) => {
+    activeSpatialSelection.aircraft.icao24Set = new Set(icao24s)
+  }
+
   const addAirportToActiveSpatialSelection = (icao: string) => {
     activeSpatialSelection.airport.icaoSet.add(icao)
   }
@@ -41,6 +45,10 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
 
   const clearActiveAirportSpatialSelection = () => {
     activeSpatialSelection.airport.icaoSet.clear()
+  }
+
+  const batchSetAirportSpatialSelection = (icaos: string[]) => {
+    activeSpatialSelection.airport.icaoSet = new Set(icaos)
   }
 
   const addFinishedSelection=(region: SelectionRegionBase) =>{
@@ -113,9 +121,11 @@ export const useSpatialSelectionStore = defineStore('spatialSelection', () => {
     addAircraftToActiveSpatialSelection,
     removeAircraftFromActiveSpatialSelection,
     clearActiveAircraftSpatialSelection,
+    batchSetAircraftSpatialSelection,
     addAirportToActiveSpatialSelection,
     removeAirportFromActiveSpatialSelection,
     clearActiveAirportSpatialSelection,
+    batchSetAirportSpatialSelection,
 
     finishedGraphicMap,
     finishedGraphicsArray,

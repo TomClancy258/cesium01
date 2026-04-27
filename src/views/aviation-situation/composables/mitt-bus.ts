@@ -74,11 +74,11 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
   callback: (...args: EventCallbackMap[T]) => void
 ) => {
   const wrappedCallback = (args: Parameters<EventCallbackMap[T]>) => {
-    if (Array.isArray(args)) {
+    // if (Array.isArray(args)) {
       callback(...args); // 多参数解构
-    } else {
-      callback(args);    // 单参数直接传递
-    }
+    // } else {
+    //   callback(args);    // 单参数直接传递
+    // }
   };
 
   mittBus.on(eventName, wrappedCallback);

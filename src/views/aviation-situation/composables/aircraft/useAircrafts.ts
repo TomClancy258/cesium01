@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/aircraft/useAircrafts.ts
-import { watch, onUnmounted, ref, ShallowRef } from 'vue'
+import { watch, onUnmounted, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'

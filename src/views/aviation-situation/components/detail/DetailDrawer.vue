@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 
 import type { DrawerProps } from 'element-plus'
 
-import AircraftDetail from './AircraftDetail.vue'
+import AircraftDetail from './aircraft/AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
 
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
@@ -23,7 +23,7 @@ const handleClose = (): void => {
 const selectedSourceType = computed(() => {
   if (aviationSelectionStore.selected !== null) {
     return aviationSelectionStore.selected.sourceType
-  }else{
+  } else {
     return ''
   }
 })
@@ -38,18 +38,29 @@ const drawer = computed({
     }
   },
 })
+// 优化：用computed替代watch控制抽屉显隐（更简洁）
+const aviationDetailDrawerTitle = computed(() => {
+  if (selectedSourceType.value === 'aircraft') {
+    return '飞机详情'
+  }else if(selectedSourceType.value === 'airport'){
+    return '机场详情'
+  }else{
+    return ''
+  }
+})
 </script>
 <template>
   <el-drawer
     v-model="drawer"
-    title=""
-    size="20%"
+    :title="aviationDetailDrawerTitle"
+    size="23%"
     :direction="direction"
     :modal="false"
     :modal-penetrable="true"
     @close="handleClose"
     class="map-detail-drawer"
-    style="height: 75%;"
+    body-class="map-detail-drawer__body"
+    style="height: 70%;"
   >
     <div class="drawer-body">
       <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
@@ -58,5 +69,8 @@ const drawer = computed({
   </el-drawer>
 </template>
 
-<style lang="scss" scoped>
+<style lang="scss">
+.map-detail-drawer__body {
+  padding: 10px !important;
+}
 </style>

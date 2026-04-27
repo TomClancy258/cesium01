@@ -15,6 +15,7 @@ import { ClearAircraftSpatialSelectionData } from '@/views/aviation-situation/ty
 import {useAircraftStore} from '@/stores/aircraft'
 import {updateFinishedSelectionLabels} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
 import { useThrottleFn } from '@vueuse/core'
+import * as turf from '@turf/turf'
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
@@ -36,19 +37,26 @@ export function useAircraftSpatialSelection({
 
   const activateSpatialSelection = useThrottleFn((data: SpatialSelectionData) => {
     activeDataSourceName = data.dataSourceName
-    // activeIdSet.clear()
-    spatialSelectionStore.clearActiveAircraftSpatialSelection()
+    const hitIcao24s: string[] = []
+
+    // 提前计算 polygon bbox，避免循环内重复计算
+    let bbox: turf.BBox | undefined = undefined
+    if (data.sourceType === 'polygonSpatialSelection') {
+      const graphicData:turf.Feature<turf.Polygon> = data.graphic
+      if (graphicData) {
+        bbox = turf.bbox(graphicData)
+      }
+    }
 
     aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
       const item = renderMap.get(icao24)
       if (!item) return
 
       const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
-      const inGraphic = isPointInSelectionRegion(lngLat, data)
+      const inGraphic = isPointInSelectionRegion(lngLat, data, bbox)
 
       if (inGraphic) {
-        // activeIdSet.add(icao24)
-        spatialSelectionStore.addAircraftToActiveSpatialSelection(icao24)
+        hitIcao24s.push(icao24)
         highlightBillboardOnSpatialSelection(
           data.dataSourceName,
           item.billboard,
@@ -58,6 +66,8 @@ export function useAircraftSpatialSelection({
         clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
       }
     })
+
+    spatialSelectionStore.batchSetAircraftSpatialSelection(hitIcao24s)
   },200,true,true)
   // },100,true,true)
 // },500,true,true)
@@ -94,7 +104,13 @@ export function useAircraftSpatialSelection({
         // 该选区不关心飞机，跳过
         if (selectionRegion.spatialSelectionTarget === 'airport') continue
 
-        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
+        // 提前计算 polygon bbox，避免循环内重复计算
+        let bbox: turf.BBox | undefined = undefined
+        if (selectionRegion.sourceType === 'polygonSpatialSelection' && selectionRegion.graphic) {
+          bbox = turf.bbox(selectionRegion.graphic)
+        }
+
+        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion, bbox)
 
         if (inGraphic) {
           spatialSelectionStore.addAircraftToFinishedSelection(dataSourceName, item.data)

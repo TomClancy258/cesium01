@@ -15,6 +15,7 @@ export interface AirportBaseProperties{
   name: string
   longitude: number // 数字类型，不是字符串
   latitude: number // 数字类型，不是字符串
+  elevation: number // 数字类型，不是字符串
 }
 
 // Billboard 专用属性
@@ -43,6 +44,11 @@ export interface AirportFilterForm {
 export interface AirportSelectedData {
   sourceType: 'airport';
   icao: string;
+  country: string;
+  latitude: number;
+  longitude: number;
+  elevation: number,
+  name: string;
 }
 
 

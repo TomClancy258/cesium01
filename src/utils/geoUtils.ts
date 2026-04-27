@@ -315,21 +315,19 @@ export const createPolygonFromLngLatAltArray=(
 
   // 3. 对每条边插值
   const interpolatedCoords: [number, number][] = [];
-  // interpolatedCoords.push(originalCoords[0])
   for (let i = 0; i < originalCoords.length - 1; i++) {
     const start = originalCoords[i];
     const end = originalCoords[i + 1];
 
-    // const isLastSegment=i===originalCoords.length - 2;
-    // console.log("isLastSegment", isLastSegment);
+    // interpolated 格式：[start, ...intermediatePoints, end]
+    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength);
 
-    //interpolated为[[A经度,A纬度],[A1经度,A1纬度],[B2经度,B2纬度],[B经度,B纬度]]
-    const interpolated = interpolateGeodesicEdge(start, end, maxSegmentLength,
-      // isLastSegment
-    );
-
-    //interpolatedCoords为[[A经度,A纬度],[B经度,B纬度],[C经度,C纬度],[A经度,A纬度]]
-    interpolatedCoords.push(...interpolated);
+    // 第一条边推入所有点；后续边跳过起点（避免顶点重复）
+    if (i === 0) {
+      interpolatedCoords.push(...interpolated);
+    } else {
+      interpolatedCoords.push(...interpolated.slice(1));
+    }
   }
   // console.log("interpolatedCoords", interpolatedCoords);
   // 4. 构建 Turf 多边形（注意：Turf 要求外环是逆时针，但 booleanPointInPolygon 不敏感）

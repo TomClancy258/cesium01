@@ -61,6 +61,7 @@ export function updateTooltip<T>(
 export function isPointInSelectionRegion(
   lngLat: [number, number],
   selectionRegion: SelectionRegionBase,
+  bbox?: turf.BBox,
 ): boolean {
   const {
     sourceType,
@@ -69,17 +70,16 @@ export function isPointInSelectionRegion(
   } = selectionRegion
 
   if (sourceType === 'polygonSpatialSelection') {
-    const bbox = turf.bbox(selectionRegion.graphic)
-    if (lngLat[0] < bbox[0] || lngLat[0] > bbox[2] ||
-      lngLat[1] < bbox[1] || lngLat[1] > bbox[3]) return false
+    if (lngLat[0] < bbox![0] || lngLat[0] > bbox![2] ||
+      lngLat[1] < bbox![1] || lngLat[1] > bbox![3]) return false
     return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
   }
   if (sourceType === 'circleSpatialSelection') {
-    const radius=selectionRegion.label.radiusInfo.radius
+    const radius = selectionRegion.label.radiusInfo.radius
     return isInCircle(lngLat, centerLngLatAltArray, radius)
   }
   if (sourceType === 'hemisphereSpatialSelection') {
-    const radius=selectionRegion.label.radiusInfo.radius
+    const radius = selectionRegion.label.radiusInfo.radius
     return isInsideHemisphere(lngLat, centerLngLatAltArray, radius)
   }
   return false

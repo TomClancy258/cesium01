@@ -1,5 +1,7 @@
 <script setup lang="ts">
 //src/views/aviation-situation/AviationSituation.vue
+import {useCloned} from '@vueuse/core'
+import {cloneDeep} from 'lodash-es'
 import { onMounted, provide, ref, onUnmounted } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
@@ -87,6 +89,7 @@ onMounted(async () => {
 
   simulatedWebSocketStore.open()
 
+  // test01()
   // initBuildings()
 })
 
@@ -116,6 +119,24 @@ onUnmounted(() => {
   clearAllBillboardHighlight()
   clearAllEntityHighlight()
 })
+
+const test01=()=>{
+  const obj1={
+    name:'frank',
+    age:18,
+    friendsArray:['jack','tom'],
+    jack:{
+      name:'jack',
+      age:30
+    }
+  }
+  const obj2=structuredClone(obj1)
+  obj2.friendsArray[0]='java'
+  obj2.jack.name='jack01'
+  console.log("obj1", obj1);
+  console.log("obj2", obj2);
+}
+
 
 // 提供过滤/显隐方法（原有逻辑保留）
 provide('filterAircrafts', filterAircrafts)

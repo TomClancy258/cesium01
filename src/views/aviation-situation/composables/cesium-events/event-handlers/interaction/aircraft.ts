@@ -26,6 +26,9 @@ export const handleAircraftLeftClick = (properties: AircraftBillboardProperties,
   const aircraftSelectedData:AircraftSelectedData = {
     sourceType: properties.sourceType,
     icao24: properties.icao24,
+    originCountry: properties.originCountry,
+    callsign: properties.callsign,
+    heading: properties.heading,
     position: {
       latitude: properties.latitude,
       longitude: properties.longitude,

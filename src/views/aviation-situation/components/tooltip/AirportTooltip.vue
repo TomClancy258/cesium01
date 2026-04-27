@@ -18,11 +18,11 @@ const tooltipStyle = computed(() => {
     class="airport-tooltip"
     :style="tooltipStyle"
   >
-    <div>icao : {{ props.tooltip.properties.icao }}</div>
-    <div>name : {{ props.tooltip.properties.name }}</div>
-    <div>country : {{ props.tooltip.properties.country }}</div>
-    <div>longitude : {{ props.tooltip.properties.longitude }}</div>
-    <div>latitude : {{ props.tooltip.properties.latitude }}</div>
+    <div>ICAO 代码：{{ props.tooltip.properties.icao }}</div>
+    <div>机场名称：{{ props.tooltip.properties.name }}</div>
+    <div>所在国家：{{ props.tooltip.properties.country }}</div>
+    <div>经度：{{ props.tooltip.properties.longitude }}</div>
+    <div>纬度：{{ props.tooltip.properties.latitude }}</div>
   </div>
 </template>
 
