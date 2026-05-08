@@ -36,7 +36,8 @@ export function drawColorGradient(viewer:ShallowRef<Cesium.Viewer>){
       vec2 st=materialInput.st;
       outColor.r=st.s; // [0,1]
       outColor.a=1.0; // [0,1]
-      // outColor.a=fract(st.s * 3.0); //只取小数部分 得到三个[0,1)
+      //                                          st.s=[0,               1)
+      // outColor.a=fract(st.s * 3.0); //只取小数部分 得到[0,1)->[0,1)->[0,1)
 
       material.diffuse = czm_gammaCorrect(outColor.rgb);
       material.alpha = outColor.a;

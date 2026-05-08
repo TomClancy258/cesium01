@@ -1,27 +1,37 @@
-export interface RawAirport {
-  city: string;
-  country: string;
-  elevation: string;
-  iata: string;
-  icao: string;
-  lat: string;
-  lid: string;
-  lon: string;
-  name: string;
-  subd: string;
-  tz: string;
+/**
+ * 卫星轨道 Entity（SampledPositionProperty + clock）所需的最小数据结构。
+ * 对应从 CZML packet 抽出的字段；无需携带 billboard、path 里分段 lead/trail 等展示细节。
+ *
+ * 若后端将来下发「完整 CZML」或额外元数据，可在 network 层映射进本类型；原始大包另存类型即可。
+ */
+export interface Satellite {
+  id: string
+  name?: string
+  description?: string
+  /** CZML availability，如 `2012-03-15T10:00:00Z/2012-03-16T10:00:00Z` */
+  availability?: string
+  position: {
+    epoch: string
+    referenceFrame?: 'INERTIAL' | 'FIXED'
+    /** [t0,x0,y0,z0, t1,x1,y1,z1, ...]，t 为相对 epoch 的秒 */
+    cartesian: number[]
+    interpolationDegree?: number
+    interpolationAlgorithm?: 'LAGRANGE'
+  }
 }
 
-export interface Airport {
-  latitude: number
-  longitude: number
-  icao: string
-  iata: string
-  name: string
-  city: string
-  country: string
-  elevation: number
-  subd: string
-  tz: string
-  lid: string
+export interface RawSatellite {
+  id: string
+  name?: string
+  description?: string
+  /** CZML availability，如 `2012-03-15T10:00:00Z/2012-03-16T10:00:00Z` */
+  availability?: string
+  position: {
+    epoch: string
+    referenceFrame?: 'INERTIAL' | 'FIXED'
+    /** [t0,x0,y0,z0, t1,x1,y1,z1, ...]，t 为相对 epoch 的秒 */
+    cartesian: number[]
+    interpolationDegree?: number
+    interpolationAlgorithm?: 'LAGRANGE'
+  }
 }

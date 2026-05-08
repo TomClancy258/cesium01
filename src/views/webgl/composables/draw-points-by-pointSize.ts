@@ -1,11 +1,11 @@
-export function drawVariableOnePointSize(){
+export function drawPointsByPointSize(){
  const canvas = document.getElementById("glCanvas");
  const gl=canvas.getContext('webgl')
 
   //顶点着色器
   const vertexShaderSource=`
-    attribute vec2 a_position;
-    uniform float u_pointSize;
+    attribute vec2 a_position; //attribute变量，cpu->vertexShader顶点着色器
+    uniform float u_pointSize; //uniform变量，单一变量，点像素大小
       void main() {
       gl_PointSize=u_pointSize;
       gl_Position=vec4(a_position,0.0,1.0);
@@ -65,5 +65,5 @@ export function drawVariableOnePointSize(){
 
   //绘制
   //从第0个位置，绘制1个点
-  gl.drawArrays(gl.POINT,0,3)
+  gl.drawArrays(gl.POINTS,0,3)
 }

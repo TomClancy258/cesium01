@@ -7,7 +7,8 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
   <el-config-provider :locale="zhCn">
     <nav>
       <RouterLink to="/AviationSituation">AviationSituation</RouterLink> |
-      <RouterLink to="/User">User</RouterLink>
+      <RouterLink to="/User">User</RouterLink> |
+      <RouterLink to="/WebGL">WebGL</RouterLink>
     </nav>
 
     <RouterView />

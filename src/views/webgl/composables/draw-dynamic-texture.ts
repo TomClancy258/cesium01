@@ -1,7 +1,24 @@
 import airplane01Jpg from "@/assets/img/airplane/jpg/airplane01.jpg"
-export function drawElements(){
+export function drawDynamicTexture(){
  const canvas = document.getElementById("glCanvas");
  const gl=canvas.getContext('webgl')
+//  const gl=canvas.getContext('webgl2')
+
+  //WebGL 1 限制针对的是「纹理」
+  // 规范说的是：通过 texImage2D 上传的那张图，它的 naturalWidth / naturalHeight（图像像素宽高）是不是 2 的幂。
+  //
+  // 你的飞机 JEPG 若是 1200×800 之类，仍是 NPOT 纹理
+  // 把 canvas 改成 512×512 不会改变 这张 JPEG 的像素尺寸
+  // 所以即使用 512 的 canvas，在 WebGL 1 里对这张 NPOT 图开 REPEAT 仍然可能 incomplete → 全黑。
+  //
+  // 一句话
+  // 改 canvas 的 width/height 不能替代「纹理本身是 2 次幂」；要 REPEAT，要么用 WebGL2，要么把贴图缩放到 POT 再上传（或换 POT 资源）。
+
+  /**
+   *      Model Matrix  模型自身的平移、旋转、缩放
+   * MVP=>View Matrix   相机的位置（在哪看这个模型）
+   *      Projection Matrix   投影：正交、透视投影
+   * */
 
   //顶点着色器
   const vertexShaderSource=`
@@ -22,10 +39,17 @@ export function drawElements(){
   precision mediump float;
   varying vec4 v_color;
   varying vec2 v_texCoord;
-  uniform sampler2D u_texture;
+  uniform sampler2D u_texture; //airplane01Jpg
+  uniform float u_texCoordOffset;
   void main() {
     // gl_FragColor=v_color;
-    gl_FragColor=texture2D(u_texture,v_texCoord);
+    //     该片元【像素】对应的纹理坐标+偏移量=最后的纹理坐标，相当于纹理往左边移动了
+    float x=v_texCoord.x+u_texCoordOffset;
+    if(x>1.0){
+      x=x-1.0;
+    }
+    vec2 newTexCoord=vec2(x,v_texCoord.y);
+    gl_FragColor=texture2D(u_texture,newTexCoord);//当前像素的颜色 = 纹理在 UV=newTexCoord 处的颜色。
   }`
 
   //创建着色器
@@ -95,6 +119,15 @@ export function drawElements(){
 
   //纹理
   const texture = gl.createTexture();
+  const u_texture = gl.getUniformLocation(program, 'u_texture')
+  gl.uniform1i(u_texture, 0)
+
+  //创建索引buffer
+  const indexArr=new Uint16Array([0,1,5, 1,4,5, 1,3,4, 1,2,3])
+
+  const indexBuffer=gl.createBuffer()
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArr,gl.STATIC_DRAW);
 
   const image = new Image();
   image.src = airplane01Jpg
@@ -105,19 +138,10 @@ export function drawElements(){
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
+
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
+    // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image)
-
-    const u_texture = gl.getUniformLocation(program, 'u_texture')
-    gl.uniform1i(u_texture, 0)
-
-    //创建索引buffer
-    const indexArr=new Uint16Array([0,1,5, 1,4,5, 1,3,4, 1,2,3])
-
-    const indexBuffer=gl.createBuffer()
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,indexArr,gl.STATIC_DRAW);
-
-    gl.drawElements(gl.TRIANGLES,indexArr.length,gl.UNSIGNED_SHORT,0)
   }
 
 
@@ -127,10 +151,18 @@ export function drawElements(){
   // gl.drawArrays(gl.POINTS,0,6)//0->1->2,3->4->5（2个独立三角形） 不连续三角形
   // gl.drawArrays(gl.TRIANGLES,0,6)//0->1->2,3->4->5（2个独立三角形） 不连续三角形
   // gl.drawArrays(gl.TRIANGLE_STRIP,0,6) //0→1→2, 1→2→3, 2→3→4（共享边）连续三角形（带状）
+  let offset=0.0
+  const offsetDelta=0.01
+  const u_texCoordOffset=gl.getUniformLocation(program, 'u_texCoordOffset')
 
   function render(){
-    gl.drawArrays(gl.TRIANGLE_FAN,0,6)//0→1→2, 0→2→3, 0→3→4（共享顶点0） 可绘制圆
+    offset+=offsetDelta
+    if (offset > 1.0) {
+      offset=0.0
+    }
+    gl.uniform1f(u_texCoordOffset,offset);
+    gl.drawElements(gl.TRIANGLES,indexArr.length,gl.UNSIGNED_SHORT,0)
     requestAnimationFrame(render)
   }
-  // requestAnimationFrame(render)
+  render()
 }

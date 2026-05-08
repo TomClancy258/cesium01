@@ -2,7 +2,7 @@ import { ShallowRef } from 'vue'
 import * as Cesium from "cesium"
 import airplane01Jpg from "@/assets/img/airplane/jpg/airplane01.jpg"
 
-export function addTexture2Cube(viewer:ShallowRef<Cesium.Viewer>){
+export function drawCubeThroughShader(viewer:ShallowRef<Cesium.Viewer>){
   //fromDimensions() → 创建 400000 x 400000 x 400000 的立方体
   const boxGeometry02 = Cesium.BoxGeometry.fromDimensions({
     // vertexFormat : Cesium.PerInstanceColorAppearance.VERTEX_FORMAT, //多色几何体
@@ -21,25 +21,50 @@ export function addTexture2Cube(viewer:ShallowRef<Cesium.Viewer>){
     }
   });
 
+  const appearance=new Cesium.MaterialAppearance({
+    material : new Cesium.Material({
+      fabric: {
+        type: 'Image',
+        uniforms: {
+          // image: airplane01Jpg,
+          // repeat: new Cesium.Cartesian2(3,2),
+          // color: Cesium.Color.BLUE
+        }
+      }
+    }),
+    faceForward : true,
+    fragmentShaderSource:`
+         uniform vec4 u_color;
+         // uniform vec4 color;
+        // 不要在此声明 out vec4 out_FragColor：Cesium 与材质拼好的片元里已声明，再写会 redefinition
+        void main() {
+          // gl_FragColor 仅适用于 GLSL 100；WebGL2 下用下面这种写入 Cesium 提供的 out_FragColor
+          out_FragColor = vec4(0.0,1.0,0.0,1.0); //对，但上面的material就不起作用了
+          // out_FragColor = color;
+          out_FragColor = u_color;
+        }
+      `
+  })
+
+  appearance.uniforms = {
+    u_color: Cesium.Color.BLUE,
+  }
 
   const boxPrimitive=new Cesium.Primitive({
     geometryInstances : [boxGeometryInstance02],
-    appearance : new Cesium.MaterialAppearance({
-      material : new Cesium.Material({
-        fabric: {
-          type: 'Image',
-          uniforms: {
-            image: airplane01Jpg,
-            repeat: new Cesium.Cartesian2(3,2),
-          }
-        }
-      }),
-      faceForward : true
-    })
-    //着色器程序
+    appearance: appearance     //着色器程序
   })
-  // viewer.value.scene.primitives.add(boxPrimitive);
-  // return;
+  // boxPrimitive.appearance.uniforms.u_color=Cesium.Color.BLUE
+  // boxPrimitive.appearance.material.uniforms.color = Cesium.Color.BLUE
+  // boxPrimitive.appearance.material.uniforms={
+  //   color: Cesium.Color.BLUE
+  // }
+  viewer.value.scene.primitives.add(boxPrimitive);
+
+  setInterval(()=>{
+    appearance.uniforms.u_color=Cesium.Color.fromRandom()
+  },1000)
+  return;
   //primitive 自定义顶点数据 绘制长方体
   const positions = new Float64Array([
     //底部的面

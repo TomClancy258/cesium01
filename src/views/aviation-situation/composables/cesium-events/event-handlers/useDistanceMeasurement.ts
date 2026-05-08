@@ -130,7 +130,9 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
       dynamicPolylineState.lngLatAltArray[lastPointIndex+1]=latitude
       dynamicPolylineState.lngLatAltArray[lastPointIndex+2]=height
 
-      dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
+      const position=Cesium.Cartesian3.fromDegrees(longitude,latitude,height)
+      dynamicPolylineState.positions[dynamicPolylineState.pointCount]=position
+      // dynamicPolylineState.positions=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
     }
   }
 
@@ -212,7 +214,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     activeDistanceSurvey.dynamicPolyline = activeDistanceSurvey.dataSource.entities.add({
       id: polylineUniqueId,
       properties: {
-        operationTypes: 'distanceMeasurement',
+        operationType: 'distanceMeasurement',
         sourceType: 'distanceMeasurement',
         type: 'polyline',
         dataSourceName: dataSourceUniqueId,

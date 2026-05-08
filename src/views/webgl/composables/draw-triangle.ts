@@ -1,4 +1,4 @@
-export function drawLine(){
+export function drawTriangle(){
  const canvas = document.getElementById("glCanvas");
  const gl=canvas.getContext('webgl')
 
@@ -56,7 +56,7 @@ export function drawLine(){
 
   //顶点数据
   const vertexData=new Float32Array([
-    -.5,-.5, 10.0, 1.0,.0,.0,1.0,//index[0]
+    /*坐标(x,y)*/-.5,-.5, /*点大小(1个)*/10.0, /*颜色rbga(4个)*/1.0,.0,.0,1.0,//index[0]
     .0,.5, 15.0, 0.0,1.0,.0,1.0,//index[1]
     .5,.6, 20.0, 0.0,.0,1.0,1.0,//index[2]
     .8,.5, 20.0, 0.0,.0,1.0,1.0,//index[3]
@@ -84,8 +84,8 @@ export function drawLine(){
   gl.vertexAttribPointer(a_color, 4, gl.FLOAT, false, 7*Float32Array.BYTES_PER_ELEMENT, 3*Float32Array.BYTES_PER_ELEMENT);
 
   //绘制 webgl中的基本形状：点Point，线Line，三角形Triangle
-  //从第0个位置，绘制3个点
-  gl.drawArrays(gl.LINES,0,6)//0->1,2->3,4->5 多段线【不连续】
-  // gl.drawArrays(gl.LINE_STRIP,0,6) //首位不相连的线
-  // gl.drawArrays(gl.LINE_LOOP,0,6)//首位相连的圈
+  //从第0个位置，绘制6个点
+  gl.drawArrays(gl.TRIANGLES,0,6)//0->1->2,3->4->5（2个独立三角形） 不连续三角形
+  // gl.drawArrays(gl.TRIANGLE_STRIP,0,6) //0→1→2, 1→2→3, 2→3→4（共享边）连续三角形（带状）
+  // gl.drawArrays(gl.TRIANGLE_FAN,0,6)//0→1→2, 0→2→3, 0→3→4（共享顶点0） 可绘制圆
 }

@@ -137,11 +137,8 @@ export const usePolygonSpatialSelection = (
       dynamicPolygonState.lngLatAltArray[lastPointIndex + 1] = latitude
       dynamicPolygonState.lngLatAltArray[lastPointIndex + 2] = height
 
-      const positions: Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(
-        dynamicPolygonState.lngLatAltArray,
-      )
-      // dynamicPolygonState.polygonHierarchy=new Cesium.PolygonHierarchy(positions)
-      dynamicPolygonState.polygonHierarchy.positions = positions
+      const position=Cesium.Cartesian3.fromDegrees(longitude,latitude,height)
+      dynamicPolygonState.polygonHierarchy.positions[dynamicPolygonState.pointCount]=position
     }
   }
 

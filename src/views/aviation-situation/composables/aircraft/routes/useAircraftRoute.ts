@@ -6,6 +6,7 @@ import type { AircraftSelectedData,AircraftGraphic } from '@/views/aviation-situ
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { altitudeColorMap } from '../aircraft-constants'
 import {useAviationSelectionStore} from '@/stores/aviation-selection'
+import { LngLatAltArray } from '@/views/aviation-situation/types/shared'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   let aircraftRoutePoints: RoutePoint[] = []
@@ -35,28 +36,36 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   const drawAircraftRoute = (routeData: RoutePoint[], icao24: string): void => {
     if (!aircraftGraphic.primitives.selectedAircraft.routePolylines) return
 
+    const lngLatAltArray:LngLatAltArray[]=[]
+    for(const lngLatAlt of routeData){
+      lngLatAltArray.push(lngLatAlt.longitude,lngLatAlt.latitude,lngLatAlt.baroAltitude)
+    }
+    const positions:Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights(lngLatAltArray)
     // 逐段绘制航线
     for (let i = 0; i < routeData.length - 1; i++) {
-      const startPoint = routeData[i]
+      // const startPoint = routeData[i]
       const endPoint = routeData[i + 1]
 
+      const startPosition = positions[i]
+      const endPosition = positions[i + 1]
+
       // 坐标校验
-      if (
-        !isValidCoordinate(startPoint.longitude, startPoint.latitude, startPoint.baroAltitude) ||
-        !isValidCoordinate(endPoint.longitude, endPoint.latitude, endPoint.baroAltitude)
-      ) {
-        continue
-      }
+      // if (
+      //   !isValidCoordinate(startPoint.longitude, startPoint.latitude, startPoint.baroAltitude) ||
+      //   !isValidCoordinate(endPoint.longitude, endPoint.latitude, endPoint.baroAltitude)
+      // ) {
+      //   continue
+      // }
 
       // 构建线段坐标
-      const positions:Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights([
-        startPoint.longitude,
-        startPoint.latitude,
-        startPoint.baroAltitude,
-        endPoint.longitude,
-        endPoint.latitude,
-        endPoint.baroAltitude,
-      ])
+      // const positions:Cesium.Cartesian3[] = Cesium.Cartesian3.fromDegreesArrayHeights([
+      //   startPoint.longitude,
+      //   startPoint.latitude,
+      //   startPoint.baroAltitude,
+      //   endPoint.longitude,
+      //   endPoint.latitude,
+      //   endPoint.baroAltitude,
+      // ])
 
       // 按终点高度着色
       const segmentColor:string = getColorByAltitude(endPoint.baroAltitude)
@@ -64,7 +73,7 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
       // 添加线段
       aircraftGraphic.primitives.selectedAircraft.routePolylines.add({
         id: `selectedAircraftRoute_${icao24}_segment_${i}`,
-        positions,
+        positions:[startPosition,endPosition],
         width: 2,
         arcType: Cesium.ArcType.GEODESIC,
         material: Cesium.Material.fromType('Color', {

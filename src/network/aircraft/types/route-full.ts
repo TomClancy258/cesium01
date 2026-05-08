@@ -1,26 +1,28 @@
 // types/route-full.ts
 
+import { isValidCoordinate } from '@/utils/geoUtils'
+
 /**
  * route-full.json 的原始元组结构（根据你提供的文件）
  */
 export type RoutePointTuple = [
-  timestamp: number,        // [0]
-  latitude: number,         // [1]
-  longitude: number,        // [2]
-  baroAltitude: number,     // [3] (英尺)
-  groundSpeed: number,      // [4] (节)
-  heading: number,          // [5] (度)
-  unknown1: number,         // [6] (恒为0)
-  verticalRate: number,     // [7] (英尺/分钟)
+  timestamp: number, // [0]
+  latitude: number, // [1]
+  longitude: number, // [2]
+  baroAltitude: number, // [3] (英尺)
+  groundSpeed: number, // [4] (节)
+  heading: number, // [5] (度)
+  unknown1: number, // [6] (恒为0)
+  verticalRate: number, // [7] (英尺/分钟)
   extra?: {
-    alt_geom?: number;      // 几何高度 (英尺)
-    ias?: number;           // 指示空速 (节)
-    tas?: number;           // 真空速 (节)
-    mach?: number;          // 马赫数
-    wd?: number;            // 风向
-    ws?: number;            // 风速
-    track?: number;         // 航迹角
-    squawk?: string;        // 应答机编码
+    alt_geom?: number // 几何高度 (英尺)
+    ias?: number // 指示空速 (节)
+    tas?: number // 真空速 (节)
+    mach?: number // 马赫数
+    wd?: number // 风向
+    ws?: number // 风速
+    track?: number // 航迹角
+    squawk?: string // 应答机编码
     // ... 其他可选字段
   },
   // [9+] 尾部字段（如 "adsb_icao", 38150, 64, 264, -0.7）
@@ -33,13 +35,13 @@ export interface RoutePoint {
   timestamp: number
   latitude: number
   longitude: number
-  baroAltitude: number      // 英尺
-  groundSpeed: number       // 节
-  heading: number           // 度
-  verticalRate: number      // 英尺/分钟
-  geomAltitude?: number     // 英尺
-  ias?: number              // 节
-  tas?: number              // 节
+  baroAltitude: number // 英尺
+  groundSpeed: number // 节
+  heading: number // 度
+  verticalRate: number // 英尺/分钟
+  geomAltitude?: number // 英尺
+  ias?: number // 节
+  tas?: number // 节
   mach?: number
   windDirection?: number
   windSpeed?: number
@@ -76,7 +78,12 @@ export function tupleToRoutePoint(tuple: RoutePointTuple): RoutePoint {
  * 转换整个航迹数组
  */
 export function parseRouteFull(data: RoutePointTuple[]): RoutePoint[] {
-  return data.map(tupleToRoutePoint)
+  const out: RoutePoint[] = []
+  for (const tuple of data) {
+    const p = tupleToRoutePoint(tuple)
+    if (isValidCoordinate(p.longitude, p.latitude, p.baroAltitude)) out.push(p)
+  }
+  return out
 }
 
 /**

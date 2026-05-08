@@ -192,6 +192,7 @@ export const BOX_SELECTION_STYLE: SpatialSelectionStyle = {
     OUTLINE_COLOR: Cesium.Color.BLUE.withAlpha(.5),
     MATERIAL: Cesium.Color.SKYBLUE.withAlpha(0.25),
     HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
+    // HEIGHT_REFERENCE: Cesium.HeightReference.CLAMP_TO_TERRAIN,
     MINIMUM_CONE: Cesium.Math.toRadians(0),
     MAXIMUM_CONE: Cesium.Math.toRadians(90),
 

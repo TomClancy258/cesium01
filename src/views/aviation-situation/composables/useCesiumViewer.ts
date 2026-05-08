@@ -12,8 +12,8 @@ export function useCesiumViewer(containerId = 'cesium-container') {
   const viewer = shallowRef<Cesium.Viewer | null>(null)
   const initViewer = (): void => {
     viewer.value = new Cesium.Viewer(containerId, {
-      timeline: false,
-      animation: false,
+      // timeline: false,
+      // animation: false,
       // 1. 关闭绿色的选中框 (Selection Indicator)
       selectionIndicator: false,
       infoBox: false,
@@ -41,6 +41,15 @@ export function useCesiumViewer(containerId = 'cesium-container') {
     // const center = Cesium.Cartesian3.fromDegrees(-98.0, 40.0);
     // viewer.value.camera.lookAt(center, new Cesium.Cartesian3(0.0, -4790000.0, 3930000.0));
 
+    const start = Cesium.JulianDate.fromIso8601("2012-03-15T10:00:00Z");
+    const stop = Cesium.JulianDate.fromIso8601("2012-03-16T08:27:42.5600708879647Z");
+    viewer.value.clock.startTime = start.clone();
+    viewer.value.clock.stopTime = stop.clone();
+    viewer.value.clock.currentTime = start.clone();
+
+    viewer.value.timeline.zoomTo(start, stop);
+    viewer.value.clock.multiplier = 50;
+    viewer.value.clock.shouldAnimate = true;
   }
 
   const destroyViewer = (): void => {

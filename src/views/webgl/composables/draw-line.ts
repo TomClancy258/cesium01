@@ -1,4 +1,4 @@
-export function drawPointsByVarying(){
+export function drawLine(){
  const canvas = document.getElementById("glCanvas");
  const gl=canvas.getContext('webgl')
 
@@ -7,7 +7,7 @@ export function drawPointsByVarying(){
     attribute vec2 a_position;
     attribute float a_pointSize;
     attribute vec4 a_color;
-    varying vec4 v_color; //vertexShader->fragmentShader
+    varying vec4 v_color;
       void main() {
       gl_PointSize=a_pointSize;
       gl_Position=vec4(a_position,0.0,1.0);
@@ -56,9 +56,12 @@ export function drawPointsByVarying(){
 
   //顶点数据
   const vertexData=new Float32Array([
-    -.5,-.5, 10.0, 1.0,.0,.0,1.0,
-    .5,.5, 15.0, 0.0,1.0,.0,1.0,
-    .7,.9, 20.0, 0.0,.0,1.0,1.0,
+    -.5,-.5, 10.0, 1.0,.0,.0,1.0,//index[0]
+    .0,.5, 15.0, 0.0,1.0,.0,1.0,//index[1]
+    .5,.6, 20.0, 0.0,.0,1.0,1.0,//index[2]
+    .8,.5, 20.0, 0.0,.0,1.0,1.0,//index[3]
+    .9,.0, 20.0, 0.0,1.0,.0,1.0,//index[4]
+    .6,-.5, 20.0, 1.0,.0,.0,1.0,//index[5]
   ]);
 
   //创建buffer
@@ -80,7 +83,9 @@ export function drawPointsByVarying(){
   gl.vertexAttribPointer(a_pointSize, 1, gl.FLOAT, false, 7*Float32Array.BYTES_PER_ELEMENT, 2*Float32Array.BYTES_PER_ELEMENT);
   gl.vertexAttribPointer(a_color, 4, gl.FLOAT, false, 7*Float32Array.BYTES_PER_ELEMENT, 3*Float32Array.BYTES_PER_ELEMENT);
 
-  //绘制
-  //从第0个位置，绘制3个点
-  gl.drawArrays(gl.POINTS,0,3)
+  //绘制 webgl中的基本形状：点Point，线Line，三角形Triangle
+  //从第0个位置，绘制6个点
+  gl.drawArrays(gl.LINES,0,6)//0->1,2->3,4->5 多段线【不连续】
+  // gl.drawArrays(gl.LINE_STRIP,0,6) //首位不相连的线
+  // gl.drawArrays(gl.LINE_LOOP,0,6)//首位相连的圈
 }
