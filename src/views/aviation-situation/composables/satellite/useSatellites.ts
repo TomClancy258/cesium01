@@ -1,4 +1,5 @@
 //src/views/aviation-situation/composables/satellite/useSatellite.ts
+import { onUnmounted } from 'vue'
 import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
@@ -18,6 +19,27 @@ function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProp
 
 export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   const satelliteRenderMap = new Map<string, SatelliteRenderItem>()
+  let isClockTickRegistered = false
+
+  const updateSatelliteCylinderLengths = (clock: Cesium.Clock) => {
+    const time = clock.currentTime
+    for (const item of satelliteRenderMap.values()) {
+      const nextLength = cylinderLengthFromPosition(item.positionProperty, time)
+      item.cylinderLengthProperty.setValue(nextLength)
+    }
+  }
+
+  const registerClockTick = () => {
+    if (isClockTickRegistered) return
+    viewer.value.clock.onTick.addEventListener(updateSatelliteCylinderLengths)
+    isClockTickRegistered = true
+  }
+
+  const unregisterClockTick = () => {
+    if (!isClockTickRegistered) return
+    viewer.value.clock.onTick.removeEventListener(updateSatelliteCylinderLengths)
+    isClockTickRegistered = false
+  }
 
   const initSatellites=()=>{
 
@@ -27,18 +49,20 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     for(const satellite of satellites){
       const positionProperty = new Cesium.SampledPositionProperty();
 
-      const availabilities:string=[]=satellite.availability.split('/')
-      const startIso8601:string=availabilities[0]
-      const stopIso8601:string=availabilities[1]
+      if (!satellite.availability) continue
+      const availabilities = satellite.availability.split('/')
+      if (availabilities.length < 2) continue
+      const startIso8601 = availabilities[0]!
+      const stopIso8601 = availabilities[1]!
       const start = Cesium.JulianDate.fromIso8601(startIso8601);
       const stop = Cesium.JulianDate.fromIso8601(stopIso8601);
 
       const cartesian:number[]=satellite.position.cartesian
       for(let i=0;i<cartesian.length;i+=4){
-        const offsetSeconds=cartesian[i]
-        const x=cartesian[i+1]
-        const y=cartesian[i+2]
-        const z=cartesian[i+3]
+        const offsetSeconds=cartesian[i]!
+        const x=cartesian[i+1]!
+        const y=cartesian[i+2]!
+        const z=cartesian[i+3]!
         const time = Cesium.JulianDate.addSeconds(start, offsetSeconds, new Cesium.JulianDate());
         const position =  new Cesium.Cartesian3(x, y, z);
         positionProperty.addSample(time, position);
@@ -50,6 +74,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         // });
       }
 
+      const cylinderLengthProperty = new Cesium.ConstantProperty(CYLINDER_MIN_LENGTH_M)
       const entity=viewer.value.entities.add({
         availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
         position: positionProperty,
@@ -59,11 +84,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
           // maximumScale: 20000,
         },
         cylinder: {
-          // 动态长度：随轨道高度变。Callback 在实体参与渲染时按当前 time 求值（通常每帧），内部用 positionProperty + 椭球高即可，不必单独「读 entity 海拔」字段。
-          length: new Cesium.CallbackProperty((time) => {
-            if (!time) return CYLINDER_MIN_LENGTH_M
-            return cylinderLengthFromPosition(positionProperty, time)
-          }, false),
+          // 在 clock.onTick 里批量更新，避免每个卫星各自 CallbackProperty 调度。
+          length: cylinderLengthProperty,
           topRadius: 0.0,
           bottomRadius: 200000.0,
           material: Cesium.Color.BLUE.withAlpha(0.3),
@@ -79,6 +101,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       satelliteRenderMap.set(satellite.id,{
         data:satellite,
         entity:entity,
+        positionProperty,
+        cylinderLengthProperty,
       })
     }
   }
@@ -88,6 +112,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       const data: Satellite[] = await getSatellites()
       if(Array.isArray(data)&&data.length>0){
         drawSatellites(data)
+        registerClockTick()
       }else{
 
       }
@@ -95,6 +120,10 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       console.error('加载卫星数据失败:', error)
     }
   }
+
+  onUnmounted(() => {
+    unregisterClockTick()
+  })
 
   return {
     initSatellites,
