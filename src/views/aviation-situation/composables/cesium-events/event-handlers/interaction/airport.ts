@@ -5,31 +5,30 @@ import {
   AirportBillboardProperties, AirportSelectedData
 } from '@/views/aviation-situation/types/airport'
 
+import * as Cesium from "cesium"
+
 // 处理机场 hover
-export const handleAirportHover = (properties: AirportBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
+export const handleAirportHover = (properties: AirportBillboardProperties, screenPosition: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
   const baseProperties:AirportBaseProperties = {
     type: properties.type,
     sourceType: properties.sourceType,
     icao: properties.icao,
     country: properties.country,
     name: properties.name,
-    longitude: properties.longitude,
-    latitude: properties.latitude,
-    elevation: properties.elevation,
+    lngLatAlt: { ...properties.lngLatAlt },
+    dataSourceNameSet: new Set(properties.dataSourceNameSet),
   }
-  emitCesiumEvent('airportHover', baseProperties, screenPosition, pickedObject.primitive)
+  emitCesiumEvent('airportHover', baseProperties, screenPosition, billboard)
 }
 
 // 处理机场左键点击
-export const handleAirportLeftClick = (properties: AirportBillboardProperties, pickedObject: Cesium.PickedObject):void => {
+export const handleAirportLeftClick = (properties: AirportBillboardProperties, billboard: Cesium.Billboard):void => {
   const airportSelectedData:AirportSelectedData = {
     sourceType: properties.sourceType,
     icao: properties.icao,
     country: properties.country,
-    latitude: properties.latitude,
-    longitude: properties.longitude,
-    elevation: properties.elevation,
+    lngLatAlt: { ...properties.lngLatAlt },
     name: properties.name,
   }
-  emitCesiumEvent('airportLeftClick', airportSelectedData, pickedObject.primitive)
+  emitCesiumEvent('airportLeftClick', airportSelectedData, billboard)
 }

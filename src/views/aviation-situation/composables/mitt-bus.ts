@@ -14,9 +14,15 @@ export type CesiumMouseEventName =
   | 'aircraftHover'
   | 'aircraftLeave'
   | 'aircraftLeftClick'
+
   | 'airportHover'
   | 'airportLeave'
   | 'airportLeftClick'
+
+  | 'satelliteHover'
+  | 'satelliteLeave'
+  | 'satelliteLeftClick'
+
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
   | 'airportSpatialSelect'
@@ -39,9 +45,15 @@ export interface EventCallbackMap {
   aircraftHover: (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   aircraftLeave: () => void;
   aircraftLeftClick: (data: AircraftSelectedData, billboard: Cesium.Billboard) => void;
+
   airportHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
+
+  satelliteHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
+  satelliteLeave: () => void;
+  satelliteLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
+
   mouseWheel: () => void; // 新增事件的回调类型（无参数）
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
   airportSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

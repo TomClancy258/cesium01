@@ -21,8 +21,9 @@ const tooltipStyle = computed(() => {
     <div>ICAO 代码：{{ props.tooltip.properties.icao }}</div>
     <div>机场名称：{{ props.tooltip.properties.name }}</div>
     <div>所在国家：{{ props.tooltip.properties.country }}</div>
-    <div>经度：{{ props.tooltip.properties.longitude }}</div>
-    <div>纬度：{{ props.tooltip.properties.latitude }}</div>
+    <div>经度：{{ props.tooltip.properties.lngLatAlt.longitude }}</div>
+    <div>纬度：{{ props.tooltip.properties.lngLatAlt.latitude }}</div>
+    <div>海拔：{{ props.tooltip.properties.lngLatAlt.elevation }} m</div>
   </div>
 </template>
 

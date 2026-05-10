@@ -4,36 +4,43 @@ import {
   AircraftBaseProperties,
   AircraftBillboardProperties, AircraftSelectedData
 } from '@/views/aviation-situation/types/aircraft'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import * as Cesium from 'cesium'
 
 // 处理飞机 hover
-export const handleAircraftHover = (properties: AircraftBillboardProperties, screenPosition: Cesium.Cartesian2, pickedObject: Cesium.PickedObject) => {
+export const handleAircraftHover = (properties: AircraftBillboardProperties, screenPosition: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
   const baseProperties:AircraftBaseProperties = {
     type: properties.type,
     sourceType: properties.sourceType,
     icao24: properties.icao24,
     originCountry: properties.originCountry,
     callsign: properties.callsign,
-    longitude: properties.longitude,
-    latitude: properties.latitude,
-    baroAltitude: properties.baroAltitude,
     heading: properties.heading,
+    lngLatAlt: {
+      latitude: properties.lngLatAlt.latitude,
+      longitude: properties.lngLatAlt.longitude,
+      baroAltitude: properties.lngLatAlt.baroAltitude
+    },
+    // screenPosition
   }
-  emitCesiumEvent('aircraftHover', baseProperties, screenPosition, pickedObject.primitive)
+  // const aviationSelectionStore=useAviationSelectionStore()
+  // aviationSelectionStore.setHovered(baseProperties)
+  emitCesiumEvent('aircraftHover', baseProperties, screenPosition, billboard)
 }
 
 // 处理飞机左键点击
-export const handleAircraftLeftClick = (properties: AircraftBillboardProperties, pickedObject: Cesium.PickedObject):void => {
+export const handleAircraftLeftClick = (properties: AircraftBillboardProperties, billboard: Cesium.Billboard):void => {
   const aircraftSelectedData:AircraftSelectedData = {
     sourceType: properties.sourceType,
     icao24: properties.icao24,
     originCountry: properties.originCountry,
     callsign: properties.callsign,
     heading: properties.heading,
-    position: {
-      latitude: properties.latitude,
-      longitude: properties.longitude,
-      baroAltitude: properties.baroAltitude
+    lngLatAlt: {
+      latitude: properties.lngLatAlt.latitude,
+      longitude: properties.lngLatAlt.longitude,
+      baroAltitude: properties.lngLatAlt.baroAltitude
     }
   }
-  emitCesiumEvent('aircraftLeftClick', aircraftSelectedData, pickedObject.primitive)
+  emitCesiumEvent('aircraftLeftClick', aircraftSelectedData, billboard)
 }

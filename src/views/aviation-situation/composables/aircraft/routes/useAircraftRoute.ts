@@ -99,9 +99,9 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
       const routeData:RoutePoint[] = await getAircraftRouteFull(icao24)
       // 追加当前位置
       routeData.push({
-        latitude: selected.position.latitude,
-        longitude: selected.position.longitude,
-        baroAltitude: selected.position.baroAltitude,
+        latitude: selected.lngLatAlt.latitude,
+        longitude: selected.lngLatAlt.longitude,
+        baroAltitude: selected.lngLatAlt.baroAltitude,
       })
 
       // 数据校验

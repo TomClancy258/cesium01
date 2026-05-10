@@ -170,9 +170,9 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
       const routeData:RoutePoint[] = await getAircraftPlannedTrajectory(icao24)
       // 模拟轨迹增量（开发调试用）
       routeData.push({
-        latitude: selected.position.latitude,
-        longitude: selected.position.longitude,
-        baroAltitude: selected.position.baroAltitude,
+        latitude: selected.lngLatAlt.latitude,
+        longitude: selected.lngLatAlt.longitude,
+        baroAltitude: selected.lngLatAlt.baroAltitude,
       })
 
       if (!Array.isArray(routeData) || routeData.length < 2) {

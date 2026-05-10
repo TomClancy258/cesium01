@@ -13,15 +13,19 @@ export interface AirportBaseProperties{
   icao: string // icao 代码
   country: string
   name: string
-  longitude: number // 数字类型，不是字符串
-  latitude: number // 数字类型，不是字符串
-  elevation: number // 数字类型，不是字符串
+  lngLatAlt:{
+    longitude: number // 数字类型，不是字符串
+    latitude: number // 数字类型，不是字符串
+    elevation: number // 数字类型，不是字符串
+  }
+  dataSourceNameSet:Set<string>
 }
 
 // Billboard 专用属性
 export interface AirportBillboardProperties extends AirportBaseProperties {
   type: 'billboard'
   originalColor: Cesium.Color
+  originalImage: string | undefined
 }
 
 // Label 专用属性
@@ -45,10 +49,13 @@ export interface AirportSelectedData {
   sourceType: 'airport';
   icao: string;
   country: string;
-  latitude: number;
-  longitude: number;
-  elevation: number,
-  name: string;
+  lngLatAlt:{
+    longitude: number;
+    latitude: number;
+    elevation: number;
+  };
+  name: string,
+  // screenPosition:Cesium.Cartesian2
 }
 
 

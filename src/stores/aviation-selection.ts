@@ -1,13 +1,24 @@
 // stores/aviation-selection.ts
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
+import type { AviationSelectedData, LngLatAlt } from '@/views/aviation-situation/types/shared'
 
 export const useAviationSelectionStore = defineStore('aviationSelection', () => {
   const lastSelectedIcao24=ref<string | null >(null)
 
   // 选中数据（响应式，支撑UI联动）
   const selected = ref<AviationSelectedData>(null)
+  const hovered = ref<AviationSelectedData>(null)
+
+  const clearHovered = (): void => {
+    hovered.value = null
+  }
+
+  const setHovered = (
+    data: AviationSelectedData = null
+  ): void => {
+    hovered.value = data
+  }
 
   // ========== 选中相关 ==========
   const clearSelected = (): void => {
@@ -32,12 +43,27 @@ export const useAviationSelectionStore = defineStore('aviationSelection', () => 
 
   const setSelectedPosition = (longitude: number, latitude: number, altitude: number): void => {
     if (selected.value !== null) {
-      selected.value.position.longitude = longitude
-      selected.value.position.latitude = latitude
+      selected.value.lngLatAlt.longitude = longitude
+      selected.value.lngLatAlt.latitude = latitude
       if (selected.value.sourceType === 'aircraft') {
-        selected.value.position.baroAltitude = altitude
+        selected.value.lngLatAlt.baroAltitude = altitude
       } else if (selected.value.sourceType === 'airport') {
-        selected.value.position.elevation = altitude
+        selected.value.lngLatAlt.elevation = altitude
+      } else if (selected.value.sourceType === 'satellite') {
+        selected.value.lngLatAlt.height = altitude
+      }
+    }
+  }
+
+
+  const setHoveredPosition = (longitude: number, latitude: number, altitude: number): void => {
+    if (hovered.value !== null) {
+      hovered.value.lngLatAlt.longitude = longitude
+      hovered.value.lngLatAlt.latitude = latitude
+      if (hovered.value.sourceType === 'aircraft') {
+        hovered.value.lngLatAlt.baroAltitude = altitude
+      } else if (hovered.value.sourceType === 'airport') {
+        hovered.value.lngLatAlt.elevation = altitude
       }
     }
   }
@@ -45,8 +71,13 @@ export const useAviationSelectionStore = defineStore('aviationSelection', () => 
   return {
     // 响应式状态
     selected,
+    hovered,
     lastSelectedIcao24,
     // 方法
+    clearHovered,
+    setHovered,
+    setHoveredPosition,
+
     clearSelected,
     setSelected,
     setSelectedPosition,

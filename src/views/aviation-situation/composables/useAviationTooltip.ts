@@ -6,8 +6,6 @@ import { updateTooltip } from '@/views/aviation-situation/utils/spatial-selectio
 export interface AviationTooltipBaseProperties {
   type: string
   sourceType: string // 区分aircraft/airport
-  longitude: number
-  latitude: number
   [key: string]: any // 扩展字段（适配不同要素的个性化属性）
 }
 

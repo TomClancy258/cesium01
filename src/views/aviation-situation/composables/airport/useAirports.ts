@@ -31,7 +31,7 @@ import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredBillboardHighlight,
-} from '../billboard-highlight-manager'
+} from '../highlight-manager/billboard-highlight-manager'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
@@ -66,13 +66,16 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
     hideTooltip: hideAirportTooltip
   } = useAviationTooltip<AirportBaseProperties>({
     icao: '',
-    type: '',
+    type: 'billboard',
     sourceType: 'airport',
     country: '',
     name: '',
-    longitude: 0,
-    latitude: 0,
-    elevation: 0,
+    lngLatAlt: {
+      longitude: 0,
+      latitude: 0,
+      elevation: 0,
+    },
+    dataSourceNameSet: new Set<string>(),
   })
 
   const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
@@ -211,9 +214,11 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
         icao,
         country,
         name: airport.name,
-        longitude,
-        latitude,
-        elevation,
+        lngLatAlt: {
+          longitude,
+          latitude,
+          elevation,
+        },
         originalColor: billboard.color,
         originalImage: billboard.image,
         dataSourceNameSet: new Set<string>(),
@@ -245,9 +250,11 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
         icao,
         country,
         name: airport.name,
-        longitude,
-        latitude,
-        elevation,
+        lngLatAlt: {
+          longitude,
+          latitude,
+          elevation,
+        },
         originalFillColor: label.fillColor,
         dataSourceNameSet: new Set<string>(),
       } satisfies AirportLabelProperties
@@ -314,13 +321,13 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
       'airportHover',
       (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
         showAirportTooltip(position, properties) // 替换原方法
-        highlightBillboardOnHover(billboard, airportHoveredSvgRawDataUrl)
+        highlightBillboardOnHover(properties,billboard, airportHoveredSvgRawDataUrl)
       }
     )
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
       hideAirportTooltip() // 替换原方法
-      clearHoveredBillboardHighlight()
+      // clearHoveredBillboardHighlight()
     })
 
     // 订阅机场点击事件

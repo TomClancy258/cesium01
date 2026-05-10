@@ -5,6 +5,7 @@ import { cloneDeep } from 'lodash-es'
 import { onMounted, provide, ref, onUnmounted } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
+import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
@@ -20,7 +21,7 @@ import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useAircraftStore } from '@/stores/aircraft'
 import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulate-websocket'
-import { clearSelectedBillboardHighlight } from './composables/billboard-highlight-manager'
+import { clearSelectedBillboardHighlight } from './composables/highlight-manager/billboard-highlight-manager'
 
 import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents } from './composables/cesium-events/cesium-camera-events'
@@ -29,8 +30,8 @@ import { useSpatialSelectionStore } from '@/stores/spatial-selection.ts'
 import { useDrawingToolStore } from '@/stores/drawing-tool.ts'
 import { useDistanceMeasurementStore } from '@/stores/distance-measurement.ts'
 
-import { clearAllBillboardHighlight } from '@/views/aviation-situation/composables/billboard-highlight-manager.ts'
-import { clearAllEntityHighlight } from '@/views/aviation-situation/composables/entity-highlight-manager.ts'
+import { clearAllBillboardHighlight } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
+import { clearAllEntityHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 
 import {drawPolylineGeometry} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson02-polylineGeometry.ts"
 import {drawPolylineGeometryAppearance} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson04-polylineGeometry-appearance.ts"
@@ -81,6 +82,7 @@ const {
 const {
   initSatellites,
   loadAndDrawSatellites,
+  tooltip: satelliteTooltip,
 } = useSatellites(cesiumViewer)
 
 const { initBuildings } = useBuildings(cesiumViewer)
@@ -200,6 +202,7 @@ provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
     <AltitudeLegend />
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
+    <SatelliteTooltip :tooltip="satelliteTooltip" />
     <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />
     <MapToolsDrawer />
   </div>

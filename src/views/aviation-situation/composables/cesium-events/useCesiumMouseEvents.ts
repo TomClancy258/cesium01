@@ -2,7 +2,7 @@
 import * as Cesium from 'cesium'
 import { useThrottleFn,useDebounceFn, } from '@vueuse/core'
 import mittBus, { CesiumMouseEventName } from '../mitt-bus'
-import type { MapBillboardLabelProperties } from "../../types/shared"
+import type { LngLatAlt, MapBillboardLabelProperties } from '../../types/shared'
 import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
 
 import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/interaction/aircraft"
@@ -30,7 +30,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   clearHoveredEntityHighlight,
   clearSelectedEntityHighlight
-} from '@/views/aviation-situation/composables/entity-highlight-manager'
+} from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager'
 
 import {
   useMouseFollowPointLabel
@@ -55,6 +55,18 @@ import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus
 import {
   useHemisphereSpatialSelection
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/useHemisphereSpatialSelection'
+
+import type {SatelliteProperties} from "@/views/aviation-situation/types/satellite.ts"
+import {
+  handleSatelliteHover,
+  handleSatelliteLeftClick,
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
+import {
+  clearHoveredBillboardHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager'
+import {
+  clearHoveredSatelliteHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
 export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) => {
@@ -165,13 +177,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         obj => obj.primitive instanceof Cesium.Billboard
       )
       if (billboardPicked) {
-        const properties = billboardPicked.primitive.properties as MapBillboardLabelProperties
+        const billboard=billboardPicked.primitive
+        const properties = billboard.properties as MapBillboardLabelProperties
         console.log("properties", properties);
         if (properties.type !== 'billboard') return
         if (properties.sourceType === 'aircraft') {
-          handleAircraftLeftClick(properties, billboardPicked)
+          handleAircraftLeftClick(properties, billboard)
         } else if (properties.sourceType === 'airport') {
-          handleAirportLeftClick(properties, billboardPicked)
+          handleAirportLeftClick(properties, billboard)
         } else {
           aviationSelectionStore.clearSelected()
           aviationSelectionStore.clearLastSelectedIcao24()
@@ -193,6 +206,26 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           handleSpatialSelectionLeftClick(viewer, entity, properties)
         } else if (properties.operationType === 'spatialSelection') {
           handleSpatialSelectionLeftClick(viewer, entity, properties)
+        }  else if (properties.sourceType === 'satellite') {
+          const primitive = entityPicked.primitive
+          const isSatelliteModel =
+            primitive instanceof Cesium.Model ||
+            primitive instanceof Cesium.ModelFeature
+
+          if (!isSatelliteModel)return
+
+          const time = viewer.value.clock.currentTime
+          const position = entity.position?.getValue(time)
+          if (!position) return
+          const cartographic = Cesium.Cartographic.fromCartesian(position)
+          const longitude=Cesium.Math.toDegrees(cartographic.longitude)
+          const latitude=Cesium.Math.toDegrees(cartographic.latitude)
+          const lngLatAlt:LngLatAlt={
+            longitude,
+            latitude,
+            height:cartographic.height,
+          }
+          handleSatelliteLeftClick(properties as SatelliteProperties,lngLatAlt, entity)
         } else {
           drawingToolStore.clearSelected()
           clearSelectedEntityHighlight()
@@ -251,7 +284,10 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
     if (pickedObjects.length === 0) {
       aviationBillboardLeave()
+      clearHoveredBillboardHighlight()
       clearHoveredEntityHighlight()
+      clearHoveredSatelliteHighlight()
+      emitCesiumEvent('satelliteLeave');
       return
     }
 
@@ -260,18 +296,21 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       obj => obj.primitive instanceof Cesium.Billboard
     )
     if (billboardPicked) {
-      const properties: MapBillboardLabelProperties = billboardPicked.primitive.properties
-      const position: Cesium.Cartesian3 = billboardPicked.primitive.position
+      const billboard=billboardPicked.primitive
+      const properties: MapBillboardLabelProperties = billboard.properties
+      const position: Cesium.Cartesian3 = billboard.position
       const screenPosition: Cesium.Cartesian2 =
         Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
 
       if (properties.type !== 'billboard') return
       if (properties.sourceType === 'aircraft') {
-        handleAircraftHover(properties as AircraftBillboardProperties, screenPosition, billboardPicked)
+        handleAircraftHover(properties as AircraftBillboardProperties, screenPosition, billboard)
       } else if (properties.sourceType === 'airport') {
-        handleAirportHover(properties as AirportBillboardProperties, screenPosition, billboardPicked)
+        handleAirportHover(properties as AirportBillboardProperties, screenPosition, billboard)
       }
       clearHoveredEntityHighlight() // 有 billboard hover 时清除 entity 高亮
+      clearHoveredSatelliteHighlight()
+      emitCesiumEvent('satelliteLeave');
       return
     }
 
@@ -281,21 +320,49 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     )
     if (entityPicked) {
       aviationBillboardLeave()
+      clearHoveredBillboardHighlight()
       const entity: Cesium.Entity = entityPicked.id
       if (!entity.properties) return
 
-      const properties = entity.properties.getValue() as EntityProperties
+      const properties = entity.properties.getValue() as EntityProperties|SatelliteProperties
       if (properties.operationType === 'distanceMeasurement') {
-        handleSpatialSelectionHover(viewer, entity, properties)
+        handleSpatialSelectionHover(viewer, entity, properties as EntityProperties)
       } else if (properties.operationType === 'spatialSelection') {
-        handleSpatialSelectionHover(viewer, entity, properties)
+        handleSpatialSelectionHover(viewer, entity, properties as EntityProperties)
+      } else if(properties.sourceType === 'satellite'){
+        // console.log("entityPicked", entityPicked);
+        const primitive = entityPicked.primitive
+        const isSatelliteModel =
+          primitive instanceof Cesium.Model ||
+          primitive instanceof Cesium.ModelFeature
+
+        if (!isSatelliteModel)return
+
+        const time = viewer.value.clock.currentTime
+        const pos = entity.position?.getValue(time)
+        if (!pos) return
+        const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+          viewer.value.scene,
+          pos,
+        )
+        const cartographic = Cesium.Cartographic.fromCartesian(pos)
+        const longitude=Cesium.Math.toDegrees(cartographic.longitude)
+        const latitude=Cesium.Math.toDegrees(cartographic.latitude)
+        const lngLatAlt:LngLatAlt={
+          longitude,
+          latitude,
+          height:cartographic.height,
+        }
+        handleSatelliteHover(properties as SatelliteProperties, screenPosition,lngLatAlt, entity)
+        clearHoveredEntityHighlight() // 有 satellite model hover 时清除 entity 高亮
       }
       return
     }
 
     // ✅ 什么都没拾取到
-    aviationBillboardLeave()
-    clearHoveredEntityHighlight()
+    // aviationBillboardLeave()
+    // clearHoveredEntityHighlight()
+    // emitCesiumEvent('satelliteLeave');
   }, 100,true,true)
   // }, 500,true,true)
 
@@ -311,7 +378,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // 清空所有 Cesium 交互事件订阅
     const eventNames: CesiumMouseEventName[] = [
       'aircraftHover', 'aircraftLeave', 'aircraftLeftClick',
-      'airportHover', 'airportLeave', 'airportLeftClick', 'mouseWheel'
+      'airportHover', 'airportLeave', 'airportLeftClick',
+      'satelliteHover', 'satelliteLeave', 'satelliteLeftClick',
+      'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))
   }

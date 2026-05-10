@@ -20,7 +20,7 @@ import {
   highlightBillboardOnHover,
   highlightBillboardAndSetSelected,
   clearHoveredBillboardHighlight,
-} from '../billboard-highlight-manager'
+} from '../highlight-manager/billboard-highlight-manager'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useSimulatedWebSocketStore } from '@/stores/simulate-websocket'
 import { useAircraftStore } from '@/stores/aircraft'
@@ -91,9 +91,11 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     icao24: '',
     originCountry: '',
     callsign: '',
-    longitude: 0,
-    latitude: 0,
-    baroAltitude: 0,
+    lngLatAlt:{
+      longitude: 0,
+      latitude: 0,
+      baroAltitude: 0,
+    },
     heading: 0,
   })
 
@@ -234,7 +236,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
 
     for (const aircraft of newAircrafts) {
       newIcaoSet.add(aircraft.icao24)
-      const aircraftRenderItem = aircraftRenderMap.get(aircraft.icao24)
+      const aircraftRenderItem:AircraftRenderItem = aircraftRenderMap.get(aircraft.icao24)
 
       if (aircraftRenderItem) {
         // 更新位置和航向
@@ -247,6 +249,38 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
         aircraftRenderItem.billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
         aircraftRenderItem.label.position = position
         aircraftRenderItem.data=aircraft
+
+        aircraftRenderItem.billboard.properties.lngLatAlt.longitude=aircraft.longitude
+        aircraftRenderItem.billboard.properties.lngLatAlt.latitude=aircraft.latitude
+        aircraftRenderItem.billboard.properties.lngLatAlt.baroAltitude=aircraft.baroAltitude
+
+        aircraftRenderItem.label.properties.lngLatAlt.longitude=aircraft.longitude
+        aircraftRenderItem.label.properties.lngLatAlt.latitude=aircraft.latitude
+        aircraftRenderItem.label.properties.lngLatAlt.baroAltitude=aircraft.baroAltitude
+
+        if(aviationSelectionStore.hovered!=null&&
+          aircraft.icao24===aviationSelectionStore.hovered.icao24){
+          const properties:AircraftBaseProperties = {
+            type: 'billboard',
+            sourceType: 'aircraft',
+            icao24: aircraft.icao24,
+            originCountry: aircraft.originCountry,
+            callsign: aircraft.callsign,
+            heading: aircraft.heading,
+            lngLatAlt: {
+              latitude: aircraft.latitude,
+              longitude: aircraft.longitude,
+              baroAltitude: aircraft.baroAltitude
+            }
+          }
+          const position: Cesium.Cartesian3 = aircraftRenderItem.billboard.position
+          const screenPosition: Cesium.Cartesian2 =
+            Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
+            console.log("properties", properties);
+          console.log('fasong')
+          showAircraftTooltip(screenPosition, properties) // 替换原方法
+        }
+
       } else {
         drawAircraft(aircraft)
       }
@@ -293,10 +327,12 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       icao24,
       originCountry,
       callsign,
-      longitude,
-      latitude,
-      baroAltitude,
       heading,
+      lngLatAlt:{
+        longitude,
+        latitude,
+        baroAltitude,
+      },
       originalColor: billboard.color,
       originalImage: billboard.image,
       dataSourceNameSet: new Set<string>(),
@@ -328,10 +364,12 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       icao24,
       originCountry,
       callsign,
-      longitude,
-      latitude,
-      baroAltitude,
       heading,
+      lngLatAlt:{
+        longitude,
+        latitude,
+        baroAltitude,
+      },
       originalFillColor: label.fillColor,
       dataSourceNameSet: new Set<string>(),
     } satisfies AircraftLabelProperties
@@ -469,14 +507,15 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       'aircraftHover',
       (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
         showAircraftTooltip(position, properties) // 替换原方法
-        highlightBillboardOnHover(billboard, airplaneHoveredSvgRawDataUrl)
+        highlightBillboardOnHover(properties,billboard, airplaneHoveredSvgRawDataUrl)
+        // aviationSelectionStore.setHovered(properties)
       }
     )
 
     // Leave事件
     unsubAircraftLeave = onCesiumEvent('aircraftLeave', () => {
       hideAircraftTooltip() // 替换原方法
-      clearHoveredBillboardHighlight()
+      // clearHoveredBillboardHighlight()
     })
 
     // 点击事件

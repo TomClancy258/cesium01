@@ -6,7 +6,7 @@ import type { Aircraft } from '@/network/aircraft/type'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
-} from '@/views/aviation-situation/composables/billboard-highlight-manager.ts'
+} from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus.ts'
 import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'

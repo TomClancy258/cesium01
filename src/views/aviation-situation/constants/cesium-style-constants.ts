@@ -4,13 +4,18 @@ import * as Cesium from 'cesium'
 /**
  * Label 基础样式类型
  */
-export type CesiumLabelStyle = {
-  FILL_COLOR: string,
+export type CesiumLabelBaseStyle = {
+  FILL_COLOR: Cesium.Color,
   FONT: string;
   OUTLINE_COLOR: Cesium.Color;
   OUTLINE_WIDTH: number;
   STYLE: Cesium.LabelStyle;
   PIXEL_OFFSET: Cesium.Cartesian2;
+  HORIZONTAL_ORIGIN: Cesium.HorizontalOrigin;
+  VERTICAL_ORIGIN: Cesium.VerticalOrigin
+};
+
+export type CesiumLabelStyle = CesiumLabelBaseStyle & {
   HEIGHT_REFERENCE: Cesium.HeightReference;
   DISABLE_DEPTH_TEST_DISTANCE: number;
 };
@@ -117,17 +122,24 @@ export type TempTotalLengthLabelStyle = {
   LABEL: Pick<CesiumLabelStyle, 'PIXEL_OFFSET'>;
 };
 
+export const AVIATION_LABEL_STYLE_BASE:CesiumLabelBaseStyle={
+  FILL_COLOR:Cesium.Color.WHITE,
+  FONT: '14px Verdana',
+  OUTLINE_COLOR: Cesium.Color.DARKSLATEGREY,
+  OUTLINE_WIDTH: 2,
+  STYLE: Cesium.LabelStyle.FILL_AND_OUTLINE,
+  PIXEL_OFFSET: new Cesium.Cartesian2(0, -20),
+  HORIZONTAL_ORIGIN: Cesium.HorizontalOrigin.CENTER,
+  VERTICAL_ORIGIN: Cesium.VerticalOrigin.TOP,
+}
+
 // ===================== 样式常量（独立维护，语义清晰） =====================
 /**
  * 临时点标签样式常量
  */
 export const TEMP_POINT_LABEL_STYLE: TempPointLabelStyle = {
   LABEL: {
-    FILL_COLOR:Cesium.Color.WHITE,
-    FONT: '14px Verdana',
-    OUTLINE_COLOR: Cesium.Color.DARKSLATEGREY,
-    OUTLINE_WIDTH: 2,
-    STYLE: Cesium.LabelStyle.FILL_AND_OUTLINE,
+    ...AVIATION_LABEL_STYLE_BASE,
     PIXEL_OFFSET: new Cesium.Cartesian2(0, -45),
     HEIGHT_REFERENCE: Cesium.HeightReference.NONE,
     DISABLE_DEPTH_TEST_DISTANCE: Number.POSITIVE_INFINITY

@@ -86,15 +86,15 @@ const paginatedFlights = computed(() => {
         </div>
         <div class="info-item">
           <span class="label">海拔高度</span>
-          <span class="value">{{ airport.elevation }} m</span>
+          <span class="value">{{ airport.lngLatAlt.elevation }} m</span>
         </div>
         <div class="info-item">
           <span class="label">经度</span>
-          <span class="value">{{ airport.longitude.toFixed(4) }}</span>
+          <span class="value">{{ airport.lngLatAlt.longitude.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">纬度</span>
-          <span class="value">{{ airport.latitude.toFixed(4) }}</span>
+          <span class="value">{{ airport.lngLatAlt.latitude.toFixed(4) }}</span>
         </div>
       </div>
     </div>

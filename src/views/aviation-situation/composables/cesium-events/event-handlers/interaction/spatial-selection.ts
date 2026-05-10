@@ -3,7 +3,7 @@ import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   highlightEntityOnHover,
   highlightEntityAndSetSelected
-} from '@/views/aviation-situation/composables/entity-highlight-manager.ts'
+} from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData, DrawingToolEntitiesResult } from '@/views/aviation-situation/types/shared'
 import { useDrawingToolStore } from "@/stores/drawing-tool.ts"

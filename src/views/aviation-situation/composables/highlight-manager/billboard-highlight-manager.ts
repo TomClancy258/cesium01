@@ -61,9 +61,9 @@ export function clearSpatialSelectedHighlight(dataSourceName,billboard): void {
  * hover高亮：视觉+同步Pinia（如果需要UI联动）
  */
 export function highlightBillboardOnHover(
+  hoverData: AircraftSelectedData | AirportSelectedData | null = null,
   billboard: Cesium.Billboard,
   highlightImage: string,
-  hoverData: AircraftSelectedData | AirportSelectedData | null = null
 ): void {
   // 如果当前有选中的 Billboard，hover 不生效（选中优先级更高）
   if (selectedBillboard === billboard) return
@@ -80,6 +80,9 @@ export function highlightBillboardOnHover(
 
   hoveredBillboard = billboard
   billboard.image = highlightImage
+
+  const aviationSelectionStore = useAviationSelectionStore()
+  aviationSelectionStore.setHovered(hoverData)
 }
 
 /**
@@ -117,6 +120,8 @@ export function clearHoveredBillboardHighlight(): void {
     restoreBillboardImage(hoveredBillboard)
     hoveredBillboard = null
     // aviationSelectionStore.clearHovered()
+    const aviationSelectionStore = useAviationSelectionStore()
+    aviationSelectionStore.clearHovered()
   }
 }
 

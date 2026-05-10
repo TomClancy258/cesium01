@@ -7,3 +7,27 @@ export interface SatelliteRenderItem {
   positionProperty: Cesium.SampledPositionProperty
   cylinderLengthProperty: Cesium.ConstantProperty
 }
+
+export interface SatelliteHoveredProperties{
+  id:string,
+  sourceType:'satellite',
+  name:string,
+  description:string,
+  lngLatAlt:{
+    longitude: number
+    latitude: number
+    height: number
+  },
+  // screenPosition:Cesium.Cartesian2
+}
+
+export type SatelliteProperties = SatelliteHoveredProperties
+
+export interface SatelliteModelHighlightStyle {
+  silhouetteColor: Cesium.Color
+  silhouetteSize: number
+}
+export interface SatelliteHighlightConfig {
+  sourceType: 'satellite'
+  style: SatelliteModelHighlightStyle
+}

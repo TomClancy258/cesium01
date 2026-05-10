@@ -4,6 +4,7 @@ import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
+import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
 
 export type LngLatAltArray=[number,number,number]
 
@@ -24,7 +25,7 @@ export type MapBillboardLabelProperties =
   | AirportBillboardProperties
   | AirportLabelProperties;
 
-export type AviationSelectedData = AircraftSelectedData | AirportSelectedData | null
+export type AviationSelectedData = AircraftSelectedData | AirportSelectedData | SatelliteHoveredProperties | null
 
 export interface LngLatAlt {
   longitude: number

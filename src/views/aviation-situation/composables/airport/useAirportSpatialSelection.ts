@@ -9,7 +9,7 @@ import type { Airport } from '@/network/airport/type'
 import {
   highlightBillboardOnSpatialSelection,
   clearSpatialSelectedHighlight,
-} from '@/views/aviation-situation/composables/billboard-highlight-manager.ts'
+} from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus.ts'
 import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import { buildRegionFromData, isPointInSelectionRegion } from '@/views/aviation-situation/utils/spatial-selection-utils.ts'

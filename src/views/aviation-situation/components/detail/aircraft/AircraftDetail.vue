@@ -118,15 +118,15 @@ const chartData = {
       <div class="info-grid">
         <div class="info-item">
           <span class="label">经度</span>
-          <span class="value">{{ aircraft.position.longitude.toFixed(4) }}</span>
+          <span class="value">{{ aircraft.lngLatAlt.longitude.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">纬度</span>
-          <span class="value">{{ aircraft.position.latitude.toFixed(4) }}</span>
+          <span class="value">{{ aircraft.lngLatAlt.latitude.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">高度</span>
-          <span class="value">{{ aircraft.position.baroAltitude.toFixed(0) }} m</span>
+          <span class="value">{{ aircraft.lngLatAlt.baroAltitude.toFixed(0) }} m</span>
         </div>
         <div class="info-item">
           <span class="label">方位角</span>

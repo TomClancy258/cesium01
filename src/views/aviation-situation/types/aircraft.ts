@@ -9,9 +9,11 @@ export interface AircraftBaseProperties {
   icao24: string
   originCountry: string
   callsign: string
-  longitude: number
-  latitude: number
-  baroAltitude: number
+  lngLatAlt:{
+    longitude: number
+    latitude: number
+    baroAltitude: number
+  },
   heading: number,
   dataSourceNameSet:Set<string>
 }
@@ -56,12 +58,13 @@ export interface AircraftSelectedData {
   icao24: string;
   originCountry: string;
   callsign: string;
-  heading: string;
-  position:{
+  heading: number;
+  lngLatAlt:{
     latitude: number,
     longitude: number,
     baroAltitude: number
-  }
+  },
+  // screenPosition:Cesium.Cartesian2
 }
 
 
