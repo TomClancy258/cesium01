@@ -5,8 +5,10 @@ import type { DrawerProps } from 'element-plus'
 
 import AircraftDetail from './aircraft/AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
+import SatelliteDetail from './SatelliteDetail.vue'
 
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 const aviationSelectionStore = useAviationSelectionStore()
 
 const direction = ref<DrawerProps['direction']>('ltr')
@@ -34,10 +36,16 @@ const drawer = computed({
   set: (value) => {
     // 处理抽屉手动关闭的逻辑（v-model需要双向绑定）
     if (!value) {
-      emit('close')
+      // emit('close')
+      handleDetailDrawerClose()
     }
   },
 })
+
+const handleDetailDrawerClose = (): void => {
+  clearSelectedAviation()
+}
+
 // 优化：用computed替代watch控制抽屉显隐（更简洁）
 const aviationDetailDrawerTitle = computed(() => {
   if (selectedSourceType.value === 'aircraft') {
@@ -65,6 +73,7 @@ const aviationDetailDrawerTitle = computed(() => {
     <div class="drawer-body">
       <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
       <AirportDetail v-show="selectedSourceType === 'airport'" />
+      <SatelliteDetail v-show="selectedSourceType === 'satellite'" />
     </div>
   </el-drawer>
 </template>

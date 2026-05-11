@@ -15,7 +15,7 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       // timeline: false,
       // animation: false,
       // 1. 关闭绿色的选中框 (Selection Indicator)
-      // selectionIndicator: false,
+      selectionIndicator: false,
       infoBox: false,
       baseLayerPicker: false,
       baseLayer: Cesium.ImageryLayer.fromProviderAsync(

@@ -1,25 +1,24 @@
 <script setup lang="ts">
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 
 const aviationSelectionStore = useAviationSelectionStore()
 
-const airport = computed(() => {
+const satellite = computed(() => {
   const sel = aviationSelectionStore.selected
   if (sel?.sourceType === 'satellite') return sel
   return null
 })
 
-
 </script>
 
 <template>
-  <div v-if="airport" class="airport-detail">
+  <div v-if="satellite" class="airport-detail">
     <!-- 头部 -->
     <div class="detail-header">
-      <div class="airport-name">{{ airport.name }}</div>
+      <div class="airport-name">{{ satellite.name }}</div>
       <div class="airport-codes">
-        <span class="icao">{{ airport.icao }}</span>
+        <span class="icao">{{ satellite.id }}</span>
         <span class="separator">/</span>
         <span class="iata">--</span>
       </div>
@@ -28,26 +27,46 @@ const airport = computed(() => {
     <!-- 基本信息 -->
     <div class="detail-section">
       <div class="section-title">基本信息</div>
+      <div class="">
+        <span class="label">简介</span>
+        <div class="value description-html" v-html="satellite.description"></div>
+      </div>
       <div class="info-grid">
         <div class="info-item">
-          <span class="label">所在国家</span>
-          <span class="value">{{ airport.country }}</span>
-        </div>
-        <div class="info-item">
-          <span class="label">海拔高度</span>
-          <span class="value">{{ airport.lngLatAlt.elevation }} m</span>
-        </div>
-        <div class="info-item">
           <span class="label">经度</span>
-          <span class="value">{{ airport.lngLatAlt.longitude.toFixed(4) }}</span>
+          <span class="value">{{ satellite.lngLatAlt.longitude.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">纬度</span>
-          <span class="value">{{ airport.lngLatAlt.latitude.toFixed(4) }}</span>
+          <span class="value">{{ satellite.lngLatAlt.latitude.toFixed(4) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">海拔高度</span>
+          <span class="value">{{ satellite.lngLatAlt.height.toFixed(4) }} m</span>
         </div>
       </div>
     </div>
 
+<!--    <el-form-->
+<!--      :model="drawingToolStore.drawingToolForm"-->
+<!--      ref="drawingToolFormRef"-->
+<!--      label-width="85px"-->
+<!--      :inline="true"-->
+<!--    >-->
+<!--      <el-form-item label="框选目标" prop="spatialSelectionTarget">-->
+<!--        <el-select-->
+<!--          v-model="drawingToolStore.drawingToolForm.spatialSelectionTarget"-->
+<!--          @change="spatialSelectionTargetChange"-->
+<!--        >-->
+<!--          <el-option-->
+<!--            v-for="item in spatialSelectionTargets"-->
+<!--            :key="item.value"-->
+<!--            :label="item.label"-->
+<!--            :value="item.value"-->
+<!--          />-->
+<!--        </el-select>-->
+<!--      </el-form-item>-->
+<!--    </el-form>-->
   </div>
 </template>
 
@@ -125,6 +144,15 @@ const airport = computed(() => {
     font-weight: 500;
     text-align: right;
   }
+}
+
+.description-html {
+  margin: 6px 0 10px;
+  line-height: 1.6;
+}
+
+.description-html :deep(p) {
+  margin: 0 0 8px;
 }
 
 .flight-table {

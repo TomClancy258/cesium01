@@ -18,7 +18,7 @@ import { flyToLngLatAlt, getCameraHeight, isValidCoordinate } from '@/utils/geoU
 type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountries'>
 import {
   highlightBillboardOnHover,
-  highlightBillboardAndSetSelected,
+  highlightBillboardOnSelect,
   clearHoveredBillboardHighlight,
 } from '../highlight-manager/billboard-highlight-manager'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
@@ -508,7 +508,14 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
         showAircraftTooltip(position, properties) // 替换原方法
         highlightBillboardOnHover(properties,billboard, airplaneHoveredSvgRawDataUrl)
-        // aviationSelectionStore.setHovered(properties)
+        const hovered=aviationSelectionStore.hovered
+        if (
+          hovered === null ||
+          hovered.sourceType !== 'aircraft'||
+          hovered.icao24 !== properties.icao24
+        ) {
+          aviationSelectionStore.setHovered(properties)
+        }
       }
     )
 
@@ -516,13 +523,24 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     unsubAircraftLeave = onCesiumEvent('aircraftLeave', () => {
       hideAircraftTooltip() // 替换原方法
       // clearHoveredBillboardHighlight()
+      const hovered=aviationSelectionStore.hovered
+      if(hovered?.sourceType==='aircraft'){
+        aviationSelectionStore.clearHovered()
+      }
     })
 
     // 点击事件
     unsubAircraftLeftClick = onCesiumEvent(
       'aircraftLeftClick',
       (data: AircraftSelectedData, billboard: Cesium.Billboard) => {
-        highlightBillboardAndSetSelected(data, billboard, airplaneSelectedSvgRawDataUrl)
+        highlightBillboardOnSelect(billboard, airplaneSelectedSvgRawDataUrl)
+        const selected = aviationSelectionStore.selected
+        if (
+          selected?.sourceType !== 'aircraft' ||
+          selected.icao24 !== data.icao24
+        ) {
+          aviationSelectionStore.setSelected(data)
+        }
       },
     )
 

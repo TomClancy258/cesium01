@@ -84,6 +84,11 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         // aviationSelectionStore.setHovered(properties)
         showSatelliteTooltip(screenPosition, properties)
       }
+
+      const selected=aviationSelectionStore.selected
+      if(selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
+       aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
+      }
     }
   }
 
@@ -225,8 +230,11 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       (properties: SatelliteHoveredProperties, screenPosition: Cesium.Cartesian2, entity: Cesium.Entity) => {
         showSatelliteTooltip(screenPosition, properties)
 
-        if (aviationSelectionStore.hovered===null||
-          aviationSelectionStore.hovered.id !== properties.id) {
+        if (
+          aviationSelectionStore.hovered === null ||
+          aviationSelectionStore.hovered.sourceType !== 'satellite' ||
+          aviationSelectionStore.hovered.id !== properties.id
+        ) {
           aviationSelectionStore.setHovered(properties)
         }
       }
@@ -250,8 +258,11 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
       (data: SatelliteProperties, entity: Cesium.Entity) => {
-        // highlightBillboardAndSetSelected(data, billboard, airplaneSelectedSvgRawDataUrl)
-
+        // highlightBillboardOnSelect(data, billboard, airplaneSelectedSvgRawDataUrl)
+        const selected=aviationSelectionStore.selected
+        if(selected===null||selected.sourceType!=='satellite'||selected.id!==data.id) {
+          aviationSelectionStore.setSelected(data)
+        }
       },
     )
   }

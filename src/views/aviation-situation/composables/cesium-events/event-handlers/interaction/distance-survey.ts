@@ -2,8 +2,8 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
-  highlightEntityOnHover,
-  highlightEntityAndSetSelected
+  highlightDrawingToolOnHover,
+  highlightDrawingToolOnSelect
 } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData } from '@/views/aviation-situation/types/shared'
@@ -22,7 +22,7 @@ export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>
     return
   }
   const result:DrawingToolEntitiesResult | undefined =getDrawingToolEntitiesAndHighlightEntity(viewer, properties,2)
-  highlightEntityOnHover(result.highlightEntity, {
+  highlightDrawingToolOnHover(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#A5F3FC') }
     ]
@@ -39,7 +39,7 @@ export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|n
     return
   }
   const result:DrawingToolEntitiesResult | undefined =getDrawingToolEntitiesAndHighlightEntity(viewer, properties,2)
-  highlightEntityAndSetSelected(result.highlightEntity, {
+  highlightDrawingToolOnSelect(result.highlightEntity, {
     components: [
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }
     ]

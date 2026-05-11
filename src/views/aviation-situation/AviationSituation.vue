@@ -31,7 +31,8 @@ import { useDrawingToolStore } from '@/stores/drawing-tool.ts'
 import { useDistanceMeasurementStore } from '@/stores/distance-measurement.ts'
 
 import { clearAllBillboardHighlight } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
-import { clearAllEntityHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
+import { clearAllDrawingToolHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
+import { clearSelectedSatelliteHighlight } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 import {drawPolylineGeometry} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson02-polylineGeometry.ts"
 import {drawPolylineGeometryAppearance} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson04-polylineGeometry-appearance.ts"
@@ -165,7 +166,7 @@ onUnmounted(() => {
   distanceMeasurementStore.clearAllFinishedSelections()
 
   clearAllBillboardHighlight()
-  clearAllEntityHighlight()
+  clearAllDrawingToolHighlight()
 })
 
 const test01 = () => {
@@ -203,7 +204,8 @@ provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <SatelliteTooltip :tooltip="satelliteTooltip" />
-    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />
+    <DetailDrawer />
+    <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />
   </div>
 </template>

@@ -41,16 +41,16 @@ export const useAviationSelectionStore = defineStore('aviationSelection', () => 
     lastSelectedIcao24.value = icao24
   }
 
-  const setSelectedPosition = (longitude: number, latitude: number, altitude: number): void => {
+  const setSelectedLngLatAlt = (lngLatAlt:LngLatAlt): void => {
     if (selected.value !== null) {
-      selected.value.lngLatAlt.longitude = longitude
-      selected.value.lngLatAlt.latitude = latitude
+      selected.value.lngLatAlt.longitude = lngLatAlt.longitude
+      selected.value.lngLatAlt.latitude = lngLatAlt.latitude
       if (selected.value.sourceType === 'aircraft') {
-        selected.value.lngLatAlt.baroAltitude = altitude
+        selected.value.lngLatAlt.baroAltitude = lngLatAlt.height
       } else if (selected.value.sourceType === 'airport') {
-        selected.value.lngLatAlt.elevation = altitude
+        selected.value.lngLatAlt.elevation = lngLatAlt.height
       } else if (selected.value.sourceType === 'satellite') {
-        selected.value.lngLatAlt.height = altitude
+        selected.value.lngLatAlt.height = lngLatAlt.height
       }
     }
   }
@@ -80,7 +80,7 @@ export const useAviationSelectionStore = defineStore('aviationSelection', () => 
 
     clearSelected,
     setSelected,
-    setSelectedPosition,
+    setSelectedLngLatAlt,
 
     clearLastSelectedIcao24,
     setLastSelectedIcao24,

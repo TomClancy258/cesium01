@@ -13,7 +13,6 @@ let selectedSatellite:Cesium.Entity=null
 const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if (!entity.properties) return
   const props = entity.properties.getValue() as EntityProperties
-
   if(props.sourceType==='satellite') {
     entity.model.silhouetteColor = props.model.silhouetteColor
     entity.model.silhouetteSize = props.model.silhouetteSize
@@ -66,7 +65,7 @@ export function highlightSatelliteOnHover(
 /**
  * Entity选中高亮：通用化支持多组件
  */
-export function highlightSatelliteAndSetSelected(
+export function highlightSatelliteOnSelect(
   entity: Cesium.Entity,
   highlightConfig: EntityHighlightConfig,
 ): void {
@@ -108,7 +107,7 @@ export function clearSelectedSatelliteHighlight(): void {
 /**
  * 清除所有Entity高亮
  */
-export function clearAllEntityHighlight(): void {
+export function clearAllSatelliteHighlight(): void {
   clearHoveredSatelliteHighlight()
   clearSelectedSatelliteHighlight()
 }

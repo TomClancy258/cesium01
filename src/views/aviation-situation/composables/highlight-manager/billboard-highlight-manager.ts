@@ -81,15 +81,14 @@ export function highlightBillboardOnHover(
   hoveredBillboard = billboard
   billboard.image = highlightImage
 
-  const aviationSelectionStore = useAviationSelectionStore()
-  aviationSelectionStore.setHovered(hoverData)
+  // const aviationSelectionStore = useAviationSelectionStore()
+  // aviationSelectionStore.setHovered(hoverData)
 }
 
 /**
- * 选中高亮：视觉+同步Pinia
+ * 选中高亮：仅处理视觉状态
  */
-export function highlightBillboardAndSetSelected(
-  selectedData: AircraftSelectedData | AirportSelectedData | null,
+export function highlightBillboardOnSelect(
   billboard: Cesium.Billboard,
   highlightImage: string
 ): void {
@@ -107,9 +106,6 @@ export function highlightBillboardAndSetSelected(
   // 更新选中实例+视觉
   selectedBillboard = billboard
   billboard.image = highlightImage
-  // 同步Pinia（必选，支撑UI联动）
-  const aviationSelectionStore = useAviationSelectionStore()
-  aviationSelectionStore.setSelected(selectedData)
 }
 
 /**
@@ -120,8 +116,8 @@ export function clearHoveredBillboardHighlight(): void {
     restoreBillboardImage(hoveredBillboard)
     hoveredBillboard = null
     // aviationSelectionStore.clearHovered()
-    const aviationSelectionStore = useAviationSelectionStore()
-    aviationSelectionStore.clearHovered()
+    // const aviationSelectionStore = useAviationSelectionStore()
+    // aviationSelectionStore.clearHovered()
   }
 }
 
@@ -132,8 +128,8 @@ export function clearSelectedBillboardHighlight(): void {
   if (selectedBillboard) {
     restoreBillboardImage(selectedBillboard)
     selectedBillboard = null
-    const aviationSelectionStore = useAviationSelectionStore()
-    aviationSelectionStore.clearSelected()
+    // const aviationSelectionStore = useAviationSelectionStore()
+    // aviationSelectionStore.clearSelected()
   }
 }
 

@@ -29,7 +29,7 @@ import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/compo
 
 import {
   highlightBillboardOnHover,
-  highlightBillboardAndSetSelected,
+  highlightBillboardOnSelect,
   clearHoveredBillboardHighlight,
 } from '../highlight-manager/billboard-highlight-manager'
 
@@ -42,6 +42,7 @@ import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 import {
   handleAirportLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries'>
 
 
@@ -49,6 +50,7 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
+const aviationSelectionStore=useAviationSelectionStore()
 
   const airportRenderMap = new Map<string, AirportRenderItem>()
 
@@ -322,19 +324,39 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
       (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
         showAirportTooltip(position, properties) // 替换原方法
         highlightBillboardOnHover(properties,billboard, airportHoveredSvgRawDataUrl)
+        const hovered=aviationSelectionStore.hovered
+        if (
+          hovered === null ||
+          hovered.sourceType !== 'airport' ||
+          hovered.icao !== properties.icao
+        ) {
+          aviationSelectionStore.setHovered(properties)
+        }
+
       }
     )
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
       hideAirportTooltip() // 替换原方法
       // clearHoveredBillboardHighlight()
+      const hovered = aviationSelectionStore.hovered
+      if (hovered?.sourceType === 'airport') {
+        aviationSelectionStore.clearHovered()
+      }
     })
 
     // 订阅机场点击事件
     unsubAirportLeftClick = onCesiumEvent(
       'airportLeftClick',
       (data: AirportSelectedData, billboard: Cesium.Billboard) => {
-        highlightBillboardAndSetSelected(data, billboard, airportSelectedSvgRawDataUrl)
+        highlightBillboardOnSelect(billboard, airportSelectedSvgRawDataUrl)
+        const selected = aviationSelectionStore.selected
+        if (
+          selected?.sourceType !== 'airport' ||
+          selected.icao !== data.icao
+        ) {
+          aviationSelectionStore.setSelected(data)
+        }
       },
     )
 

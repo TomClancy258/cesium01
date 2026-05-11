@@ -1,8 +1,8 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties } from '@/views/aviation-situation/types/entity'
 import {
-  highlightEntityOnHover,
-  highlightEntityAndSetSelected
+  highlightDrawingToolOnHover,
+  highlightDrawingToolOnSelect
 } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData, DrawingToolEntitiesResult } from '@/views/aviation-situation/types/shared'
@@ -65,7 +65,7 @@ export const handleSpatialSelectionHover = (
   const result = resolveSelectionResult(viewer, entity, properties)
   const color = HOVER_COLORS[properties.sourceType]
   if (!result || !color) return
-  highlightEntityOnHover(
+  highlightDrawingToolOnHover(
     result.highlightEntity,
     { sourceType: properties.sourceType, value: Cesium.Color.fromCssColorString(color) },
     result.measurementEntities,
@@ -84,7 +84,7 @@ export const handleSpatialSelectionLeftClick = (
   const color = CLICK_COLORS[properties.sourceType]
   if (!result || !color) return
 
-  highlightEntityAndSetSelected(
+  highlightDrawingToolOnSelect(
     result.highlightEntity,
     { sourceType: properties.sourceType, value: Cesium.Color.fromCssColorString(color) },
     result.measurementEntities,

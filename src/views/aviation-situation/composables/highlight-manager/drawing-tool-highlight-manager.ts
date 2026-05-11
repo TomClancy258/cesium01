@@ -74,7 +74,7 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightC
  * @param entity 目标Entity
  * @param highlightConfig 高亮配置（支持多组件+显隐）
  */
-export function highlightEntityOnHover(
+export function highlightDrawingToolOnHover(
   entity: Cesium.Entity,
   highlightConfig: EntityHighlightConfig,
   entities:Cesium.Entity[]
@@ -103,7 +103,7 @@ export function highlightEntityOnHover(
 /**
  * Entity选中高亮：通用化支持多组件
  */
-export function highlightEntityAndSetSelected(
+export function highlightDrawingToolOnSelect(
   entity: Cesium.Entity,
   highlightConfig: EntityHighlightConfig,
   entities:Cesium.Entity[]
@@ -131,7 +131,7 @@ export function highlightEntityAndSetSelected(
 /**
  * 清除Entity hover高亮
  */
-export function clearHoveredEntityHighlight(): void {
+export function clearHoveredDrawingToolHighlight(): void {
   if (hovered.entity && hovered.entity !== selected.entity) {
     restoreEntityOriginalState(hovered.entity)
     hovered.entity = null
@@ -143,7 +143,7 @@ export function clearHoveredEntityHighlight(): void {
 /**
  * 清除Entity选中高亮
  */
-export function clearSelectedEntityHighlight(): void {
+export function clearSelectedDrawingToolHighlight(): void {
   if (selected.entity) {
     restoreEntityOriginalState(selected.entity)
     selected.entity = null
@@ -156,9 +156,9 @@ export function clearSelectedEntityHighlight(): void {
 /**
  * 清除所有Entity高亮
  */
-export function clearAllEntityHighlight(): void {
-  clearHoveredEntityHighlight()
-  clearSelectedEntityHighlight()
+export function clearAllDrawingToolHighlight(): void {
+  clearHoveredDrawingToolHighlight()
+  clearSelectedDrawingToolHighlight()
 }
 
 // 暴露实例供外部校验
