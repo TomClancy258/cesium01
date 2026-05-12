@@ -5,6 +5,7 @@ import type { DrawerProps } from 'element-plus'
 import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/draw-tool/DrawingTool.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
+import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
@@ -72,6 +73,12 @@ watch(
                 </el-icon>
                 <span>机场筛选</span>
               </el-menu-item>
+              <el-menu-item index="satelliteFilter">
+                <el-icon class="header-icon">
+                  <Filter />
+                </el-icon>
+                <span>卫星筛选</span>
+              </el-menu-item>
               <el-menu-item index="trajectoryOption">
                 <el-icon class="header-icon">
                   <Share />
@@ -86,9 +93,10 @@ watch(
               </el-menu-item>
             </el-menu>
           </el-col>
-          <el-col :span="22">
+          <el-col :span="22" style="padding: 0 5px">
             <AircraftFilter v-show="activeIndex === 'aircraftFilter'" />
             <AirportFilter v-show="activeIndex === 'airportFilter'" />
+            <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
           </el-col>

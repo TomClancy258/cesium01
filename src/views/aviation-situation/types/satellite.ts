@@ -12,6 +12,7 @@ export interface SatelliteHoveredProperties{
   id:string,
   sourceType:'satellite',
   name:string,
+  country:string,
   description:string,
   lngLatAlt:{
     longitude: number
@@ -30,4 +31,11 @@ export interface SatelliteModelHighlightStyle {
 export interface SatelliteHighlightConfig {
   sourceType: 'satellite'
   style: SatelliteModelHighlightStyle
+}
+
+export interface SatelliteFilterForm{
+  id: string,
+  name: string,
+  countries: string[],
+  visible: boolean,
 }

@@ -375,9 +375,7 @@ const aviationSelectionStore=useAviationSelectionStore()
     const airportRenderItem = airportRenderMap.get(icao)
     if (!airportRenderItem) return
     const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
-    handleAirportLeftClick(properties,{
-      primitive:airportRenderItem.billboard
-    })
+    handleAirportLeftClick(properties,airportRenderItem.billboard)
     flyToLngLatAlt(viewer,{
       longitude:airportRenderItem.data.longitude,
       latitude:airportRenderItem.data.latitude,

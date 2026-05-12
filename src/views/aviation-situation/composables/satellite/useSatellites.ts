@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/satellite/useSatellite.ts
-import { onUnmounted } from 'vue'
+import { onUnmounted, watch } from 'vue'
 import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
@@ -9,11 +9,24 @@ import type {
   SatelliteHoveredProperties,
   SatelliteProperties
 } from '@/views/aviation-situation/types/satellite.ts'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 
 import { AVIATION_LABEL_STYLE_BASE } from '@/views/aviation-situation/constants/cesium-style-constants.ts'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { useDebounceFn } from '@vueuse/core'
+import type { SatelliteBaseProperties } from '@/views/aviation-situation/types/satellite'
+import { useSatelliteStore } from '@/stores/satellite'
+import type { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
+import {
+  handleAircraftLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft'
+import { flyToLngLatAlt } from '@/utils/geoUtils'
+import {
+  handleSatelliteLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
+import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -33,14 +46,16 @@ function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProp
 
 export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   const aviationSelectionStore = useAviationSelectionStore()
+  const satelliteStore = useSatelliteStore()
 
   const satelliteRenderMap = new Map<string, SatelliteRenderItem>()
   let isClockTickRegistered = false
 
   const updateSatelliteCylinderLengths = (clock: Cesium.Clock) => {
     const time = clock.currentTime
-    for (const item of satelliteRenderMap.values()) {
+    for (const [key, data] of satelliteStore.matchedSatellites.entries()) {
       // const nextLength = cylinderLengthFromPosition(item.positionProperty, time)
+      const item:SatelliteRenderItem=satelliteRenderMap.get(key)
       const position = item.positionProperty.getValue(time)
       const carto = Cesium.Cartographic.fromCartesian(position)
 
@@ -72,6 +87,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         const properties:SatelliteHoveredProperties = {
           id:satellite.id,
           name: satellite.name,
+          country:satellite.country,
           description: satellite.description,
           sourceType:'satellite',
           lngLatAlt: {
@@ -89,7 +105,15 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       if(selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
        aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
       }
+
+      const lngLatAlt=satellite.lngLatAlt
+      lngLatAlt.longitude=longitude
+      lngLatAlt.latitude=latitude
+      lngLatAlt.height=height
+
+      satelliteStore.updateMatchedSatellite(satellite)
     }
+    satelliteStore.commitMatchedSatellites()
   }
 
   const registerClockTick = () => {
@@ -106,6 +130,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
 
   const initSatellites=()=>{
     subscribeAirportEvents()
+    setupSatelliteFilterFormWatch()
   }
 
   const drawSatellites=(satellites:Satellite[])=>{
@@ -177,12 +202,14 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         properties:{
           id:satellite.id,
           name:satellite.name,
+          country:satellite.country,
           description:satellite.description,
           sourceType:'satellite',
           model:{
             silhouetteSize:0,
             silhouetteColor:Cesium.Color.RED
-          }
+          },
+          lngLatAlt:{...satellite.lngLatAlt}
         }
       })
 
@@ -201,6 +228,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       if(Array.isArray(data)&&data.length>0){
         drawSatellites(data)
         registerClockTick()
+        filterSatellites()
       }else{
 
       }
@@ -208,6 +236,45 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       console.error('加载卫星数据失败:', error)
     }
   }
+
+  const filterSatellites = useDebounceFn((): void => {
+    satelliteStore.clearMatchedSatellites()
+
+    const form = satelliteStore.satelliteFilterForm
+    const query: SatelliteFilterQuery = {
+      id: form.id?.trim().toLowerCase(),
+      name: form.name?.trim().toLowerCase(),
+      countries: form.countries,
+    }
+
+    const countriesSet = new Set(query.countries)
+
+    let isSelectedSatelliteMatched = false
+
+    satelliteRenderMap.forEach(({ data: satellite, entity }) => {
+      const match =
+        (!query.id || satellite.id.toLowerCase().includes(query.id)) &&
+        (!query.name || (satellite.name ?? '').toLowerCase().includes(query.name)) &&
+        countriesSet.has(satellite.country)&&
+        form.visible
+      // (!countriesSet.size || countriesSet.has(satellite.originCountry))
+
+      if (match) {
+        // matchedSatellites.push(satellite)
+        satelliteStore.setMatchedSatellite(satellite)
+
+        const selected = aviationSelectionStore.selected
+        if (selected?.sourceType === 'satellite' && satellite.id === selected.id) {
+          isSelectedSatelliteMatched = true
+        }
+      }
+      entity.show = match
+    })
+
+    satelliteStore.commitMatchedSatellites()
+    // finishedSpatialSelection()
+    // emitCesiumEvent('aviationFiltered')
+  }, 300)
 
   const {
     tooltip,
@@ -218,10 +285,24 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     name: '',
   })
 
+  let unwatchSatelliteFilterForm: () => void
+  const setupSatelliteFilterFormWatch = (): void => {
+    unwatchSatelliteFilterForm = watch(
+      () => satelliteStore.satelliteFilterForm,
+      () => {
+        filterSatellites()
+        // handleCameraMoveEnd(viewer.value.camera)
+      },
+      { deep: true },
+    )
+  }
+
+
 
   let unsubSatelliteHover: () => void
   let unsubSatelliteLeave: () => void
   let unsubSatelliteLeftClick: () => void
+  let unSubSatelliteFilterTableDetailClick: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -265,6 +346,34 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         }
       },
     )
+
+    unSubSatelliteFilterTableDetailClick = onCesiumEvent('satelliteFilterTableDetailClicked', (id:string) => {
+      flyToSatelliteById(id)
+    })
+
+  }
+
+  const flyToSatelliteById = (id: string): void => {
+    const item:SatelliteRenderItem = satelliteRenderMap.get(id)
+    if (!item) return
+
+    const { entity } = item
+    const properties = entity.properties?.getValue() as SatelliteProperties | undefined
+    if (!properties) return
+
+    const time = viewer.value.clock.currentTime
+    const position = entity.position?.getValue(time)
+    if (!position) return
+
+    const carto = Cesium.Cartographic.fromCartesian(position)
+    const lngLatAlt: LngLatAlt = {
+      longitude: Cesium.Math.toDegrees(carto.longitude),
+      latitude: Cesium.Math.toDegrees(carto.latitude),
+      height: carto.height,
+    }
+
+    handleSatelliteLeftClick(properties, lngLatAlt, entity)
+    flyToLngLatAlt(viewer, lngLatAlt)
   }
 
   onUnmounted(() => {
@@ -273,11 +382,15 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     unsubSatelliteHover?.()
     unsubSatelliteLeave?.()
     unsubSatelliteLeftClick?.()
+    unSubSatelliteFilterTableDetailClick?.()
+
+    unwatchSatelliteFilterForm?.()
   })
 
   return {
     initSatellites,
     loadAndDrawSatellites,
     tooltip,
+    filterSatellites,
   }
 }

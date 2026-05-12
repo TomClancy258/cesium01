@@ -1,79 +1,75 @@
 import { defineStore } from 'pinia'
 import { reactive, shallowRef, computed, triggerRef } from 'vue'
-import type {AircraftTrajectoryOptions,AircraftFilterForm} from '@/views/aviation-situation/types/aircraft'
-import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import {
-  selectedContinentCountryValues
-} from '@/views/aviation-situation/constants/aircraft-filter-data.ts'
+  SatelliteFilterForm,
+  SatelliteHoveredProperties
+} from '@/views/aviation-situation/types/satellite'
+import type { Satellite } from '@/network/satellite/index'
+import {
+  selectedSatelliteContinentCountryValues
+} from '@/views/aviation-situation/constants/satellite-filter-data'
+// interface MatchedSatelliteRenderItem{
+//   data:Satellite,
+//   properties:SatelliteHoveredProperties
+// }
 
 export const useSatelliteStore = defineStore('useSatelliteStore', () => {
 
   // 仅存储筛选表单数据
-  const aircraftFilterForm = reactive<AircraftFilterForm>({
-    icao24: '',
-    // originCountry: '',
-    originCountries: selectedContinentCountryValues,
-    callsign: '',
-    startAirport: '',
-    endAirport: '',
+  const satelliteFilterForm = reactive<SatelliteFilterForm>({
+    id: '',
+    name: '',
+    countries: selectedSatelliteContinentCountryValues,
     visible: true
   })
 
-  // const aircraftFilterFormCriginCountriesSet = computed(() => {
-  //   return new Set<string>(aircraftFilterForm.originCountries)
-  // })
 
+  const matchedSatellites = shallowRef<Map<string, Satellite>>(new Map())
+  // const matchedSatellites2 = shallowRef<Map<string, MatchedSatelliteRenderItem>>(new Map())
+  const matchedSatellitesArray = computed(() => [...matchedSatellites.value.values()])
 
-  const matchedAircrafts = shallowRef<Map<string, Aircraft>>(new Map())
-  const matchedAircraftsArray = computed(() => [...matchedAircrafts.value.values()])
-
-  const clearMatchedAircrafts = () => {
-    // matchedAircrafts.value = new Map()
-    matchedAircrafts.value.clear()
+  const clearMatchedSatellites = () => {
+    // matchedSatellites.value = new Map()
+    matchedSatellites.value.clear()
   }
-  const addMatchedAircrafts = (aircraft: Aircraft) => {
-    matchedAircrafts.value.set(aircraft.icao24, aircraft)
+
+  //set：可能新增也可能覆盖，add：只新增不覆盖。
+  const setMatchedSatellite = (satellite: Satellite) => {
+    matchedSatellites.value.set(satellite.id, satellite)
   }
-  const commitMatchedAircrafts = () => {
-    triggerRef(matchedAircrafts)
-    // matchedAircrafts.value = new Map(matchedAircrafts.value)
+  const commitMatchedSatellites = () => {
+    triggerRef(matchedSatellites)
+    // matchedSatellites.value = new Map(matchedSatellites.value)
+  }
+
+  const updateMatchedSatellite = (newSatellite:Satellite) => {
+    const satellite= matchedSatellites.value.get(newSatellite.id)
+    if (satellite) {
+      const lngLatAlt=satellite.lngLatAlt
+      lngLatAlt.longitude=newSatellite.lngLatAlt.longitude
+      lngLatAlt.latitude=newSatellite.lngLatAlt.latitude
+      lngLatAlt.height=newSatellite.lngLatAlt.height
+    }
   }
 
   // 仅提供数据重置方法（纯数据操作）
-  const resetAircraftFilterForm = () => {
-    aircraftFilterForm.icao24 = ''
-    // aircraftFilterForm.originCountry = ''
-    aircraftFilterForm.originCountries = selectedContinentCountryValues
-    aircraftFilterForm.callsign = ''
-    aircraftFilterForm.startAirport = ''
-    aircraftFilterForm.endAirport = ''
-    aircraftFilterForm.visible = true
+  const resetSatelliteFilterForm = () => {
+    satelliteFilterForm.id = ''
+    satelliteFilterForm.name = ''
+    satelliteFilterForm.countries=[]
+    satelliteFilterForm.visible = true
   }
 
-
-  const aircraftTrajectoryOptions = reactive<AircraftTrajectoryOptions>({
-    planned: {
-      trajectoryVisible: false,
-      waypointsVisible: false,
-    },
-  })
-
-  const resetAircraftTrajectoryOptions = () => {
-    aircraftTrajectoryOptions.planned.trajectoryVisible = false
-    aircraftTrajectoryOptions.planned.waypointsVisible = false
-  }
 
   return {
-    aircraftFilterForm,
-    resetAircraftFilterForm,
+    satelliteFilterForm,
+    resetSatelliteFilterForm,
 
-    aircraftTrajectoryOptions,
-    resetAircraftTrajectoryOptions,
-
-    matchedAircrafts,
-    matchedAircraftsArray,
-    clearMatchedAircrafts,
-    addMatchedAircrafts,
-    commitMatchedAircrafts,
+    matchedSatellites,
+    matchedSatellitesArray,
+    clearMatchedSatellites,
+    setMatchedSatellite,
+    commitMatchedSatellites,
+    updateMatchedSatellite,
   }
 })

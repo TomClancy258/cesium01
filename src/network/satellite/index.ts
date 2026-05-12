@@ -10,7 +10,9 @@ export const getSatellites = (): Promise<Satellite[]> => {
     return rawSatellites.map(rawSatellite => ({
       id: rawSatellite.id,
       name: rawSatellite.name,
+      country: rawSatellite.country,
       description: rawSatellite.description,
+      lngLatAlt:rawSatellite.lngLatAlt,
       availability: rawSatellite.availability,
 
       position: {

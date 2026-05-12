@@ -173,9 +173,10 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     setAircraftsLabelVisible(false)
 
     // 监听逻辑
-    setupHighlightWatch()
-    setupSimulatedWebsocketWatch()
-    setupAircraftFilterFormWatch()
+    setupAircraftWatches()
+    // setupHighlightWatch()
+    // setupSimulatedWebsocketWatch()
+    // setupAircraftFilterFormWatch()
 
     // 订阅事件
     subscribeCameraEvents()
@@ -393,6 +394,11 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   let unwatchSimulatedWebsocket: () => void
   let unwatchAircraftFilterForm: () => void
 
+  const setupAircraftWatches=():void=>{
+    setupHighlightWatch()
+    setupSimulatedWebsocketWatch()
+    setupAircraftFilterFormWatch()
+  }
   const setupHighlightWatch = (): void => {
     unwatchHighlight = watch(
       [() => simulatedWebSocketStore.index, () => aviationSelectionStore.selected],
@@ -558,9 +564,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     const aircraftRenderItem = aircraftRenderMap.get(icao24)
     if (!aircraftRenderItem) return
     const properties = aircraftRenderItem.billboard.properties as AircraftBillboardProperties
-    handleAircraftLeftClick(properties,{
-      primitive:aircraftRenderItem.billboard
-    })
+    handleAircraftLeftClick(properties,aircraftRenderItem.billboard)
     flyToLngLatAlt(viewer,{
       longitude:aircraftRenderItem.data.longitude,
       latitude:aircraftRenderItem.data.latitude,

@@ -22,7 +22,9 @@ const tooltipStyle = computed(() => {
 </script>
 <template>
   <div v-show="props.tooltip.visible" class="satellite-tooltip" :style="tooltipStyle">
+    <div>卫星id：{{ props.tooltip.properties.id }}</div>
     <div>卫星名称：{{ props.tooltip.properties.name }}</div>
+    <div>所属国家：{{ props.tooltip.properties.country }}</div>
     <div>经度：{{ props.tooltip.properties.lngLatAlt?.longitude.toFixed(4) }}</div>
     <div>纬度：{{ props.tooltip.properties.lngLatAlt?.latitude.toFixed(4) }}</div>
     <div>海拔：{{ props.tooltip.properties.lngLatAlt?.height.toFixed(4) }} m</div>

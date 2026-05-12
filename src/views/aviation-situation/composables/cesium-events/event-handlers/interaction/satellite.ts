@@ -22,6 +22,7 @@ export const handleSatelliteHover = (properties: SatelliteProperties, screenPosi
   const hoveredProperties:SatelliteHoveredProperties = {
     id:properties.id,
     name: properties.name,
+    country: properties.country,
     description: properties.description,
     sourceType:properties.sourceType,
     lngLatAlt: {
@@ -45,6 +46,7 @@ export const handleSatelliteLeftClick = (properties: SatelliteProperties,lngLatA
   const selectedProperties:SatelliteHoveredProperties = {
     id:properties.id,
     name: properties.name,
+    country: properties.country,
     description: properties.description,
     sourceType:properties.sourceType,
     lngLatAlt: {

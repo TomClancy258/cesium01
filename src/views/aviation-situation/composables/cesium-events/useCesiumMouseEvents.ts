@@ -296,7 +296,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const mouseMove = useThrottleFn((movement: Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
     // const pickedObjects = viewer.value.scene.drillPick(movement.endPosition)
     const pickedObjects = viewer.value.scene.drillPick(movement.endPosition, 5) as PickedObjectLike[]
-    console.log("pickedObjects", pickedObjects);
     if (pickedObjects.length === 0) {
       aviationBillboardLeave()
       clearHoveredDrawingToolHighlight()

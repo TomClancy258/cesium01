@@ -84,6 +84,7 @@ const {
   initSatellites,
   loadAndDrawSatellites,
   tooltip: satelliteTooltip,
+  filterSatellites,
 } = useSatellites(cesiumViewer)
 
 const { initBuildings } = useBuildings(cesiumViewer)
@@ -189,6 +190,7 @@ const test01 = () => {
 // 提供过滤/显隐方法（原有逻辑保留）
 provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
+provide('filterSatellites', filterSatellites)
 provide('matchedAircraftCount', matchedAircraftCount)
 provide('matchedAircrafts', matchedAircrafts)
 provide('matchedAirportCount', matchedAirportCount)

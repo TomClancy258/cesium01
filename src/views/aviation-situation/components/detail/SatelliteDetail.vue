@@ -33,6 +33,10 @@ const satellite = computed(() => {
       </div>
       <div class="info-grid">
         <div class="info-item">
+          <span class="label">所属国家</span>
+          <span class="value">{{ satellite.country }}</span>
+        </div>
+        <div class="info-item">
           <span class="label">经度</span>
           <span class="value">{{ satellite.lngLatAlt.longitude.toFixed(4) }}</span>
         </div>
@@ -46,27 +50,6 @@ const satellite = computed(() => {
         </div>
       </div>
     </div>
-
-<!--    <el-form-->
-<!--      :model="drawingToolStore.drawingToolForm"-->
-<!--      ref="drawingToolFormRef"-->
-<!--      label-width="85px"-->
-<!--      :inline="true"-->
-<!--    >-->
-<!--      <el-form-item label="框选目标" prop="spatialSelectionTarget">-->
-<!--        <el-select-->
-<!--          v-model="drawingToolStore.drawingToolForm.spatialSelectionTarget"-->
-<!--          @change="spatialSelectionTargetChange"-->
-<!--        >-->
-<!--          <el-option-->
-<!--            v-for="item in spatialSelectionTargets"-->
-<!--            :key="item.value"-->
-<!--            :label="item.label"-->
-<!--            :value="item.value"-->
-<!--          />-->
-<!--        </el-select>-->
-<!--      </el-form-item>-->
-<!--    </el-form>-->
   </div>
 </template>
 
