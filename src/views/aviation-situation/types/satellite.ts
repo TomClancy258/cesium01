@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import type { Satellite } from '@/network/satellite/type'
+import type { Satellite, Scan } from '@/network/satellite/type'
 
 export interface SatelliteRenderItem {
   data: Satellite
@@ -13,6 +13,7 @@ export interface SatelliteHoveredProperties{
   sourceType:'satellite',
   name:string,
   country:string,
+  scan:Scan,
   description:string,
   lngLatAlt:{
     longitude: number

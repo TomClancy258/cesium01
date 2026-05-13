@@ -15,7 +15,7 @@ import {
   SATELLITE_HOVER_COLOR,
   SATELLITE_SELECTED_COLOR,
   SATELLITE_HOVER_SILHOUETTE_SIZE,
-  SATELLITE_SELECTED_SILHOUETTE_SIZE,
+  SATELLITE_SELECTED_SILHOUETTE_SIZE, SATELLITE_HOVER_SELECTED_PATH_SHOW
 } from '@/views/aviation-situation/composables/satellite/satellite-constants.ts'
 
 export const handleSatelliteHover = (properties: SatelliteProperties, screenPosition: Cesium.Cartesian2, lngLatAlt:LngLatAlt, entity: Cesium.Entity) => {
@@ -25,6 +25,9 @@ export const handleSatelliteHover = (properties: SatelliteProperties, screenPosi
     country: properties.country,
     description: properties.description,
     sourceType:properties.sourceType,
+    scan:{
+      target:properties.scan.target,
+    },
     lngLatAlt: {
       latitude: lngLatAlt.latitude,
       longitude: lngLatAlt.longitude,
@@ -36,6 +39,9 @@ export const handleSatelliteHover = (properties: SatelliteProperties, screenPosi
     modelStyle:{
       silhouetteColor : SATELLITE_HOVER_COLOR,
       silhouetteSize : SATELLITE_HOVER_SILHOUETTE_SIZE
+    },
+    pathStyle:{
+      show:SATELLITE_HOVER_SELECTED_PATH_SHOW
     }
   }
   highlightSatelliteOnHover(entity,highlightConfig)
@@ -49,6 +55,9 @@ export const handleSatelliteLeftClick = (properties: SatelliteProperties,lngLatA
     country: properties.country,
     description: properties.description,
     sourceType:properties.sourceType,
+    scan:{
+      target:properties.scan.target,
+    },
     lngLatAlt: {
       latitude: lngLatAlt.latitude,
       longitude: lngLatAlt.longitude,
@@ -60,6 +69,9 @@ export const handleSatelliteLeftClick = (properties: SatelliteProperties,lngLatA
     modelStyle:{
       silhouetteColor : SATELLITE_SELECTED_COLOR,
       silhouetteSize : SATELLITE_SELECTED_SILHOUETTE_SIZE
+    },
+    pathStyle:{
+      show:SATELLITE_HOVER_SELECTED_PATH_SHOW
     }
   }
   highlightSatelliteOnSelect(entity,highlightConfig)

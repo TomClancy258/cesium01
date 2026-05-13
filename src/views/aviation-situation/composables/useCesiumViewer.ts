@@ -36,28 +36,28 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
     )
 
-    // flyToLngLatAlt(viewer,{
-    //   longitude:-125.0,
-    //   latitude:49.0,
-    //   height:6000000,
-    // },0,0)
+    flyToLngLatAlt(viewer,{
+      longitude:-98.0,
+      latitude:40.0,
+      height:6000000,
+    },0,0)
 
-    const x = 3849424.41859634
-    const y = 5535808.90838488
-    const z = -469609.955032837
-
-    const cartesian = new Cesium.Cartesian3(x, y, z)
-    const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
-
-    const destination = Cesium.Cartesian3.fromRadians(
-      cartographic.longitude,
-      cartographic.latitude,
-      6000000, // 目标高度
-    )
-
-    viewer.value.scene.camera.setView({
-      destination,
-    })
+    // const x = 3849424.41859634
+    // const y = 5535808.90838488
+    // const z = -469609.955032837
+    //
+    // const cartesian = new Cesium.Cartesian3(x, y, z)
+    // const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
+    //
+    // const destination = Cesium.Cartesian3.fromRadians(
+    //   cartographic.longitude,
+    //   cartographic.latitude,
+    //   6000000, // 目标高度
+    // )
+    //
+    // viewer.value.scene.camera.setView({
+    //   destination,
+    // })
 
     // const center = Cesium.Cartesian3.fromDegrees(-98.0, 40.0);
     // viewer.value.camera.lookAt(center, new Cesium.Cartesian3(0.0, -4790000.0, 3930000.0));

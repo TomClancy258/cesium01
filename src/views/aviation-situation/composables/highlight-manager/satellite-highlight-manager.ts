@@ -16,6 +16,7 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if(props.sourceType==='satellite') {
     entity.model.silhouetteColor = props.model.silhouetteColor
     entity.model.silhouetteSize = props.model.silhouetteSize
+    entity.path.show = props.path.show
   }
 }
 
@@ -28,6 +29,7 @@ const setEntityHighlightStyle = (entity: Cesium.Entity, config: SatelliteHighlig
   if(props.sourceType==='satellite') {
     entity.model.silhouetteColor=config.modelStyle.silhouetteColor
     entity.model.silhouetteSize =config.modelStyle.silhouetteSize
+    entity.path.show =config.pathStyle.show
   }
 
 }

@@ -346,3 +346,10 @@ export const selectedSatelliteContinentCountryValues = [
   'Chile',
   'Colombia'
 ];
+
+export const satelliteScanTargetMap: Record<string, string> = {
+  aircraft: '仅飞机',
+  airport: '仅机场',
+  all: '全部',
+  none: '无',
+}

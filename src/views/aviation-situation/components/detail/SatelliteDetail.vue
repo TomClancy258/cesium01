@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { computed } from 'vue'
+import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const aviationSelectionStore = useAviationSelectionStore()
 
@@ -35,6 +36,12 @@ const satellite = computed(() => {
         <div class="info-item">
           <span class="label">所属国家</span>
           <span class="value">{{ satellite.country }}</span>
+        </div>
+        <div class="info-item">
+          <span class="label">扫描目标</span>
+          <span class="value">
+            {{ satelliteScanTargetMap[satellite.scan.target] ?? satellite.scan.target }}
+          </span>
         </div>
         <div class="info-item">
           <span class="label">经度</span>

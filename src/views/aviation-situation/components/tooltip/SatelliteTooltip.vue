@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const props = defineProps<{ tooltip: SatelliteHoveredProperties }>()
 
@@ -25,6 +26,8 @@ const tooltipStyle = computed(() => {
     <div>卫星id：{{ props.tooltip.properties.id }}</div>
     <div>卫星名称：{{ props.tooltip.properties.name }}</div>
     <div>所属国家：{{ props.tooltip.properties.country }}</div>
+<!--    <div>扫描目标：{{ props.tooltip.properties.scan?.target }}</div>-->
+    <div>扫描目标：{{ satelliteScanTargetMap[props.tooltip.properties.scan?.target]??props.tooltip.properties.scan?.target }}</div>
     <div>经度：{{ props.tooltip.properties.lngLatAlt?.longitude.toFixed(4) }}</div>
     <div>纬度：{{ props.tooltip.properties.lngLatAlt?.latitude.toFixed(4) }}</div>
     <div>海拔：{{ props.tooltip.properties.lngLatAlt?.height.toFixed(4) }} m</div>

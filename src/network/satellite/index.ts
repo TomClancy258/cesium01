@@ -14,7 +14,7 @@ export const getSatellites = (): Promise<Satellite[]> => {
       description: rawSatellite.description,
       lngLatAlt:rawSatellite.lngLatAlt,
       availability: rawSatellite.availability,
-
+      scan:{...rawSatellite.scan},
       position: {
         epoch:rawSatellite.position.epoch,
         referenceFrame:rawSatellite.position.referenceFrame,

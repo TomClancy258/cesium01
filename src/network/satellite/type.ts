@@ -1,5 +1,8 @@
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 
+export interface Scan{
+  target:'none'|'aircraft'|'airport'|'all'
+}
 /**
  * 卫星轨道 Entity（SampledPositionProperty + clock）所需的最小数据结构。
  * 对应从 CZML packet 抽出的字段；无需携带 billboard、path 里分段 lead/trail 等展示细节。
@@ -11,6 +14,7 @@ export interface Satellite {
   name?: string
   country:string,
   lngLatAlt:LngLatAlt,
+  scan:Scan,
   description?: string
   /** CZML availability，如 `2012-03-15T10:00:00Z/2012-03-16T10:00:00Z` */
   availability?: string
@@ -30,6 +34,7 @@ export interface RawSatellite {
   country:string,
   lngLatAlt:LngLatAlt,
   description?: string
+  scan:Scan,
   /** CZML availability，如 `2012-03-15T10:00:00Z/2012-03-16T10:00:00Z` */
   availability?: string
   position: {

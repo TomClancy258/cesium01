@@ -27,6 +27,9 @@ import {
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
 import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import {
+  airplaneBlueSvgDataUrl
+} from '@/views/aviation-situation/composables/aircraft/aircraft-constants'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -35,6 +38,13 @@ const CYLINDER_DEFAULTS = {
   minLengthM: 1,
   bottomRadiusM: 200000
 }
+
+const SATELLITE_TICK_THROTTLE_MS = {
+  visualCylinderLength: 100,
+  coneScan: 1000,
+  satelliteStoreSync: 500,
+}
+const CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M = 5
 
 function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProperty, time: Cesium.JulianDate) {
   const pos = positionProperty.getValue(time)
@@ -49,71 +59,121 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   const satelliteStore = useSatelliteStore()
 
   const satelliteRenderMap = new Map<string, SatelliteRenderItem>()
+  const lastCylinderHeightBySatelliteId = new Map<string, number>()
   let isClockTickRegistered = false
+  let lastVisualTickTime: Cesium.JulianDate | null = null
+  let lastConeScanTickTime: Cesium.JulianDate | null = null
+  let lastStoreSyncTickTime: Cesium.JulianDate | null = null
 
   const updateSatelliteCylinderLengths = (clock: Cesium.Clock) => {
     const time = clock.currentTime
-    for (const [key, data] of satelliteStore.matchedSatellites.entries()) {
+    const shouldRunVisualTick =
+      !lastVisualTickTime ||
+      Cesium.JulianDate.secondsDifference(time, lastVisualTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.visualCylinderLength
+    const shouldRunConeScanTick =
+      !lastConeScanTickTime ||
+      Cesium.JulianDate.secondsDifference(time, lastConeScanTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.coneScan
+    const shouldRunStoreSyncTick =
+      !lastStoreSyncTickTime ||
+      Cesium.JulianDate.secondsDifference(time, lastStoreSyncTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.satelliteStoreSync
+
+    if (!shouldRunVisualTick && !shouldRunConeScanTick && !shouldRunStoreSyncTick) return
+
+    let hasSatelliteStoreMutation = false
+    for (const [key] of satelliteStore.matchedSatellites.entries()) {
       // const nextLength = cylinderLengthFromPosition(item.positionProperty, time)
       const item:SatelliteRenderItem=satelliteRenderMap.get(key)
       const position = item.positionProperty.getValue(time)
+      if (!position) continue
       const carto = Cesium.Cartographic.fromCartesian(position)
 
       const longitude=Cesium.Math.toDegrees(carto.longitude)
       const latitude=Cesium.Math.toDegrees(carto.latitude)
       const height=carto.height
 
-      item.cylinderProps.length.setValue(height)
-
-      const bottomRadius=item.cylinderProps.bottomRadius.getValue()
-      const coneSnapshot={
-        topRadius:0,
-        bottomRadius:bottomRadius,
-        length:height,
-        position,
-        //geodetic
-        lngLatAlt:{
-          longitude,
-          latitude,
-          height,
+      if (shouldRunVisualTick) {
+        const previousHeight = lastCylinderHeightBySatelliteId.get(key)
+        if (
+          previousHeight === undefined ||
+          Math.abs(height - previousHeight) >= CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M
+        ) {
+          item.cylinderProps.length.setValue(height)
+          lastCylinderHeightBySatelliteId.set(key, height)
         }
+      }
+
+      if (shouldRunConeScanTick) {
+        const bottomRadius=item.cylinderProps.bottomRadius.getValue()
+        const coneSnapshot={
+          topRadius:0,
+          bottomRadius:bottomRadius,
+          length:height,
+          position,
+          //geodetic
+          lngLatAlt:{
+            longitude,
+            latitude,
+            height,
+          }
+        }
+        void coneSnapshot
       }
 
       const satellite:Satellite=item.data
-      if(aviationSelectionStore.hovered!=null&&
+      if(shouldRunVisualTick&&aviationSelectionStore.hovered!=null&&
         satellite.id===aviationSelectionStore.hovered.id){
         const screenPosition: Cesium.Cartesian2 =
           Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
-        const properties:SatelliteHoveredProperties = {
-          id:satellite.id,
-          name: satellite.name,
-          country:satellite.country,
-          description: satellite.description,
-          sourceType:'satellite',
-          lngLatAlt: {
-            longitude: longitude,
-            latitude: latitude,
-            height: height
-          },
-          screenPosition
+        if (screenPosition) {
+          const properties:SatelliteHoveredProperties = {
+            id:satellite.id,
+            name: satellite.name,
+            country:satellite.country,
+            description: satellite.description,
+            sourceType:'satellite',
+            scan:{
+              target:satellite.scan.target,
+            },
+            lngLatAlt: {
+              longitude: longitude,
+              latitude: latitude,
+              height: height
+            },
+            screenPosition
+          }
+          // aviationSelectionStore.setHovered(properties)
+          showSatelliteTooltip(screenPosition, properties)
         }
-        // aviationSelectionStore.setHovered(properties)
-        showSatelliteTooltip(screenPosition, properties)
       }
 
       const selected=aviationSelectionStore.selected
-      if(selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
+      if(shouldRunStoreSyncTick&&selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
        aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
       }
 
-      const lngLatAlt=satellite.lngLatAlt
-      lngLatAlt.longitude=longitude
-      lngLatAlt.latitude=latitude
-      lngLatAlt.height=height
+      if (shouldRunStoreSyncTick) {
+        const lngLatAlt=satellite.lngLatAlt
+        lngLatAlt.longitude=longitude
+        lngLatAlt.latitude=latitude
+        lngLatAlt.height=height
 
-      satelliteStore.updateMatchedSatellite(satellite)
+        satelliteStore.updateMatchedSatellite(satellite)
+        hasSatelliteStoreMutation = true
+      }
     }
-    satelliteStore.commitMatchedSatellites()
+
+    if (shouldRunVisualTick) {
+      lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
+    }
+    if (shouldRunConeScanTick) {
+      lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
+    }
+    if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
+      satelliteStore.commitMatchedSatellites()
+      lastStoreSyncTickTime = Cesium.JulianDate.clone(time, lastStoreSyncTickTime ?? new Cesium.JulianDate())
+    } else if (shouldRunStoreSyncTick) {
+      lastStoreSyncTickTime = Cesium.JulianDate.clone(time, lastStoreSyncTickTime ?? new Cesium.JulianDate())
+    }
   }
 
   const registerClockTick = () => {
@@ -176,6 +236,11 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
           minimumPixelSize: 32,
           // maximumScale: 20000,
         },
+        // billboard:{
+        //   image: airplaneBlueSvgDataUrl,
+        //   width: 30,
+        //   height: 30,
+        // },
         label:{
           text:satellite.name,
           font: AVIATION_LABEL_STYLE_BASE.FONT,
@@ -197,7 +262,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         orientation: new Cesium.VelocityOrientationProperty(positionProperty),
         path: new Cesium.PathGraphics({
           width: 1,
-          material:Cesium.Color.fromCssColorString('rgba(128, 128, 128, 0.3)')
+          show:false,
+          material:Cesium.Color.fromCssColorString('rgba(128, 128, 128, .8)')
         }),
         properties:{
           id:satellite.id,
@@ -208,6 +274,10 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
           model:{
             silhouetteSize:0,
             silhouetteColor:Cesium.Color.RED
+          },
+          scan:{...satellite.scan},
+          path:{
+            show:false
           },
           lngLatAlt:{...satellite.lngLatAlt}
         }

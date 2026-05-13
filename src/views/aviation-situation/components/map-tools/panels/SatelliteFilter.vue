@@ -6,6 +6,7 @@ import { useSatelliteStore } from '@/stores/satellite'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Satellite } from '@/network/satellite/index.ts'
 import { satelliteTreeData } from '@/views/aviation-situation/constants/satellite-filter-data'
+import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const filterSatellites = inject('filterSatellites')
 
@@ -92,6 +93,12 @@ const onDetail = (row: Satellite) => {
       <el-table-column prop="id"        label="卫星id"    fixed />
       <el-table-column prop="name"      label="卫星名称"       />
       <el-table-column prop="country" label="所属国家"      />
+<!--      <el-table-column prop="scan.target" label="扫描目标"      />-->
+      <el-table-column label="扫描目标">
+        <template #default="{ row }">
+          {{ satelliteScanTargetMap[row.scan.target]??row.scan.target }}
+        </template>
+      </el-table-column>
       <el-table-column label="纬度">
         <template #default="{ row }">
           {{ formatFixed4(row.lngLatAlt?.latitude) }}
