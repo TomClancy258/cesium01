@@ -21,7 +21,7 @@ import { EntityProperties } from '@/views/aviation-situation/types/entity'
 import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
 import { type DrawingToolForm,useDrawingToolStore } from '@/stores/drawing-tool'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatial-selection-event-emitters'
 import * as turf from '@turf/turf'
 
@@ -208,12 +208,8 @@ export const usePolygonSpatialSelection = (
     }
   }
 
-  let unsubAircraftFiltered: () => void
-
-  const subscribePolygonSpatialSelectionEvents = () => {
-    unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
-      updateSegmentDistanceLabel()
-    })
+  const onAviationDataUpdated = () => {
+    updateSegmentDistanceLabel()
   }
 
   const confirmSurveyPoint = () => {
@@ -661,7 +657,6 @@ export const usePolygonSpatialSelection = (
   onUnmounted(() => {
     unwatchDrawingToolForm?.()
     unbindKeyboardEvents()
-    unsubAircraftFiltered()
   })
 
   return {
@@ -669,6 +664,6 @@ export const usePolygonSpatialSelection = (
     confirmSurveyPoint,
     setupDrawingToolWatch,
     finishPolygonSpatialSelection,
-    subscribePolygonSpatialSelectionEvents,
+    onAviationDataUpdated,
   }
 }

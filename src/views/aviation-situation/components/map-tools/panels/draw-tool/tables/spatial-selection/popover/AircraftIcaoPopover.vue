@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { ref, computed, inject } from 'vue'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 
 const props = defineProps<{
   aircraftMap?: Map<string, Aircraft>
 }>()
+const flyToAircraftByIcao24 = inject<(icao24: string) => void>('flyToAircraftByIcao24')
 
 const filterIcao24 = ref('')
 const filterCallsign = ref('')
@@ -107,7 +107,7 @@ const paged = computed(() =>
               type="primary"
               link
               size="small"
-              @click="emitCesiumEvent('aircraftFilterTableDetailClicked', row.icao24)"
+              @click="flyToAircraftByIcao24?.(row.icao24)"
             >详情</el-button>
           </template>
         </el-table-column>

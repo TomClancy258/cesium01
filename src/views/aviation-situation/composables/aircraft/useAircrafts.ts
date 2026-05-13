@@ -2,7 +2,7 @@
 import { watch, onUnmounted, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import type {
@@ -64,6 +64,11 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   const aircraftStore = useAircraftStore()
 
   const aircraftRenderMap = new Map<string, AircraftRenderItem>()
+  let aviationDataUpdatedListener: (() => void) | null = null
+
+  const registerAviationDataUpdatedListener = (listener: (() => void) | null): void => {
+    aviationDataUpdatedListener = listener
+  }
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
     primitiveContainer: null,
@@ -496,7 +501,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
 
     aircraftStore.commitMatchedAircrafts()
     finishedSpatialSelection()
-    emitCesiumEvent('aviationFiltered')
+    aviationDataUpdatedListener?.()
     // emitCesiumEvent('aircraftsSynced', { data: matchedAircrafts, status: 'ok' })
   }, 300)
 
@@ -505,7 +510,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   let unsubAircraftLeave: () => void
   let unsubAircraftLeftClick: () => void
   let unsubMouseWheel: () => void
-  let unSubAircraftFilterTableDetailClick: () => void
 
   const subscribeAircraftEvents = () => {
     // Hover事件
@@ -555,9 +559,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       handleCameraMoveEnd(viewer.value.camera)
     })
 
-    unSubAircraftFilterTableDetailClick = onCesiumEvent('aircraftFilterTableDetailClicked', (icao24:string) => {
-      flyToAircraftByIcao24(icao24)
-    })
   }
 
   const flyToAircraftByIcao24 = (icao24: string): void => {
@@ -596,7 +597,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     unsubAircraftLeftClick?.()
     unsubMouseWheel?.()
     unsubCameraMoveEnd?.()
-    unSubAircraftFilterTableDetailClick?.()
 
     // 监听解绑
     unwatchHighlight?.()
@@ -616,5 +616,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     hideAircraftTooltip,
     tooltip,
     filterAircrafts,
+    flyToAircraftByIcao24,
+    registerAviationDataUpdatedListener,
   }
 }

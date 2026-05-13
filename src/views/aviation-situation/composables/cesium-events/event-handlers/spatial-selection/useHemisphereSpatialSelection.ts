@@ -32,7 +32,7 @@ import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import {buildSpatialSelectionLabelText} from "./shared/spatial-selection-label-utils"
 
 import {type DrawingToolForm, useDrawingToolStore } from '@/stores/drawing-tool'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import {
   emitSpatialSelectByTarget,
   emitClearSpatialSelectionByTarget,
@@ -194,12 +194,8 @@ export const useHemisphereSpatialSelection = (
     }
   }
 
-  let unsubAircraftFiltered: () => void
-
-  const subscribeHemisphereSpatialSelectionEvents = () => {
-    unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
-      updateDynamicHemisphere()
-    })
+  const onAviationDataUpdated = () => {
+    updateDynamicHemisphere()
   }
 
   const confirmSurveyPoint = () => {
@@ -518,7 +514,6 @@ export const useHemisphereSpatialSelection = (
     unwatchDrawingToolForm?.()
     unwatchSimulatedWebSocketStore?.()
     unbindKeyboardEvents()
-    unsubAircraftFiltered()
   })
 
   return {
@@ -526,6 +521,6 @@ export const useHemisphereSpatialSelection = (
     confirmSurveyPoint,
     setupDrawingToolWatch,
     finishHemisphereSpatialSelection,
-    subscribeHemisphereSpatialSelectionEvents,
+    onAviationDataUpdated,
   }
 }

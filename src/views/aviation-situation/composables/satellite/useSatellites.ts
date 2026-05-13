@@ -142,12 +142,14 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
             screenPosition
           }
           // aviationSelectionStore.setHovered(properties)
+          //hovered卫星节点显示tooltip卫星简略信息时，更新tooltip里卫星的信息（比如坐标），节流100ms
           showSatelliteTooltip(screenPosition, properties)
         }
       }
 
       const selected=aviationSelectionStore.selected
       if(shouldRunStoreSyncTick&&selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
+        //左键点击选中selected卫星节点显示左侧drawer卫星详细信息时，更新drawer里卫星的信息（比如坐标），节流500ms
        aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
       }
 
@@ -169,6 +171,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
+      //更新底部drawer里卫星table的信息，如坐标
       satelliteStore.commitMatchedSatellites()
       lastStoreSyncTickTime = Cesium.JulianDate.clone(time, lastStoreSyncTickTime ?? new Cesium.JulianDate())
     } else if (shouldRunStoreSyncTick) {
@@ -372,7 +375,6 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   let unsubSatelliteHover: () => void
   let unsubSatelliteLeave: () => void
   let unsubSatelliteLeftClick: () => void
-  let unSubSatelliteFilterTableDetailClick: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -417,10 +419,6 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       },
     )
 
-    unSubSatelliteFilterTableDetailClick = onCesiumEvent('satelliteFilterTableDetailClicked', (id:string) => {
-      flyToSatelliteById(id)
-    })
-
   }
 
   const flyToSatelliteById = (id: string): void => {
@@ -452,7 +450,6 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     unsubSatelliteHover?.()
     unsubSatelliteLeave?.()
     unsubSatelliteLeftClick?.()
-    unSubSatelliteFilterTableDetailClick?.()
 
     unwatchSatelliteFilterForm?.()
   })
@@ -462,5 +459,6 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     loadAndDrawSatellites,
     tooltip,
     filterSatellites,
+    flyToSatelliteById,
   }
 }

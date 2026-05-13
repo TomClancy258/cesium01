@@ -9,6 +9,8 @@ import type {  SpatialSelectionData} from '@/views/aviation-situation/types/shar
 import {
   SpatialSelectionTableRowOperation
 } from '@/views/aviation-situation/types/draw-tools'
+import Cesium from 'cesium'
+import type { SatelliteProperties } from '@/views/aviation-situation/types/satellite'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -27,7 +29,6 @@ export type CesiumMouseEventName =
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
   | 'airportSpatialSelect'
   // | 'aircraftsSynced'
-  | 'aircraftFilterTableDetailClicked'
   | 'spatialSelectionTableOperationClicked'
   | 'clearAircraftSpatialSelection'
   | 'clearAirportSpatialSelection';
@@ -52,13 +53,12 @@ export interface EventCallbackMap {
 
   satelliteHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   satelliteLeave: () => void;
-  satelliteLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
+  satelliteLeftClick: (data: SatelliteProperties, entity: Cesium.Entity) => void;
 
   mouseWheel: () => void; // 新增事件的回调类型（无参数）
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
   airportSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
   // aircraftsSynced: (aircraftsSyncData:AircraftsSyncData) => void;
-  aircraftFilterTableDetailClicked: (icao24:string) => void;
   spatialSelectionTableOperationClicked: (spatialSelectionTableRowOperation:SpatialSelectionTableRowOperation) => void;
   clearAircraftSpatialSelection: (clearAircraftSpatialSelectionData:ClearAircraftSpatialSelectionData|undefined) => void;
   clearAirportSpatialSelection: (clearAirportSpatialSelectionData:ClearAirportSpatialSelectionData|undefined) => void;

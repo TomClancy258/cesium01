@@ -3,12 +3,12 @@
 import { ref, inject, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useSatelliteStore } from '@/stores/satellite'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Satellite } from '@/network/satellite/index.ts'
 import { satelliteTreeData } from '@/views/aviation-situation/constants/satellite-filter-data'
 import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const filterSatellites = inject('filterSatellites')
+const flyToSatelliteById = inject<(id: string) => void>('flyToSatelliteById')
 
 const satelliteStore = useSatelliteStore()
 const satelliteFilterFormRef = ref<FormInstance>()
@@ -44,8 +44,7 @@ const resetSatelliteForm = (formEl: FormInstance | undefined) => {
 }
 
 const onDetail = (row: Satellite) => {
-  emitCesiumEvent('satelliteFilterTableDetailClicked', row.id)
-
+  flyToSatelliteById?.(row.id)
 }
 </script>
 

@@ -93,7 +93,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmPolygonSpatialSelectionSurveyPoint,
     setupDrawingToolWatch:setupPolygonSpatialSelectionSpatialFormWatch,
     finishPolygonSpatialSelection,
-    subscribePolygonSpatialSelectionEvents,
+    onAviationDataUpdated:onPolygonAviationDataUpdated,
   }=usePolygonSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
   const {
@@ -101,7 +101,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmCircleSpatialSelectionSurveyPoint,
     setupDrawingToolWatch:setupCircleSpatialSelectionSpatialFormWatch,
     finishCircleSpatialSelection,
-    subscribeCircleSpatialSelectionEvents,
+    onAviationDataUpdated:onCircleAviationDataUpdated,
   }=useCircleSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
 
   const {
@@ -109,8 +109,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     confirmSurveyPoint:confirmHemisphereSpatialSelectionSurveyPoint,
     setupDrawingToolWatch:setupHemisphereSpatialSelectionSpatialFormWatch,
     finishHemisphereSpatialSelection,
-    subscribeHemisphereSpatialSelectionEvents,
+    onAviationDataUpdated:onHemisphereAviationDataUpdated,
   }=useHemisphereSpatialSelection(viewer,mouseFollowPointLabelManager,perimeterAndAreaLabel)
+
+  const refreshActiveSpatialSelections = () => {
+    onPolygonAviationDataUpdated()
+    onCircleAviationDataUpdated()
+    onHemisphereAviationDataUpdated()
+  }
 
   const initEvents = () => {
     if (!viewer?.value) return
@@ -118,10 +124,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     segmentDistanceLabelManager.addTempSegmentDistanceLabelToViewer()
     totalDistanceLabelManager.addTempTotalDistanceLabelToViewer()
     perimeterAndAreaLabel.addTempPerimeterAndAreaLabelToViewer()
-
-    subscribePolygonSpatialSelectionEvents()
-    subscribeCircleSpatialSelectionEvents()
-    subscribeHemisphereSpatialSelectionEvents()
 
     // 销毁已有 handler
     if (handler) handler.destroy()
@@ -458,5 +460,5 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     unwatchDrawingToolForm()
   })
 
-  return { initEvents, destroyEvents }
+  return { initEvents, destroyEvents, refreshActiveSpatialSelections }
 }

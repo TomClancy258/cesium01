@@ -3,11 +3,11 @@
 import { inject, ref, watch, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useAirportStore } from '@/stores/airport'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Airport } from '@/network/airport/type'
 import { airportTreeData } from '@/views/aviation-situation/constants/airport-filter-data'
 
 const filterAirports = inject('filterAirports')
+const flyToAirportByIcao = inject<(icao: string) => void>('flyToAirportByIcao')
 
 const airportStore = useAirportStore()
 const airportFilterFormRef = ref<FormInstance>()
@@ -40,7 +40,7 @@ const resetAirportForm = (formEl: FormInstance | undefined) => {
 }
 
 const onDetail = (row: Airport) => {
-  emitCesiumEvent('airportFilterTableDetailClicked', row.icao)
+  flyToAirportByIcao?.(row.icao)
 }
 
 // 监听”显示机场图标”取消时，自动取消”机场图标常显”

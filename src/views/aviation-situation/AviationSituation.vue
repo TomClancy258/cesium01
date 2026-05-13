@@ -14,6 +14,7 @@ import { useAircrafts } from './composables/aircraft/useAircrafts'
 import { useBuildings } from './composables/useBuildings'
 import { useSatellites } from './composables/satellite/useSatellites'
 import { useSpatialSelection } from './composables/useSpatialSelection'
+import { useAviationCoordinator } from './composables/useAviationCoordinator'
 
 import MapToolsDrawer from './components/map-tools/MapToolsDrawer.vue'
 import DetailDrawer from './components/detail/DetailDrawer.vue'
@@ -70,6 +71,8 @@ const {
   matchedAircraftCount,
   matchedAircrafts,
   flyToMatchedAircrafts,
+  flyToAircraftByIcao24,
+  registerAviationDataUpdatedListener: registerAircraftAviationDataUpdatedListener,
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -78,6 +81,8 @@ const {
   tooltip: airportTooltip,
   filterAirports,
   matchedAirportCount,
+  flyToAirportByIcao,
+  registerAviationDataUpdatedListener: registerAirportAviationDataUpdatedListener,
 } = useAirports(cesiumViewer)
 
 const {
@@ -85,6 +90,7 @@ const {
   loadAndDrawSatellites,
   tooltip: satelliteTooltip,
   filterSatellites,
+  flyToSatelliteById,
 } = useSatellites(cesiumViewer)
 
 const { initBuildings } = useBuildings(cesiumViewer)
@@ -92,13 +98,23 @@ const { initBuildings } = useBuildings(cesiumViewer)
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
 // 初始化Cesium事件监听（仅发布事件，不处理业务）
-const { initEvents: initCesiumEvents, destroyEvents } = useCesiumMouseEvents(cesiumViewer)
+const {
+  initEvents: initCesiumEvents,
+  destroyEvents,
+  refreshActiveSpatialSelections,
+} = useCesiumMouseEvents(cesiumViewer)
+const { initAviationCoordinator, destroyAviationCoordinator } = useAviationCoordinator({
+  registerAircraftAviationDataUpdatedListener,
+  registerAirportAviationDataUpdatedListener,
+  refreshActiveSpatialSelections,
+})
 
 const detailDrawerRef = ref(null)
 
 onMounted(async () => {
   initCesiumViewer() // 初始化Cesium Viewer
   initCesiumEvents() // 初始化事件监听（仅拾取和发布）
+  initAviationCoordinator()
 
   initCesiumCameraEvents(cesiumViewer)
 
@@ -146,6 +162,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  destroyAviationCoordinator()
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
   aviationSelectionStore.clearSelected()
@@ -195,6 +212,9 @@ provide('matchedAircraftCount', matchedAircraftCount)
 provide('matchedAircrafts', matchedAircrafts)
 provide('matchedAirportCount', matchedAirportCount)
 provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
+provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
+provide('flyToAirportByIcao', flyToAirportByIcao)
+provide('flyToSatelliteById', flyToSatelliteById)
 </script>
 
 <template>

@@ -30,7 +30,7 @@ import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 
 import {useDrawingToolStore,type DrawingToolForm} from "@/stores/drawing-tool"
 import {
-  emitCesiumEvent, onCesiumEvent
+  emitCesiumEvent
 } from '@/views/aviation-situation/composables/mitt-bus'
 import { emitSpatialSelectByTarget, emitClearSpatialSelectionByTarget } from '../shared/spatial-selection-event-emitters'
 import {useSimulatedWebSocketStore} from "@/stores/simulate-websocket.ts"
@@ -198,12 +198,8 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     }
   }
 
-  let unsubAircraftFiltered: () => void;
-
-  const subscribeCircleSpatialSelectionEvents = () => {
-    unsubAircraftFiltered = onCesiumEvent('aviationFiltered', () => {
-      updateDynamicCircle()
-    });
+  const onAviationDataUpdated = () => {
+    updateDynamicCircle()
   }
 
   const confirmSurveyPoint = () => {
@@ -500,7 +496,6 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     unwatchDrawingToolForm?.()
     unwatchSimulatedWebSocketStore?.()
     unbindKeyboardEvents();
-    unsubAircraftFiltered()
   })
 
   return {
@@ -508,6 +503,6 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
     confirmSurveyPoint,
     setupDrawingToolWatch,
     finishCircleSpatialSelection,
-    subscribeCircleSpatialSelectionEvents,
+    onAviationDataUpdated,
   }
 }

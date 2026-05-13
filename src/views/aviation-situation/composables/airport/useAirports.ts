@@ -25,7 +25,7 @@ import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spati
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events' // 替换原导入
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 import {
   highlightBillboardOnHover,
@@ -53,6 +53,11 @@ export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
 const aviationSelectionStore=useAviationSelectionStore()
 
   const airportRenderMap = new Map<string, AirportRenderItem>()
+  let aviationDataUpdatedListener: (() => void) | null = null
+
+  const registerAviationDataUpdatedListener = (listener: (() => void) | null): void => {
+    aviationDataUpdatedListener = listener
+  }
 
   const airportGraphic: AirportGraphic = markRaw({
     primitiveContainer: null,
@@ -306,7 +311,7 @@ const aviationSelectionStore=useAviationSelectionStore()
     })
     airportStore.commitMatchedAirports()
     finishedSpatialSelection()
-    emitCesiumEvent('aviationFiltered')
+    aviationDataUpdatedListener?.()
     // 高亮匹配项
   }, 300)
 
@@ -315,7 +320,6 @@ const aviationSelectionStore=useAviationSelectionStore()
   let unsubAirportLeave: () => void
   let unsubAirportLeftClick: () => void
   let unsubMouseWheel: () => void
-  let unSubAirportFilterTableDetailClick: () => void
 
   const subscribeAirportEvents = () => {
     // 订阅机场hover事件
@@ -365,10 +369,6 @@ const aviationSelectionStore=useAviationSelectionStore()
       handleCameraMoveEnd(viewer.value.camera)
     })
 
-    unSubAirportFilterTableDetailClick = onCesiumEvent('airportFilterTableDetailClicked', (icao:string) => {
-      flyToAirportByIcao(icao)
-    })
-
   }
 
   const flyToAirportByIcao = (icao: string): void => {
@@ -410,7 +410,6 @@ const aviationSelectionStore=useAviationSelectionStore()
     unsubAirportLeftClick?.()
     unsubCameraMoveEnd?.() // 取消相机事件订阅
     unsubMouseWheel?.()
-    unSubAirportFilterTableDetailClick?.()
 
     unwatchAirportFilterForm?.()
 
@@ -425,5 +424,7 @@ const aviationSelectionStore=useAviationSelectionStore()
     tooltip,
 
     filterAirports,
+    flyToAirportByIcao,
+    registerAviationDataUpdatedListener,
   }
 }

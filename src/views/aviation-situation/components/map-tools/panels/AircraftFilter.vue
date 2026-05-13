@@ -3,11 +3,11 @@
 import { ref, inject, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useAircraftStore } from '@/stores/aircraft'
-import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import {aircraftTreeData} from "@/views/aviation-situation/constants/aircraft-filter-data.ts"
 
 const filterAircrafts = inject('filterAircrafts')
+const flyToAircraftByIcao24 = inject<(icao24: string) => void>('flyToAircraftByIcao24')
 
 const aircraftStore = useAircraftStore()
 const aircraftFilterFormRef = ref<FormInstance>()
@@ -38,8 +38,7 @@ const resetAircraftForm = (formEl: FormInstance | undefined) => {
 }
 
 const onDetail = (row: Aircraft) => {
-  emitCesiumEvent('aircraftFilterTableDetailClicked', row.icao24)
-
+  flyToAircraftByIcao24?.(row.icao24)
 }
 </script>
 
