@@ -36,7 +36,7 @@ import {
 
 const CYLINDER_DEFAULTS = {
   minLengthM: 1,
-  bottomRadiusM: 200000
+  bottomRadiusM: 200_000
 }
 
 const SATELLITE_TICK_THROTTLE_MS = {
@@ -75,13 +75,16 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     const time = clock.currentTime
     const shouldRunVisualTick =
       !lastVisualTickTime ||
-      Cesium.JulianDate.secondsDifference(time, lastVisualTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.visualCylinderLength
+      Math.abs(Cesium.JulianDate.secondsDifference(time, lastVisualTickTime)) * 1000 >=
+        SATELLITE_TICK_THROTTLE_MS.visualCylinderLength
     const shouldRunConeScanTick =
       !lastConeScanTickTime ||
-      Cesium.JulianDate.secondsDifference(time, lastConeScanTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.coneScan
+      Math.abs(Cesium.JulianDate.secondsDifference(time, lastConeScanTickTime)) * 1000 >=
+        SATELLITE_TICK_THROTTLE_MS.coneScan
     const shouldRunStoreSyncTick =
       !lastStoreSyncTickTime ||
-      Cesium.JulianDate.secondsDifference(time, lastStoreSyncTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.satelliteStoreSync
+      Math.abs(Cesium.JulianDate.secondsDifference(time, lastStoreSyncTickTime)) * 1000 >=
+        SATELLITE_TICK_THROTTLE_MS.satelliteStoreSync
 
     if (!shouldRunVisualTick && !shouldRunConeScanTick && !shouldRunStoreSyncTick) return
     const coneSnapshots: ConeSnapshot[] = []

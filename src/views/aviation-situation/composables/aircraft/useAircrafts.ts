@@ -330,7 +330,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       // color: new Cesium.Color(1, 1, 1, 0)
       // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
       //   0,
-      //   5000000
+      //     3_000_000
       // ),
     })
 
@@ -361,6 +361,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     // 创建Label
     const label = aircraftGraphic.primitives.labels.add({
       show: true,
+      // show: false,
       id: `aircraft_label_${icao24}`,
       position,
       text: callsign,
@@ -372,10 +373,10 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       pixelOffset: new Cesium.Cartesian2(0, 20),
       outlineColor: Cesium.Color.BLACK,
       // color: new Cesium.Color(1, 1, 1, 0)
-      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-      //   0,
-      //   AIRCRAFT_LABEL_SHOW_DISTANCE
-      // ),
+      distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+        0,
+        AIRCRAFT_LABEL_SHOW_DISTANCE
+      ),
     })
 
     label.properties = {

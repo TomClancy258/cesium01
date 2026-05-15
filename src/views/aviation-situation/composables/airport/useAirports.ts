@@ -217,7 +217,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         image: airportGreenSvgRawDataUrl,
         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
           0,
-          2000000
+          2_000_000
         ),
         width: 30,
         height: 30,
@@ -261,7 +261,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         pixelOffset: new Cesium.Cartesian2(0, 20),
         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
           0,
-          2000000
+          200_000
         ),
         outlineColor: Cesium.Color.BLACK,
         // disableDepthTestDistance: Number.POSITIVE_INFINITY,

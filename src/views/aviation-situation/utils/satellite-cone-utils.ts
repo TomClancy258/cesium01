@@ -11,31 +11,40 @@ export function isPointInCone(
   },
   includeBase = true,
 ): boolean {
+  void includeBase
+
+  const axis = Cesium.Cartesian3.normalize(cone.axisDirection, new Cesium.Cartesian3())
+
   // v = P - A
   const v = Cesium.Cartesian3.subtract(p, cone.apexPosition, new Cesium.Cartesian3())
+  const vMagnitude = Cesium.Cartesian3.magnitude(v)
+  if (vMagnitude <= EPS) return false
 
-  // 轴向投影距离 t
-  const t = Cesium.Cartesian3.dot(v, cone.axisDirection)
+  // 点需在圆锥朝向前方：dot(v, axisDirection) > 0
+  const t = Cesium.Cartesian3.dot(v, axis)
+  if (t <= EPS) return false
 
-  // 不在圆锥高度区间
-  if (t < -EPS || t > cone.length + EPS) return false
+  // 允许一定“曲率补偿”的深度上限，避免无限锥导致的远距离误命中。
+  // sagitta ~= R - sqrt(R^2 - r^2)，r 用底部半径近似地面覆盖半径。
+  const earthRadius = Cesium.Ellipsoid.WGS84.maximumRadius
+  const footprintRadius = Math.min(Math.max(cone.bottomRadius, 0), earthRadius - 1)
+  const curvatureAllowance =
+    footprintRadius > 0
+      ? earthRadius - Math.sqrt(Math.max(0, earthRadius * earthRadius - footprintRadius * footprintRadius))
+      : 0
+  if (t > cone.length + curvatureAllowance + EPS) return false
 
-  // 该截面允许半径 r(t)
-  const r = (cone.bottomRadius / cone.length) * Math.max(0, t)
+  // 半角 alpha = atan(bottomRadius / length)
+  const safeLength = Math.max(cone.length, EPS)
+  const alpha = Math.atan(cone.bottomRadius / safeLength)
+  const cosAlpha = Math.cos(alpha)
 
-  // 径向距离 radial = |v - d*t|
-  const dt = Cesium.Cartesian3.multiplyByScalar(cone.axisDirection, t, new Cesium.Cartesian3())
-  const radialVec = Cesium.Cartesian3.subtract(v, dt, new Cesium.Cartesian3())
-  const radial = Cesium.Cartesian3.magnitude(radialVec)
+  // angle(v, axisDirection) <= alpha
+  // 采用 cos 比较，等价且更稳定：
+  // cos(theta) = dot(normalize(v), axis)
+  const normalizedV = Cesium.Cartesian3.divideByScalar(v, vMagnitude, new Cesium.Cartesian3())
+  const cosTheta = Cesium.Cartesian3.dot(normalizedV, axis)
 
-  // 侧面+内部
-  if (radial <= r + EPS) return true
-
-  // 可选：底面单独算命中（只在底面平面附近）
-  if (includeBase) {
-    const nearBasePlane = Math.abs(t - cone.length) <= EPS
-    if (nearBasePlane && radial <= cone.bottomRadius + EPS) return true
-  }
-
-  return false
+  // 不再依赖 t <= length 的有限截断，避免曲率引发的边缘漏判
+  return cosTheta + EPS >= cosAlpha
 }
