@@ -16,7 +16,6 @@ export const handleAirportHover = (properties: AirportBillboardProperties, scree
     country: properties.country,
     name: properties.name,
     lngLatAlt: { ...properties.lngLatAlt },
-    dataSourceNameSet: new Set(properties.dataSourceNameSet),
   }
   emitCesiumEvent('airportHover', baseProperties, screenPosition, billboard)
 }

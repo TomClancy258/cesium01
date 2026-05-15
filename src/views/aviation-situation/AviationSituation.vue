@@ -73,6 +73,7 @@ const {
   flyToMatchedAircrafts,
   flyToAircraftByIcao24,
   registerAviationDataUpdatedListener: registerAircraftAviationDataUpdatedListener,
+  refreshSatelliteConeScan:refreshSatelliteConeScanWithAircraft
 } = useAircrafts(cesiumViewer)
 
 const {
@@ -83,6 +84,7 @@ const {
   matchedAirportCount,
   flyToAirportByIcao,
   registerAviationDataUpdatedListener: registerAirportAviationDataUpdatedListener,
+  refreshSatelliteConeScan:refreshSatelliteConeScanWithAirport
 } = useAirports(cesiumViewer)
 
 const {
@@ -91,6 +93,7 @@ const {
   tooltip: satelliteTooltip,
   filterSatellites,
   flyToSatelliteById,
+  registerSatelliteDataUpdatedListener,
 } = useSatellites(cesiumViewer)
 
 const { initBuildings } = useBuildings(cesiumViewer)
@@ -101,12 +104,22 @@ const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 const {
   initEvents: initCesiumEvents,
   destroyEvents,
+
+  //包含以下三个函数
+  //onPolygonAviationDataUpdated()
+  //onCircleAviationDataUpdated()
+  //onHemisphereAviationDataUpdated()
   refreshActiveSpatialSelections,
 } = useCesiumMouseEvents(cesiumViewer)
+
 const { initAviationCoordinator, destroyAviationCoordinator } = useAviationCoordinator({
   registerAircraftAviationDataUpdatedListener,
   registerAirportAviationDataUpdatedListener,
+  registerSatelliteDataUpdatedListener,
+
   refreshActiveSpatialSelections,
+  refreshSatelliteConeScanWithAircraft,
+  refreshSatelliteConeScanWithAirport,
 })
 
 const detailDrawerRef = ref(null)

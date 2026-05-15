@@ -24,6 +24,9 @@ const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURICompone
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
+import airportSatelliteConeScannedSvgRaw from '@/assets/img/airport/svg/airport-satellite-cone-scan.svg?raw'
+const airportSatelliteConeScannedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSatelliteConeScannedSvgRaw)}`
+
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events' // 替换原导入
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
@@ -39,6 +42,7 @@ import { AviationRenderItem } from '@/views/aviation-situation/types/shared'
 type AirportRenderItem = AviationRenderItem<Airport>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAirportSpatialSelection } from './useAirportSpatialSelection'
+import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatellite'
 import {
   handleAirportLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
@@ -82,13 +86,18 @@ const aviationSelectionStore=useAviationSelectionStore()
       latitude: 0,
       elevation: 0,
     },
-    dataSourceNameSet: new Set<string>(),
   })
 
   const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
     viewer,
     renderMap: airportRenderMap,
     spatialSelectedImageUrl: airportSpatialSelectedSvgRawDataUrl,
+  })
+
+  const { refreshSatelliteConeScan } = useAirportConeScannedBySatellite({
+    viewer,
+    renderMap: airportRenderMap,
+    satelliteConeScannedImageUrl: airportSatelliteConeScannedSvgRawDataUrl,
   })
 
   // ========== 修改：移除原相机事件的 inject，直接使用传递的 onCameraEvent ==========
@@ -227,8 +236,15 @@ const aviationSelectionStore=useAviationSelectionStore()
           elevation,
         },
         originalColor: billboard.color,
-        originalImage: billboard.image,
-        dataSourceNameSet: new Set<string>(),
+        images: {
+          original: billboard.image,
+          satelliteConeScan: null,
+          spatialSelection: null,
+        },
+        sets: {
+          dataSourceName: new Set<string>(),
+          coneScanSatelliteId: new Set<string>(),
+        },
       } satisfies AirportBillboardProperties
 
       // 添加 Label
@@ -263,7 +279,6 @@ const aviationSelectionStore=useAviationSelectionStore()
           elevation,
         },
         originalFillColor: label.fillColor,
-        dataSourceNameSet: new Set<string>(),
       } satisfies AirportLabelProperties
 
       airportRenderMap.set(icao, { data: airport, billboard, label })
@@ -383,7 +398,6 @@ const aviationSelectionStore=useAviationSelectionStore()
     }, 300000)
   }
 
-
   const clearAirports = (): void => {
     airportGraphic.primitives.billboards.removeAll()
     airportGraphic.primitives.labels.removeAll()
@@ -426,5 +440,6 @@ const aviationSelectionStore=useAviationSelectionStore()
     filterAirports,
     flyToAirportByIcao,
     registerAviationDataUpdatedListener,
+    refreshSatelliteConeScan,
   }
 }

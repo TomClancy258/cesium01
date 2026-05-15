@@ -15,14 +15,21 @@ export interface AircraftBaseProperties {
     baroAltitude: number
   },
   heading: number,
-  dataSourceNameSet:Set<string>
 }
 
 // Billboard 专用属性
 export interface AircraftBillboardProperties extends AircraftBaseProperties {
   type: 'billboard'
   originalColor: Cesium.Color
-  originalImage: string | undefined
+  images: {
+    original: string | undefined
+    satelliteConeScan: string | null
+    spatialSelection: string | null
+  }
+  sets: {
+    dataSourceName: Set<string>
+    coneScanSatelliteId: Set<string>
+  }
 }
 
 // Label 专用属性

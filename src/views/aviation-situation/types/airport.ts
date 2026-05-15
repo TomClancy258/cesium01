@@ -18,14 +18,21 @@ export interface AirportBaseProperties{
     latitude: number // 数字类型，不是字符串
     elevation: number // 数字类型，不是字符串
   }
-  dataSourceNameSet:Set<string>
 }
 
 // Billboard 专用属性
 export interface AirportBillboardProperties extends AirportBaseProperties {
   type: 'billboard'
   originalColor: Cesium.Color
-  originalImage: string | undefined
+  images: {
+    original: string | undefined
+    satelliteConeScan: string | null
+    spatialSelection: string | null
+  }
+  sets: {
+    dataSourceName: Set<string>
+    coneScanSatelliteId: Set<string>
+  }
 }
 
 // Label 专用属性

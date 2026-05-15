@@ -4,10 +4,10 @@ import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
 import type { Satellite } from '@/network/satellite/type'
-import type {
+import {
   SatelliteRenderItem,
   SatelliteHoveredProperties,
-  SatelliteProperties
+  SatelliteProperties, ConeSnapshot
 } from '@/views/aviation-situation/types/satellite.ts'
 import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
@@ -58,6 +58,12 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   const aviationSelectionStore = useAviationSelectionStore()
   const satelliteStore = useSatelliteStore()
 
+  let onConeTick: ((snapshots: ConeSnapshot[]) => void) | null = null
+
+  const registerSatelliteDataUpdatedListener = (listener: (() => void) | null): void => {
+    onConeTick = listener //发送事件
+  }
+
   const satelliteRenderMap = new Map<string, SatelliteRenderItem>()
   const lastCylinderHeightBySatelliteId = new Map<string, number>()
   let isClockTickRegistered = false
@@ -78,6 +84,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       Cesium.JulianDate.secondsDifference(time, lastStoreSyncTickTime) * 1000 >= SATELLITE_TICK_THROTTLE_MS.satelliteStoreSync
 
     if (!shouldRunVisualTick && !shouldRunConeScanTick && !shouldRunStoreSyncTick) return
+    const coneSnapshots: ConeSnapshot[] = []
 
     let hasSatelliteStoreMutation = false
     for (const [key] of satelliteStore.matchedSatellites.entries()) {
@@ -104,19 +111,25 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
 
       if (shouldRunConeScanTick) {
         const bottomRadius=item.cylinderProps.bottomRadius.getValue()
-        const coneSnapshot={
+        const axisDirection = Cesium.Cartesian3.normalize(
+          Cesium.Cartesian3.negate(position, new Cesium.Cartesian3()),
+          new Cesium.Cartesian3()
+        )
+
+        coneSnapshots.push({
+          id: key,
           topRadius:0,
           bottomRadius:bottomRadius,
           length:height,
-          position,
+          apexPosition:position,
+          axisDirection,
           //geodetic
           lngLatAlt:{
             longitude,
             latitude,
             height,
           }
-        }
-        void coneSnapshot
+        } as ConeSnapshot)
       }
 
       const satellite:Satellite=item.data
@@ -168,6 +181,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunConeScanTick) {
+      onConeTick?.(coneSnapshots)
       lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
@@ -460,5 +474,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     tooltip,
     filterSatellites,
     flyToSatelliteById,
+
+    registerSatelliteDataUpdatedListener,
   }
 }

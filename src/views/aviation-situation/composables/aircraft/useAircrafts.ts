@@ -37,10 +37,12 @@ import {
   airplaneHoveredSvgRawDataUrl,
   airplaneSelectedSvgRawDataUrl,
   airplaneSpatialSelectedSvgRawDataUrl,
+  airplaneSatelliteConeScanSvgRawDataUrl,
 } from './aircraft-constants'
 type AircraftRenderItem = AviationRenderItem<Aircraft>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAircraftSpatialSelection } from './useAircraftSpatialSelection'
+import { useAircraftConeScannedBySatellite } from './useAircraftConeScannedBySatellite'
 import {handleAircraftLeftClick} from "@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft.ts"
 
 /**
@@ -67,7 +69,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   let aviationDataUpdatedListener: (() => void) | null = null
 
   const registerAviationDataUpdatedListener = (listener: (() => void) | null): void => {
-    aviationDataUpdatedListener = listener
+    aviationDataUpdatedListener = listener //发送事件
   }
   // 初始化图元容器
   const aircraftGraphic: AircraftGraphic = {
@@ -123,6 +125,11 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     viewer,
     renderMap: aircraftRenderMap,
     spatialSelectedImageUrl: airplaneSpatialSelectedSvgRawDataUrl,
+  })
+  const { refreshSatelliteConeScan } = useAircraftConeScannedBySatellite({
+    viewer,
+    renderMap: aircraftRenderMap,
+    satelliteConeScannedImageUrl: airplaneSatelliteConeScanSvgRawDataUrl,
   })
 
   // ========== 相机事件 ==========
@@ -340,8 +347,15 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
         baroAltitude,
       },
       originalColor: billboard.color,
-      originalImage: billboard.image,
-      dataSourceNameSet: new Set<string>(),
+      images: {
+        original: billboard.image,
+        satelliteConeScan: null,
+        spatialSelection: null,
+      },
+      sets: {
+        dataSourceName: new Set<string>(),
+        coneScanSatelliteId: new Set<string>(),
+      }
     } satisfies AircraftBillboardProperties
 
     // 创建Label
@@ -377,7 +391,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
         baroAltitude,
       },
       originalFillColor: label.fillColor,
-      dataSourceNameSet: new Set<string>(),
     } satisfies AircraftLabelProperties
 
     // 存入Map
@@ -501,6 +514,8 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
 
     aircraftStore.commitMatchedAircrafts()
     finishedSpatialSelection()
+
+    //emitCesiumEvent('aviationFiltered')变成了下面
     aviationDataUpdatedListener?.()
     // emitCesiumEvent('aircraftsSynced', { data: matchedAircrafts, status: 'ok' })
   }, 300)
@@ -618,5 +633,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     filterAircrafts,
     flyToAircraftByIcao24,
     registerAviationDataUpdatedListener,
+    refreshSatelliteConeScan,
   }
 }
