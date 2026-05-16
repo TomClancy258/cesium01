@@ -16,7 +16,8 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
     callsign: '',
     startAirport: '',
     endAirport: '',
-    visible: true
+    visible: true,
+    labelVisible: false
   })
 
   // const aircraftFilterFormCriginCountriesSet = computed(() => {
@@ -48,6 +49,7 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
     aircraftFilterForm.startAirport = ''
     aircraftFilterForm.endAirport = ''
     aircraftFilterForm.visible = true
+    aircraftFilterForm.labelVisible = false
   }
 
 

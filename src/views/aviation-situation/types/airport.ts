@@ -48,7 +48,8 @@ export interface AirportFilterForm {
   // country: '',
   countries: string[],
   name: '',
-  visible: boolean // 飞机显示状态
+  visible: boolean
+  labelVisible: boolean
   alwaysVisible: boolean
 }
 

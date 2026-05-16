@@ -165,7 +165,7 @@ export type SpatialSelectionData =
 export interface AviationRenderItem<T> {
   data: T
   billboard: Cesium.Billboard
-  label: Cesium.Label
+  label?: Cesium.Label
 }
 
 

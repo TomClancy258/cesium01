@@ -14,6 +14,7 @@ export const useAirportStore = defineStore('useAirportStore', () => {
     countries: selectedContinentCountryValues,
     name: '',
     visible: true, // 飞机显示状态
+    labelVisible: false, // 飞机显示状态
     alwaysVisible: false // 飞机显示状态
   })
 
@@ -39,6 +40,7 @@ export const useAirportStore = defineStore('useAirportStore', () => {
     airportFilterForm.countries = selectedContinentCountryValues
     airportFilterForm.name = ''
     airportFilterForm.visible = true
+    airportFilterForm.labelVisible = false
     airportFilterForm.alwaysVisible = false
   }
 

@@ -43,7 +43,8 @@ export function useAirportConeScannedBySatellite({
         const item = renderMap.get(icao)
         if (!item) return
 
-        const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
+        // const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
+        // const pos=Cesium.Cartesian3.fromDegrees(item.data.longitude, item.data.latitude, item.data.elevation)
         const position:Cesium.Cartesian3=item.billboard.position
 
         const inGraphic = isPointInCone(position, coneSnapshot, true)

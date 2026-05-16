@@ -90,6 +90,9 @@ watch(
         <el-form-item label="显示机场图标" prop="visible">
           <el-checkbox v-model="airportStore.airportFilterForm.visible" />
         </el-form-item>
+        <el-form-item label="显示机场标签" prop="visible">
+          <el-checkbox v-model="airportStore.airportFilterForm.labelVisible" />
+        </el-form-item>
 <!--      </el-col>-->
 <!--      <el-col :span="12">-->
         <el-form-item label="机场图标常显" prop="alwaysVisible">

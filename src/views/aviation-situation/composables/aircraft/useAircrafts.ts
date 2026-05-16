@@ -249,7 +249,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
 
     for (const aircraft of newAircrafts) {
       newIcaoSet.add(aircraft.icao24)
-      const aircraftRenderItem:AircraftRenderItem = aircraftRenderMap.get(aircraft.icao24)
+      const aircraftRenderItem = aircraftRenderMap.get(aircraft.icao24)
 
       if (aircraftRenderItem) {
         // 更新位置和航向
@@ -260,16 +260,20 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
         )
         aircraftRenderItem.billboard.position = position
         aircraftRenderItem.billboard.rotation = -Cesium.Math.toRadians(aircraft.heading)
-        aircraftRenderItem.label.position = position
+        if (aircraftRenderItem.label) {
+          aircraftRenderItem.label.position = position
+        }
         aircraftRenderItem.data=aircraft
 
         aircraftRenderItem.billboard.properties.lngLatAlt.longitude=aircraft.longitude
         aircraftRenderItem.billboard.properties.lngLatAlt.latitude=aircraft.latitude
         aircraftRenderItem.billboard.properties.lngLatAlt.baroAltitude=aircraft.baroAltitude
 
-        aircraftRenderItem.label.properties.lngLatAlt.longitude=aircraft.longitude
-        aircraftRenderItem.label.properties.lngLatAlt.latitude=aircraft.latitude
-        aircraftRenderItem.label.properties.lngLatAlt.baroAltitude=aircraft.baroAltitude
+        if (aircraftRenderItem.label) {
+          aircraftRenderItem.label.properties.lngLatAlt.longitude=aircraft.longitude
+          aircraftRenderItem.label.properties.lngLatAlt.latitude=aircraft.latitude
+          aircraftRenderItem.label.properties.lngLatAlt.baroAltitude=aircraft.baroAltitude
+        }
 
         if(aviationSelectionStore.hovered!=null&&
           aircraft.icao24===aviationSelectionStore.hovered.icao24){
@@ -358,44 +362,12 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       }
     } satisfies AircraftBillboardProperties
 
-    // 创建Label
-    const label = aircraftGraphic.primitives.labels.add({
-      show: true,
-      // show: false,
-      id: `aircraft_label_${icao24}`,
-      position,
-      text: callsign,
-      font: '14px sans-serif',
-      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-      outlineWidth: 2,
-      verticalOrigin: Cesium.VerticalOrigin.TOP,
-      horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-      pixelOffset: new Cesium.Cartesian2(0, 20),
-      outlineColor: Cesium.Color.BLACK,
-      // color: new Cesium.Color(1, 1, 1, 0)
-      distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-        0,
-        AIRCRAFT_LABEL_SHOW_DISTANCE
-      ),
-    })
-
-    label.properties = {
-      type: 'label',
-      sourceType: 'aircraft',
-      icao24,
-      originCountry,
-      callsign,
-      heading,
-      lngLatAlt:{
-        longitude,
-        latitude,
-        baroAltitude,
-      },
-      originalFillColor: label.fillColor,
-    } satisfies AircraftLabelProperties
-
-    // 存入Map
-    aircraftRenderMap.set(icao24, { data: aircraft, billboard, label })
+    // 存入Map（Label按需创建）
+    const renderItem: AircraftRenderItem = { data: aircraft, billboard }
+    aircraftRenderMap.set(icao24, renderItem)
+    if (aircraftStore.aircraftFilterForm.labelVisible) {
+      createAircraftLabel(renderItem)
+    }
   }
 
   const drawAircrafts = (data: Aircraft[]): void => {
@@ -412,6 +384,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
   let unwatchHighlight: () => void
   let unwatchSimulatedWebsocket: () => void
   let unwatchAircraftFilterForm: () => void
+  let unwatchAircraftLabelVisible: () => void
 
   const setupAircraftWatches=():void=>{
     setupHighlightWatch()
@@ -468,6 +441,77 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
       },
       { deep: true },
     )
+
+    unwatchAircraftLabelVisible = watch(
+      () => aircraftStore.aircraftFilterForm.labelVisible,
+      (labelVisible) => {
+        if (labelVisible) {
+          addAircraftLabels()
+        } else {
+          removeAircraftLabels()
+        }
+        filterAircrafts()
+        handleCameraMoveEnd(viewer.value.camera)
+      },
+    )
+  }
+
+  const removeAircraftLabels = (): void => {
+    aircraftGraphic.primitives.labels?.removeAll()
+    aircraftRenderMap.forEach((item) => {
+      item.label = undefined
+    })
+  }
+
+  const createAircraftLabel = (item: AircraftRenderItem): void => {
+    if (!aircraftGraphic.primitives.labels || item.label) return
+    const { longitude, latitude, baroAltitude, callsign, heading, icao24, originCountry } = item.data
+    const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
+      longitude,
+      latitude,
+      baroAltitude,
+    )
+
+    const label = aircraftGraphic.primitives.labels.add({
+      show: true,
+      id: `aircraft_label_${icao24}`,
+      position,
+      text: callsign,
+      font: '14px sans-serif',
+      style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+      outlineWidth: 2,
+      verticalOrigin: Cesium.VerticalOrigin.TOP,
+      horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+      pixelOffset: new Cesium.Cartesian2(0, 20),
+      outlineColor: Cesium.Color.BLACK,
+      distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
+        0,
+        AIRCRAFT_LABEL_SHOW_DISTANCE
+      ),
+    })
+
+    label.properties = {
+      type: 'label',
+      sourceType: 'aircraft',
+      icao24,
+      originCountry,
+      callsign,
+      heading,
+      lngLatAlt: {
+        longitude,
+        latitude,
+        baroAltitude,
+      },
+      originalFillColor: label.fillColor,
+    } satisfies AircraftLabelProperties
+
+    item.label = label
+  }
+
+  const addAircraftLabels = (): void => {
+    aircraftRenderMap.forEach((item) => {
+      createAircraftLabel(item)
+    })
   }
 
   // ========== 筛选逻辑 ==========
@@ -507,7 +551,9 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
 
       // 控制显隐
       billboard.show = match
-      label.show = match
+      if (form.labelVisible && label) {
+        label.show = match
+      }
     })
 
     aircraftGraphic.primitives.selectedAircraft.routePolylines.show = isSelectedAircraftMatched
@@ -601,7 +647,9 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     if (!aircraftRenderItem) return
 
     aircraftGraphic.primitives.billboards?.remove(aircraftRenderItem.billboard)
-    aircraftGraphic.primitives.labels?.remove(aircraftRenderItem.label)
+    if (aircraftRenderItem.label) {
+      aircraftGraphic.primitives.labels?.remove(aircraftRenderItem.label)
+    }
     aircraftRenderMap.delete(icao24)
   }
 
@@ -618,6 +666,7 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     unwatchHighlight?.()
     unwatchSimulatedWebsocket?.()
     unwatchAircraftFilterForm?.()
+    unwatchAircraftLabelVisible?.()
 
     // 重置store
     aircraftStore.resetAircraftFilterForm()

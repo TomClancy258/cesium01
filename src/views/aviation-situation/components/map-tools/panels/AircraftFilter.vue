@@ -84,6 +84,9 @@ const onDetail = (row: Aircraft) => {
       <el-form-item label="显示飞机图标" prop="visible">
         <el-checkbox v-model="aircraftStore.aircraftFilterForm.visible" />
       </el-form-item>
+      <el-form-item label="显示飞机标签" prop="labelVisible">
+        <el-checkbox v-model="aircraftStore.aircraftFilterForm.labelVisible" />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onAircraftSubmit">确认</el-button>
         <el-button @click="resetAircraftForm(aircraftFilterFormRef)">重置</el-button>

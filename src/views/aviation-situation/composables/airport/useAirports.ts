@@ -1,5 +1,5 @@
 //src/views/aviation-situation/composables/useAirports.ts
-import { onUnmounted, markRaw, watch,ShallowRef } from 'vue'
+import { onUnmounted, markRaw, watch, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
@@ -13,18 +13,23 @@ import type {
 } from '@/views/aviation-situation/types/airport'
 import { isValidCoordinate, getCameraHeight, flyToLngLatAlt } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
+
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 
 import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?raw'
+
 const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHoveredSvgRaw)}`
 
 import airportSelectedSvgRaw from '@/assets/img/airport/svg/airport-selected.svg?raw'
+
 const airportSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSelectedSvgRaw)}`
 
 import airportSpatialSelectedSvgRaw from '@/assets/img/airport/svg/airport-spatial-selected.svg?raw'
+
 const airportSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSpatialSelectedSvgRaw)}`
 
 import airportSatelliteConeScannedSvgRaw from '@/assets/img/airport/svg/airport-satellite-cone-scan.svg?raw'
+
 const airportSatelliteConeScannedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportSatelliteConeScannedSvgRaw)}`
 
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events' // 替换原导入
@@ -39,22 +44,19 @@ import {
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
 import { AviationRenderItem } from '@/views/aviation-situation/types/shared'
-type AirportRenderItem = AviationRenderItem<Airport>
 import { useAviationTooltip } from '../useAviationTooltip'
 import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatellite'
-import {
-  handleAirportLeftClick
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
+import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries'>
 
-
-export function useAirports(viewer:ShallowRef<Cesium.Viewer>) {
-  const AIRPORT_LABEL_DISTANCE = 2000 * 1000; // 机场标签显示阈值（米）
-  const AIRPORT_SHOW_DISTANCE = 400 * 1000;   // 机场整体显示阈值（米）
+export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
+  const AIRPORT_LABEL_DISTANCE = 2000 * 1000 // 机场标签显示阈值（米）
+  const AIRPORT_SHOW_DISTANCE = 400 * 1000 // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
-const aviationSelectionStore=useAviationSelectionStore()
+  const aviationSelectionStore = useAviationSelectionStore()
 
   const airportRenderMap = new Map<string, AirportRenderItem>()
   let aviationDataUpdatedListener: (() => void) | null = null
@@ -74,7 +76,7 @@ const aviationSelectionStore=useAviationSelectionStore()
   const {
     tooltip,
     showTooltip: showAirportTooltip,
-    hideTooltip: hideAirportTooltip
+    hideTooltip: hideAirportTooltip,
   } = useAviationTooltip<AirportBaseProperties>({
     icao: '',
     type: 'billboard',
@@ -88,15 +90,15 @@ const aviationSelectionStore=useAviationSelectionStore()
     },
   })
 
-  const { finishedSpatialSelection,subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
+  const { finishedSpatialSelection, subscribeSpatialSelectionEvents } = useAirportSpatialSelection({
     viewer,
-    renderMap: airportRenderMap,
+    renderMap: airportRenderMap as Map<string, AviationRenderItem<Airport>>,
     spatialSelectedImageUrl: airportSpatialSelectedSvgRawDataUrl,
   })
 
   const { refreshSatelliteConeScan } = useAirportConeScannedBySatellite({
     viewer,
-    renderMap: airportRenderMap,
+    renderMap: airportRenderMap as Map<string, AviationRenderItem<Airport>>,
     satelliteConeScannedImageUrl: airportSatelliteConeScannedSvgRawDataUrl,
   })
 
@@ -105,33 +107,33 @@ const aviationSelectionStore=useAviationSelectionStore()
 
   // 计算相机到地面的距离，控制机场显隐
   const handleCameraMoveEnd = (camera: Cesium.Camera) => {
-    const form:AirportFilterForm = airportStore.airportFilterForm;
-    const cameraHeight1:number = getCameraHeight(camera);
-    console.log("cameraHeight1", cameraHeight1);
+    const form: AirportFilterForm = airportStore.airportFilterForm
+    const cameraHeight1: number = getCameraHeight(camera)
+    console.log('cameraHeight1', cameraHeight1)
 
     if (!form.visible) {
-      setAirportsVisible(false);
-      return;
+      setAirportsVisible(false)
+      return
     }
 
-    const cameraHeight:number = getCameraHeight(camera);
+    const cameraHeight: number = getCameraHeight(camera)
 
     if (form.alwaysVisible) {
-      setAirportsLabelVisible(cameraHeight <= AIRPORT_LABEL_DISTANCE);
+      setAirportsLabelVisible(cameraHeight <= AIRPORT_LABEL_DISTANCE)
 
-      setAirportsVisible(true);
-      return;
+      setAirportsVisible(true)
+      return
     }
 
     // 原核心逻辑（仅当 visible=true 且 alwaysVisible=false 时执行）
-    if (!airportGraphic.primitiveContainer) return;
+    if (!airportGraphic.primitiveContainer) return
 
-    console.log("cameraHeight", cameraHeight);
+    console.log('cameraHeight', cameraHeight)
 
-    setAirportsLabelVisible(cameraHeight <= AIRPORT_SHOW_DISTANCE);
+    setAirportsLabelVisible(cameraHeight <= AIRPORT_SHOW_DISTANCE)
     // 核心逻辑：高度小于阈值显示机场，大于则隐藏
-    setAirportsVisible(cameraHeight <= AIRPORT_SHOW_DISTANCE);
-  };
+    setAirportsVisible(cameraHeight <= AIRPORT_SHOW_DISTANCE)
+  }
 
   // 订阅相机moveEnd事件（使用传递的 onCameraEvent）
   const subscribeCameraEvents = () => {
@@ -139,10 +141,10 @@ const aviationSelectionStore=useAviationSelectionStore()
   }
   // ========== 相机事件修改结束 ==========
 
-  const setAirportsVisible = (isVisible:boolean): void => {
+  const setAirportsVisible = (isVisible: boolean): void => {
     airportGraphic.primitiveContainer.show = isVisible
   }
-  const setAirportsLabelVisible = (isVisible:boolean): void => {
+  const setAirportsLabelVisible = (isVisible: boolean): void => {
     airportGraphic.primitives.labels.show = isVisible
   }
 
@@ -207,7 +209,11 @@ const aviationSelectionStore=useAviationSelectionStore()
         continue
       }
 
-      const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude,elevation)
+      const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
+        longitude,
+        latitude,
+        elevation,
+      )
 
       // 添加 Billboard
       const billboard: Cesium.Billboard = airportGraphic.primitives.billboards.add({
@@ -215,10 +221,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         // show: false,
         position: position,
         image: airportGreenSvgRawDataUrl,
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-          0,
-          2_000_000
-        ),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2_000_000),
         width: 30,
         height: 30,
         // disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -247,41 +250,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         },
       } satisfies AirportBillboardProperties
 
-      // 添加 Label
-      const label: Cesium.Label = airportGraphic.primitives.labels.add({
-        // show: false,
-        id: 'airport_label_' + icao,
-        position: position,
-        text: airport.name,
-        font: '14px sans-serif',
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-        outlineWidth: 2,
-        verticalOrigin: Cesium.VerticalOrigin.TOP,
-        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
-        pixelOffset: new Cesium.Cartesian2(0, 20),
-        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(
-          0,
-          200_000
-        ),
-        outlineColor: Cesium.Color.BLACK,
-        // disableDepthTestDistance: Number.POSITIVE_INFINITY,
-      })
-
-      label.properties = {
-        type: 'label',
-        sourceType: 'airport',
-        icao,
-        country,
-        name: airport.name,
-        lngLatAlt: {
-          longitude,
-          latitude,
-          elevation,
-        },
-        originalFillColor: label.fillColor,
-      } satisfies AirportLabelProperties
-
-      airportRenderMap.set(icao, { data: airport, billboard, label })
+      airportRenderMap.set(icao, { data: airport, billboard })
     }
   }
 
@@ -301,7 +270,7 @@ const aviationSelectionStore=useAviationSelectionStore()
 
     const countriesSet = new Set(query.countries)
 
-    airportRenderMap.forEach(({  data: airport, billboard, label }) => {
+    airportRenderMap.forEach(({ data: airport, billboard, label }) => {
       const p = billboard.properties as AirportBaseProperties
       if (!p) return
 
@@ -309,7 +278,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         (!query.icao || p.icao.toLowerCase().includes(query.icao)) &&
         (!query.name || p.name.toLowerCase().includes(query.name)) &&
         countriesSet.has(p.country)
-        // (!query.country || p.country.toLowerCase().includes(query.country))
+      // (!query.country || p.country.toLowerCase().includes(query.country))
 
       // const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
@@ -322,13 +291,77 @@ const aviationSelectionStore=useAviationSelectionStore()
       // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
 
       billboard.show = match
-      label.show = match
+      if (form.labelVisible && label) {
+        label.show = match
+      }
     })
     airportStore.commitMatchedAirports()
     finishedSpatialSelection()
     aviationDataUpdatedListener?.()
     // 高亮匹配项
   }, 300)
+
+  const removeAirportLabels = (): void => {
+    airportGraphic.primitives.labels?.removeAll()
+    airportRenderMap.forEach((item) => {
+      item.label = undefined
+    })
+  }
+
+  const addAirportLabels = (): void => {
+    for (const item of airportRenderMap.values()) {
+      if (item.label) continue
+
+      const airport = item.data
+      const longitude: number = airport.longitude
+      const latitude: number = airport.latitude
+      const elevation: number = airport.elevation
+      const country: string = airport.country
+      const icao: string = airport.icao
+
+      if (!isValidCoordinate(longitude, latitude, 0)) {
+        continue
+      }
+      const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(
+        longitude,
+        latitude,
+        elevation,
+      )
+
+      // 添加 Label
+      const label: Cesium.Label = airportGraphic.primitives.labels.add({
+        // show: false,
+        id: 'airport_label_' + icao,
+        position: position,
+        text: airport.name,
+        font: '14px sans-serif',
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+        outlineWidth: 2,
+        verticalOrigin: Cesium.VerticalOrigin.TOP,
+        horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
+        pixelOffset: new Cesium.Cartesian2(0, 20),
+        distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 200_000),
+        outlineColor: Cesium.Color.BLACK,
+        // disableDepthTestDistance: Number.POSITIVE_INFINITY,
+      })
+
+      label.properties = {
+        type: 'label',
+        sourceType: 'airport',
+        icao,
+        country,
+        name: airport.name,
+        lngLatAlt: {
+          longitude,
+          latitude,
+          elevation,
+        },
+        originalFillColor: label.fillColor,
+      } satisfies AirportLabelProperties
+
+      item.label = label
+    }
+  }
 
   // ===== 新增：内部订阅机场事件 =====
   let unsubAirportHover: () => void
@@ -340,10 +373,14 @@ const aviationSelectionStore=useAviationSelectionStore()
     // 订阅机场hover事件
     unsubAirportHover = onCesiumEvent(
       'airportHover',
-      (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
+      (
+        properties: AirportBaseProperties,
+        position: Cesium.Cartesian2,
+        billboard: Cesium.Billboard,
+      ) => {
         showAirportTooltip(position, properties) // 替换原方法
-        highlightBillboardOnHover(properties,billboard, airportHoveredSvgRawDataUrl)
-        const hovered=aviationSelectionStore.hovered
+        highlightBillboardOnHover(properties, billboard, airportHoveredSvgRawDataUrl)
+        const hovered = aviationSelectionStore.hovered
         if (
           hovered === null ||
           hovered.sourceType !== 'airport' ||
@@ -351,8 +388,7 @@ const aviationSelectionStore=useAviationSelectionStore()
         ) {
           aviationSelectionStore.setHovered(properties)
         }
-
-      }
+      },
     )
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
@@ -370,10 +406,7 @@ const aviationSelectionStore=useAviationSelectionStore()
       (data: AirportSelectedData, billboard: Cesium.Billboard) => {
         highlightBillboardOnSelect(billboard, airportSelectedSvgRawDataUrl)
         const selected = aviationSelectionStore.selected
-        if (
-          selected?.sourceType !== 'airport' ||
-          selected.icao !== data.icao
-        ) {
+        if (selected?.sourceType !== 'airport' || selected.icao !== data.icao) {
           aviationSelectionStore.setSelected(data)
         }
       },
@@ -383,19 +416,22 @@ const aviationSelectionStore=useAviationSelectionStore()
     unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
       handleCameraMoveEnd(viewer.value.camera)
     })
-
   }
 
   const flyToAirportByIcao = (icao: string): void => {
     const airportRenderItem = airportRenderMap.get(icao)
     if (!airportRenderItem) return
     const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
-    handleAirportLeftClick(properties,airportRenderItem.billboard)
-    flyToLngLatAlt(viewer,{
-      longitude:airportRenderItem.data.longitude,
-      latitude:airportRenderItem.data.latitude,
-      height:airportRenderItem.data.elevation,
-    }, 300000)
+    handleAirportLeftClick(properties, airportRenderItem.billboard)
+    flyToLngLatAlt(
+      viewer,
+      {
+        longitude: airportRenderItem.data.longitude,
+        latitude: airportRenderItem.data.latitude,
+        height: airportRenderItem.data.elevation,
+      },
+      300000,
+    )
   }
 
   const clearAirports = (): void => {
@@ -406,14 +442,28 @@ const aviationSelectionStore=useAviationSelectionStore()
   }
 
   let unwatchAirportFilterForm: () => void
+  let unwatchAirportLabelVisible: () => void
+
   const setupAirportFilterFormWatch = (): void => {
     unwatchAirportFilterForm = watch(
       () => airportStore.airportFilterForm,
-      (newForm: AirportFilterForm, oldForm: AirportFilterForm) => {
+      () => {
         filterAirports()
         handleCameraMoveEnd(viewer.value.camera)
       },
       { deep: true },
+    )
+
+    unwatchAirportLabelVisible = watch(
+      () => airportStore.airportFilterForm.labelVisible,
+      (labelVisible) => {
+        if (labelVisible) {
+          addAirportLabels()
+        } else {
+          removeAirportLabels()
+        }
+        filterAirports()
+      },
     )
   }
 
@@ -426,6 +476,7 @@ const aviationSelectionStore=useAviationSelectionStore()
     unsubMouseWheel?.()
 
     unwatchAirportFilterForm?.()
+    unwatchAirportLabelVisible?.()
 
     airportStore.resetAirportFilterForm()
   })

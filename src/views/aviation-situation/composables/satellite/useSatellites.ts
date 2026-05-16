@@ -262,6 +262,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         //   height: 30,
         // },
         label:{
+          show:true,
+          // show:false,
           text:satellite.name,
           font: AVIATION_LABEL_STYLE_BASE.FONT,
           style: AVIATION_LABEL_STYLE_BASE.STYLE,
