@@ -24,6 +24,7 @@ export interface AirportBaseProperties{
 export interface AirportBillboardProperties extends AirportBaseProperties {
   type: 'billboard'
   originalColor: Cesium.Color
+  riskLevel: 'high'|'medium'|'normal'
   images: {
     original: string | undefined
     satelliteConeScan: string | null
@@ -43,11 +44,15 @@ export interface AirportLabelProperties extends AirportBaseProperties {
 
 export type AirportTooltipState = TooltipState<AirportBaseProperties>
 
+export type AirportRiskLevel = 'high' | 'medium' | 'normal'
+export type AirportRiskLevelFilter = AirportRiskLevel | 'all'
+
 export interface AirportFilterForm {
   icao: '',
   // country: '',
   countries: string[],
   name: '',
+  riskLevel: AirportRiskLevelFilter
   visible: boolean
   labelVisible: boolean
   alwaysVisible: boolean

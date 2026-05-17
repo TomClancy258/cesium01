@@ -16,6 +16,7 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
     callsign: '',
     startAirport: '',
     endAirport: '',
+    riskLevel: 'all',
     visible: true,
     labelVisible: false
   })
@@ -48,6 +49,7 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
     aircraftFilterForm.callsign = ''
     aircraftFilterForm.startAirport = ''
     aircraftFilterForm.endAirport = ''
+    aircraftFilterForm.riskLevel = 'all'
     aircraftFilterForm.visible = true
     aircraftFilterForm.labelVisible = false
   }

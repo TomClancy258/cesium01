@@ -40,6 +40,9 @@ export interface AircraftLabelProperties extends AircraftBaseProperties {
 
 export type AircraftTooltipState = TooltipState<AircraftBaseProperties>
 
+export type AircraftRiskLevel = 'high' | 'medium' | 'normal'
+export type AircraftRiskLevelFilter = AircraftRiskLevel | 'all'
+
 // 定义筛选表单类型（包含visible）
 export interface AircraftFilterForm {
   icao24: string
@@ -48,6 +51,7 @@ export interface AircraftFilterForm {
   callsign: string
   startAirport: string
   endAirport: string
+  riskLevel: AircraftRiskLevelFilter
   visible: boolean
   labelVisible: boolean
 }

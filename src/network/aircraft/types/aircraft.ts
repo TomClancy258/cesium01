@@ -39,7 +39,8 @@ export type AircraftTuple = [
   geoAltitude: number | null,  // [13] 几何高度 (米，GPS测得的高度，通常比气压高度更准)
   squawk: string | null,       // [14] 应答机代码 (四位八进制码，如 "7700" 紧急，"7600" 失联)
   spi: boolean,                // [15] 特殊位置识别位 (SPI pulse)，通常用于雷达识别确认
-  positionSource: number       // [16] 位置源 (0=ADS-B, 1=AST, 2=MLAT等，指示定位技术来源)
+  positionSource: number,       // [16] 位置源 (0=ADS-B, 1=AST, 2=MLAT等，指示定位技术来源)
+  riskLevel: 'high'|'medium'|'normal'
 
   // ⚠️ 注意：此原生数据中【不包含】出发机场 (origin) 和 到达机场 (destination)
   // 如果你的系统能按机场筛选，说明后端已经通过 callsign 关联了航班计划数据。
@@ -65,6 +66,7 @@ export interface Aircraft {
   squawk: string | null
   spi: boolean
   alert: boolean
+  riskLevel: 'high'|'medium'|'normal'
 }
 
 /**
@@ -91,6 +93,7 @@ export function tupleToAircraft(tuple: AircraftTuple): Aircraft {
     squawk: tuple[14],           // ✅ 正确索引
     spi: tuple[15],              // ✅ 正确索引
     alert: false,                // OpenSky 不直接提供 alert
+    riskLevel: tuple[17]??'normal'
   }
 }
 /**

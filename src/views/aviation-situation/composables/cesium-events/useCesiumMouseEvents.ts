@@ -210,15 +210,20 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       }
 
       // ✅ 优先处理 Billboard（飞机/机场）
-      const billboardPicked = pickedObjects.find(
-        obj => obj.primitive instanceof Cesium.Billboard
-      )
+      const billboardPicked = pickedObjects.find((obj) => {
+        if (!(obj.primitive instanceof Cesium.Billboard)) return false
+        const properties = (obj.primitive as any).properties as MapBillboardLabelProperties | undefined
+        return (
+          !!properties &&
+          properties.type === 'billboard' &&
+          (properties.sourceType === 'aircraft' || properties.sourceType === 'airport')
+        )
+      })
       if (billboardPicked) {
         const billboard = billboardPicked.primitive
         if (!(billboard instanceof Cesium.Billboard)) return
-        const properties = billboard.properties as MapBillboardLabelProperties
+        const properties = (billboard as any).properties as MapBillboardLabelProperties
         console.log("properties", properties);
-        if (properties.type !== 'billboard') return
         if (properties.sourceType === 'aircraft') {
           handleAircraftLeftClick(properties, billboard)
           clearSelectedSatelliteHighlight()
@@ -347,18 +352,24 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     }
 
     // ✅ 优先找 Billboard（飞机/机场图标）
-    const billboardPicked = pickedObjects.find(
-      obj => obj.primitive instanceof Cesium.Billboard
-    )
+    const billboardPicked = pickedObjects.find((obj) => {
+      if (!(obj.primitive instanceof Cesium.Billboard)) return false
+      const properties = (obj.primitive as any).properties as MapBillboardLabelProperties | undefined
+      return (
+        !!properties &&
+        properties.type === 'billboard' &&
+        (properties.sourceType === 'aircraft' || properties.sourceType === 'airport')
+      )
+    })
     if (billboardPicked) {
       const billboard = billboardPicked.primitive
       if (!(billboard instanceof Cesium.Billboard)) return
-      const properties: MapBillboardLabelProperties = billboard.properties
+      const properties = (billboard as any).properties as MapBillboardLabelProperties
       const position: Cesium.Cartesian3 = billboard.position
       const screenPosition: Cesium.Cartesian2 =
         Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
+      if (!screenPosition) return
 
-      if (properties.type !== 'billboard') return
       if (properties.sourceType === 'aircraft') {
         handleAircraftHover(properties as AircraftBillboardProperties, screenPosition, billboard)
       } else if (properties.sourceType === 'airport') {

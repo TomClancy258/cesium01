@@ -4,7 +4,15 @@ import { ref, inject, computed } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useAircraftStore } from '@/stores/aircraft'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
-import {aircraftTreeData} from "@/views/aviation-situation/constants/aircraft-filter-data.ts"
+import { aircraftTreeData } from '@/views/aviation-situation/constants/aircraft-filter-data.ts'
+import type { AircraftRiskLevelFilter } from '@/views/aviation-situation/types/aircraft'
+
+const riskLevelOptions: { label: string; value: AircraftRiskLevelFilter }[] = [
+  { label: '全部', value: 'all' },
+  { label: '正常', value: 'normal' },
+  { label: '中风险', value: 'medium' },
+  { label: '高风险', value: 'high' },
+]
 
 const filterAircrafts = inject('filterAircrafts')
 const flyToAircraftByIcao24 = inject<(icao24: string) => void>('flyToAircraftByIcao24')
@@ -67,6 +75,19 @@ const onDetail = (row: Aircraft) => {
       <el-form-item label="目的机场" prop="endAirport">
         <el-input v-model="aircraftStore.aircraftFilterForm.endAirport" clearable placeholder="三/四字码" />
       </el-form-item>
+      <el-form-item label="风险等级" prop="riskLevel" label-width="80px">
+        <el-select
+          v-model="aircraftStore.aircraftFilterForm.riskLevel"
+          style="width: 100px"
+        >
+          <el-option
+            v-for="item in riskLevelOptions"
+            :key="item.value"
+            :label="item.label"
+            :value="item.value"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="航空器国家" prop="originCountries">
         <el-tree-select
           clearable
@@ -107,6 +128,21 @@ const onDetail = (row: Aircraft) => {
       <el-table-column prop="heading"       label="航向"       />
       <el-table-column prop="verticalRate"  label="垂直速率"  />
       <el-table-column prop="squawk"        label="应答机"     />
+      <el-table-column prop="riskLevel" label="风险等级">
+        <template #default="{ row }">
+          <el-tag
+            v-if="row.riskLevel === 'high'"
+            type="danger"
+            size="small"
+          >高风险</el-tag>
+          <el-tag
+            v-else-if="row.riskLevel === 'medium'"
+            type="warning"
+            size="small"
+          >中风险</el-tag>
+          <el-tag v-else type="success" size="small">正常</el-tag>
+        </template>
+      </el-table-column>
 <!--      <el-table-column prop="category"      label="类别"      width="80" />-->
 <!--      <el-table-column prop="onGround"      label="在地面"    width="80">-->
 <!--        <template #default="{ row }">-->

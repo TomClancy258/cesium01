@@ -16,6 +16,10 @@ import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
 
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 
+import airportHighRiskSvgRaw from '@/assets/img/airport/svg/airport-high-risk.svg?raw'
+
+const airportHighRiskSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHighRiskSvgRaw)}`
+
 import airportHoveredSvgRaw from '@/assets/img/airport/svg/airport-hovered.svg?raw'
 
 const airportHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportHoveredSvgRaw)}`
@@ -49,14 +53,21 @@ import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatellite'
 import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRipple'
 
-type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries'>
+type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
 
 export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000 // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000 // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
   const aviationSelectionStore = useAviationSelectionStore()
+  const airportRiskRipple = useRiskRipple(viewer, {
+    idPrefix: 'airport_high_risk_ripple',
+    sourceType: 'airportHighRiskRipple',
+    imageUrl: '/src/assets/img/effects/png/warning-circle-red.png',
+    color: '#D32F2F',
+  })
 
   const airportRenderMap = new Map<string, AirportRenderItem>()
   let aviationDataUpdatedListener: (() => void) | null = null
@@ -168,6 +179,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
     setAirportsLabelVisible(false)
 
     viewer.value.scene.primitives.add(airportGraphic.primitiveContainer)
+    // airportRiskRipple.init()
 
     setupAirportFilterFormWatch()
 
@@ -215,12 +227,17 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
         elevation,
       )
 
+      let image:string=airportGreenSvgRawDataUrl
+      if (airport.riskLevel === 'high') {
+        image=airportHighRiskSvgRawDataUrl
+      }
+
       // 添加 Billboard
       const billboard: Cesium.Billboard = airportGraphic.primitives.billboards.add({
         id: 'airport_billboard_' + icao,
         // show: false,
         position: position,
-        image: airportGreenSvgRawDataUrl,
+        image: image,
         distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 2_000_000),
         width: 30,
         height: 30,
@@ -232,6 +249,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
         sourceType: 'airport',
         icao,
         country,
+        riskLevel:airport.riskLevel,
         name: airport.name,
         lngLatAlt: {
           longitude,
@@ -251,6 +269,12 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
       } satisfies AirportBillboardProperties
 
       airportRenderMap.set(icao, { data: airport, billboard })
+      // airportRiskRipple.sync({
+      //   id: icao,
+      //   position,
+      //   riskLevel: airport.riskLevel,
+      //   visible: airportStore.airportFilterForm.visible,
+      // })
     }
   }
 
@@ -266,6 +290,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
       // country: form.country?.trim().toLowerCase(),
       name: form.name?.trim().toLowerCase(),
       countries: form.countries,
+      riskLevel: form.riskLevel,
     }
 
     const countriesSet = new Set(query.countries)
@@ -277,7 +302,8 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
       const match: boolean =
         (!query.icao || p.icao.toLowerCase().includes(query.icao)) &&
         (!query.name || p.name.toLowerCase().includes(query.name)) &&
-        countriesSet.has(p.country)
+        countriesSet.has(p.country) &&
+        (query.riskLevel === 'all' || airport.riskLevel === query.riskLevel)
       // (!query.country || p.country.toLowerCase().includes(query.country))
 
       // const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
@@ -294,6 +320,12 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
       if (form.labelVisible && label) {
         label.show = match
       }
+      // airportRiskRipple.sync({
+      //   id: airport.icao,
+      //   position: billboard.position,
+      //   riskLevel: airport.riskLevel,
+      //   visible: form.visible && match,
+      // })
     })
     airportStore.commitMatchedAirports()
     finishedSpatialSelection()
@@ -437,6 +469,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
   const clearAirports = (): void => {
     airportGraphic.primitives.billboards.removeAll()
     airportGraphic.primitives.labels.removeAll()
+    // airportRiskRipple.clear()
     airportRenderMap.clear() // ✅ 一行清空
     matchedAirportCount.value = 0
   }
@@ -477,6 +510,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
 
     unwatchAirportFilterForm?.()
     unwatchAirportLabelVisible?.()
+    // airportRiskRipple.destroy()
 
     airportStore.resetAirportFilterForm()
   })

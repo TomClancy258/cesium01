@@ -4,6 +4,7 @@ import airplaneHoveredSvgRaw from '@/assets/img/airplane/svg/airplane-hovered.sv
 import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.svg?raw'
 import airplaneSpatialSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-spatial-selected.svg?raw'
 import airplaneSatelliteConeScanSvgRaw from '@/assets/img/airplane/svg/airplane-satellite-cone-scan.svg?raw'
+import airplaneHighRiskSvgRaw from '@/assets/img/airplane/svg/airplane-high-risk.svg?raw'
 
 // SVG 资源 DataURL
 export const airplaneBlueSvgDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneBlueSvgRaw)}`
@@ -11,6 +12,7 @@ export const airplaneHoveredSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURI
 export const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSelectedSvgRaw)}`
 export const airplaneSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSpatialSelectedSvgRaw)}`
 export const airplaneSatelliteConeScanSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSatelliteConeScanSvgRaw)}`
+export const airplaneHighRiskSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneHighRiskSvgRaw)}`
 
 // 高度-颜色映射配置
 export const altitudeColorMap = [

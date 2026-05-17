@@ -4,32 +4,23 @@ import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
 import type { Satellite } from '@/network/satellite/type'
-import {
-  SatelliteRenderItem,
+import type {
   SatelliteHoveredProperties,
-  SatelliteProperties, ConeSnapshot
+  SatelliteProperties,
+  ConeSnapshot,
 } from '@/views/aviation-situation/types/satellite.ts'
-import { emitCesiumEvent, onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 
 import { AVIATION_LABEL_STYLE_BASE } from '@/views/aviation-situation/constants/cesium-style-constants.ts'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useDebounceFn } from '@vueuse/core'
-import type { SatelliteBaseProperties } from '@/views/aviation-situation/types/satellite'
 import { useSatelliteStore } from '@/stores/satellite'
-import type { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
-import {
-  handleAircraftLeftClick
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
 import {
   handleSatelliteLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
-import { LngLatAlt } from '@/views/aviation-situation/types/shared'
-import {
-  airplaneBlueSvgDataUrl
-} from '@/views/aviation-situation/composables/aircraft/aircraft-constants'
+import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -38,6 +29,16 @@ const CYLINDER_DEFAULTS = {
   minLengthM: 1,
   bottomRadiusM: 200_000
 }
+const SATELLITE_RADAR_MATERIAL_TYPE = 'SatelliteRadarPrimitive'
+const SATELLITE_RADAR_DEFAULTS = {
+  color: Cesium.Color.CYAN.withAlpha(0.85),
+  durationMs: 2200,
+  repeat: 30,
+  offset: 0,
+  thickness: 0.12,
+}
+let isSatelliteRadarMaterialRegistered = false
+const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 
 const SATELLITE_TICK_THROTTLE_MS = {
   visualCylinderLength: 100,
@@ -45,6 +46,126 @@ const SATELLITE_TICK_THROTTLE_MS = {
   satelliteStoreSync: 500,
 }
 const CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M = 5
+type SatelliteFilterQuery = {
+  id?: string
+  name?: string
+  countries: string[]
+}
+type SatelliteTooltipProperties = SatelliteHoveredProperties & { type: string }
+type SatelliteRenderState = {
+  data: Satellite
+  entity: Cesium.Entity
+  positionProperty: Cesium.SampledPositionProperty
+  cylinderProps: {
+    length: Cesium.ConstantProperty
+    bottomRadius: Cesium.ConstantProperty
+  }
+}
+
+interface SatelliteRadarMaterialOptions {
+  color?: Cesium.Color
+  durationMs?: number
+  repeat?: number
+  offset?: number
+  thickness?: number
+  phase?: number
+}
+
+const registerSatelliteRadarMaterial = () => {
+  if (isSatelliteRadarMaterialRegistered) return
+
+  ;(Cesium.Material as any)._materialCache.addMaterial(SATELLITE_RADAR_MATERIAL_TYPE, {
+    fabric: {
+      type: SATELLITE_RADAR_MATERIAL_TYPE,
+      uniforms: {
+        color: SATELLITE_RADAR_DEFAULTS.color,
+        time: 0,
+        repeat: SATELLITE_RADAR_DEFAULTS.repeat,
+        offset: SATELLITE_RADAR_DEFAULTS.offset,
+        thickness: SATELLITE_RADAR_DEFAULTS.thickness,
+      },
+      source: `
+        uniform vec4 color;
+        uniform float time;
+        uniform float repeat;
+        uniform float offset;
+        uniform float thickness;
+
+        czm_material czm_getMaterial(czm_materialInput materialInput) {
+          czm_material material = czm_getDefaultMaterial(materialInput);
+          vec2 st = materialInput.st;
+          float spacing = 1.0 / repeat;
+          float radial = distance(st, vec2(0.5));
+          float m = mod(radial + offset - time, spacing);
+          float alpha = step(spacing * (1.0 - thickness), m);
+          material.diffuse = color.rgb;
+          material.alpha = alpha * color.a;
+          return material;
+        }
+      `,
+    },
+    translucent: () => true,
+  })
+
+  isSatelliteRadarMaterialRegistered = true
+}
+
+class SatelliteRadarMaterialProperty {
+  private readonly _definitionChanged = new Cesium.Event()
+  private readonly _color: Cesium.Color
+  private readonly durationMs: number
+  private readonly repeat: number
+  private readonly offset: number
+  private readonly thickness: number
+  private readonly phase: number
+
+  constructor(options: SatelliteRadarMaterialOptions = {}) {
+    this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
+    this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
+    this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
+    this.offset = options.offset ?? SATELLITE_RADAR_DEFAULTS.offset
+    this.thickness = options.thickness ?? SATELLITE_RADAR_DEFAULTS.thickness
+    this.phase = options.phase ?? Math.random()
+  }
+
+  get isConstant() {
+    return false
+  }
+
+  get definitionChanged() {
+    return this._definitionChanged
+  }
+
+  getType() {
+    return SATELLITE_RADAR_MATERIAL_TYPE
+  }
+
+  getValue(time: Cesium.JulianDate, result?: Record<string, unknown>) {
+    const materialResult = result ?? {}
+    const elapsedSeconds = Cesium.JulianDate.secondsDifference(time, RADAR_TIME_EPOCH)
+    const elapsedMs = elapsedSeconds * 1000
+    const normalizedTime = ((elapsedMs + this.phase * this.durationMs) % this.durationMs) / this.durationMs / 10
+    materialResult.color = this._color
+    materialResult.time = normalizedTime
+    materialResult.repeat = this.repeat
+    materialResult.offset = this.offset
+    materialResult.thickness = this.thickness
+    return materialResult
+  }
+
+  equals(other: unknown) {
+    return (
+      this === other ||
+      (other instanceof SatelliteRadarMaterialProperty &&
+        Cesium.Color.equals(this._color, other._color) &&
+        this.durationMs === other.durationMs &&
+        this.repeat === other.repeat &&
+        this.offset === other.offset &&
+        this.thickness === other.thickness &&
+        this.phase === other.phase)
+    )
+  }
+}
 
 function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProperty, time: Cesium.JulianDate) {
   const pos = positionProperty.getValue(time)
@@ -55,6 +176,7 @@ function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProp
 }
 
 export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
+  registerSatelliteRadarMaterial()
   const aviationSelectionStore = useAviationSelectionStore()
   const satelliteStore = useSatelliteStore()
 
@@ -64,7 +186,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     onConeTick = listener //发送事件
   }
 
-  const satelliteRenderMap = new Map<string, SatelliteRenderItem>()
+  const satelliteRenderMap = new Map<string, SatelliteRenderState>()
   const lastCylinderHeightBySatelliteId = new Map<string, number>()
   let isClockTickRegistered = false
   let lastVisualTickTime: Cesium.JulianDate | null = null
@@ -91,8 +213,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
 
     let hasSatelliteStoreMutation = false
     for (const [key] of satelliteStore.matchedSatellites.entries()) {
-      // const nextLength = cylinderLengthFromPosition(item.positionProperty, time)
-      const item:SatelliteRenderItem=satelliteRenderMap.get(key)
+      const item = satelliteRenderMap.get(key)
+      if (!item) continue
       const position = item.positionProperty.getValue(time)
       if (!position) continue
       const carto = Cesium.Cartographic.fromCartesian(position)
@@ -136,16 +258,19 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       }
 
       const satellite:Satellite=item.data
-      if(shouldRunVisualTick&&aviationSelectionStore.hovered!=null&&
-        satellite.id===aviationSelectionStore.hovered.id){
-        const screenPosition: Cesium.Cartesian2 =
-          Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
+      if(
+        shouldRunVisualTick &&
+        aviationSelectionStore.hovered?.sourceType === 'satellite' &&
+        satellite.id === aviationSelectionStore.hovered.id
+      ){
+        const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
         if (screenPosition) {
-          const properties:SatelliteHoveredProperties = {
+          const properties:SatelliteTooltipProperties = {
+            type: 'none',
             id:satellite.id,
-            name: satellite.name,
-            country:satellite.country,
-            description: satellite.description,
+            name: satellite.name ?? '',
+            country:satellite.country ?? '',
+            description: satellite.description ?? '',
             sourceType:'satellite',
             scan:{
               target:satellite.scan.target,
@@ -154,8 +279,7 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
               longitude: longitude,
               latitude: latitude,
               height: height
-            },
-            screenPosition
+            }
           }
           // aviationSelectionStore.setHovered(properties)
           //hovered卫星节点显示tooltip卫星简略信息时，更新tooltip里卫星的信息（比如坐标），节流100ms
@@ -278,7 +402,14 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
           length: cylinderProps.length,
           topRadius: 0.0,
           bottomRadius: cylinderProps.bottomRadius,
-          material: Cesium.Color.BLUE.withAlpha(0.3),
+          material: new SatelliteRadarMaterialProperty({
+            color: SATELLITE_RADAR_DEFAULTS.color,
+            repeat: SATELLITE_RADAR_DEFAULTS.repeat,
+            thickness: SATELLITE_RADAR_DEFAULTS.thickness,
+            durationMs: SATELLITE_RADAR_DEFAULTS.durationMs,
+            offset: SATELLITE_RADAR_DEFAULTS.offset,
+            phase: Math.random(),
+          }),
           heightReference:Cesium.HeightReference.CLAMP_TO_TERRAIN
         },
         orientation: new Cesium.VelocityOrientationProperty(positionProperty),
@@ -372,9 +503,21 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     tooltip,
     showTooltip: showSatelliteTooltip,
     hideTooltip: hideSatelliteTooltip
-  } = useAviationTooltip<SatelliteHoveredProperties>({
+  } = useAviationTooltip<SatelliteTooltipProperties>({
+    id: '',
+    type: 'none',
     sourceType: 'satellite',
     name: '',
+    country: '',
+    description: '',
+    scan: {
+      target: 'none',
+    },
+    lngLatAlt: {
+      longitude: 0,
+      latitude: 0,
+      height: 0,
+    },
   })
 
   let unwatchSatelliteFilterForm: () => void
@@ -399,17 +542,18 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     // 订阅机场hover事件
     unsubSatelliteHover = onCesiumEvent(
       'satelliteHover',
-      (properties: SatelliteHoveredProperties, screenPosition: Cesium.Cartesian2, entity: Cesium.Entity) => {
-        showSatelliteTooltip(screenPosition, properties)
+      ((properties, screenPosition) => {
+        const satelliteProperties = properties as SatelliteTooltipProperties
+        showSatelliteTooltip(screenPosition as Cesium.Cartesian2, satelliteProperties)
 
         if (
           aviationSelectionStore.hovered === null ||
           aviationSelectionStore.hovered.sourceType !== 'satellite' ||
-          aviationSelectionStore.hovered.id !== properties.id
+          aviationSelectionStore.hovered.id !== satelliteProperties.id
         ) {
-          aviationSelectionStore.setHovered(properties)
+          aviationSelectionStore.setHovered(satelliteProperties)
         }
-      }
+      }) as (...args: any[]) => void
     )
 
     unsubSatelliteLeave = onCesiumEvent('satelliteLeave', () => {
@@ -429,19 +573,20 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
 
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
-      (data: SatelliteProperties, entity: Cesium.Entity) => {
+      ((data) => {
+        const satelliteProperties = data as SatelliteProperties
         // highlightBillboardOnSelect(data, billboard, airplaneSelectedSvgRawDataUrl)
         const selected=aviationSelectionStore.selected
-        if(selected===null||selected.sourceType!=='satellite'||selected.id!==data.id) {
-          aviationSelectionStore.setSelected(data)
+        if(selected===null||selected.sourceType!=='satellite'||selected.id!==satelliteProperties.id) {
+          aviationSelectionStore.setSelected(satelliteProperties)
         }
-      },
+      }) as (...args: any[]) => void,
     )
 
   }
 
   const flyToSatelliteById = (id: string): void => {
-    const item:SatelliteRenderItem = satelliteRenderMap.get(id)
+    const item = satelliteRenderMap.get(id)
     if (!item) return
 
     const { entity } = item

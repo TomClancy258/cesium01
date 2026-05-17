@@ -10,6 +10,7 @@ export interface RawAirport {
   name: string;
   subd: string;
   tz: string;
+  riskLevel: 'high'|'medium'|'normal'
 }
 
 export interface Airport {
@@ -24,4 +25,5 @@ export interface Airport {
   subd: string
   tz: string
   lid: string
+  riskLevel: 'high'|'medium'|'normal'
 }

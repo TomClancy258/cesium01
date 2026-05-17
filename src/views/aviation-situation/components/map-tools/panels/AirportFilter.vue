@@ -5,6 +5,14 @@ import type { FormInstance } from 'element-plus'
 import { useAirportStore } from '@/stores/airport'
 import type { Airport } from '@/network/airport/type'
 import { airportTreeData } from '@/views/aviation-situation/constants/airport-filter-data'
+import type { AirportRiskLevelFilter } from '@/views/aviation-situation/types/airport'
+
+const riskLevelOptions: { label: string; value: AirportRiskLevelFilter }[] = [
+  { label: '全部', value: 'all' },
+  { label: '正常', value: 'normal' },
+  { label: '中风险', value: 'medium' },
+  { label: '高风险', value: 'high' },
+]
 
 const filterAirports = inject('filterAirports')
 const flyToAirportByIcao = inject<(icao: string) => void>('flyToAirportByIcao')
@@ -67,6 +75,19 @@ watch(
     <el-form-item label="机场名称" prop="name">
       <el-input v-model="airportStore.airportFilterForm.name" clearable placeholder="三/四字码"/>
     </el-form-item>
+    <el-form-item label="风险等级" prop="riskLevel">
+      <el-select
+        v-model="airportStore.airportFilterForm.riskLevel"
+        style="width: 200px"
+      >
+        <el-option
+          v-for="item in riskLevelOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        />
+      </el-select>
+    </el-form-item>
 <!--    <el-form-item label="机场国家" prop="country">-->
 <!--      <el-input v-model="airportStore.airportFilterForm.country" clearable/>-->
 <!--    </el-form-item>-->
@@ -84,7 +105,6 @@ watch(
         style="width: 55vw"
       />
     </el-form-item>
-
 <!--    <el-row>-->
 <!--      <el-col :span="12">-->
         <el-form-item label="显示机场图标" prop="visible">
@@ -119,6 +139,21 @@ watch(
     <el-table-column prop="latitude"  label="纬度"   />
     <el-table-column prop="longitude" label="经度"   />
     <el-table-column prop="tz"        label="时区"   />
+    <el-table-column prop="riskLevel" label="风险等级">
+      <template #default="{ row }">
+        <el-tag
+          v-if="row.riskLevel === 'high'"
+          type="danger"
+          size="small"
+        >高风险</el-tag>
+        <el-tag
+          v-else-if="row.riskLevel === 'medium'"
+          type="warning"
+          size="small"
+        >中风险</el-tag>
+        <el-tag v-else type="success" size="small">正常</el-tag>
+      </template>
+    </el-table-column>
     <el-table-column label="操作" fixed="right">
       <template #default="{ row }">
         <el-button type="primary" link size="small" @click="onDetail(row)">详情</el-button>

@@ -23,6 +23,7 @@ export const getAirports = (): Promise<Airport[]> => {
       lid: airport.lid,
       latitude: parseFloat(airport.lat),
       longitude: parseFloat(airport.lon),
+      riskLevel: airport.riskLevel??'normal',
     }))
   })
 }
