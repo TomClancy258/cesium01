@@ -53,7 +53,7 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
   const rippleColor = Cesium.Color.fromCssColorString(options.color)
 
   const init = (): void => {
-    if (rippleBillboards) return
+    if (rippleBillboards || !viewer.value || viewer.value.isDestroyed()) return
     rippleBillboards = viewer.value.scene.primitives.add(new Cesium.BillboardCollection())
     registerPreRender()
   }
@@ -79,9 +79,13 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
       })
     }
 
+    if (!viewer.value || viewer.value.isDestroyed()) return
+
     viewer.value.scene.preRender.addEventListener(onPreRender)
     unbindPreRender = () => {
-      viewer.value.scene.preRender.removeEventListener(onPreRender)
+      if (viewer.value && !viewer.value.isDestroyed()) {
+        viewer.value.scene.preRender.removeEventListener(onPreRender)
+      }
       unbindPreRender = null
     }
   }
@@ -149,10 +153,10 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
 
   const destroy = (): void => {
     unbindPreRender?.()
-    if (rippleBillboards) {
+    if (rippleBillboards && viewer.value && !viewer.value.isDestroyed()) {
       viewer.value.scene.primitives.remove(rippleBillboards)
-      rippleBillboards = null
     }
+    rippleBillboards = null
     rippleMap.clear()
   }
 

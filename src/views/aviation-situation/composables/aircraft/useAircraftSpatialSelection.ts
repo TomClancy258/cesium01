@@ -68,7 +68,10 @@ export function useAircraftSpatialSelection({
     })
 
     spatialSelectionStore.batchSetAircraftSpatialSelection(hitIcao24s)
-  },200,true,true)
+  },200,
+    true //最终执行一次
+    ,false //立即执行
+  )
   // },100,true,true)
 // },500,true,true)
 

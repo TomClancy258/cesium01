@@ -1,25 +1,12 @@
-// src/views/aviation-situation/composables/useAirportSpatialSelection.ts
+import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
-import { onUnmounted, ShallowRef } from 'vue'
-import type {
-  AviationRenderItem,
-  SpatialSelectionData,
-} from '@/views/aviation-situation/types/shared.ts'
+import type { AviationRenderItem } from '@/views/aviation-situation/types/shared.ts'
 import type { Airport } from '@/network/airport/type'
 import {
-  highlightBillboardOnSpatialSelection,
-  clearSpatialSelectedHighlight,
   highlightBillboardOnSatelliteConeScan,
-  clearSatelliteConeScanSelectedHighlight
+  clearSatelliteConeScanSelectedHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
-import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus.ts'
-import { useSpatialSelectionStore } from '@/stores/spatial-selection'
-import { buildRegionFromData, isPointInSelectionRegion } from '@/views/aviation-situation/utils/spatial-selection-utils.ts'
-import type { SelectionRegionBase,ClearAirportSpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
-import {useAirportStore} from '@/stores/airport'
-import {updateFinishedSelectionLabels} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
-import { useThrottleFn } from '@vueuse/core'
-import * as turf from '@turf/turf'
+import { useAirportStore } from '@/stores/airport'
 import type { ConeSnapshot } from '@/views/aviation-situation/types/satellite'
 import { isPointInCone } from '@/views/aviation-situation/utils/satellite-cone-utils'
 
@@ -30,23 +17,21 @@ interface Options {
 }
 
 export function useAirportConeScannedBySatellite({
-  viewer,
   renderMap,
   satelliteConeScannedImageUrl,
 }: Options) {
   const airportStore = useAirportStore()
 
-  const refreshSatelliteConeScan = (coneSnapshots:ConeSnapshot[]) => {
+  const refreshSatelliteConeScan = (coneSnapshots: ConeSnapshot[]) => {
+    const airportBySatelliteId = new Map<string, Map<string, Airport>>()
 
-    for(const coneSnapshot of coneSnapshots){
-      airportStore.matchedAirports.keys().forEach((icao) => {
+    for (const coneSnapshot of coneSnapshots) {
+      const airportMap = new Map<string, Airport>()
+      for (const icao of airportStore.matchedAirports.keys()) {
         const item = renderMap.get(icao)
-        if (!item) return
+        if (!item) continue
 
-        // const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
-        // const pos=Cesium.Cartesian3.fromDegrees(item.data.longitude, item.data.latitude, item.data.elevation)
-        const position:Cesium.Cartesian3=item.billboard.position
-
+        const position: Cesium.Cartesian3 = item.billboard.position
         const inGraphic = isPointInCone(position, coneSnapshot, true)
 
         //高亮优先级：框选>卫星扫描
@@ -56,18 +41,18 @@ export function useAirportConeScannedBySatellite({
             item.billboard,
             satelliteConeScannedImageUrl,
           )
+          airportMap.set(icao, item.data)
         } else {
           clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard)
         }
-      })
-
+      }
+      airportBySatelliteId.set(coneSnapshot.id, airportMap)
     }
+
+    return airportBySatelliteId
   }
 
-  onUnmounted(() => {
-  })
-
   return {
-    refreshSatelliteConeScan
+    refreshSatelliteConeScan,
   }
 }

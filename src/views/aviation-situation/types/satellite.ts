@@ -1,6 +1,13 @@
 import * as Cesium from 'cesium'
-import type { Satellite, Scan } from '@/network/satellite/type'
-import { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import type { Scan, Satellite } from '@/network/satellite/type'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
+import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
+
+export type MatchedSatellite = Satellite & {
+  aircraft: { aircraftMap: Map<string, Aircraft> }
+  airport: { airportMap: Map<string, Airport> }
+}
 
 export interface SatelliteRenderItem {
   data: Satellite
@@ -50,5 +57,16 @@ export interface ConeSnapshot {
   length: number
   apexPosition: Cesium.Cartesian3
   axisDirection: Cesium.Cartesian3
+  scan: Scan
   lngLatAlt: LngLatAlt
 }
+
+export interface SatelliteConeScanResults {
+  aircraftBySatelliteId: Map<string, Map<string, Aircraft>>
+  airportBySatelliteId: Map<string, Map<string, Airport>>
+}
+
+export type SatelliteConeSnapshotListener = (
+  aircraftConeSnapshots: ConeSnapshot[],
+  airportConeSnapshots: ConeSnapshot[],
+) => SatelliteConeScanResults | void

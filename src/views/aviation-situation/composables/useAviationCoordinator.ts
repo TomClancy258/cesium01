@@ -1,13 +1,23 @@
-import type {ConeSnapshot} from "@/views/aviation-situation/types/satellite.ts"
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
+import type {
+  ConeSnapshot,
+  SatelliteConeScanResults,
+  SatelliteConeSnapshotListener,
+} from '@/views/aviation-situation/types/satellite.ts'
 
 interface UseAviationCoordinatorOptions {
   registerAircraftAviationDataUpdatedListener: (listener: (() => void) | null) => void
   registerAirportAviationDataUpdatedListener: (listener: (() => void) | null) => void
-  registerSatelliteDataUpdatedListener: (listener: ((coneSnapshot:ConeSnapshot[]) => void) | null) => void
+  registerSatelliteDataUpdatedListener: (listener: SatelliteConeSnapshotListener | null) => void
 
   refreshActiveSpatialSelections: () => void
-  refreshSatelliteConeScanWithAircraft: (coneSnapshots:ConeSnapshot[]) => void
-  refreshSatelliteConeScanWithAirport: (coneSnapshots:ConeSnapshot[]) => void
+  refreshSatelliteConeScanWithAircraft: (
+    coneSnapshots: ConeSnapshot[],
+  ) => Map<string, Map<string, Aircraft>>
+  refreshSatelliteConeScanWithAirport: (
+    coneSnapshots: ConeSnapshot[],
+  ) => Map<string, Map<string, Airport>>
 }
 
 export function useAviationCoordinator({
@@ -22,23 +32,28 @@ export function useAviationCoordinator({
   const handleAviationDataUpdated = () => {
     refreshActiveSpatialSelections()
   }
-  const handleSatelliteDataUpdated = (coneSnapshots:ConeSnapshot[]) => {
-    refreshSatelliteConeScanWithAircraft(coneSnapshots)
-    refreshSatelliteConeScanWithAirport(coneSnapshots)
+
+  const handleSatelliteDataUpdated: SatelliteConeSnapshotListener = (
+    aircraftConeSnapshots,
+    airportConeSnapshots,
+  ): SatelliteConeScanResults => {
+    return {
+      aircraftBySatelliteId: refreshSatelliteConeScanWithAircraft(aircraftConeSnapshots),
+      airportBySatelliteId: refreshSatelliteConeScanWithAirport(airportConeSnapshots),
+    }
   }
 
   const initAviationCoordinator = () => {
     registerAircraftAviationDataUpdatedListener(handleAviationDataUpdated)
     registerAirportAviationDataUpdatedListener(handleAviationDataUpdated)
 
-    //把refreshSatelliteConeScanWithAircraft、refreshSatelliteConeScanWithAirport函数传到useSatellites.ts里取
-    //即listener指向了handleSatelliteDataUpdated，listener就是handleSatelliteDataUpdated
     registerSatelliteDataUpdatedListener(handleSatelliteDataUpdated)
   }
 
   const destroyAviationCoordinator = () => {
     registerAircraftAviationDataUpdatedListener(null)
     registerAirportAviationDataUpdatedListener(null)
+    registerSatelliteDataUpdatedListener(null)
   }
 
   return {

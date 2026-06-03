@@ -6,6 +6,10 @@ import { useSatelliteStore } from '@/stores/satellite'
 import type { Satellite } from '@/network/satellite/index.ts'
 import { satelliteTreeData } from '@/views/aviation-situation/constants/satellite-filter-data'
 import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
+import AirportIcaoPopover
+  from '@/views/aviation-situation/components/map-tools/panels/draw-tool/tables/spatial-selection/popover/AirportIcaoPopover.vue'
+import AircraftIcaoPopover
+  from '@/views/aviation-situation/components/map-tools/panels/draw-tool/tables/spatial-selection/popover/AircraftIcaoPopover.vue'
 
 const filterSatellites = inject('filterSatellites')
 const flyToSatelliteById = inject<(id: string) => void>('flyToSatelliteById')
@@ -92,12 +96,7 @@ const onDetail = (row: Satellite) => {
       <el-table-column prop="id"        label="卫星id"    fixed />
       <el-table-column prop="name"      label="卫星名称"       />
       <el-table-column prop="country" label="所属国家"      />
-<!--      <el-table-column prop="scan.target" label="扫描目标"      />-->
-      <el-table-column label="扫描目标">
-        <template #default="{ row }">
-          {{ satelliteScanTargetMap[row.scan.target]??row.scan.target }}
-        </template>
-      </el-table-column>
+
       <el-table-column label="纬度">
         <template #default="{ row }">
           {{ formatFixed4(row.lngLatAlt?.latitude) }}
@@ -111,6 +110,39 @@ const onDetail = (row: Satellite) => {
       <el-table-column label="海拔">
         <template #default="{ row }">
           {{ formatFixed4(row.lngLatAlt?.height) }} m
+        </template>
+      </el-table-column>
+      <!--      <el-table-column prop="scan.target" label="扫描目标"      />-->
+      <el-table-column label="扫描目标">
+        <template #default="{ row }">
+          {{ satelliteScanTargetMap[row.scan.target]??row.scan.target }}
+        </template>
+      </el-table-column>
+      <!-- 飞机数量 -->
+      <el-table-column label="飞机数" width="80px" align="center">
+        <template #default="{ row }">
+          {{ row.aircraft?.aircraftMap?.size ?? 0 }}
+        </template>
+      </el-table-column>
+
+      <!-- 飞机 icao24 -->
+      <el-table-column label="飞机 icao24" width="200px" align="center">
+        <template #default="{ row }">
+          <AircraftIcaoPopover :aircraft-map="row.aircraft?.aircraftMap" />
+        </template>
+      </el-table-column>
+
+      <!-- 机场数量 -->
+      <el-table-column label="机场数" width="80px" align="center">
+        <template #default="{ row }">
+          {{ row.airport?.airportMap?.size ?? 0 }}
+        </template>
+      </el-table-column>
+
+      <!-- 机场 icao -->
+      <el-table-column label="机场 icao" width="200px" align="center">
+        <template #default="{ row }">
+          <AirportIcaoPopover :airport-map="row.airport?.airportMap" />
         </template>
       </el-table-column>
       <el-table-column label="操作"  fixed="right">

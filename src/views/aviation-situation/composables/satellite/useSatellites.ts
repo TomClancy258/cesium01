@@ -5,9 +5,11 @@ import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
 import type { Satellite } from '@/network/satellite/type'
 import type {
+  MatchedSatellite,
   SatelliteHoveredProperties,
   SatelliteProperties,
   ConeSnapshot,
+  SatelliteConeSnapshotListener,
 } from '@/views/aviation-situation/types/satellite.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
@@ -21,6 +23,13 @@ import {
   handleSatelliteLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
 import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import {
+  registerSatelliteRadarMaterial,
+  SATELLITE_RADAR_DEFAULTS,
+  SatelliteRadarMaterialProperty
+} from '@/views/aviation-situation/composables/satellite/satellite-radar-material.ts'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import type { Airport } from '@/network/airport/type'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -29,16 +38,6 @@ const CYLINDER_DEFAULTS = {
   minLengthM: 1,
   bottomRadiusM: 200_000
 }
-const SATELLITE_RADAR_MATERIAL_TYPE = 'SatelliteRadarPrimitive'
-const SATELLITE_RADAR_DEFAULTS = {
-  color: Cesium.Color.CYAN.withAlpha(0.85),
-  durationMs: 2200,
-  repeat: 30,
-  offset: 0,
-  thickness: 0.12,
-}
-let isSatelliteRadarMaterialRegistered = false
-const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 
 const SATELLITE_TICK_THROTTLE_MS = {
   visualCylinderLength: 100,
@@ -53,117 +52,12 @@ type SatelliteFilterQuery = {
 }
 type SatelliteTooltipProperties = SatelliteHoveredProperties & { type: string }
 type SatelliteRenderState = {
-  data: Satellite
+  data: MatchedSatellite
   entity: Cesium.Entity
   positionProperty: Cesium.SampledPositionProperty
   cylinderProps: {
     length: Cesium.ConstantProperty
     bottomRadius: Cesium.ConstantProperty
-  }
-}
-
-interface SatelliteRadarMaterialOptions {
-  color?: Cesium.Color
-  durationMs?: number
-  repeat?: number
-  offset?: number
-  thickness?: number
-  phase?: number
-}
-
-const registerSatelliteRadarMaterial = () => {
-  if (isSatelliteRadarMaterialRegistered) return
-
-  ;(Cesium.Material as any)._materialCache.addMaterial(SATELLITE_RADAR_MATERIAL_TYPE, {
-    fabric: {
-      type: SATELLITE_RADAR_MATERIAL_TYPE,
-      uniforms: {
-        color: SATELLITE_RADAR_DEFAULTS.color,
-        time: 0,
-        repeat: SATELLITE_RADAR_DEFAULTS.repeat,
-        offset: SATELLITE_RADAR_DEFAULTS.offset,
-        thickness: SATELLITE_RADAR_DEFAULTS.thickness,
-      },
-      source: `
-        uniform vec4 color;
-        uniform float time;
-        uniform float repeat;
-        uniform float offset;
-        uniform float thickness;
-
-        czm_material czm_getMaterial(czm_materialInput materialInput) {
-          czm_material material = czm_getDefaultMaterial(materialInput);
-          vec2 st = materialInput.st;
-          float spacing = 1.0 / repeat;
-          float radial = distance(st, vec2(0.5));
-          float m = mod(radial + offset - time, spacing);
-          float alpha = step(spacing * (1.0 - thickness), m);
-          material.diffuse = color.rgb;
-          material.alpha = alpha * color.a;
-          return material;
-        }
-      `,
-    },
-    translucent: () => true,
-  })
-
-  isSatelliteRadarMaterialRegistered = true
-}
-
-class SatelliteRadarMaterialProperty {
-  private readonly _definitionChanged = new Cesium.Event()
-  private readonly _color: Cesium.Color
-  private readonly durationMs: number
-  private readonly repeat: number
-  private readonly offset: number
-  private readonly thickness: number
-  private readonly phase: number
-
-  constructor(options: SatelliteRadarMaterialOptions = {}) {
-    this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
-    this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
-    this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
-    this.offset = options.offset ?? SATELLITE_RADAR_DEFAULTS.offset
-    this.thickness = options.thickness ?? SATELLITE_RADAR_DEFAULTS.thickness
-    this.phase = options.phase ?? Math.random()
-  }
-
-  get isConstant() {
-    return false
-  }
-
-  get definitionChanged() {
-    return this._definitionChanged
-  }
-
-  getType() {
-    return SATELLITE_RADAR_MATERIAL_TYPE
-  }
-
-  getValue(time: Cesium.JulianDate, result?: Record<string, unknown>) {
-    const materialResult = result ?? {}
-    const elapsedSeconds = Cesium.JulianDate.secondsDifference(time, RADAR_TIME_EPOCH)
-    const elapsedMs = elapsedSeconds * 1000
-    const normalizedTime = ((elapsedMs + this.phase * this.durationMs) % this.durationMs) / this.durationMs / 10
-    materialResult.color = this._color
-    materialResult.time = normalizedTime
-    materialResult.repeat = this.repeat
-    materialResult.offset = this.offset
-    materialResult.thickness = this.thickness
-    return materialResult
-  }
-
-  equals(other: unknown) {
-    return (
-      this === other ||
-      (other instanceof SatelliteRadarMaterialProperty &&
-        Cesium.Color.equals(this._color, other._color) &&
-        this.durationMs === other.durationMs &&
-        this.repeat === other.repeat &&
-        this.offset === other.offset &&
-        this.thickness === other.thickness &&
-        this.phase === other.phase)
-    )
   }
 }
 
@@ -180,10 +74,10 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
   const aviationSelectionStore = useAviationSelectionStore()
   const satelliteStore = useSatelliteStore()
 
-  let onConeTick: ((snapshots: ConeSnapshot[]) => void) | null = null
+  let onConeTick: SatelliteConeSnapshotListener | null = null
 
-  const registerSatelliteDataUpdatedListener = (listener: (() => void) | null): void => {
-    onConeTick = listener //发送事件
+  const registerSatelliteDataUpdatedListener = (listener: SatelliteConeSnapshotListener | null): void => {
+    onConeTick = listener
   }
 
   const satelliteRenderMap = new Map<string, SatelliteRenderState>()
@@ -209,7 +103,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         SATELLITE_TICK_THROTTLE_MS.satelliteStoreSync
 
     if (!shouldRunVisualTick && !shouldRunConeScanTick && !shouldRunStoreSyncTick) return
-    const coneSnapshots: ConeSnapshot[] = []
+    const aircraftConeSnapshots: ConeSnapshot[] = []
+    const airportConeSnapshots: ConeSnapshot[] = []
 
     let hasSatelliteStoreMutation = false
     for (const [key] of satelliteStore.matchedSatellites.entries()) {
@@ -241,23 +136,38 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
           new Cesium.Cartesian3()
         )
 
-        coneSnapshots.push({
+        const coneSnapshot: ConeSnapshot = {
           id: key,
-          topRadius:0,
-          bottomRadius:bottomRadius,
-          length:height,
-          apexPosition:position,
+          topRadius: 0,
+          bottomRadius,
+          length: height,
+          apexPosition: position,
           axisDirection,
-          //geodetic
-          lngLatAlt:{
+          scan: { ...item.data.scan },
+          lngLatAlt: {
             longitude,
             latitude,
             height,
-          }
-        } as ConeSnapshot)
+          },
+        }
+
+        switch (item.data.scan.target) {
+          case 'aircraft':
+            aircraftConeSnapshots.push(coneSnapshot)
+            break
+          case 'airport':
+            airportConeSnapshots.push(coneSnapshot)
+            break
+          case 'all':
+            aircraftConeSnapshots.push(coneSnapshot)
+            airportConeSnapshots.push(coneSnapshot)
+            break
+          case 'none':
+            break
+        }
       }
 
-      const satellite:Satellite=item.data
+      const satellite: MatchedSatellite = item.data
       if(
         shouldRunVisualTick &&
         aviationSelectionStore.hovered?.sourceType === 'satellite' &&
@@ -308,7 +218,13 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunConeScanTick) {
-      onConeTick?.(coneSnapshots)
+      const scanResults = onConeTick?.(aircraftConeSnapshots, airportConeSnapshots)
+      if (scanResults) {
+        satelliteStore.applyConeScanResults(
+          scanResults.aircraftBySatelliteId,
+          scanResults.airportBySatelliteId,
+        )
+      }
       lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
@@ -328,7 +244,9 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
 
   const unregisterClockTick = () => {
     if (!isClockTickRegistered) return
-    viewer.value.clock.onTick.removeEventListener(updateSatelliteCylinderLengths)
+    if (viewer.value!==null&&!viewer.value.isDestroyed()) {
+      viewer.value.clock.onTick.removeEventListener(updateSatelliteCylinderLengths)
+    }
     isClockTickRegistered = false
   }
 
@@ -337,8 +255,15 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     setupSatelliteFilterFormWatch()
   }
 
-  const drawSatellites=(satellites:Satellite[])=>{
-    for(const satellite of satellites){
+  const drawSatellites = (satellites: Satellite[]) => {
+    for (const satellite of satellites) {
+      const matchedSatellite = satellite as MatchedSatellite
+      matchedSatellite.aircraft = {
+        aircraftMap: new Map<string, Aircraft>(),
+      }
+      matchedSatellite.airport = {
+        airportMap: new Map<string, Airport>(),
+      }
       const positionProperty = new Cesium.SampledPositionProperty();
 
       if (!satellite.availability) continue
@@ -436,8 +361,8 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
         }
       })
 
-      satelliteRenderMap.set(satellite.id,{
-        data:satellite,
+      satelliteRenderMap.set(matchedSatellite.id, {
+        data: matchedSatellite,
         entity:entity,
         positionProperty,
         cylinderProps

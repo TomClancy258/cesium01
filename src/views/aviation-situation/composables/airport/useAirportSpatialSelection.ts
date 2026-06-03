@@ -70,7 +70,10 @@ export function useAirportSpatialSelection({
     })
 
     spatialSelectionStore.batchSetAirportSpatialSelection(hitIcaos)
-  },200,true,true)
+  },200,
+    true,
+    false
+  )
 
   const clearActiveSpatialSelection = () => {
     spatialSelectionStore.activeSpatialSelection.airport.icaoSet.forEach((id) => {

@@ -61,6 +61,7 @@ export function highlightBillboardOnSpatialSelection(
 export function clearSpatialSelectedHighlight(dataSourceName: string, billboard: Cesium.Billboard): void {
   const properties = getBillboardProperties(billboard)
   const dataSourceNames:Set<string>=properties.sets.dataSourceName
+  if(!dataSourceNames.has(dataSourceName))return
   dataSourceNames.delete(dataSourceName)
 
   // 只在最后一个区域移除时才改回原始图片，避免冗余赋值
@@ -89,6 +90,7 @@ export function highlightBillboardOnSatelliteConeScan(
 export function clearSatelliteConeScanSelectedHighlight(satelliteId: string, billboard: Cesium.Billboard): void {
   const properties = getBillboardProperties(billboard)
   const coneScanSatelliteIds:Set<string>=properties.sets.coneScanSatelliteId
+  if (!coneScanSatelliteIds.has(satelliteId)) return
   coneScanSatelliteIds.delete(satelliteId)
 
   // 只在最后一个区域移除时才改回原始图片，避免冗余赋值
