@@ -11,7 +11,7 @@ export const useAirportStore = defineStore('useAirportStore', () => {
   const airportFilterForm = reactive<AirportFilterForm>({
     icao: '',
     // country: '',
-    countries: selectedContinentCountryValues,
+    countries: [...selectedContinentCountryValues],
     name: '',
     riskLevel: 'all',
     visible: true, // 飞机显示状态
@@ -38,7 +38,7 @@ export const useAirportStore = defineStore('useAirportStore', () => {
   const resetAirportFilterForm = () => {
     airportFilterForm.icao = ''
     // airportFilterForm.country = ''
-    airportFilterForm.countries = selectedContinentCountryValues
+    airportFilterForm.countries = [...selectedContinentCountryValues]
     airportFilterForm.name = ''
     airportFilterForm.riskLevel = 'all'
     airportFilterForm.visible = true

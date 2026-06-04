@@ -79,13 +79,13 @@ const paged = computed(() =>
 
       <el-form :inline="true" size="default" style="margin-bottom: 4px">
         <el-form-item label="icao">
-          <el-input v-model="filterIcao" clearable @input="currentPage = 1" />
+          <el-input v-model="filterIcao" clearable  />
         </el-form-item>
         <el-form-item label="机场名称">
-          <el-input v-model="filterName" clearable @input="currentPage = 1" />
+          <el-input v-model="filterName" clearable  />
         </el-form-item>
         <el-form-item label="机场国家">
-          <el-input v-model="filterCountry" clearable @input="currentPage = 1" />
+          <el-input v-model="filterCountry" clearable  />
         </el-form-item>
         <el-form-item>
           <el-button @click="resetFilter">重置</el-button>

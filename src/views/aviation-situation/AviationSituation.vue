@@ -2,19 +2,16 @@
 //src/views/aviation-situation/AviationSituation.vue
 import { useCloned } from '@vueuse/core'
 import { cloneDeep } from 'lodash-es'
-import { onMounted, provide, ref, onUnmounted } from 'vue'
+import { onMounted, provide, ref, onUnmounted, computed } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
-import { useAirports } from './composables/airport/useAirports'
-import { useAircrafts } from './composables/aircraft/useAircrafts'
+import { useAviationWiring } from './composables/useAviationWiring'
 import { useBuildings } from './composables/useBuildings'
-import { useSatellites } from './composables/satellite/useSatellites'
 import { useSpatialSelection } from './composables/useSpatialSelection'
-import { useAviationCoordinator } from './composables/useAviationCoordinator'
 
 import MapToolsDrawer from './components/map-tools/MapToolsDrawer.vue'
 import DetailDrawer from './components/detail/DetailDrawer.vue'
@@ -24,7 +21,6 @@ import { useAirportStore } from '@/stores/airport'
 import { useSimulatedWebSocketStore } from '@/stores/simulate-websocket'
 import { clearSelectedBillboardHighlight } from './composables/highlight-manager/billboard-highlight-manager'
 
-import { useCesiumMouseEvents } from './composables/cesium-events/useCesiumMouseEvents' // 仅初始化事件监听
 import { initCesiumCameraEvents } from './composables/cesium-events/cesium-camera-events'
 
 import { useSpatialSelectionStore } from '@/stores/spatial-selection.ts'
@@ -61,73 +57,46 @@ const spatialSelectionStore = useSpatialSelectionStore()
 const drawingToolStore = useDrawingToolStore()
 const distanceMeasurementStore = useDistanceMeasurementStore()
 
-// 初始化飞机/机场模块（内部已自动订阅事件）
 const {
-  initAircrafts,
-  loadAndDrawAircrafts,
-  syncAircraftsData,
-  tooltip: aircraftTooltip,
-  filterAircrafts,
-  matchedAircraftCount,
-  matchedAircrafts,
-  flyToMatchedAircrafts,
-  flyToAircraftByIcao24,
-  registerAviationDataUpdatedListener: registerAircraftAviationDataUpdatedListener,
-  refreshSatelliteConeScan:refreshSatelliteConeScanWithAircraft
-} = useAircrafts(cesiumViewer)
+  mouseEvents: {
+    initEvents: initCesiumEvents,
+    destroyEvents,
+  },
+  aircraft: {
+    initAircrafts,
+    loadAndDrawAircrafts,
+    tooltip: aircraftTooltip,
+    filterAircrafts,
+    flyToAircraftByIcao24,
+  },
+  airport: {
+    initAirports,
+    loadAndDrawAirports,
+    tooltip: airportTooltip,
+    filterAirports,
+    flyToAirportByIcao,
+  },
+  satellites: {
+    initSatellites,
+    loadAndDrawSatellites,
+    tooltip: satelliteTooltip,
+    filterSatellites,
+    flyToSatelliteById,
+  },
+} = useAviationWiring(cesiumViewer)
 
-const {
-  initAirports,
-  loadAndDrawAirports,
-  tooltip: airportTooltip,
-  filterAirports,
-  matchedAirportCount,
-  flyToAirportByIcao,
-  registerAviationDataUpdatedListener: registerAirportAviationDataUpdatedListener,
-  refreshSatelliteConeScan:refreshSatelliteConeScanWithAirport
-} = useAirports(cesiumViewer)
-
-const {
-  initSatellites,
-  loadAndDrawSatellites,
-  tooltip: satelliteTooltip,
-  filterSatellites,
-  flyToSatelliteById,
-  registerSatelliteDataUpdatedListener,
-} = useSatellites(cesiumViewer)
+const matchedAircraftCount = computed(() => aircraftStore.matchedAircrafts.size)
+const matchedAirportCount = computed(() => airportStore.matchedAirports.size)
 
 const { initBuildings } = useBuildings(cesiumViewer)
 
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
-
-// 初始化Cesium事件监听（仅发布事件，不处理业务）
-const {
-  initEvents: initCesiumEvents,
-  destroyEvents,
-
-  //包含以下三个函数
-  //onPolygonAviationDataUpdated()
-  //onCircleAviationDataUpdated()
-  //onHemisphereAviationDataUpdated()
-  refreshActiveSpatialSelections,
-} = useCesiumMouseEvents(cesiumViewer)
-
-const { initAviationCoordinator, destroyAviationCoordinator } = useAviationCoordinator({
-  registerAircraftAviationDataUpdatedListener,
-  registerAirportAviationDataUpdatedListener,
-  registerSatelliteDataUpdatedListener,
-
-  refreshActiveSpatialSelections,
-  refreshSatelliteConeScanWithAircraft,
-  refreshSatelliteConeScanWithAirport,
-})
 
 const detailDrawerRef = ref(null)
 
 onMounted(async () => {
   initCesiumViewer() // 初始化Cesium Viewer
   initCesiumEvents() // 初始化事件监听（仅拾取和发布）
-  initAviationCoordinator()
 
   initCesiumCameraEvents(cesiumViewer)
 
@@ -175,7 +144,6 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  destroyAviationCoordinator()
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
   aviationSelectionStore.clearSelected()
@@ -222,9 +190,8 @@ provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
 provide('filterSatellites', filterSatellites)
 provide('matchedAircraftCount', matchedAircraftCount)
-provide('matchedAircrafts', matchedAircrafts)
+provide('matchedAircrafts', aircraftStore.matchedAircrafts)
 provide('matchedAirportCount', matchedAirportCount)
-provide('flyToMatchedAircrafts', flyToMatchedAircrafts)
 provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)

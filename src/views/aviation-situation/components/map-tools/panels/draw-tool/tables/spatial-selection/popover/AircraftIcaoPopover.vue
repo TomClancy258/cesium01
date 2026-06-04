@@ -79,13 +79,13 @@ const paged = computed(() =>
 
       <el-form :inline="true" size="default" style="margin-bottom: 4px">
         <el-form-item label="icao24">
-          <el-input v-model="filterIcao24" clearable @input="currentPage = 1" />
+          <el-input v-model="filterIcao24" clearable  />
         </el-form-item>
         <el-form-item label="呼号">
-          <el-input v-model="filterCallsign" clearable @input="currentPage = 1" />
+          <el-input v-model="filterCallsign" clearable  />
         </el-form-item>
         <el-form-item label="国籍">
-          <el-input v-model="filterOriginCountry" clearable @input="currentPage = 1" />
+          <el-input v-model="filterOriginCountry" clearable  />
         </el-form-item>
         <el-form-item>
           <el-button @click="resetFilter">重置</el-button>

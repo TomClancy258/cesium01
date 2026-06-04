@@ -57,7 +57,14 @@ import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRip
 
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
 
-export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
+export interface UseAirportsOptions {
+  onAviationDataUpdated?: () => void
+}
+
+export function useAirports(
+  viewer: ShallowRef<Cesium.Viewer>,
+  options: UseAirportsOptions = {},
+) {
   const AIRPORT_LABEL_DISTANCE = 2000 * 1000 // 机场标签显示阈值（米）
   const AIRPORT_SHOW_DISTANCE = 400 * 1000 // 机场整体显示阈值（米）
   const airportStore = useAirportStore()
@@ -70,10 +77,9 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
   })
 
   const airportRenderMap = new Map<string, AirportRenderItem>()
-  let aviationDataUpdatedListener: (() => void) | null = null
 
-  const registerAviationDataUpdatedListener = (listener: (() => void) | null): void => {
-    aviationDataUpdatedListener = listener
+  const notifyAviationDataUpdated = (): void => {
+    options.onAviationDataUpdated?.()
   }
 
   const airportGraphic: AirportGraphic = markRaw({
@@ -329,7 +335,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
     })
     airportStore.commitMatchedAirports()
     finishedSpatialSelection()
-    aviationDataUpdatedListener?.()
+    notifyAviationDataUpdated()
     // 高亮匹配项
   }, 300)
 
@@ -471,7 +477,7 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
     airportGraphic.primitives.labels.removeAll()
     // airportRiskRipple.clear()
     airportRenderMap.clear() // ✅ 一行清空
-    matchedAirportCount.value = 0
+    airportStore.clearMatchedAirports()
   }
 
   let unwatchAirportFilterForm: () => void
@@ -524,7 +530,6 @@ export function useAirports(viewer: ShallowRef<Cesium.Viewer>) {
 
     filterAirports,
     flyToAirportByIcao,
-    registerAviationDataUpdatedListener,
     refreshSatelliteConeScan,
   }
 }

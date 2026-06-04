@@ -8,7 +8,10 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { useAircraftStore } from '@/stores/aircraft'
 import type { ConeSnapshot } from '@/views/aviation-situation/types/satellite'
-import { isPointInCone } from '@/views/aviation-situation/utils/satellite-cone-utils'
+import {
+  createConeQueryContext,
+  isPointInConeWithContext,
+} from '@/views/aviation-situation/utils/satellite-cone-utils'
 
 interface Options {
   viewer: ShallowRef<Cesium.Viewer>
@@ -22,17 +25,18 @@ export function useAircraftConeScannedBySatellite({
 }: Options) {
   const aircraftStore = useAircraftStore()
 
-  const refreshSatelliteConeScan = (coneSnapshots: ConeSnapshot[]) => {
+  const refreshSatelliteConeScan = (coneSnapshots: ConeSnapshot[]):Map<string, Map<string, Aircraft>> => {
     const aircraftBySatelliteId = new Map<string, Map<string, Aircraft>>()
 
     for (const coneSnapshot of coneSnapshots) {
+      const coneCtx = createConeQueryContext(coneSnapshot)
       const aircraftMap = new Map<string, Aircraft>()
       for (const icao24 of aircraftStore.matchedAircrafts.keys()) {
         const item = renderMap.get(icao24)
         if (!item) continue
 
         const position: Cesium.Cartesian3 = item.billboard.position
-        const inGraphic = isPointInCone(position, coneSnapshot, true)
+        const inGraphic = isPointInConeWithContext(position, coneCtx)
 
         //高亮优先级：框选>卫星扫描
         if (inGraphic) {

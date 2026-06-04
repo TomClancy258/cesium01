@@ -38,20 +38,23 @@ import { useAircraftInteractions } from './useAircraftInteractions'
 import { useAircraftRenderer } from './useAircraftRenderer'
 import { useAircraftSync } from './useAircraftSync'
 
-export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
+export interface UseAircraftsOptions {
+  onAviationDataUpdated?: () => void
+}
+
+export function useAircrafts(
+  viewer: ShallowRef<Cesium.Viewer>,
+  options: UseAircraftsOptions = {},
+) {
   const aviationSelectionStore = useAviationSelectionStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
   const aircraftStore = useAircraftStore()
   const aircraftRiskRipple = useAircraftRiskRipple(viewer)
 
   const aircraftRenderMap = new Map<string, AircraftRenderItem>()
-  let aviationDataUpdatedListener: (() => void) | null = null
 
-  const registerAviationDataUpdatedListener = (listener: (() => void) | null): void => {
-    aviationDataUpdatedListener = listener //发送事件
-  }
   const notifyAviationDataUpdated = (): void => {
-    aviationDataUpdatedListener?.()
+    options.onAviationDataUpdated?.()
   }
 
   const syncAircraftRiskRipple = (
@@ -369,7 +372,6 @@ export function useAircrafts(viewer:ShallowRef<Cesium.Viewer>) {
     tooltip,
     filterAircrafts,
     flyToAircraftByIcao24,
-    registerAviationDataUpdatedListener,
     refreshSatelliteConeScan,
   }
 }

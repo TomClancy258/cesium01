@@ -91,6 +91,9 @@ export function clearSatelliteConeScanSelectedHighlight(satelliteId: string, bil
   const properties = getBillboardProperties(billboard)
   const coneScanSatelliteIds:Set<string>=properties.sets.coneScanSatelliteId
   if (!coneScanSatelliteIds.has(satelliteId)) return
+  // if (coneScanSatelliteIds.size === 0) {
+  //   return
+  // }
   coneScanSatelliteIds.delete(satelliteId)
 
   // 只在最后一个区域移除时才改回原始图片，避免冗余赋值

@@ -9,7 +9,6 @@ import type {
   SatelliteHoveredProperties,
   SatelliteProperties,
   ConeSnapshot,
-  SatelliteConeSnapshotListener,
 } from '@/views/aviation-situation/types/satellite.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
@@ -30,6 +29,9 @@ import {
 } from '@/views/aviation-situation/composables/satellite/satellite-radar-material.ts'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
+import {
+  airplaneBlueSvgDataUrl
+} from '@/views/aviation-situation/composables/aircraft/aircraft-constants'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -69,16 +71,22 @@ function cylinderLengthFromPosition(positionProperty: Cesium.SampledPositionProp
   return Math.max(carto.height, CYLINDER_DEFAULTS.minLengthM)
 }
 
-export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
+export interface UseSatellitesOptions {
+  refreshSatelliteConeScanWithAircraft?: (
+    coneSnapshots: ConeSnapshot[],
+  ) => Map<string, Map<string, Aircraft>>
+  refreshSatelliteConeScanWithAirport?: (
+    coneSnapshots: ConeSnapshot[],
+  ) => Map<string, Map<string, Airport>>
+}
+
+export function useSatellites(
+  viewer: ShallowRef<Cesium.Viewer>,
+  options: UseSatellitesOptions = {},
+) {
   registerSatelliteRadarMaterial()
   const aviationSelectionStore = useAviationSelectionStore()
   const satelliteStore = useSatelliteStore()
-
-  let onConeTick: SatelliteConeSnapshotListener | null = null
-
-  const registerSatelliteDataUpdatedListener = (listener: SatelliteConeSnapshotListener | null): void => {
-    onConeTick = listener
-  }
 
   const satelliteRenderMap = new Map<string, SatelliteRenderState>()
   const lastCylinderHeightBySatelliteId = new Map<string, number>()
@@ -218,13 +226,18 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
       lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunConeScanTick) {
-      const scanResults = onConeTick?.(aircraftConeSnapshots, airportConeSnapshots)
-      if (scanResults) {
+      const {
+        refreshSatelliteConeScanWithAircraft,
+        refreshSatelliteConeScanWithAirport,
+      } = options
+
+      if (refreshSatelliteConeScanWithAircraft || refreshSatelliteConeScanWithAirport) {
         satelliteStore.applyConeScanResults(
-          scanResults.aircraftBySatelliteId,
-          scanResults.airportBySatelliteId,
+          refreshSatelliteConeScanWithAircraft?.(aircraftConeSnapshots) ?? new Map(),
+          refreshSatelliteConeScanWithAirport?.(airportConeSnapshots) ?? new Map(),
         )
       }
+
       lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
     }
     if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
@@ -549,7 +562,5 @@ export function useSatellites(viewer:ShallowRef<Cesium.Viewer>) {
     tooltip,
     filterSatellites,
     flyToSatelliteById,
-
-    registerSatelliteDataUpdatedListener,
   }
 }
