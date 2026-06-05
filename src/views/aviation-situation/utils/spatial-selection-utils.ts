@@ -70,8 +70,10 @@ export function isPointInSelectionRegion(
   } = selectionRegion
 
   if (sourceType === 'polygonSpatialSelection') {
-    if (lngLat[0] < bbox![0] || lngLat[0] > bbox![2] ||
-      lngLat[1] < bbox![1] || lngLat[1] > bbox![3]) return false
+    const regionBbox = bbox ?? selectionRegion.bbox
+    if (!regionBbox) return false
+    if (lngLat[0] < regionBbox[0] || lngLat[0] > regionBbox[2] ||
+      lngLat[1] < regionBbox[1] || lngLat[1] > regionBbox[3]) return false
     return turf.booleanPointInPolygon(turf.point(lngLat), graphic)
   }
   if (sourceType === 'circleSpatialSelection') {
@@ -103,6 +105,7 @@ export function buildRegionFromData(data: FinishedSpatialSelectionData): Selecti
     return {
       ...base,
       graphic: data.graphic,
+      bbox: turf.bbox(data.graphic),
       label: {
         perimeterInfo: { ...data.label.perimeterInfo },
         areaInfo: { ...data.label.areaInfo },

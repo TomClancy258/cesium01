@@ -96,18 +96,12 @@ export function useAirportSpatialSelection({
       // 该选区不关心机场，跳过
       if (selectionRegion.spatialSelectionTarget === 'aircraft') continue
 
-      // 提前计算 polygon bbox，避免循环内重复计算
-      let bbox: turf.BBox | undefined = undefined
-      if (selectionRegion.sourceType === 'polygonSpatialSelection' && selectionRegion.graphic) {
-        bbox = turf.bbox(selectionRegion.graphic)
-      }
-
       airportStore.matchedAirports.keys().forEach((icao) => {
         const item = renderMap.get(icao)
         if (!item) return
 
         const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
-        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion, bbox)
+        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
 
         if (inGraphic) {
           spatialSelectionStore.addAirportToFinishedSelection(dataSourceName, item.data)

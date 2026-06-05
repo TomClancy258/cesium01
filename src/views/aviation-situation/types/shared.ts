@@ -190,6 +190,8 @@ export interface SelectionRegionBase {
   type: string
   sourceType: string
   graphic?: Graphic
+  /** polygon 选区创建时预计算的包围盒，供点-in-选区预筛 */
+  bbox?: turf.BBox
   centroidLngLatAlt?: LngLatAlt
   centerLngLatAltArray?: number[]
   aircraft: { aircraftMap: Map<string, Aircraft> }

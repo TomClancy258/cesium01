@@ -350,6 +350,8 @@ export function useMyPromise() {
     }
   }
 
+  // class MyPromise
+
   const testMyPromise02 = () => {
     const myPromise02 = new MyPromise02((resolve, reject) => {
       // setTimeout(()=>{

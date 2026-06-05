@@ -41,10 +41,11 @@ const CYLINDER_DEFAULTS = {
   bottomRadiusM: 200_000
 }
 
+//不同的throttle时间，ms
 const SATELLITE_TICK_THROTTLE_MS = {
-  visualCylinderLength: 100,
-  coneScan: 1000,
-  satelliteStoreSync: 500,
+  visualCylinderLength: 100, //每100ms改变圆锥体的长度
+  coneScan: 1000, //每1秒进行圆锥体扫描
+  satelliteStoreSync: 500, //每500ms更新store里的卫星table信息
 }
 const CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M = 5
 type SatelliteFilterQuery = {
@@ -91,16 +92,16 @@ export function useSatellites(
   const satelliteRenderMap = new Map<string, SatelliteRenderState>()
   const lastCylinderHeightBySatelliteId = new Map<string, number>()
   let isClockTickRegistered = false
-  let lastVisualTickTime: Cesium.JulianDate | null = null
-  let lastConeScanTickTime: Cesium.JulianDate | null = null
-  let lastStoreSyncTickTime: Cesium.JulianDate | null = null
+  let lastVisualTickTime: Cesium.JulianDate | null = null //上次 visual tick   更新圆锥高度 + hover tooltip
+  let lastConeScanTickTime: Cesium.JulianDate | null = null //上次 cone scan tick   锥体扫描飞机/机场
+  let lastStoreSyncTickTime: Cesium.JulianDate | null = null //上次 store sync tick   同步卫星坐标到 Pinia
 
   const updateSatelliteCylinderLengths = (clock: Cesium.Clock) => {
     const time = clock.currentTime
     const shouldRunVisualTick =
       !lastVisualTickTime ||
       Math.abs(Cesium.JulianDate.secondsDifference(time, lastVisualTickTime)) * 1000 >=
-        SATELLITE_TICK_THROTTLE_MS.visualCylinderLength
+        SATELLITE_TICK_THROTTLE_MS.visualCylinderLength //若当前时间time与上一次执行visual时间的秒差>=间隔
     const shouldRunConeScanTick =
       !lastConeScanTickTime ||
       Math.abs(Cesium.JulianDate.secondsDifference(time, lastConeScanTickTime)) * 1000 >=
@@ -126,8 +127,8 @@ export function useSatellites(
       const latitude=Cesium.Math.toDegrees(carto.latitude)
       const height=carto.height
 
-      if (shouldRunVisualTick) {
-        const previousHeight = lastCylinderHeightBySatelliteId.get(key)
+      if (shouldRunVisualTick) { //更新圆锥高度 + hover tooltip
+        const previousHeight = lastCylinderHeightBySatelliteId.get(key) //上一次的圆锥体高度
         if (
           previousHeight === undefined ||
           Math.abs(height - previousHeight) >= CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M
@@ -137,7 +138,7 @@ export function useSatellites(
         }
       }
 
-      if (shouldRunConeScanTick) {
+      if (shouldRunConeScanTick) { //锥体扫描飞机/机场
         const bottomRadius=item.cylinderProps.bottomRadius.getValue()
         const axisDirection = Cesium.Cartesian3.normalize(
           Cesium.Cartesian3.negate(position, new Cesium.Cartesian3()),
@@ -211,7 +212,7 @@ export function useSatellites(
        aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
       }
 
-      if (shouldRunStoreSyncTick) {
+      if (shouldRunStoreSyncTick) { //同步卫星坐标到 Pinia，即更新底部drawer里的卫星table
         const lngLatAlt=satellite.lngLatAlt
         lngLatAlt.longitude=longitude
         lngLatAlt.latitude=latitude
@@ -223,7 +224,13 @@ export function useSatellites(
     }
 
     if (shouldRunVisualTick) {
-      lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
+      // lastVisualTickTime = Cesium.JulianDate.clone(time, lastVisualTickTime ?? new Cesium.JulianDate())
+      if (lastVisualTickTime === null) {
+        lastVisualTickTime = new Cesium.JulianDate()  // 新建独立空容器 B 赋值给lastVisualTickTime
+      }
+      //Cesium.JulianDate.clone(a, b)
+      //                    把 a 复制到 b，并返回 b
+      Cesium.JulianDate.clone(time, lastVisualTickTime)  // 把 A 的数值拷进 B
     }
     if (shouldRunConeScanTick) {
       const {
@@ -233,19 +240,29 @@ export function useSatellites(
 
       if (refreshSatelliteConeScanWithAircraft || refreshSatelliteConeScanWithAirport) {
         satelliteStore.applyConeScanResults(
-          refreshSatelliteConeScanWithAircraft?.(aircraftConeSnapshots) ?? new Map(),
-          refreshSatelliteConeScanWithAirport?.(airportConeSnapshots) ?? new Map(),
+          refreshSatelliteConeScanWithAircraft?.(aircraftConeSnapshots),
+          refreshSatelliteConeScanWithAirport?.(airportConeSnapshots),
         )
       }
 
-      lastConeScanTickTime = Cesium.JulianDate.clone(time, lastConeScanTickTime ?? new Cesium.JulianDate())
+      if (lastConeScanTickTime === null) {
+        lastConeScanTickTime = new Cesium.JulianDate()
+      }
+      Cesium.JulianDate.clone(time, lastConeScanTickTime)
     }
     if (shouldRunStoreSyncTick && hasSatelliteStoreMutation) {
       //更新底部drawer里卫星table的信息，如坐标
       satelliteStore.commitMatchedSatellites()
-      lastStoreSyncTickTime = Cesium.JulianDate.clone(time, lastStoreSyncTickTime ?? new Cesium.JulianDate())
+
+      if (lastStoreSyncTickTime === null) {
+        lastStoreSyncTickTime = new Cesium.JulianDate()
+      }
+      Cesium.JulianDate.clone(time, lastStoreSyncTickTime)
     } else if (shouldRunStoreSyncTick) {
-      lastStoreSyncTickTime = Cesium.JulianDate.clone(time, lastStoreSyncTickTime ?? new Cesium.JulianDate())
+      if (lastStoreSyncTickTime === null) {
+        lastStoreSyncTickTime = new Cesium.JulianDate()
+      }
+      Cesium.JulianDate.clone(time, lastStoreSyncTickTime)
     }
   }
 

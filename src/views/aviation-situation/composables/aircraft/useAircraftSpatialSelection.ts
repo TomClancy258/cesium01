@@ -1,7 +1,10 @@
 // src/views/aviation-situation/composables/useAircraftSpatialSelection.ts
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef } from 'vue'
-import type { AviationRenderItem, SpatialSelectionData } from '@/views/aviation-situation/types/shared.ts'
+import type {
+  AviationRenderItem,
+  SpatialSelectionData,
+} from '@/views/aviation-situation/types/shared.ts'
 import type { Aircraft } from '@/network/aircraft/type'
 import {
   highlightBillboardOnSpatialSelection,
@@ -10,10 +13,13 @@ import {
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus.ts'
 import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import type { SelectionRegionBase } from '@/views/aviation-situation/types/shared.ts'
-import {buildRegionFromData,isPointInSelectionRegion} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
+import {
+  buildRegionFromData,
+  isPointInSelectionRegion,
+} from '@/views/aviation-situation/utils/spatial-selection-utils.ts'
 import { ClearAircraftSpatialSelectionData } from '@/views/aviation-situation/types/aircraft'
-import {useAircraftStore} from '@/stores/aircraft'
-import {updateFinishedSelectionLabels} from "@/views/aviation-situation/utils/spatial-selection-utils.ts"
+import { useAircraftStore } from '@/stores/aircraft'
+import { updateFinishedSelectionLabels } from '@/views/aviation-situation/utils/spatial-selection-utils.ts'
 import { useThrottleFn } from '@vueuse/core'
 import * as turf from '@turf/turf'
 
@@ -35,45 +41,47 @@ export function useAircraftSpatialSelection({
   // const activeIdSet = new Set<string>()
   let activeDataSourceName = ''
 
-  const activateSpatialSelection = useThrottleFn((data: SpatialSelectionData) => {
-    activeDataSourceName = data.dataSourceName
-    const hitIcao24s: string[] = []
+  const activateSpatialSelection = useThrottleFn(
+    (data: SpatialSelectionData) => {
+      activeDataSourceName = data.dataSourceName
+      const hitIcao24s: string[] = []
 
-    // 提前计算 polygon bbox，避免循环内重复计算
-    let bbox: turf.BBox | undefined = undefined
-    if (data.sourceType === 'polygonSpatialSelection') {
-      const graphicData:turf.Feature<turf.Polygon> = data.graphic
-      if (graphicData) {
-        bbox = turf.bbox(graphicData)
+      // 提前计算 polygon bbox，避免循环内重复计算
+      let bbox: turf.BBox | undefined = undefined
+      if (data.sourceType === 'polygonSpatialSelection') {
+        const graphicData: turf.Feature<turf.Polygon> = data.graphic
+        if (graphicData) {
+          bbox = turf.bbox(graphicData)
+        }
       }
-    }
 
-    aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
-      const item = renderMap.get(icao24)
-      if (!item) return
+      aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
+        const item = renderMap.get(icao24)
+        if (!item) return
 
-      const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
-      const inGraphic = isPointInSelectionRegion(lngLat, data, bbox)
+        const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
+        const inGraphic = isPointInSelectionRegion(lngLat, data, bbox)
 
-      if (inGraphic) {
-        hitIcao24s.push(icao24)
-        highlightBillboardOnSpatialSelection(
-          data.dataSourceName,
-          item.billboard,
-          spatialSelectedImageUrl,
-        )
-      } else {
-        clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
-      }
-    })
+        if (inGraphic) {
+          hitIcao24s.push(icao24)
+          highlightBillboardOnSpatialSelection(
+            data.dataSourceName,
+            item.billboard,
+            spatialSelectedImageUrl,
+          )
+        } else {
+          clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
+        }
+      })
 
-    spatialSelectionStore.batchSetAircraftSpatialSelection(hitIcao24s)
-  },200,
-    true //最终执行一次
-    ,false //立即执行
+      spatialSelectionStore.batchSetAircraftSpatialSelection(hitIcao24s)
+    },
+    200,
+    true, //最终执行一次
+    false, //立即执行
   )
   // },100,true,true)
-// },500,true,true)
+  // },500,true,true)
 
   const clearActiveSpatialSelection = () => {
     spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {
@@ -93,27 +101,20 @@ export function useAircraftSpatialSelection({
     // 1. 清空所有 finished 选区的飞机 Map
     spatialSelectionStore.clearFinishedSelectionAircraftMaps()
 
-    // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
-    aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
-      const item = renderMap.get(icao24)
-      if (!item) return
+    for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
+      // measurement 类型不参与实体统计
+      if (selectionRegion.spatialSelectionTarget === 'measurement') continue
 
-      const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
+      // 该选区不关心飞机，跳过
+      if (selectionRegion.spatialSelectionTarget === 'airport') continue
 
-      for (const [dataSourceName, selectionRegion] of spatialSelectionStore.finishedGraphicMap) {
-        // measurement 类型不参与实体统计
-        if (selectionRegion.spatialSelectionTarget === 'measurement') continue
+      // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
+      aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
+        const item = renderMap.get(icao24)
+        if (!item) return
 
-        // 该选区不关心飞机，跳过
-        if (selectionRegion.spatialSelectionTarget === 'airport') continue
-
-        // 提前计算 polygon bbox，避免循环内重复计算
-        let bbox: turf.BBox | undefined = undefined
-        if (selectionRegion.sourceType === 'polygonSpatialSelection' && selectionRegion.graphic) {
-          bbox = turf.bbox(selectionRegion.graphic)
-        }
-
-        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion, bbox)
+        const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
+        const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
 
         if (inGraphic) {
           spatialSelectionStore.addAircraftToFinishedSelection(dataSourceName, item.data)
@@ -125,14 +126,13 @@ export function useAircraftSpatialSelection({
         } else {
           clearSpatialSelectedHighlight(dataSourceName, item.billboard)
         }
-      }
-    })
+      })
+    }
 
     // 3. 提交新 Map 引用 + 触发响应式更新，并刷新各选区 label
     spatialSelectionStore.commitFinishedAircraftMaps()
     updateFinishedSelectionLabels(viewer)
   }
-
 
   // ---- 事件订阅 ----
   let unsubSpatialSelect: () => void
@@ -151,17 +151,26 @@ export function useAircraftSpatialSelection({
       }
     })
 
-    unsubClearActive = onCesiumEvent('clearAircraftSpatialSelection', (clearAircraftSpatialSelectionData:ClearAircraftSpatialSelectionData|undefined) => {
-      if (clearAircraftSpatialSelectionData===undefined||clearAircraftSpatialSelectionData.isActive) {
-        clearActiveSpatialSelection()
-      }else{
-        for (const icao24 of clearAircraftSpatialSelectionData.aircraft.aircraftMap.keys()) {
-          const item = renderMap.get(icao24)
-          if (!item) return
-          clearSpatialSelectedHighlight(clearAircraftSpatialSelectionData.dataSourceName, item.billboard)
+    unsubClearActive = onCesiumEvent(
+      'clearAircraftSpatialSelection',
+      (clearAircraftSpatialSelectionData: ClearAircraftSpatialSelectionData | undefined) => {
+        if (
+          clearAircraftSpatialSelectionData === undefined ||
+          clearAircraftSpatialSelectionData.isActive
+        ) {
+          clearActiveSpatialSelection()
+        } else {
+          for (const icao24 of clearAircraftSpatialSelectionData.aircraft.aircraftMap.keys()) {
+            const item = renderMap.get(icao24)
+            if (!item) return
+            clearSpatialSelectedHighlight(
+              clearAircraftSpatialSelectionData.dataSourceName,
+              item.billboard,
+            )
+          }
         }
-      }
-    })
+      },
+    )
   }
 
   onUnmounted(() => {

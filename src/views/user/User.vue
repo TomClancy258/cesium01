@@ -3,7 +3,7 @@ import {useMachineTestQuestions} from "./composables/machine-test-question/useMa
 import {useMachineTestQuestionsCopy01} from "./composables/machine-test-question/useMachineTestQuestionsCopy01.ts"
 import {useMachineTestQuestions02} from "./composables/machine-test-question/useMachineTestQuestions02"
 import CSSTest from "@/views/user/components/css/CSSTest.vue"
-import { onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   useMachineTestQuestions08To14
 } from '@/views/user/composables/machine-test-question/useMachineTestQuestions08To14'
@@ -30,6 +30,20 @@ const {
   initMyPromise,
 }=useMyPromise()
 
+const a = ref(20)
+const b = ref(10)
+const aComputed=computed(()=>{
+  console.log('computed')
+  const accumulate=a.value*b.value
+  return accumulate
+})
+
+setTimeout(()=>{
+  a.value=10
+  b.value=20
+},3000)
+
+
 onMounted(()=>{
   // initMachineTestQuestions()
   //  initMachineTestQuestionsCopy01()
@@ -41,10 +55,15 @@ onMounted(()=>{
 
   // const root=
 })
+
+
 </script>
 
 <template>
 <div>
+  {{aComputed}}
+  {{aComputed}}
+  {{aComputed}}
   <CSSTest/>
 </div>
 </template>
