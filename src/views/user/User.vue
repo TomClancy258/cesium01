@@ -2,6 +2,7 @@
 import {useMachineTestQuestions} from "./composables/machine-test-question/useMachineTestQuestions"
 import {useMachineTestQuestionsCopy01} from "./composables/machine-test-question/useMachineTestQuestionsCopy01.ts"
 import {useMachineTestQuestions02} from "./composables/machine-test-question/useMachineTestQuestions02"
+import {useMachineTestQuestions03} from "./composables/machine-test-question/useMachineTestQuestions03"
 import CSSTest from "@/views/user/components/css/CSSTest.vue"
 import { computed, onMounted, ref } from 'vue'
 import {
@@ -20,6 +21,9 @@ const {
 const {
   initMachineTestQuestions02,
 }=useMachineTestQuestions02()
+const {
+  initMachineTestQuestions03,
+}=useMachineTestQuestions03()
 const {
   initMachineTestQuestions08To14,
 }=useMachineTestQuestions08To14()
@@ -51,7 +55,8 @@ onMounted(()=>{
   // initMachineTestQuestions08To14()
 
   // initUseTest70()
-  initMyPromise()
+  // initMyPromise()
+  initMachineTestQuestions03()
 
   // const root=
 })

@@ -1,5 +1,10 @@
 <script setup lang="ts">
-
+import InputChild from '@/views/user/components/css/children/children/InputChild.vue'
+import InputChildMutlpleInput from '@/views/user/components/css/children/children/InputChildMutlpleInput.vue'
+import { ref } from 'vue'
+const input1=ref('aaa')
+const input2=ref('bbb')
+const input3=ref('ccc')
 </script>
 
 <template>
@@ -36,6 +41,11 @@
   </div>
 
   <button id="btn">点击测试</button>
+  input1:{{input1}}<br/>
+  input2:{{input2}}<br/>
+  input3:{{input3}}
+  <InputChild v-model="input1"/>
+  <InputChildMutlpleInput v-model:input2="input2" v-model:input3="input3"/>
 </template>
 
 <style scoped lang="scss">

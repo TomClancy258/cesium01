@@ -4,88 +4,29 @@ export function useMyPromise() {
     // testMyPromise02All()
     // testPromise01()
     // testPromise02()
-    // testPromiseAll()
-    testPromiseCatch()
+    testPromiseAll()
+    // testPromiseCatch()
+    // promiseInterviewQuestions()
   }
-  const testPromiseCatch=()=>{
-    const p1=new Promise((resolve,reject)=>{
+  const testPromiseCatch = () => {
+    const p1 = new Promise((resolve, reject) => {
       // resolve('成功1')
       reject('成功1')
     })
-    const p2=p1.catch((val)=>{
-      console.log("失败时才调用", val);
+    const p2 = p1.catch((val) => {
+      console.log('失败时才调用', val)
       // return '已改正'
     })
-    const p3=p1.then(null,(val)=>{
-      console.log("p3失败时才调用", val);
+    const p3 = p1.then(null, (val) => {
+      console.log('p3失败时才调用', val)
       return '已改正'
     })
-    console.log("p2", p2);
+    console.log('p2', p2)
   }
-
 
   const PENDING = 'pending'
   const FULFILLED = 'fulfilled'
   const REJECTED = 'rejected'
-
-  class MyPromise {
-    state = PENDING
-    result = null
-
-    fulfilledCbs = []
-    rejectedCbs = []
-
-    constructor(executor) {
-      try {
-        executor(this.resolve.bind(this), this.reject.bind(this))
-      } catch (err) {
-        this.reject(err)
-      }
-    }
-
-    resolve(val) {
-      if (this.state == PENDING) {
-        this.result = val
-        this.state = FULFILLED
-        while (this.fulfilledCbs.length > 0) {
-          this.fulfilledCbs.shift()(this.state)
-        }
-      }
-    }
-
-    reject(val) {
-      if (this.state === PENDING) {
-        this.result = val
-        this.state = REJECTED
-        while (this.rejectedCbs.length > 0) {
-          this.rejectedCbs.shift()(this.state)
-        }
-      }
-    }
-
-    then(onFulfilled, onRejected) {
-      onFulfilled =
-        typeof onFulfilled === 'function'
-          ? onFulfilled
-          : (value) => {
-              return value
-            }
-      onRejected =
-        typeof onRejected === 'function'
-          ? onRejected
-          : (reason) => {
-              throw reason
-            }
-      if (this.state == FULFILLED) {
-        onFulfilled(this.result)
-      } else if (this.state == REJECTED) {
-        onRejected(this.result)
-      } else if (this.state == PENDING) {
-        this.fulfilledCbs.push(onFulfilled)
-        this.rejectedCbs.push(onRejected)
-      }
-    }
-  }
 
   const testPromise01 = () => {
     const promise = new Promise((resolve, reject) => {
@@ -186,7 +127,7 @@ export function useMyPromise() {
 
       const p = new MyPromise02((resolve, reject) => {
         const settlePromise = (cb) => {
-          queueMicrotask(()=>{
+          queueMicrotask(() => {
             try {
               const x = cb(this.result)
               //看testMyPromise02里myPromise02.then里的第一个实参里return的新MyPromise02对象：
@@ -209,7 +150,6 @@ export function useMyPromise() {
             } catch (err) {
               reject(err)
             }
-
           })
         }
         if (this.state === FULFILLED) {
@@ -234,23 +174,23 @@ export function useMyPromise() {
      */
     static all(arr) {
       const results = []
-      let num=0
+      let num = 0
       const p = new MyPromise02((resolve, reject) => {
         if (arr.length === 0) {
           resolve([])
           return
         }
-        for (const [index,item] of arr.entries()) {
+        for (const [index, item] of arr.entries()) {
           if (item instanceof MyPromise02) {
-            item.then((itemResult)=>{
-              results[index]=itemResult
+            item.then((itemResult) => {
+              results[index] = itemResult
               num++
               if (num === arr.length) {
                 resolve(results)
               }
-            },reject)
+            }, reject)
           } else {
-            results[index]=item
+            results[index] = item
             num++
             if (num === arr.length) {
               resolve(results)
@@ -267,13 +207,13 @@ export function useMyPromise() {
     数组中的字面量【即非promise类型】，被视为成功的promise
     新promise的状态和结果，和参数数组中最快得到结果的相同
      */
-    static race(arr){
-      return new MyPromise02((resolve,reject)=>{
-        arr.forEach((item,i)=>{
+    static race(arr) {
+      return new MyPromise02((resolve, reject) => {
+        arr.forEach((item, i) => {
           if (item instanceof MyPromise02) {
-            item.then(resolve,reject)
-          }else{
-            queueMicrotask(()=>{
+            item.then(resolve, reject)
+          } else {
+            queueMicrotask(() => {
               resolve(item)
             })
           }
@@ -286,11 +226,11 @@ export function useMyPromise() {
     若参数是一promise对象，则原封不动地返回该对象
     若参数为非promise对象，则返回一成功状态的新promise对象
      */
-    static resolve(val){
+    static resolve(val) {
       if (val instanceof MyPromise02) {
         return val
-      }else{
-        return new MyPromise02((resolve,reject)=>{
+      } else {
+        return new MyPromise02((resolve, reject) => {
           resolve(val)
         })
       }
@@ -300,8 +240,8 @@ export function useMyPromise() {
     必定返回一新promise对象
     参数不管是啥，都会被包裹为失败的一新promise对象
      */
-    static reject(val){
-      return new MyPromise02((resolve,reject)=>{
+    static reject(val) {
+      return new MyPromise02((resolve, reject) => {
         reject(val)
       })
     }
@@ -313,6 +253,7 @@ export function useMyPromise() {
     回调成功 --> then (promise 的结果)
     回调失败 --> then (回调的失败)
      */
+
     /*
     1.finally的实参函数（即回调函数）是return 成功promise【回调函数返回的非promise类型也会自动封装为成功的promise】，
     则finally返回调用finally的promise
@@ -330,14 +271,20 @@ export function useMyPromise() {
      Promise.resolve('成功').finally(() => Promise.reject('成功-失败')).then(null, console.log)
      Promise.reject('失败').finally(() => Promise.reject('失败-失败')).then(null, console.log)
      */
-    finally(callback){
-      return this.then(callback,callback).then(()=>{return this},(error)=>{throw error})
+    finally(callback) {
+      return this.then(callback, callback).then(
+        () => {
+          return this
+        },
+        (error) => {
+          throw error
+        },
+      )
     }
 
     finally02(onFinally) {
       return this.then(
-        (value) =>
-          MyPromise02.resolve(onFinally()).then(() => value),
+        (value) => MyPromise02.resolve(onFinally()).then(() => value),
         (reason) =>
           MyPromise02.resolve(onFinally()).then(() => {
             throw reason
@@ -345,8 +292,8 @@ export function useMyPromise() {
       )
     }
 
-    catch(callback){
-      return this.then(null,callback)
+    catch(callback) {
+      return this.then(null, callback)
     }
   }
 
@@ -358,23 +305,28 @@ export function useMyPromise() {
       resolve('success')
       // },3000)
     })
-    const p3 = myPromise02.then(
-      (val) => {
-        return new MyPromise02((resolve, reject) => {
-          resolve('成功p2')
-        })
-      },
-      (val) => {},
-    ).then((val)=>{
-      console.log("val", val);
-      return 'aaaaaaa'
-    },()=>{
-
-    }).then((val)=>{
-      console.log("val5", val);
-    },()=>{
-
-    })
+    const p3 = myPromise02
+      .then(
+        (val) => {
+          return new MyPromise02((resolve, reject) => {
+            resolve('成功p2')
+          })
+        },
+        (val) => {},
+      )
+      .then(
+        (val) => {
+          console.log('val', val)
+          return 'aaaaaaa'
+        },
+        () => {},
+      )
+      .then(
+        (val) => {
+          console.log('val5', val)
+        },
+        () => {},
+      )
     // const p3 = myPromise02.then(
     //   (val) => {
     //     return new MyPromise02((resolve, reject) => {
@@ -421,21 +373,98 @@ export function useMyPromise() {
     const p1 = Promise.resolve('p1成功')
     const p2 = Promise.resolve('p2成功')
     const p3 = Promise.reject('p3失败')
-    // const pAll = Promise.all(['str1', p1, p3, 'str2'])
-    const pAll = Promise.all([])
+    const pAll = Promise.all(['str1', p1, p2, 'str2']) //一错全错，需全部成功才返回结果。
+    const pAllSettled = Promise.allSettled(['str1', p1, p3, 'str2']) //全部走完，统一收集每一项的成功 / 失败状态。
+    const pRace = Promise.race(['str1', p1, p3, 'str2']) //谁最先结束（无论成功 / 失败），就返回谁
+    // const pAny = Promise.any(['str1', p1, p3, 'str2']) //谁最先成功，就返回谁；全部失败才最终报错
+    const pAny = Promise.any([p3]) //谁最先成功，就返回谁；全部失败才最终报错
+    // const pAll = Promise.all([])
     console.log('pAll', pAll)
+    console.log('pAllSettled', pAllSettled)
+
+    console.log('pRace', pRace)
+    console.log('pAny', pAny)
   }
   const testMyPromise02All = () => {
-    const p1 = new MyPromise02((resolve,reject)=>{
+    const p1 = new MyPromise02((resolve, reject) => {
       resolve('p1成功')
     })
-    const p2 = new MyPromise02((resolve,reject)=>{
+    const p2 = new MyPromise02((resolve, reject) => {
       resolve('p2成功')
     })
     const pAll = MyPromise02.all(['str1', p1, p2, 'str2'])
     console.log('pAll', pAll)
   }
 
+  const promiseInterviewQuestions = () => {
+    // const p2 = new Promise((resolve, reject) => {
+    //   setTimeout(() => {
+    //     resolve()
+    //     // console.log("p2", p2);
+    //   }, 3000)
+    // })
+    // console.log("p2", p2);//前三秒是pending状态，后3秒是fulfilled
+
+    const p2 = new Promise((resolve, reject) => {
+      // resolve('111')
+      reject('bbb')
+    })
+
+    p2.then(() => {
+      console.log(1)
+    },(val)=>{
+      console.log("rejectedVal", val);
+    })
+      .then(() => {
+        console.log(2)
+      })
+      .then()
+      // .then('我是.then') //'我是.then' 会被丢弃，替换成透传函数，返回的新MyPromise02对象为fulfilled且result: undefined。和下面那行互斥
+      .then(()=>{//当then(a,b)，若a或b里return 内容，若a、b不是函数就和是return undefined的函数一样，.then返回的是fulfilled状态且值为内容的新Promise对象；若a、b里return的是Promise类型对象，则return的Promise对象是啥状态和值，则.then返回的新的Promise对象就是啥状态和值
+        return '我是.then'
+      })
+      .then((val) => {
+        console.log("val", val);
+        console.log(3)
+      })
+  }
+
+  class Student{
+    static type='stu'
+    constructor(type) {
+      this.type=type
+      Student.type=type
+    }
+    setType(type){
+      // this.type=type
+      Student.type=type
+    }
+  }
+  Student.type=12
+
+  class MyPromise03{
+    result=null
+    state=PENDING
+
+    constructor(executor) {
+      executor(this.resolve,this.reject)
+    }
+
+    resolve(val){
+      if (this.state === PENDING) {
+        this.state=FULFILLED
+        this.result=val
+      }
+    }
+
+    reject(val){
+      if (this.state === PENDING) {
+        this.state=REJECTED
+        this.result=val
+      }
+    }
+
+  }
   return {
     initMyPromise,
   }
