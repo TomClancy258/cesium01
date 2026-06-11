@@ -7,7 +7,9 @@ export function useMachineTestQuestions03() {
     // testMyEventBusWithArgs()
     // testMyEventBusWithOff()
     // testMyEventBusWithOnce()
-    testMyCall()
+    // testMyCall()
+    // testMyInstanceof()
+    testCurry()
   }
 
   const testNew=()=>{
@@ -396,6 +398,48 @@ export function useMachineTestQuestions03() {
 
     console.log("obj1", obj1);
     console.log("r", r);
+  }
+
+  const testMyInstanceof=()=>{
+    // const r=myInstanceof([1,2,3],Array)
+    // const r=myInstanceof([1,2,3],Object)
+    const r=myInstanceof([1,2,3],Number)
+    console.log("r", r);
+  }
+
+  const myInstanceof=(obj,Type)=>{
+    if((typeof obj)!=='object'&&(typeof obj)!=='function'){
+      return false
+    }else if (obj === undefined||obj===null) {
+      return false
+    } else if (obj.__proto__ === Type.prototype) {
+      return true
+    }else{
+      obj=obj.__proto__
+      return myInstanceof(obj,Type)
+    }
+  }
+
+  const testCurry=()=>{
+    const add=(x,y,z)=>{
+      return x+y+z
+    }
+    // const curriedAdd=curry(add,1,2,3)
+    // console.log("curriedAdd", curriedAdd);
+
+    const curriedAdd=curry(add,1)
+    let sum=curriedAdd(2)(3)
+    console.log("sum", sum);
+    // const curriedAdd=curry(add,1,2,3)
+  }
+  const curry=(fn,...args)=>{
+    if (args.length>=fn.length) {
+      return fn(...args)
+    }else{
+      return function(...newArgs){
+        return curry(fn,...args,...newArgs)
+      }
+    }
   }
 
   return {
