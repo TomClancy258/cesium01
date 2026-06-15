@@ -1,10 +1,36 @@
 <script setup lang="ts">
 import InputChild from '@/views/user/components/css/children/children/InputChild.vue'
 import InputChildMutlpleInput from '@/views/user/components/css/children/children/InputChildMutlpleInput.vue'
-import { ref } from 'vue'
+import { customRef, ref } from 'vue'
 const input1=ref('aaa')
 const input2=ref('bbb')
 const input3=ref('ccc')
+
+// 搜索框输入防抖 + 延迟更新视图
+const input4=customDebounceRef('aaa',2000)
+
+function customDebounceRef(defaultValue,delay){
+  let timer=null
+  //相当于 let defaultValue='aaa'
+  const msg= customRef((track, trigger)=>{
+    return {
+      get(){
+        //track：记录谁引用了我（入队），比如别的computed、watch
+        track()
+        return defaultValue
+      },
+      set(val){
+        clearTimeout(timer)
+        timer=setTimeout(()=>{
+          defaultValue=val
+          //trigger：读取 track 里记录的对象（依次出队），告诉它们 msg 的值变了，及时更新
+          trigger()
+        },2000)
+      }
+    }
+  })
+  return msg
+}
 </script>
 
 <template>
@@ -43,9 +69,13 @@ const input3=ref('ccc')
   <button id="btn">点击测试</button>
   input1:{{input1}}<br/>
   input2:{{input2}}<br/>
-  input3:{{input3}}
+  input3:{{input3}}<br/>
+  input4:{{input4}}<br/>
   <InputChild v-model="input1"/>
-  <InputChildMutlpleInput v-model:input2="input2" v-model:input3="input3"/>
+<!--  vue2<InputChild v-model="input1"/>-->
+<!--  <InputChildMutlpleInput v-model:input2="input2" v-model:input3="input3"/><br/>-->
+<!--  vue2:<InputChildMutlpleInput :input2.sync="input2" :input3.sync="input3"/>-->
+<!--  input4:<input type="text" v-model="input4"/>-->
 </template>
 
 <style scoped lang="scss">

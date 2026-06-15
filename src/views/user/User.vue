@@ -12,6 +12,9 @@ import {
   useTest70
 } from '@/views/user/composables/eight-part-essay/useTest70.ts'
 import { useMyPromise } from '@/views/user/composables/eight-part-essay/useMyPromise'
+import {
+  useMachineTestQuestions04
+} from '@/views/user/composables/machine-test-question/useMachineTestQuestions04'
 const {
   initMachineTestQuestions,
 }=useMachineTestQuestions()
@@ -25,6 +28,9 @@ const {
   initMachineTestQuestions03,
 }=useMachineTestQuestions03()
 const {
+  initMachineTestQuestions04,
+}=useMachineTestQuestions04()
+const {
   initMachineTestQuestions08To14,
 }=useMachineTestQuestions08To14()
 const {
@@ -37,7 +43,7 @@ const {
 const a = ref(20)
 const b = ref(10)
 const aComputed=computed(()=>{
-  console.log('computed')
+  // console.log('computed')
   const accumulate=a.value*b.value
   return accumulate
 })
@@ -56,7 +62,8 @@ onMounted(()=>{
 
   // initUseTest70()
   // initMyPromise()
-  initMachineTestQuestions03()
+  // initMachineTestQuestions03()
+  initMachineTestQuestions04()
 
   // const root=
 })
