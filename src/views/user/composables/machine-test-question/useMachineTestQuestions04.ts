@@ -33,7 +33,14 @@ export function useMachineTestQuestions04() {
     // testInsertionSort()
     // testMyEventBus()
 
-    testMyCall()
+    // testMyCall()
+    // testMyApply()
+    // testMyBind()
+    // testMyInstanceof()
+
+    // testCurry()
+    // testGetMaxFromMultidimensionalArrByFlattedArr()
+    testGetMaxFromMultidimensionalArrByPureFunction()
   }
 
   const testGetPromiseNumber = () => {
@@ -637,6 +644,212 @@ export function useMachineTestQuestions04() {
     const boy1= Person.myCall(man,'frank',18)
     console.log("boy1", boy1);
   }
+
+  const testMyApply=()=>{
+    Function.prototype.myApply=function(target,args){
+      const fnKey=Symbol('fnKey')
+      target[fnKey]=this
+      console.log("target", target);
+      const r = target[fnKey](...args)
+      delete target[fnKey]
+      return r
+    }
+
+    function Person(name,age){
+      this.name=name
+      this.age=age
+      return this
+    }
+
+    const man={
+      gender:'man'
+    }
+
+    const boy1= Person.myApply(man,['frank',18])
+    console.log("boy1", boy1);
+  }
+
+  const testMyBind=()=>{
+    Function.prototype.myBind=function(target,...args){
+      const fnKey=Symbol('fnKey')
+      target[fnKey]=this
+      return function(...newArgs){
+        const r = target[fnKey](...args,...newArgs)
+        // delete target[fnKey]
+        return r
+      }
+    }
+
+    function Person(name,age){
+      this.name=name
+      this.age=age
+      return this
+    }
+
+    const man={
+      gender:'man'
+    }
+
+    const boy1fn= Person.myBind(man,'frank')
+    const boy1=boy1fn(18)
+    console.log("boy1", boy1);
+  }
+
+  const testMyInstanceof=()=>{
+    const r=myInstanceof([1,2,3],Array)
+    // const r=myInstanceof([1,2,3],Object)
+    // const r=myInstanceof([1,2,3],Number)
+    console.log("r", r);
+  }
+
+  const myInstanceof=(obj,Type)=>{
+    if (typeof obj !== 'object' && typeof obj !== 'function') {
+      return false
+    } else if (obj === undefined ||obj === null) {
+      return false
+    }else if (obj.__proto__ === Type.prototype) {
+      return true
+    }else if(obj.__proto__ !== Type.prototype){
+      obj=obj.__proto__
+      return myInstanceof(obj,Type)
+    }
+  }
+
+  const testCurry=()=>{
+    function add(x,y,z){
+      return x+y+z
+    }
+    const curriedAdd=curry(add,1)
+    const sum1=curriedAdd(2)(3)
+    const sum2=curriedAdd(2,3)
+    console.log("sum1", sum1);
+    console.log("sum2", sum2);
+
+    const curriedAdd2=curry(add)
+    const sumFn2=curriedAdd2(2)(3)
+    const sum3=sumFn2(1)
+    console.log("sum3", sum3);
+  }
+
+  const curry=(fn,...args)=>{
+    if (args.length >= fn.length) {
+      return fn(...args)
+    }
+    return function (...newArgs) {
+      return curry(fn,...args,...newArgs)
+    }
+  }
+
+  const testGetMaxFromMultidimensionalArrByFlattedArr=()=>{
+    const arr1 = [1, 5, [8, 2], [9, [12, 3], 7]]
+    const max= getMaxFromMultidimensionalArrByFlattedArr(arr1)
+    console.log("max", max);
+  }
+
+  const getMaxFromMultidimensionalArrByFlattedArr=(arr)=>{
+    function flatArr(arr){
+      if (!Array.isArray(arr)) {
+        return arr
+      }else{
+        let newArr=[]
+        for (const item of arr) {
+          const data=flatArr(item)
+          newArr=newArr.concat(data)
+        }
+        return newArr
+      }
+    }
+    const flattedArr=flatArr(arr)
+    return Math.max(...flattedArr)
+  }
+
+  const testGetMaxFromMultidimensionalArrByPureFunction=()=>{
+    const arr1 = [1, 5, [8, 2], [9, [12, 3], 7]]
+    const max= getMaxFromMultidimensionalArrByPureFunction(arr1)
+    console.log("max", max);
+  }
+
+  const getMaxFromMultidimensionalArrByPureFunction=(arr)=>{
+    // let max=-Infinity
+    // for (const item of arr) {
+    //   if (!Array.isArray(item)) {
+    //     max=Math.max(item,max)
+    //   }else{
+    //     const data=getMaxFromMultidimensionalArrByPureFunction(item)
+    //     max=Math.max(max,data)
+    //   }
+    // }
+    // return max
+
+    let max=-Infinity
+    if (!Array.isArray(arr)) {
+      max=Math.max(max,arr)
+    }else{
+      for (const item of arr) {
+        const data=getMaxFromMultidimensionalArrByPureFunction(item)
+        max=Math.max(max,data)
+      }
+    }
+    return max
+  }
+
+  const testPromise=()=>{
+    const p=new Promise((resolve,reject)=>{
+      resolve(2)
+    })
+  }
+
+  const PENDING='pending'
+  const FULFILLED='fulfilled'
+  const REJECTED='rejected'
+  const testMyPromise=()=>{
+    class MyPromise{
+      state=PENDING
+      result=null
+      fulfilledCbs=[]
+      rejectedCbs=[]
+      constructor(executor) {
+        executor(this.resolve,this.reject)
+      }
+      resolve(val){
+        if (this.state === PENDING) {
+          this.state=FULFILLED
+          this.result=val
+          while (this.fulfilledCbs.length > 0) {
+            this.fulfilledCbs.shift()(this.result)
+          }
+        }
+      }
+      reject(val){
+        if (this.state === PENDING) {
+          this.state=REJECTED
+          this.result=val
+          while (this.rejectedCbs.length > 0) {
+            this.rejectedCbs.shift()(this.result)
+          }
+        }
+      }
+      then(onFulFilled,onRejected){
+        return new MyPromise((resolve,reject)=>{
+          if (this.state === FULFILLED) {
+            const x=onFulFilled(this.result)
+            if (x instanceof MyPromise) {
+              return x.then(resolve,reject)
+            }else{
+              resolve(x)
+            }
+          } else if (this.state === REJECTED) {
+            onRejected(this.result)
+          }else if (this.state === PENDING) {
+            this.fulfilledCbs.push(onFulFilled)
+            this.rejectedCbs.push(onRejected)
+          }
+        })
+
+      }
+    }
+  }
+
 
   return {
     initMachineTestQuestions04,

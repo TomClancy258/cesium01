@@ -373,11 +373,12 @@ export function useMyPromise() {
     const p1 = Promise.resolve('p1成功')
     const p2 = Promise.resolve('p2成功')
     const p3 = Promise.reject('p3失败')
+    const p4 = Promise.reject('p4失败')
     const pAll = Promise.all(['str1', p1, p2, 'str2']) //一错全错，需全部成功才返回结果。
     const pAllSettled = Promise.allSettled(['str1', p1, p3, 'str2']) //全部走完，统一收集每一项的成功 / 失败状态。
     const pRace = Promise.race(['str1', p1, p3, 'str2']) //谁最先结束（无论成功 / 失败），就返回谁
     // const pAny = Promise.any(['str1', p1, p3, 'str2']) //谁最先成功，就返回谁；全部失败才最终报错
-    const pAny = Promise.any([p3]) //谁最先成功，就返回谁；全部失败才最终报错
+    const pAny = Promise.any([p3,p4]) //谁最先成功，就返回谁；全部失败才最终报错
     // const pAll = Promise.all([])
     console.log('pAll', pAll)
     console.log('pAllSettled', pAllSettled)
