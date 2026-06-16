@@ -76,6 +76,12 @@ function customDebounceRef(defaultValue,delay){
 <!--  <InputChildMutlpleInput v-model:input2="input2" v-model:input3="input3"/><br/>-->
 <!--  vue2:<InputChildMutlpleInput :input2.sync="input2" :input3.sync="input3"/>-->
 <!--  input4:<input type="text" v-model="input4"/>-->
+
+  <div class="box">
+    <div class="a">固定内容</div>
+    <div class="b">flex:1</div>
+    <div class="c">flex:1</div>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -133,4 +139,17 @@ function customDebounceRef(defaultValue,delay){
     right: 20px;
   }
 }
+
+.box {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  >div{
+    background: pink;
+  }
+  >.b, .c {
+    flex: 1;
+  }
+}
+
 </style>

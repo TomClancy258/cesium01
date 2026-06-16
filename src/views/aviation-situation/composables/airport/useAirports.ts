@@ -54,6 +54,9 @@ import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatel
 import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRipple'
+import {
+  clearSelectedSatelliteHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
 
@@ -461,6 +464,7 @@ export function useAirports(
     if (!airportRenderItem) return
     const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
     handleAirportLeftClick(properties, airportRenderItem.billboard)
+    clearSelectedSatelliteHighlight()
     flyToLngLatAlt(
       viewer,
       {

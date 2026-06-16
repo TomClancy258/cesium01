@@ -40,7 +40,9 @@ export function useMachineTestQuestions04() {
 
     // testCurry()
     // testGetMaxFromMultidimensionalArrByFlattedArr()
-    testGetMaxFromMultidimensionalArrByPureFunction()
+    // testGetMaxFromMultidimensionalArrByPureFunction()
+
+    testPromise()
   }
 
   const testGetPromiseNumber = () => {
@@ -796,20 +798,45 @@ export function useMachineTestQuestions04() {
   const testPromise=()=>{
     const p=new Promise((resolve,reject)=>{
       resolve(2)
+      // reject(1)
+    })
+   const pThenR= p.then((result)=>{
+      console.log('state','fulfilled')
+      console.log("result", result);
+      return new Promise((resolve,reject)=>{
+        // resolve(2)
+        reject(1)
+      })
+    },(result)=>{
+      console.log("state", 'rejected');
+      console.log("result", result);
+    })
+
+    pThenR.then((result)=>{
+      console.log('pThenRstate','fulfilled')
+      console.log("pThenRresult", result);
+    },(result)=>{
+      console.log("pThenRstate", 'rejected');
+      console.log("pThenRresult", result);
     })
   }
 
-  const PENDING='pending'
-  const FULFILLED='fulfilled'
-  const REJECTED='rejected'
   const testMyPromise=()=>{
+    const PENDING='pending'
+    const FULFILLED='fulfilled'
+    const REJECTED='rejected'
+
     class MyPromise{
       state=PENDING
       result=null
       fulfilledCbs=[]
       rejectedCbs=[]
       constructor(executor) {
-        executor(this.resolve,this.reject)
+        try {
+          executor(this.resolve.bind(this),this.reject.bind(this))
+        }catch (e) {
+          this.reject(e)
+        }
       }
       resolve(val){
         if (this.state === PENDING) {
@@ -830,22 +857,83 @@ export function useMachineTestQuestions04() {
         }
       }
       then(onFulFilled,onRejected){
-        return new MyPromise((resolve,reject)=>{
+        onFulFilled=(typeof onFulFilled)==='function'?onFulFilled:(result)=>{return result}
+        onRejected=(typeof onRejected)==='function'?onRejected:(result)=>{throw result}
+        const p= new MyPromise((resolve,reject)=>{
+          const settlePromise=(cb)=>{
+            queueMicrotask(()=>{
+              try{
+                const x=cb(this.result)
+                if (x === p) {
+                  throw new Error('不能返回自身')
+                }
+                if (x instanceof MyPromise) { //实参返回的是Promise类型的x，则then返回与x相同状态与结果的新Promise对象
+                  x.then((xResult)=>{
+                    resolve(xResult)
+                  },(xResult)=>{
+                    reject(xResult)
+                  })
+                }else{
+                  resolve(x)
+                }
+              }catch (err){
+                reject(err)
+              }
+            })
+          }
           if (this.state === FULFILLED) {
-            const x=onFulFilled(this.result)
-            if (x instanceof MyPromise) {
-              return x.then(resolve,reject)
-            }else{
-              resolve(x)
-            }
+            settlePromise(onFulFilled)
           } else if (this.state === REJECTED) {
-            onRejected(this.result)
+            settlePromise(onRejected)
           }else if (this.state === PENDING) {
-            this.fulfilledCbs.push(onFulFilled)
-            this.rejectedCbs.push(onRejected)
+            this.fulfilledCbs.push(settlePromise.bind(this,onFulFilled))
+            this.rejectedCbs.push(settlePromise.bind(this,onRejected))
           }
         })
+        return p
+      }
+      static all(arr){
+        const results=[]
+        let num=0
+        return new MyPromise((resolve,reject)=>{
+          if (arr.length === 0) {
+            resolve([])
+            return
+          }
+          arr.forEach((item,i)=>{
+            if (item instanceof MyPromise) {
+              item.then((itemResult)=>{
+                results[i]=itemResult
+                num++
+                if (num === arr.length) {
+                  resolve(results)
+                }
+              },(itemResult)=>{
+                reject(itemResult)
+              })
+            }else{
+              results[i]=item
+              num++
+              if (num === arr.length) {
+                resolve(results)
+              }
+            }
+          })
+        })
+      }
 
+      static race(arr){
+        return new MyPromise((resolve,reject)=>{
+          arr.forEach((item,i)=>{
+            if (item instanceof MyPromise) {
+              item.then(resolve,reject)
+            }else{
+              queueMicrotask(()=>{
+                resolve(item)
+              })
+            }
+          })
+        })
       }
     }
   }

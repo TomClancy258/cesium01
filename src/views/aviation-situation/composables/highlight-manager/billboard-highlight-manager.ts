@@ -18,9 +18,9 @@ const getBillboardProperties = (billboard: Cesium.Billboard): BillboardPropertie
   return (billboard as unknown as { properties: BillboardProperties }).properties
 }
 
+//统一决策函数：给定一个 billboard，按优先级决定最终 billboard.image。
 // 工具方法：按统一优先级刷新图片
 const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
-  const properties = getBillboardProperties(billboard)
 
   // 优先级：selected > hovered > spatialSelected > satelliteConeScan > original
   if (billboard === selectedBillboard && selectedHighlightImage) {
@@ -31,6 +31,7 @@ const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
     billboard.image = hoveredHighlightImage
     return
   }
+  const properties = getBillboardProperties(billboard)
   if (properties.images.spatialSelection) {
     billboard.image = properties.images.spatialSelection
     return
@@ -122,6 +123,10 @@ export function highlightBillboardOnHover(
     hoveredBillboard = null
     hoveredHighlightImage = null
     applyBillboardImageByPriority(previousHoveredBillboard)
+
+    // applyBillboardImageByPriority(hoveredBillboard)  // 此时 hoveredBillboard 仍指向旧图标
+// apply 里：billboard === hoveredBillboard → 又设回 hover 图，恢复失败
+//     hoveredBillboard = null
   }
 
   hoveredBillboard = billboard
