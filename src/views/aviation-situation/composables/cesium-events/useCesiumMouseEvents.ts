@@ -8,7 +8,7 @@ import { AircraftBillboardProperties } from '@/views/aviation-situation/types/ai
 import {handleAircraftHover,handleAircraftLeftClick} from "./event-handlers/interaction/aircraft"
 import {handleAirportHover,handleAirportLeftClick} from "./event-handlers/interaction/airport"
 import {
-  handleSpatialSelectionHover,
+  handleDrawingToolHover,
   handleSpatialSelectionLeftClick
 } from './event-handlers/interaction/spatial-selection'
 
@@ -65,6 +65,7 @@ import {
   clearHoveredSatelliteHighlight, clearSelectedSatelliteHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
+import { AirportBillboardProperties } from '@/views/aviation-situation/types/airport'
 
 type PickedObjectLike = {
   id?: unknown
@@ -170,7 +171,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const pickedObjects = viewer.value.scene.drillPick(click.position, 5) as PickedObjectLike[]
 
       if (pickedObjects.length === 0) {
+        //清空上一次点击选中高亮的飞机、机场或者卫星实体
         clearSelectedAviation()
+        //清空上一次点击选中高亮的测绘框选图形（距离测绘，多边形、圆形、半球测绘框选）
         clearSelectedDrawingTool()
         return
       }
@@ -202,7 +205,10 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
               latitude,
               height: cartographic.height,
             }
+            //aviationSelectionStore.setSelected(satelliteProperties)+
+            //satellite-highlight-manager.ts里设置高亮hoveredSatellite
             handleSatelliteLeftClick(properties as unknown as SatelliteProperties, lngLatAlt, entity)
+            //只清空billboard-highlight-manager.ts里的上次select（若有选中）的飞机、机场billboard
             clearSelectedBillboardHighlight()
             return
           }
@@ -231,6 +237,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           handleAirportLeftClick(properties, billboard)
           clearSelectedSatelliteHighlight()
         } else {
+          //清空上一次点击选中高亮的飞机、机场或者卫星实体
           clearSelectedAviation()
         }
         return
@@ -304,8 +311,15 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     // const pickedObjects = viewer.value.scene.drillPick(movement.endPosition)
     const pickedObjects = viewer.value.scene.drillPick(movement.endPosition, 5) as PickedObjectLike[]
     if (pickedObjects.length === 0) {
+      //恢复并清空billboard-highlight-manager.ts里上一次hover高亮的飞机或机场billboard
+      //清空aviation-selection.ts里useAviationSelectionStore.clearHovered()
       aviationBillboardLeave()
+
+      //只清空drawing-tool-highlight-manager.ts里的上次高亮的测绘框选图形
+      //因为我没有像飞机、机场、卫星那样在ts里useAviationSelectionStore.ts里保存当前hover的测绘框选图形信息
       clearHoveredDrawingToolHighlight()
+
+      //同理aviationBillboardLeave
       satelliteLeave()
       return
     }
@@ -322,33 +336,35 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       return properties?.sourceType === 'satellite'
     })
     if (satelliteModelPicked) {
+      // hover 互斥：清其它域的 hover（manager + store 由 leave 处理）
       aviationBillboardLeave()
+      clearHoveredDrawingToolHighlight()
+
       const entity = satelliteModelPicked.id
       if (!(entity instanceof Cesium.Entity)) return
-      const properties = entity.properties?.getValue() as EntityProperties | SatelliteProperties | undefined
-      if (properties?.sourceType === 'satellite') {
-        const time = viewer.value.clock.currentTime
-        const pos = entity.position?.getValue(time)
-        if (pos) {
-          const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
-            viewer.value.scene,
-            pos,
-          )
-          if (screenPosition) {
-            const cartographic = Cesium.Cartographic.fromCartesian(pos)
-            const longitude = Cesium.Math.toDegrees(cartographic.longitude)
-            const latitude = Cesium.Math.toDegrees(cartographic.latitude)
-            const lngLatAlt: LngLatAlt = {
-              longitude,
-              latitude,
-              height: cartographic.height,
-            }
-            handleSatelliteHover(properties as SatelliteProperties, screenPosition, lngLatAlt, entity)
-            clearHoveredDrawingToolHighlight() // 有 satellite model hover 时清除 entity 高亮
-            return
-          }
-        }
+
+      const properties = entity.properties?.getValue() as SatelliteProperties | undefined
+      if (!properties) return
+
+      const time = viewer.value.clock.currentTime
+      const pos = entity.position?.getValue(time)
+      if (!pos) return
+
+      const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+        viewer.value.scene,
+        pos,
+      )
+      if (!screenPosition) return
+
+      const cartographic = Cesium.Cartographic.fromCartesian(pos)
+      const lngLatAlt: LngLatAlt = {
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        height: cartographic.height,
       }
+
+      handleSatelliteHover(properties, screenPosition, lngLatAlt, entity)
+      return
     }
 
     // ✅ 优先找 Billboard（飞机/机场图标）
@@ -362,6 +378,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
     if (billboardPicked) {
+      //清空manager里测绘框选的hover高亮，无store里存储高亮图形信息
+      clearHoveredDrawingToolHighlight()
+      //清空store（卫星和飞机、机场的hover和select高亮共用）和manager（不共用）里卫星的hover高亮
+      satelliteLeave()
+
       const billboard = billboardPicked.primitive
       if (!(billboard instanceof Cesium.Billboard)) return
       const properties = (billboard as any).properties as MapBillboardLabelProperties
@@ -375,27 +396,29 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       } else if (properties.sourceType === 'airport') {
         handleAirportHover(properties as AirportBillboardProperties, screenPosition, billboard)
       }
-      clearHoveredDrawingToolHighlight() // 有 billboard hover 时清除 entity 高亮
-      satelliteLeave()
       return
     }
 
     // ✅ 没有 Billboard，再处理 Entity（半球/多边形等）
-    const entityPicked = pickedObjects.find(
-      obj => obj.id instanceof Cesium.Entity
-    )
-    if (entityPicked) {
+    // useCesiumMouseEvents
+    const drawingToolEntityPicked = pickedObjects.find((obj) => {
+      if (!(obj.id instanceof Cesium.Entity)) return false
+      const properties = obj.id.properties?.getValue() as EntityProperties | undefined
+      return (
+        properties?.operationType === 'distanceMeasurement' ||
+        properties?.operationType === 'spatialSelection'
+      )
+    })
+
+    if (drawingToolEntityPicked) {
       aviationBillboardLeave()
-      const entity = entityPicked.id
-      if (!(entity instanceof Cesium.Entity)) return
-      if (!entity.properties) return
+      satelliteLeave()
+
+      const entity = drawingToolEntityPicked.id
+      if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
       const properties = entity.properties.getValue() as EntityProperties
-      if (properties.operationType === 'distanceMeasurement') {
-        handleSpatialSelectionHover(viewer, entity, properties as EntityProperties)
-      } else if (properties.operationType === 'spatialSelection') {
-        handleSpatialSelectionHover(viewer, entity, properties as EntityProperties)
-      }
+      handleDrawingToolHover(viewer, entity, properties)  // 或 rename → handleDrawingToolHover
       return
     }
 

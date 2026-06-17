@@ -56,7 +56,7 @@ function isDrawing(dataSourceName: string): boolean {
 }
 
 // ---- Hover ----
-export const handleSpatialSelectionHover = (
+export const handleDrawingToolHover = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   entity: Cesium.Entity,
   properties: EntityProperties,
