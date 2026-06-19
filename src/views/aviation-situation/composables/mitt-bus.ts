@@ -10,7 +10,7 @@ import {
   SpatialSelectionTableRowOperation
 } from '@/views/aviation-situation/types/draw-tools'
 import Cesium from 'cesium'
-import type { SatelliteProperties } from '@/views/aviation-situation/types/satellite'
+import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -53,7 +53,7 @@ export interface EventCallbackMap {
 
   satelliteHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   satelliteLeave: () => void;
-  satelliteLeftClick: (data: SatelliteProperties, entity: Cesium.Entity) => void;
+  satelliteLeftClick: (data: SatelliteHoveredProperties, entity: Cesium.Entity) => void;
 
   mouseWheel: () => void; // 新增事件的回调类型（无参数）
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
@@ -75,7 +75,7 @@ const mittBus = mitt<AllCesiumEvents>();
 // 6. 抽离公共的事件发布方法
 export const emitCesiumEvent = <T extends CesiumMouseEventName>(
   eventName: T,
-  ...args: EventCallbackMap[T]
+  ...args: Parameters<EventCallbackMap[T]>
 ) => {
   mittBus.emit(eventName, args); // 适配 mitt 单参数规则：多参数打包为数组
 };
@@ -83,7 +83,7 @@ export const emitCesiumEvent = <T extends CesiumMouseEventName>(
 // 7. 抽离公共的事件订阅方法
 export const onCesiumEvent = <T extends CesiumMouseEventName>(
   eventName: T,
-  callback: (...args: EventCallbackMap[T]) => void
+  callback: (...args: Parameters<EventCallbackMap[T]>) => void
 ) => {
   const wrappedCallback = (args: Parameters<EventCallbackMap[T]>) => {
     // if (Array.isArray(args)) {

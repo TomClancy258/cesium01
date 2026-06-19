@@ -5,10 +5,8 @@ import type {
   AircraftSelectedData,
 } from '@/views/aviation-situation/types/aircraft'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
-import {
-  highlightBillboardOnHover,
-  highlightBillboardOnSelect,
-} from '../highlight-manager/billboard-highlight-manager'
+import { highlightBillboardOnHover } from '../highlight-manager/billboard-highlight-manager'
+import { selectBillboard } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 
 interface AviationSelectionStoreLike {
   hovered: AviationSelectedData
@@ -70,11 +68,7 @@ export function useAircraftInteractions(options: UseAircraftInteractionsOptions)
     unsubAircraftLeftClick = onCesiumEvent(
       'aircraftLeftClick',
       (data: AircraftSelectedData, billboard: Cesium.Billboard) => {
-        highlightBillboardOnSelect(billboard, selectedImageUrl)
-        const selected = aviationSelectionStore.selected
-        if (selected?.sourceType !== 'aircraft' || selected.icao24 !== data.icao24) {
-          aviationSelectionStore.setSelected(data)
-        }
+        selectBillboard(billboard, selectedImageUrl, data)
       }
     )
 

@@ -59,10 +59,10 @@ import {
   handleSatelliteLeftClick,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
 import {
-  clearHoveredBillboardHighlight, clearSelectedBillboardHighlight
+  clearHoveredBillboardHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager'
 import {
-  clearHoveredSatelliteHighlight, clearSelectedSatelliteHighlight
+  clearHoveredSatelliteHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import { AirportBillboardProperties } from '@/views/aviation-situation/types/airport'
@@ -208,8 +208,6 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
             //aviationSelectionStore.setSelected(satelliteProperties)+
             //satellite-highlight-manager.ts里设置高亮hoveredSatellite
             handleSatelliteLeftClick(properties as unknown as SatelliteProperties, lngLatAlt, entity)
-            //只清空billboard-highlight-manager.ts里的上次select（若有选中）的飞机、机场billboard
-            clearSelectedBillboardHighlight()
             return
           }
         }
@@ -232,10 +230,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         console.log("properties", properties);
         if (properties.sourceType === 'aircraft') {
           handleAircraftLeftClick(properties, billboard)
-          clearSelectedSatelliteHighlight()
         } else if (properties.sourceType === 'airport') {
           handleAirportLeftClick(properties, billboard)
-          clearSelectedSatelliteHighlight()
         } else {
           //清空上一次点击选中高亮的飞机、机场或者卫星实体
           clearSelectedAviation()

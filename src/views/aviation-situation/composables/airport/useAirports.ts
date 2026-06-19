@@ -41,9 +41,9 @@ import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 import {
   highlightBillboardOnHover,
-  highlightBillboardOnSelect,
   clearHoveredBillboardHighlight,
 } from '../highlight-manager/billboard-highlight-manager'
+import { selectBillboard } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
@@ -54,9 +54,6 @@ import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatel
 import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRipple'
-import {
-  clearSelectedSatelliteHighlight
-} from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
 
@@ -445,11 +442,7 @@ export function useAirports(
     unsubAirportLeftClick = onCesiumEvent(
       'airportLeftClick',
       (data: AirportSelectedData, billboard: Cesium.Billboard) => {
-        highlightBillboardOnSelect(billboard, airportSelectedSvgRawDataUrl)
-        const selected = aviationSelectionStore.selected
-        if (selected?.sourceType !== 'airport' || selected.icao !== data.icao) {
-          aviationSelectionStore.setSelected(data)
-        }
+        selectBillboard(billboard, airportSelectedSvgRawDataUrl, data)
       },
     )
 
@@ -464,7 +457,6 @@ export function useAirports(
     if (!airportRenderItem) return
     const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
     handleAirportLeftClick(properties, airportRenderItem.billboard)
-    clearSelectedSatelliteHighlight()
     flyToLngLatAlt(
       viewer,
       {

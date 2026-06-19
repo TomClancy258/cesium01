@@ -6,16 +6,15 @@ import type {
 } from '@/views/aviation-situation/types/satellite'
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {
-  highlightSatelliteOnHover, highlightSatelliteOnSelect
+  highlightSatelliteOnHover,
 } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 import * as Cesium from "cesium"
 
 import {
   SATELLITE_HOVER_COLOR,
-  SATELLITE_SELECTED_COLOR,
   SATELLITE_HOVER_SILHOUETTE_SIZE,
-  SATELLITE_SELECTED_SILHOUETTE_SIZE, SATELLITE_HOVER_SELECTED_PATH_SHOW
+  SATELLITE_HOVER_SELECTED_PATH_SHOW
 } from '@/views/aviation-situation/composables/satellite/satellite-constants.ts'
 
 export const handleSatelliteHover = (properties: SatelliteProperties, screenPosition: Cesium.Cartesian2, lngLatAlt:LngLatAlt, entity: Cesium.Entity) => {
@@ -64,16 +63,5 @@ export const handleSatelliteLeftClick = (properties: SatelliteProperties,lngLatA
       height: lngLatAlt.height
     }
   }
-  const highlightConfig:SatelliteHighlightConfig={
-    sourceType:'satellite',
-    modelStyle:{
-      silhouetteColor : SATELLITE_SELECTED_COLOR,
-      silhouetteSize : SATELLITE_SELECTED_SILHOUETTE_SIZE
-    },
-    pathStyle:{
-      show:SATELLITE_HOVER_SELECTED_PATH_SHOW
-    }
-  }
-  highlightSatelliteOnSelect(entity,highlightConfig)
   emitCesiumEvent('satelliteLeftClick', selectedProperties, entity)
 }

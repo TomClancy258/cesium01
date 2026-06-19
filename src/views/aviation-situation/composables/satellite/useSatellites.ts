@@ -18,6 +18,7 @@ import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useDebounceFn } from '@vueuse/core'
 import { useSatelliteStore } from '@/stores/satellite'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
+import { selectSatellite } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import {
   handleSatelliteLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/satellite'
@@ -528,14 +529,9 @@ export function useSatellites(
 
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
-      ((data) => {
-        const satelliteProperties = data as SatelliteProperties
-        // highlightBillboardOnSelect(data, billboard, airplaneSelectedSvgRawDataUrl)
-        const selected=aviationSelectionStore.selected
-        if(selected===null||selected.sourceType!=='satellite'||selected.id!==satelliteProperties.id) {
-          aviationSelectionStore.setSelected(satelliteProperties)
-        }
-      }) as (...args: any[]) => void,
+      (data: SatelliteHoveredProperties, entity: Cesium.Entity) => {
+        selectSatellite(entity, data)
+      },
     )
 
   }

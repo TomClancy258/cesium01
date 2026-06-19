@@ -37,9 +37,6 @@ import { useAircraftFilter } from './useAircraftFilter'
 import { useAircraftInteractions } from './useAircraftInteractions'
 import { useAircraftRenderer } from './useAircraftRenderer'
 import { useAircraftSync } from './useAircraftSync'
-import {
-  clearSelectedSatelliteHighlight
-} from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 
 export interface UseAircraftsOptions {
   onAviationDataUpdated?: () => void
@@ -332,7 +329,6 @@ export function useAircrafts(
     if (!aircraftRenderItem) return
     const properties = (aircraftRenderItem.billboard as any).properties as AircraftBillboardProperties
     handleAircraftLeftClick(properties,aircraftRenderItem.billboard)
-    clearSelectedSatelliteHighlight()
     flyToLngLatAlt(viewer,{
       longitude: aircraftRenderItem.data.longitude ?? 0,
       latitude: aircraftRenderItem.data.latitude ?? 0,
