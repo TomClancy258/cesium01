@@ -1,6 +1,6 @@
 //src/views/aviation-situation/composables/cesium-events/useCesiumMouseEvents.ts
 import * as Cesium from 'cesium'
-import { useThrottleFn,useDebounceFn, } from '@vueuse/core'
+import { useThrottleFn } from '@vueuse/core'
 import mittBus, { CesiumMouseEventName } from '../mitt-bus'
 import type { LngLatAlt, MapBillboardLabelProperties } from '../../types/shared'
 import { AircraftBillboardProperties } from '@/views/aviation-situation/types/aircraft'
@@ -178,89 +178,45 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         return
       }
 
-      // ✅ 优先处理卫星 model（Entity + Model/ModelFeature）
-      const satelliteModelPicked = pickedObjects.find((obj) => {
-        if (!(obj.id instanceof Cesium.Entity)) return false
-        const primitive = obj.primitive
-        const isSatelliteModel =
-          primitive instanceof Cesium.Model ||
-          primitive instanceof Cesium.ModelFeature
-        if (!isSatelliteModel) return false
-        const properties = obj.id.properties?.getValue() as EntityProperties | undefined
-        return properties?.sourceType === 'satellite'
-      })
+      const satelliteModelPicked = findSatelliteModelPicked(pickedObjects)
       if (satelliteModelPicked) {
         const entity = satelliteModelPicked.id
         if (!(entity instanceof Cesium.Entity)) return
-        const properties = entity.properties?.getValue() as EntityProperties | undefined
-        if (properties?.sourceType === 'satellite') {
-          const time = viewer.value.clock.currentTime
-          const position = entity.position?.getValue(time)
-          if (position) {
-            const cartographic = Cesium.Cartographic.fromCartesian(position)
-            const longitude = Cesium.Math.toDegrees(cartographic.longitude)
-            const latitude = Cesium.Math.toDegrees(cartographic.latitude)
-            const lngLatAlt: LngLatAlt = {
-              longitude,
-              latitude,
-              height: cartographic.height,
-            }
-            //aviationSelectionStore.setSelected(satelliteProperties)+
-            //satellite-highlight-manager.ts里设置高亮hoveredSatellite
-            handleSatelliteLeftClick(properties as unknown as SatelliteProperties, lngLatAlt, entity)
-            return
-          }
-        }
+
+        const properties = entity.properties?.getValue() as SatelliteProperties | undefined
+        if (!properties) return
+
+        const pickResult = buildLngLatAltFromEntity(entity, viewer.value.clock.currentTime)
+        if (!pickResult) return
+
+        handleSatelliteLeftClick(properties, pickResult.lngLatAlt, entity)
+        return
       }
 
-      // ✅ 优先处理 Billboard（飞机/机场）
-      const billboardPicked = pickedObjects.find((obj) => {
-        if (!(obj.primitive instanceof Cesium.Billboard)) return false
-        const properties = (obj.primitive as any).properties as MapBillboardLabelProperties | undefined
-        return (
-          !!properties &&
-          properties.type === 'billboard' &&
-          (properties.sourceType === 'aircraft' || properties.sourceType === 'airport')
-        )
-      })
+      const billboardPicked = findBillboardPicked(pickedObjects)
       if (billboardPicked) {
         const billboard = billboardPicked.primitive
         if (!(billboard instanceof Cesium.Billboard)) return
         const properties = (billboard as any).properties as MapBillboardLabelProperties
-        console.log("properties", properties);
+
         if (properties.sourceType === 'aircraft') {
-          handleAircraftLeftClick(properties, billboard)
+          handleAircraftLeftClick(properties as AircraftBillboardProperties, billboard)
         } else if (properties.sourceType === 'airport') {
-          handleAirportLeftClick(properties, billboard)
-        } else {
-          //清空上一次点击选中高亮的飞机、机场或者卫星实体
-          clearSelectedAviation()
+          handleAirportLeftClick(properties as AirportBillboardProperties, billboard)
         }
         return
       }
 
-      // ✅ 没有 Billboard，处理 Entity（半球/多边形等）
-      const entityPicked = pickedObjects.find(
-        obj => obj.id instanceof Cesium.Entity
-      )
-      if (entityPicked) {
-        const entity = entityPicked.id
-        if (!(entity instanceof Cesium.Entity)) return
-        if (!entity.properties) return
+      const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
+      if (drawingToolEntityPicked) {
+        const entity = drawingToolEntityPicked.id
+        if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
         const properties = entity.properties.getValue() as EntityProperties
-        console.log("properties", properties);
-        if (properties.operationType === 'distanceMeasurement') {
-          handleSpatialSelectionLeftClick(viewer, entity, properties)
-        } else if (properties.operationType === 'spatialSelection') {
-          handleSpatialSelectionLeftClick(viewer, entity, properties)
-        } else {
-          clearSelectedDrawingTool()
-        }
+        handleSpatialSelectionLeftClick(viewer, entity, properties)
         return
       }
 
-      // ✅ drillPick 有结果但都不是我们关心的类型
       clearSelectedAviation()
       clearSelectedDrawingTool()
 
@@ -302,26 +258,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('mouseWheel')
   }, 500)
 
-  // 鼠标移动（节流）
-  const mouseMove = useThrottleFn((movement: Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
-    // const pickedObjects = viewer.value.scene.drillPick(movement.endPosition)
-    const pickedObjects = viewer.value.scene.drillPick(movement.endPosition, 5) as PickedObjectLike[]
-    if (pickedObjects.length === 0) {
-      //恢复并清空billboard-highlight-manager.ts里上一次hover高亮的飞机或机场billboard
-      //清空aviation-selection.ts里useAviationSelectionStore.clearHovered()
-      aviationBillboardLeave()
-
-      //只清空drawing-tool-highlight-manager.ts里的上次高亮的测绘框选图形
-      //因为我没有像飞机、机场、卫星那样在ts里useAviationSelectionStore.ts里保存当前hover的测绘框选图形信息
-      clearHoveredDrawingToolHighlight()
-
-      //同理aviationBillboardLeave
-      satelliteLeave()
-      return
-    }
-
-    // ✅ 优先处理卫星 model（Entity + Model/ModelFeature）
-    const satelliteModelPicked = pickedObjects.find((obj) => {
+  const findSatelliteModelPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => {
       if (!(obj.id instanceof Cesium.Entity)) return false
       const primitive = obj.primitive
       const isSatelliteModel =
@@ -331,8 +269,61 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const properties = obj.id.properties?.getValue() as EntityProperties | SatelliteProperties | undefined
       return properties?.sourceType === 'satellite'
     })
+
+  const findBillboardPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => {
+      if (!(obj.primitive instanceof Cesium.Billboard)) return false
+      const properties = (obj.primitive as { properties?: MapBillboardLabelProperties }).properties
+      return (
+        !!properties &&
+        properties.type === 'billboard' &&
+        (properties.sourceType === 'aircraft' || properties.sourceType === 'airport')
+      )
+    })
+
+  const findDrawingToolEntityPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => {
+      if (!(obj.id instanceof Cesium.Entity)) return false
+      const properties = obj.id.properties?.getValue() as EntityProperties | undefined
+      return (
+        properties?.operationType === 'distanceMeasurement' ||
+        properties?.operationType === 'spatialSelection'
+      )
+    })
+
+  const buildLngLatAltFromEntity = (
+    entity: Cesium.Entity,
+    time: Cesium.JulianDate,
+  ): { lngLatAlt: LngLatAlt; position: Cesium.Cartesian3 } | null => {
+    const position = entity.position?.getValue(time)
+    if (!position) return null
+    const cartographic = Cesium.Cartographic.fromCartesian(position)
+    return {
+      position,
+      lngLatAlt: {
+        longitude: Cesium.Math.toDegrees(cartographic.longitude),
+        latitude: Cesium.Math.toDegrees(cartographic.latitude),
+        height: cartographic.height,
+      },
+    }
+  }
+
+  const clearAllHovers = (): void => {
+    aviationBillboardLeave()
+    clearHoveredDrawingToolHighlight()
+    satelliteLeave()
+  }
+
+  // 鼠标移动（节流）
+  const mouseMove = useThrottleFn((movement: Cesium.ScreenSpaceEventHandler.PositionedEvent): void => {
+    const pickedObjects = viewer.value.scene.drillPick(movement.endPosition, 5) as PickedObjectLike[]
+    if (pickedObjects.length === 0) {
+      clearAllHovers()
+      return
+    }
+
+    const satelliteModelPicked = findSatelliteModelPicked(pickedObjects)
     if (satelliteModelPicked) {
-      // hover 互斥：清其它域的 hover（manager + store 由 leave 处理）
       aviationBillboardLeave()
       clearHoveredDrawingToolHighlight()
 
@@ -342,49 +333,31 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const properties = entity.properties?.getValue() as SatelliteProperties | undefined
       if (!properties) return
 
-      const time = viewer.value.clock.currentTime
-      const pos = entity.position?.getValue(time)
-      if (!pos) return
+      const pickResult = buildLngLatAltFromEntity(entity, viewer.value.clock.currentTime)
+      if (!pickResult) return
 
       const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
         viewer.value.scene,
-        pos,
+        pickResult.position,
       )
       if (!screenPosition) return
 
-      const cartographic = Cesium.Cartographic.fromCartesian(pos)
-      const lngLatAlt: LngLatAlt = {
-        longitude: Cesium.Math.toDegrees(cartographic.longitude),
-        latitude: Cesium.Math.toDegrees(cartographic.latitude),
-        height: cartographic.height,
-      }
-
-      handleSatelliteHover(properties, screenPosition, lngLatAlt, entity)
+      handleSatelliteHover(properties, screenPosition, pickResult.lngLatAlt, entity)
       return
     }
 
-    // ✅ 优先找 Billboard（飞机/机场图标）
-    const billboardPicked = pickedObjects.find((obj) => {
-      if (!(obj.primitive instanceof Cesium.Billboard)) return false
-      const properties = (obj.primitive as any).properties as MapBillboardLabelProperties | undefined
-      return (
-        !!properties &&
-        properties.type === 'billboard' &&
-        (properties.sourceType === 'aircraft' || properties.sourceType === 'airport')
-      )
-    })
+    const billboardPicked = findBillboardPicked(pickedObjects)
     if (billboardPicked) {
-      //清空manager里测绘框选的hover高亮，无store里存储高亮图形信息
       clearHoveredDrawingToolHighlight()
-      //清空store（卫星和飞机、机场的hover和select高亮共用）和manager（不共用）里卫星的hover高亮
       satelliteLeave()
 
       const billboard = billboardPicked.primitive
       if (!(billboard instanceof Cesium.Billboard)) return
       const properties = (billboard as any).properties as MapBillboardLabelProperties
-      const position: Cesium.Cartesian3 = billboard.position
-      const screenPosition: Cesium.Cartesian2 =
-        Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
+      const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
+        viewer.value.scene,
+        billboard.position,
+      )
       if (!screenPosition) return
 
       if (properties.sourceType === 'aircraft') {
@@ -395,17 +368,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       return
     }
 
-    // ✅ 没有 Billboard，再处理 Entity（半球/多边形等）
-    // useCesiumMouseEvents
-    const drawingToolEntityPicked = pickedObjects.find((obj) => {
-      if (!(obj.id instanceof Cesium.Entity)) return false
-      const properties = obj.id.properties?.getValue() as EntityProperties | undefined
-      return (
-        properties?.operationType === 'distanceMeasurement' ||
-        properties?.operationType === 'spatialSelection'
-      )
-    })
-
+    const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
     if (drawingToolEntityPicked) {
       aviationBillboardLeave()
       satelliteLeave()
@@ -414,14 +377,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
       const properties = entity.properties.getValue() as EntityProperties
-      handleDrawingToolHover(viewer, entity, properties)  // 或 rename → handleDrawingToolHover
+      handleDrawingToolHover(viewer, entity, properties)
       return
     }
 
-    // ✅ 什么都没拾取到
-    // aviationBillboardLeave()
-    // clearHoveredDrawingToolHighlight()
-    // emitCesiumEvent('satelliteLeave');
+    clearAllHovers()
   }, 100,true,true)
   // }, 500,true,true)
 
