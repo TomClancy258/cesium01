@@ -42,7 +42,8 @@ export function useMachineTestQuestions04() {
     // testGetMaxFromMultidimensionalArrByFlattedArr()
     // testGetMaxFromMultidimensionalArrByPureFunction()
 
-    testPromise()
+    // testPromise()
+    distinguishVarAndLet()
   }
 
   const testGetPromiseNumber = () => {
@@ -936,6 +937,15 @@ export function useMachineTestQuestions04() {
         })
       }
     }
+  }
+
+  const distinguishVarAndLet=()=>{
+    console.log(a) // undefined，不是报错
+    var a = 1
+    // function getA(){
+    //   var a='aaa'
+    // }
+    // console.log("a", a);
   }
 
 

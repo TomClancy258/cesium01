@@ -461,7 +461,7 @@ export function useAirports(
       viewer,
       {
         longitude: airportRenderItem.data.longitude,
-        latitude: airportRenderItem.data.latitude,
+        latitude: airportRenderItem.data.latitude-.35,
         height: airportRenderItem.data.elevation,
       },
       300000,

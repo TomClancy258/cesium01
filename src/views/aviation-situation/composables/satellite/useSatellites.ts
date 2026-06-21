@@ -121,6 +121,10 @@ export function useSatellites(
       const item = satelliteRenderMap.get(key)
       if (!item) continue
       const position = item.positionProperty.getValue(time)
+      //现在单 entity：可以删 positionProperty，用 entity.position.getValue(time) 完全够用。
+      //以后 model/cone 双 entity：更建议在 map 里保留 positionProperty 作为共享轨道引用。
+      // const position=item.entity.positionProperty.getValue(time)
+
       if (!position) continue
       const carto = Cesium.Cartographic.fromCartesian(position)
 
@@ -135,6 +139,7 @@ export function useSatellites(
           Math.abs(height - previousHeight) >= CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M
         ) {
           item.cylinderProps.length.setValue(height)
+          item.entity.cylinder.length=height
           lastCylinderHeightBySatelliteId.set(key, height)
         }
       }
@@ -270,6 +275,19 @@ export function useSatellites(
   const registerClockTick = () => {
     if (isClockTickRegistered) return
     viewer.value.clock.onTick.addEventListener(updateSatelliteCylinderLengths)
+    //clock.onTick          ← ① 时钟先走一步
+    //     ↓
+    // scene.preUpdate       ← ② 场景「更新阶段」开始前
+    //     ↓
+    // （Cesium 内部 update：Entity/Primitive/DataSource、相机等）
+    //     ↓
+    // scene.postUpdate      ← ③ 场景更新完成
+    //     ↓
+    // scene.preRender       ← ④ 真正 GPU 绘制前
+    //     ↓
+    // （WebGL render：出图）
+    //     ↓
+    // scene.postRender      ← ⑤ 本帧绘制结束
     isClockTickRegistered = true
   }
 
@@ -285,8 +303,13 @@ export function useSatellites(
     subscribeAirportEvents()
     setupSatelliteFilterFormWatch()
   }
+  let offset=1
 
   const drawSatellites = (satellites: Satellite[]) => {
+    setInterval(()=>{
+      offset+=1
+      // if(offset)
+    },1000)
     for (const satellite of satellites) {
       const matchedSatellite = satellite as MatchedSatellite
       matchedSatellite.aircraft = {
@@ -356,8 +379,20 @@ export function useSatellites(
         cylinder: {
           // 在 clock.onTick 里批量更新，避免每个卫星各自 CallbackProperty 调度。
           length: cylinderProps.length,
+          // length: CYLINDER_DEFAULTS.minLengthM, //Cesium 内部也会包成 ConstantProperty。
           topRadius: 0.0,
           bottomRadius: cylinderProps.bottomRadius,
+          // material:new Cesium.ImageMaterialProperty({
+          //   image:airplaneBlueSvgDataUrl,
+          //   repeat:new Cesium.Cartesian2(3.0, 2.0),
+          // }),
+          // material:new Cesium.StripeMaterialProperty({
+          //   orientation:Cesium.StripeOrientation.HORIZONTAL,
+          //   evenColor:SATELLITE_RADAR_DEFAULTS.color,
+          //   oddColor:Cesium.Color.TRANSPARENT,
+          //   repeat:10,
+          //   offset:offset
+          // }),
           material: new SatelliteRadarMaterialProperty({
             color: SATELLITE_RADAR_DEFAULTS.color,
             repeat: SATELLITE_RADAR_DEFAULTS.repeat,
@@ -395,6 +430,8 @@ export function useSatellites(
       satelliteRenderMap.set(matchedSatellite.id, {
         data: matchedSatellite,
         entity:entity,
+        //positionProperty、cylinderProps它俩都可以不用在satelliteRenderMap里存储维护
+        //只是开发者要记得修改length时要entity.length.setValue(xxx)，而不是entity.length=xxx 【这样也会自动包装ConstantProperty，但是稍微消耗一点点性能】
         positionProperty,
         cylinderProps
       })

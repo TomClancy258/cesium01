@@ -85,6 +85,27 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
     unbindPreRender = () => {
       if (viewer.value && !viewer.value.isDestroyed()) {
         viewer.value.scene.preRender.removeEventListener(onPreRender)
+        //为什么涟漪适合 preRender 而不是onTick
+        // 1. 纯 UI 装饰动画，不应绑仿真时间
+        //
+        // 高风险机场的波纹是「一直在呼吸的警示圈」，希望：
+        //
+        // 时钟暂停看态势 → 波纹仍动
+        // 时间倍速看轨道 → 波纹速度不变（别跟着 100x 狂闪）
+
+        //clock.onTick          ← ① 时钟先走一步
+        //     ↓
+        // scene.preUpdate       ← ② 场景「更新阶段」开始前
+        //     ↓
+        // （Cesium 内部 update：Entity/Primitive/DataSource、相机等）
+        //     ↓
+        // scene.postUpdate      ← ③ 场景更新完成
+        //     ↓
+        // scene.preRender       ← ④ 真正 GPU 绘制前
+        //     ↓
+        // （WebGL render：出图）
+        //     ↓
+        // scene.postRender      ← ⑤ 本帧绘制结束  //这一帧已经画完了，这里改 最早下一帧 才看见 → 白晚一帧，快速动画可能闪/抖
       }
       unbindPreRender = null
     }
@@ -107,7 +128,7 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
       })
-      ;(billboard as any).properties = {
+      billboard.properties = {
         type: 'billboard',
         sourceType: options.sourceType,
       }

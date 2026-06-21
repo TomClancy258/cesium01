@@ -330,9 +330,9 @@ export function useAircrafts(
     const properties = (aircraftRenderItem.billboard as any).properties as AircraftBillboardProperties
     handleAircraftLeftClick(properties,aircraftRenderItem.billboard)
     flyToLngLatAlt(viewer,{
-      longitude: aircraftRenderItem.data.longitude ?? 0,
-      latitude: aircraftRenderItem.data.latitude ?? 0,
-      height: aircraftRenderItem.data.baroAltitude ?? 0,
+      longitude: aircraftRenderItem.data.longitude,
+      latitude: aircraftRenderItem.data.latitude-.55,
+      height: aircraftRenderItem.data.baroAltitude,
     })
   }
 

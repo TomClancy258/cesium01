@@ -82,9 +82,28 @@ function customDebounceRef(defaultValue,delay){
     <div class="b">flex:1</div>
     <div class="c">flex:1</div>
   </div>
+
+  <div class="test-rgba">
+    父元素
+    <div  @click="console.log('aaaa')">
+      子元素1
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
+.test-rgba{
+  margin-top: 20px;
+  padding: 10px;
+  //background: rgba(0,0,0,0);
+  >div{
+    padding: 10px;
+    //background: pink;
+    //visibility:hidden;
+    //opacity:0;
+    background: transparent;
+  }
+}
 .div3>div{
   display: inline-block;
   background: #66ccff;

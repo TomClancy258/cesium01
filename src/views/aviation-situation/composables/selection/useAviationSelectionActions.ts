@@ -69,7 +69,7 @@ export const selectSatellite = (
     pathStyle: {
       show: SATELLITE_HOVER_SELECTED_PATH_SHOW,
     },
-  } as Parameters<typeof highlightSatelliteOnSelect>[1])
+  })
 
   const aviationSelectionStore = useAviationSelectionStore()
   if (!isSameSatelliteSelection(aviationSelectionStore.selected, data)) {

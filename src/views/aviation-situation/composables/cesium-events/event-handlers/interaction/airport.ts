@@ -29,5 +29,11 @@ export const handleAirportLeftClick = (properties: AirportBillboardProperties, b
     lngLatAlt: { ...properties.lngLatAlt },
     name: properties.name,
   }
+  //若加 clearSelectedSatelliteHighlight()：
+  //
+  // handler 要依赖 satellite-highlight-manager
+  // 从「数据 + 发事件」变成「还管跨域视觉状态」
+  // 飞机、机场、卫星三个 handler 各写一行 clear，互斥规则仍散在 3 个文件
+  
   emitCesiumEvent('airportLeftClick', airportSelectedData, billboard)
 }
