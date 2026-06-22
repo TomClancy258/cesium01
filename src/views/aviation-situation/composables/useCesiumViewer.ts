@@ -7,7 +7,7 @@ import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
 
 export function useCesiumViewer(containerId = 'cesium-container') {
-  // Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI1ZWIwNTgyZC1jMTczLTRjNjQtODZhNS00ZWFkY2M3ZmI5NzkiLCJpZCI6Njc5MDksImlhdCI6MTc3MjQxNzk4OX0.zpXh0_ldTjR-_yjVrpgd3KXCXuqzkw2gQ4bJa2M5pD8';
+  // Cesium.Ion.defaultAccessToken = '你的token，并注释掉下面的baseLayer';
 
   const viewer = shallowRef<Cesium.Viewer | null>(null)
   const initViewer = (): void => {

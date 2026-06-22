@@ -139,7 +139,7 @@ export function useSatellites(
           Math.abs(height - previousHeight) >= CYLINDER_LENGTH_HEIGHT_DELTA_THRESHOLD_M
         ) {
           item.cylinderProps.length.setValue(height)
-          item.entity.cylinder.length=height
+          // item.entity.cylinder.length=height
           lastCylinderHeightBySatelliteId.set(key, height)
         }
       }
@@ -303,13 +303,8 @@ export function useSatellites(
     subscribeAirportEvents()
     setupSatelliteFilterFormWatch()
   }
-  let offset=1
 
   const drawSatellites = (satellites: Satellite[]) => {
-    setInterval(()=>{
-      offset+=1
-      // if(offset)
-    },1000)
     for (const satellite of satellites) {
       const matchedSatellite = satellite as MatchedSatellite
       matchedSatellite.aircraft = {
@@ -346,6 +341,13 @@ export function useSatellites(
         // });
       }
 
+      //大多数：satelliteRenderMap = { id, entity, businessData }
+      //          要改 length → 从 entity.cylinder.length 取 Property 再 setValue
+      //
+      // 一部分：额外存 cylinderProps.length（和你们一样，偏工程规范）
+      //          尤其团队大、怕写错 assignment 时
+      //
+      // 很少：  每个 label/path/model 字段都在 map 里存 Property
       const cylinderProps = {
         length: new Cesium.ConstantProperty(CYLINDER_DEFAULTS.minLengthM),
         bottomRadius: new Cesium.ConstantProperty(CYLINDER_DEFAULTS.bottomRadiusM), // 仅当你要动态改
@@ -391,7 +393,7 @@ export function useSatellites(
           //   evenColor:SATELLITE_RADAR_DEFAULTS.color,
           //   oddColor:Cesium.Color.TRANSPARENT,
           //   repeat:10,
-          //   offset:offset
+          //   offset:.5
           // }),
           material: new SatelliteRadarMaterialProperty({
             color: SATELLITE_RADAR_DEFAULTS.color,
@@ -406,6 +408,8 @@ export function useSatellites(
         orientation: new Cesium.VelocityOrientationProperty(positionProperty),
         path: new Cesium.PathGraphics({
           width: 1,
+          //path 默认隐藏、hover 才显，走 highlight-manager 直接改 entity.path.show 就行；不必 ConstantProperty，也不必进 map。
+          // 只有像 length 这种 高频、批量、数值 更新才需要那套。
           show:false,
           material:Cesium.Color.fromCssColorString('rgba(128, 128, 128, .8)')
         }),

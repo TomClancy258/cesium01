@@ -66,7 +66,7 @@ const satellite = computed(() => {
   border-radius: 0;
   padding: 20px;
   color: #333;
-  font-size: 13px;
+  font-size: 14px;
   height: 100%;
   overflow: auto;
 }
@@ -102,7 +102,7 @@ const satellite = computed(() => {
   margin-bottom: 12px;
 
   .section-title {
-    font-size: 12px;
+    font-size: 15px;
     color: #666;
     text-transform: uppercase;
     letter-spacing: 0.5px;
