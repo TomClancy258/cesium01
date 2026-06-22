@@ -24,7 +24,7 @@ Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia / VueUse
 
 ## 界面截图
 **卫星扫描**（实时轨道运行，扫描航空节点高亮，联动详情与表格）
-<img width="3802" height="1760" alt="image" src="https://github.com/user-attachments/assets/e161a3b6-3617-48a2-9335-2a98cbe727fa" />
+<img width="1907" height="884" alt="卫星扫描和table联动" src="https://github.com/user-attachments/assets/da73a590-d919-4753-8f81-74e8f953f9a0" />
 
 **测绘+框选**（支持多边形/圆形/半球实时测绘，框选碰撞检测）
 <img width="3810" height="1771" alt="测绘+框选" src="https://github.com/user-attachments/assets/80820f28-be02-4f52-9206-bb1ea205ccf4" />
