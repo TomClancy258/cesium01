@@ -5,6 +5,7 @@ import type { Airport } from '@/network/airport/type'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
+import type { OSMBuildingSelectedProperties } from '@/views/aviation-situation/types/osm-building'
 
 export type LngLatAltArray=[number,number,number]
 
@@ -25,7 +26,12 @@ export type MapBillboardLabelProperties =
   | AirportBillboardProperties
   | AirportLabelProperties;
 
-export type AviationSelectedData = AircraftSelectedData | AirportSelectedData | SatelliteHoveredProperties | null
+export type AviationSelectedData =
+  | AircraftSelectedData
+  | AirportSelectedData
+  | SatelliteHoveredProperties
+  | OSMBuildingSelectedProperties
+  | null
 
 export interface LngLatAlt {
   longitude: number

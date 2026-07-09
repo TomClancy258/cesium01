@@ -4,8 +4,8 @@ import { updateTooltip } from '@/views/aviation-situation/utils/spatial-selectio
 
 // 通用Tooltip基础属性（适配飞机/机场等航空气象要素）
 export interface AviationTooltipBaseProperties {
-  type: string
-  sourceType: string // 区分aircraft/airport
+  type?: string
+  sourceType: string // 区分aircraft/airport/satellite
   [key: string]: any // 扩展字段（适配不同要素的个性化属性）
 }
 

@@ -41,7 +41,7 @@ const chartData = {
 </script>
 
 <template>
-  <div v-if="aircraft" class="aircraft-detail">
+  <div v-if="aircraft" class="aviation-detail aircraft-detail">
     <!-- 飞机图片 + 基本信息 -->
     <div class="aircraft-header">
       <div class="aircraft-image">
@@ -171,21 +171,22 @@ const chartData = {
     </div>
   </div>
 
-  <div v-else class="no-data">暂无飞机数据</div>
+  <div v-else class="aviation-detail">
+    <div class="no-data">暂无飞机数据</div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-.aircraft-detail {
-  background: #fff;
-  border-radius: 0;
-  padding: 0;
-  color: #333;
-  font-size: 13px;
-  height: 100%;
-  overflow: auto;
-}
+@use '../detail-shared';
 
-// 飞机图片 + 基本信息
+.aircraft-detail {
+  padding: 0;
+
+  .detail-section {
+    padding: 12px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+}
 .aircraft-header {
   display: flex;
   gap: 12px;
@@ -338,54 +339,5 @@ const chartData = {
     background: #e5e5e5;
     margin: 0 12px;
   }
-}
-
-// 详情章节
-.detail-section {
-  padding: 12px;
-  border-bottom: 1px solid #e5e5e5;
-
-  .section-title {
-    font-size: 12px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #f0f0f0;
-    font-weight: 600;
-  }
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 8px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-
-  .label {
-    color: #999;
-  }
-
-  .value {
-    color: #333;
-    font-weight: 500;
-    text-align: right;
-  }
-}
-
-.no-data {
-  background: #fff;
-  border-radius: 6px;
-  padding: 20px 12px;
-  color: #999;
-  font-size: 12px;
-  text-align: center;
 }
 </style>

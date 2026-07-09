@@ -857,8 +857,8 @@ export function useMachineTestQuestions04() {
           }
         }
       }
-      then(onFulFilled,onRejected){
-        onFulFilled=(typeof onFulFilled)==='function'?onFulFilled:(result)=>{return result}
+      then(onFulfilled,onRejected){
+        onFulfilled=(typeof onFulfilled)==='function'?onFulfilled:(result)=>{return result}
         onRejected=(typeof onRejected)==='function'?onRejected:(result)=>{throw result}
         const p= new MyPromise((resolve,reject)=>{
           const settlePromise=(cb)=>{
@@ -883,11 +883,11 @@ export function useMachineTestQuestions04() {
             })
           }
           if (this.state === FULFILLED) {
-            settlePromise(onFulFilled)
+            settlePromise(onFulfilled)
           } else if (this.state === REJECTED) {
             settlePromise(onRejected)
           }else if (this.state === PENDING) {
-            this.fulfilledCbs.push(settlePromise.bind(this,onFulFilled))
+            this.fulfilledCbs.push(settlePromise.bind(this,onFulfilled))
             this.rejectedCbs.push(settlePromise.bind(this,onRejected))
           }
         })

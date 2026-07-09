@@ -8,6 +8,7 @@ import { flyToLngLatAlt } from '@/utils/geoUtils'
 
 export function useCesiumViewer(containerId = 'cesium-container') {
   // Cesium.Ion.defaultAccessToken = '你的token，并注释掉下面的baseLayer';
+  Cesium.Ion.defaultAccessToken = '';
 
   const viewer = shallowRef<Cesium.Viewer | null>(null)
   const initViewer = (): void => {
@@ -15,8 +16,8 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       // timeline: false,
       // animation: false,
       // 1. 关闭绿色的选中框 (Selection Indicator)
-      selectionIndicator: false,
-      infoBox: false,
+      // selectionIndicator: false,
+      // infoBox: false,
       baseLayerPicker: false,
       baseLayer: Cesium.ImageryLayer.fromProviderAsync(
         new Cesium.UrlTemplateImageryProvider({

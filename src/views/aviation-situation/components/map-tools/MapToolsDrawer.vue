@@ -91,6 +91,12 @@ watch(
                 </el-icon>
                 <span>空间选择</span>
               </el-menu-item>
+              <el-menu-item index="cityModel">
+                <el-icon class="header-icon">
+                  <PictureRounded />
+                </el-icon>
+                <span>城市模型</span>
+              </el-menu-item>
             </el-menu>
           </el-col>
           <el-col :span="22" style="padding: 0 5px">

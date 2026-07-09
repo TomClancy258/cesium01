@@ -108,8 +108,10 @@ export function highlightDrawingToolOnSelect(
   highlightConfig: EntityHighlightConfig,
   entities:Cesium.Entity[]
 ): void {
+  if (selected.entity === entity) return
+
   // 恢复上一个选中的Entity
-  if (selected.entity && selected.entity !== entity) {
+  if (selected.entity) {
     restoreEntityOriginalState(selected.entity)
     hideEntities(selected.measurementEntities)
   }

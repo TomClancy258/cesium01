@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
-import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const props = defineProps<{ tooltip: SatelliteHoveredProperties }>()

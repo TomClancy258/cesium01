@@ -14,11 +14,10 @@ const satellite = computed(() => {
 </script>
 
 <template>
-  <div v-if="satellite" class="airport-detail">
-    <!-- 头部 -->
+  <div v-if="satellite" class="aviation-detail">
     <div class="detail-header">
-      <div class="airport-name">{{ satellite.name }}</div>
-      <div class="airport-codes">
+      <div class="detail-header__title">{{ satellite.name }}</div>
+      <div class="detail-header__meta detail-header__codes">
         <span class="icao">{{ satellite.id }}</span>
         <span class="separator">/</span>
         <span class="iata">--</span>
@@ -61,131 +60,16 @@ const satellite = computed(() => {
 </template>
 
 <style scoped lang="scss">
-.airport-detail {
-  background: #fff;
-  border-radius: 0;
-  padding: 20px;
-  color: #333;
-  font-size: 14px;
-  height: 100%;
-  overflow: auto;
-}
+@use './detail-shared';
 
-.detail-header {
-  padding: 0 0 10px 0;
-  border-bottom: 1px solid #e5e5e5;
-  margin-bottom: 12px;
+.aviation-detail {
+  .description-html {
+    margin: 6px 0 10px;
+    line-height: 1.6;
 
-  .airport-name {
-    font-size: 16px;
-    font-weight: bold;
-    margin-bottom: 4px;
-  }
-
-  .airport-codes {
-    font-size: 12px;
-    color: #999;
-
-    .icao {
-      color: #0066cc;
-      font-weight: 600;
-    }
-
-    .separator {
-      margin: 0 4px;
-      color: #ddd;
+    :deep(p) {
+      margin: 0 0 8px;
     }
   }
 }
-
-.detail-section {
-  margin-bottom: 12px;
-
-  .section-title {
-    font-size: 15px;
-    color: #666;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 8px;
-    padding-bottom: 4px;
-    border-bottom: 1px solid #f0f0f0;
-    font-weight: 600;
-  }
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 8px;
-}
-
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-
-  .label {
-    color: #999;
-  }
-
-  .value {
-    color: #333;
-    font-weight: 500;
-    text-align: right;
-  }
-}
-
-.description-html {
-  margin: 6px 0 10px;
-  line-height: 1.6;
-}
-
-.description-html :deep(p) {
-  margin: 0 0 8px;
-}
-
-.flight-table {
-  margin-bottom: 8px;
-  font-size: 12px;
-
-  :deep(.el-table__header) {
-    background-color: #f9f9f9;
-  }
-
-  :deep(.el-table__body tr:hover > td) {
-    background-color: #f5f7fa !important;
-  }
-
-  :deep(.el-table__cell) {
-    padding: 6px 0;
-  }
-}
-
-.pagination {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 8px;
-  border-top: 1px solid #f0f0f0;
-
-  :deep(.el-pagination) {
-    font-size: 12px;
-  }
-
-  :deep(.el-pagination .el-pager li) {
-    min-width: 24px;
-    height: 24px;
-    line-height: 24px;
-  }
-}
-
-.no-data {
-  background: #fff;
-  border-radius: 6px;
-  padding: 20px 12px;
-  color: #999;
-  font-size: 12px;
-  text-align: center;
-}
-
 </style>

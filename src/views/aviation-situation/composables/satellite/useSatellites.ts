@@ -54,7 +54,6 @@ type SatelliteFilterQuery = {
   name?: string
   countries: string[]
 }
-type SatelliteTooltipProperties = SatelliteHoveredProperties & { type: string }
 type SatelliteRenderState = {
   data: MatchedSatellite
   entity: Cesium.Entity
@@ -190,8 +189,7 @@ export function useSatellites(
       ){
         const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
         if (screenPosition) {
-          const properties:SatelliteTooltipProperties = {
-            type: 'none',
+          const properties: SatelliteHoveredProperties = {
             id:satellite.id,
             name: satellite.name ?? '',
             country:satellite.country ?? '',
@@ -300,7 +298,7 @@ export function useSatellites(
   }
 
   const initSatellites=()=>{
-    subscribeAirportEvents()
+    subscribeSatelliteEvents()
     setupSatelliteFilterFormWatch()
   }
 
@@ -500,9 +498,8 @@ export function useSatellites(
     tooltip,
     showTooltip: showSatelliteTooltip,
     hideTooltip: hideSatelliteTooltip
-  } = useAviationTooltip<SatelliteTooltipProperties>({
+  } = useAviationTooltip<SatelliteHoveredProperties>({
     id: '',
-    type: 'none',
     sourceType: 'satellite',
     name: '',
     country: '',
@@ -535,22 +532,23 @@ export function useSatellites(
   let unsubSatelliteLeave: () => void
   let unsubSatelliteLeftClick: () => void
 
-  const subscribeAirportEvents = () => {
-    // 订阅机场hover事件
+  const subscribeSatelliteEvents = () => {
     unsubSatelliteHover = onCesiumEvent(
       'satelliteHover',
-      ((properties, screenPosition) => {
-        const satelliteProperties = properties as SatelliteTooltipProperties
-        showSatelliteTooltip(screenPosition as Cesium.Cartesian2, satelliteProperties)
+      (
+        properties: SatelliteHoveredProperties,
+        screenPosition: Cesium.Cartesian2,
+      ) => {
+        showSatelliteTooltip(screenPosition, properties)
 
         if (
           aviationSelectionStore.hovered === null ||
           aviationSelectionStore.hovered.sourceType !== 'satellite' ||
-          aviationSelectionStore.hovered.id !== satelliteProperties.id
+          aviationSelectionStore.hovered.id !== properties.id
         ) {
-          aviationSelectionStore.setHovered(satelliteProperties)
+          aviationSelectionStore.setHovered(properties)
         }
-      }) as (...args: any[]) => void
+      },
     )
 
     unsubSatelliteLeave = onCesiumEvent('satelliteLeave', () => {

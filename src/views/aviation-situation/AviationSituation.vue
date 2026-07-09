@@ -1,11 +1,10 @@
 <script setup lang="ts">
 //src/views/aviation-situation/AviationSituation.vue
-import { useCloned } from '@vueuse/core'
-import { cloneDeep } from 'lodash-es'
 import { onMounted, provide, ref, onUnmounted, computed } from 'vue'
 import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
+import OSMBuildingTooltip from './components/tooltip/OSMBuildingTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
@@ -46,6 +45,7 @@ import { applyingCustomShader } from '@/views/aviation-situation/composables/ces
 import { drawColorGradient } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson02-color-gradient'
 import { drawGraphicsInTexture } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson03-draw-graphics-in-texture'
 import { drawGraphicsInTextureByTeacher } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson04-teacher.ts'
+import { useOSMBuildings } from '@/views/aviation-situation/composables/osm-building/useOSMBuildings'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
@@ -76,7 +76,7 @@ const {
     filterAirports,
     flyToAirportByIcao,
   },
-  satellites: {
+  satellite: {
     initSatellites,
     loadAndDrawSatellites,
     tooltip: satelliteTooltip,
@@ -89,6 +89,10 @@ const matchedAircraftCount = computed(() => aircraftStore.matchedAircrafts.size)
 const matchedAirportCount = computed(() => airportStore.matchedAirports.size)
 
 const { initBuildings } = useBuildings(cesiumViewer)
+const {
+  initOSMBuildings,
+  tooltip:osmBuildingTooltip
+} = useOSMBuildings(cesiumViewer)
 
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
@@ -114,6 +118,7 @@ onMounted(async () => {
 
   // test01()
   // initBuildings()
+  initOSMBuildings()
 
   // drawPolylineGeometry(cesiumViewer)
   // drawPolylineGeometryAppearance(cesiumViewer)
@@ -206,6 +211,7 @@ provide('flyToSatelliteById', flyToSatelliteById)
     <AirportTooltip :tooltip="airportTooltip" />
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <SatelliteTooltip :tooltip="satelliteTooltip" />
+    <OSMBuildingTooltip :tooltip="osmBuildingTooltip" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />

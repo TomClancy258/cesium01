@@ -66,6 +66,15 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import { AirportBillboardProperties } from '@/views/aviation-situation/types/airport'
+import {
+  OSMBuildingHoveredProperties, OSMBuildingSelectedProperties
+} from '@/views/aviation-situation/types/osm-building'
+import {
+  handleOSMBuildingHover, handleOSMBuildingLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/osmBuilding'
+import {
+  clearHoveredOSMBuildingHighlight, clearSelectedOSMBuildingHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
 
 type PickedObjectLike = {
   id?: unknown
@@ -175,6 +184,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         clearSelectedAviation()
         //清空上一次点击选中高亮的测绘框选图形（距离测绘，多边形、圆形、半球测绘框选）
         clearSelectedDrawingTool()
+        clearSelectedOSMBuildingHighlight()
         return
       }
 
@@ -197,7 +207,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       if (billboardPicked) {
         const billboard = billboardPicked.primitive
         if (!(billboard instanceof Cesium.Billboard)) return
-        const properties = (billboard as any).properties as MapBillboardLabelProperties
+        const properties = billboard.properties as MapBillboardLabelProperties
 
         if (properties.sourceType === 'aircraft') {
           handleAircraftLeftClick(properties as AircraftBillboardProperties, billboard)
@@ -217,8 +227,62 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         return
       }
 
+      const buildingPicked:Cesium.Cesium3DTileFeature = findOSMBuildingPicked(pickedObjects)
+      if (buildingPicked) {
+        const elementType = buildingPicked.getProperty('elementType')
+        const elementId = buildingPicked.getProperty('elementId')
+        // fail fast（早退）
+        if (elementType === undefined || elementId === undefined) return
+
+        const longitude = buildingPicked.getProperty('cesium#longitude')
+        const latitude = buildingPicked.getProperty('cesium#latitude')
+        if (longitude == undefined || latitude == undefined) return
+
+        const properties: OSMBuildingSelectedProperties = {
+          sourceType: 'osmBuilding',
+          name: buildingPicked.getProperty('name') ?? '',
+
+          elementType:elementType,
+          elementId:elementId,
+
+          type:{
+            shop:buildingPicked.getProperty('shop')??'', //类型
+            building:buildingPicked.getProperty('building')??'',  //类型，没有shop才采用这个
+          },
+          addr:{
+            housenumber:buildingPicked.getProperty('addr:housenumber')??'',
+            street:buildingPicked.getProperty('addr:street')??'',
+            city :buildingPicked.getProperty('addr:city')??'',
+            state:buildingPicked.getProperty('addr:state')??'',
+          },
+          estimatedHeight:buildingPicked.getProperty('cesium#estimatedHeight'),
+          lngLatAlt:{
+            longitude:longitude,
+            latitude:latitude,
+            height:0
+          },
+
+          business:{
+            openingHours:buildingPicked.getProperty('opening_hours')??'',
+            phone:buildingPicked.getProperty('phone')??'',
+            website:buildingPicked.getProperty('website')??'',
+          },
+
+          extension:{
+            atm:buildingPicked.getProperty('atm')??'',
+            wheelchair:buildingPicked.getProperty('wheelchair')??'',
+            internetAccess:buildingPicked.getProperty('internet_access')??'',
+            checkDate:buildingPicked.getProperty('check_date')??'',
+          }
+        }
+
+        handleOSMBuildingLeftClick(properties,buildingPicked)
+        return
+      }
+
       clearSelectedAviation()
       clearSelectedDrawingTool()
+      clearSelectedOSMBuildingHighlight()
 
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 
@@ -291,6 +355,17 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
 
+  const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => {
+      if (obj instanceof Cesium.Cesium3DTileFeature) {
+        const sourceType = obj.tileset.sourceType
+        if (sourceType === 'OSMBuilding') {
+          // 这是 OSM 全球建筑
+          return true
+        }
+      }
+    })
+
   const buildLngLatAltFromEntity = (
     entity: Cesium.Entity,
     time: Cesium.JulianDate,
@@ -312,6 +387,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     aviationBillboardLeave()
     clearHoveredDrawingToolHighlight()
     satelliteLeave()
+    osmBuildingLeave()
   }
 
   // 鼠标移动（节流）
@@ -326,6 +402,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     if (satelliteModelPicked) {
       aviationBillboardLeave()
       clearHoveredDrawingToolHighlight()
+      osmBuildingLeave()
 
       const entity = satelliteModelPicked.id
       if (!(entity instanceof Cesium.Entity)) return
@@ -350,10 +427,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     if (billboardPicked) {
       clearHoveredDrawingToolHighlight()
       satelliteLeave()
+      osmBuildingLeave()
 
       const billboard = billboardPicked.primitive
       if (!(billboard instanceof Cesium.Billboard)) return
-      const properties = (billboard as any).properties as MapBillboardLabelProperties
+      const properties = billboard.properties as MapBillboardLabelProperties
       const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
         viewer.value.scene,
         billboard.position,
@@ -372,12 +450,50 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     if (drawingToolEntityPicked) {
       aviationBillboardLeave()
       satelliteLeave()
+      osmBuildingLeave()
 
       const entity = drawingToolEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
       const properties = entity.properties.getValue() as EntityProperties
       handleDrawingToolHover(viewer, entity, properties)
+      return
+    }
+
+    const buildingPicked:Cesium.Cesium3DTileFeature = findOSMBuildingPicked(pickedObjects)
+    if (buildingPicked) {
+      aviationBillboardLeave()
+      satelliteLeave()
+      clearHoveredDrawingToolHighlight()
+
+      const longitude = buildingPicked.getProperty('cesium#longitude')
+      const latitude = buildingPicked.getProperty('cesium#latitude')
+      if (longitude == undefined || latitude == undefined) return
+
+      const properties:OSMBuildingHoveredProperties={
+        name:buildingPicked.getProperty('name')??'',
+
+        type:{
+          shop:buildingPicked.getProperty('shop')??'', //类型
+          building:buildingPicked.getProperty('building')??'',  //类型，没有shop才采用这个
+        },
+        addr:{
+          housenumber:buildingPicked.getProperty('addr:housenumber')??'',
+          street:buildingPicked.getProperty('addr:street')??'',
+          city :buildingPicked.getProperty('addr:city')??'',
+          state:buildingPicked.getProperty('addr:state')??'',
+        },
+        estimatedHeight:buildingPicked.getProperty('cesium#estimatedHeight'),
+        lngLatAlt:{
+          longitude:longitude,
+          latitude:latitude,
+          height:0
+        },
+      }
+
+      // console.log("typeof opening_hours", typeof buildingPicked.getProperty('opening_hours'));
+
+      handleOSMBuildingHover(properties,movement.endPosition,buildingPicked)
       return
     }
 
@@ -396,6 +512,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('satelliteLeave');
   }
 
+  const osmBuildingLeave=()=>{
+    clearHoveredOSMBuildingHighlight()
+    emitCesiumEvent('osmBuildingLeave');
+  }
+
   const clearSelectedDrawingTool=()=>{
     drawingToolStore.clearSelected()
     clearSelectedDrawingToolHighlight()
@@ -409,6 +530,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'aircraftHover', 'aircraftLeave', 'aircraftLeftClick',
       'airportHover', 'airportLeave', 'airportLeftClick',
       'satelliteHover', 'satelliteLeave', 'satelliteLeftClick',
+      'osmBuildingHover', 'osmBuildingLeave', 'osmBuildingLeftClick',
       'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))

@@ -115,6 +115,12 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
     if (!rippleBillboards) return
     if (rippleMap.has(id)) return
 
+    //一个高风险机场/目标
+    //     └── 3 个 Billboard（同一圆环贴图，同一位置）
+    //             ├── ripple[0]  相位 offset = 0ms
+    //             ├── ripple[1]  相位 offset = 450ms
+    //             └── ripple[2]  相位 offset = 900ms
+    //创建时在 add() 里一次性加 3 个：
     const billboards: Cesium.Billboard[] = style.timeOffsetsMs.map((_, index) => {
       const billboard = rippleBillboards!.add({
         id: `${options.idPrefix}_${id}_${index}`,

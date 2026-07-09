@@ -144,8 +144,10 @@ export function highlightBillboardOnSelect(
   billboard: Cesium.Billboard,
   highlightImage: string
 ): void {
+  if (selectedBillboard === billboard) return
+
   // 恢复上一个选中的图片
-  if (selectedBillboard && selectedBillboard !== billboard) {
+  if (selectedBillboard) {
     const previousSelectedBillboard = selectedBillboard
     selectedBillboard = null
     selectedHighlightImage = null

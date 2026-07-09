@@ -199,6 +199,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     }
     drawingToolStore.setDrawingDataSource(drawingDataSourceData)
     // 2. 创建动态位置的CallbackProperty
+    // 它最后会随 activeDistanceSurvey.dataSource 被 remove 掉
     const positionCallback:Cesium.CallbackProperty = new Cesium.CallbackProperty(
       () => {
           return dynamicPolylineState.positions
@@ -233,7 +234,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
   const cloneDynamicPolylineToDataSource=(dataSource,dataSourceName:string)=>{
     const uniqueId:string = generateBizUniqueId('distanceMeasurementPolyline')
 
-    // 2. 创建动态位置的CallbackProperty
+    // 2. 创建动态位置的静态 positions 数组
     const positions:Cesium.Cartesian3[]=Cesium.Cartesian3.fromDegreesArrayHeights(dynamicPolylineState.lngLatAltArray)
 
     // 3. 调用通用函数生成Label配置（无Point，仅Label）

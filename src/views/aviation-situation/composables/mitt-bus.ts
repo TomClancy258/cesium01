@@ -11,6 +11,10 @@ import {
 } from '@/views/aviation-situation/types/draw-tools'
 import Cesium from 'cesium'
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
+import type {
+  OSMBuildingHoveredProperties,
+  OSMBuildingSelectedProperties,
+} from '@/views/aviation-situation/types/osm-building'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -24,6 +28,10 @@ export type CesiumMouseEventName =
   | 'satelliteHover'
   | 'satelliteLeave'
   | 'satelliteLeftClick'
+
+  | 'osmBuildingHover'
+  | 'osmBuildingLeave'
+  | 'osmBuildingLeftClick'
 
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
@@ -51,9 +59,13 @@ export interface EventCallbackMap {
   airportLeave: () => void;
   airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
 
-  satelliteHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
+  satelliteHover: (properties: SatelliteHoveredProperties, position: Cesium.Cartesian2, entity: Cesium.Entity) => void;
   satelliteLeave: () => void;
   satelliteLeftClick: (data: SatelliteHoveredProperties, entity: Cesium.Entity) => void;
+
+  osmBuildingHover: (properties: OSMBuildingHoveredProperties, position: Cesium.Cartesian2) => void;
+  osmBuildingLeave: () => void;
+  osmBuildingLeftClick: (data: OSMBuildingSelectedProperties, feature: Cesium.Cesium3DTileFeature) => void;
 
   mouseWheel: () => void; // 新增事件的回调类型（无参数）
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

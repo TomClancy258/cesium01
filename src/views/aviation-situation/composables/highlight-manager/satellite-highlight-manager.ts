@@ -71,8 +71,10 @@ export function highlightSatelliteOnSelect(
   entity: Cesium.Entity,
   highlightConfig: EntityHighlightConfig,
 ): void {
+  if (selectedSatellite === entity) return
+
   // 恢复上一个选中的Entity
-  if (selectedSatellite && selectedSatellite !== entity) {
+  if (selectedSatellite) {
     restoreEntityOriginalState(selectedSatellite)
   }
 

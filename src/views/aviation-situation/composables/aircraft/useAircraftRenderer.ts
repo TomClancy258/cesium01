@@ -117,9 +117,12 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       show: true,
       position,
       image,
+      // distanceDisplayCondition: new Cesium.DistanceDisplayCondition(0, 5_000_000),
       rotation: -Cesium.Math.toRadians(heading),
       width: 30,
       height: 30,
+      // threePointDepthTestDistance:Cesium.HeightReference.CLAMP_TO_3D_TILE
+      // coarseDepthTestDistance:1
     })
 
     billboard.properties = {

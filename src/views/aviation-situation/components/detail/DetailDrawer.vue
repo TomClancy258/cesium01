@@ -6,6 +6,7 @@ import type { DrawerProps } from 'element-plus'
 import AircraftDetail from './aircraft/AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
 import SatelliteDetail from './SatelliteDetail.vue'
+import OSMBuildingDetail from './OSMBuildingDetail.vue'
 
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
@@ -50,9 +51,13 @@ const handleDetailDrawerClose = (): void => {
 const aviationDetailDrawerTitle = computed(() => {
   if (selectedSourceType.value === 'aircraft') {
     return '飞机详情'
-  }else if(selectedSourceType.value === 'airport'){
+  } else if (selectedSourceType.value === 'airport') {
     return '机场详情'
-  }else{
+  } else if (selectedSourceType.value === 'satellite') {
+    return '卫星详情'
+  } else if (selectedSourceType.value === 'osmBuilding') {
+    return '建筑详情'
+  } else {
     return ''
   }
 })
@@ -74,6 +79,7 @@ const aviationDetailDrawerTitle = computed(() => {
       <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
       <AirportDetail v-show="selectedSourceType === 'airport'" />
       <SatelliteDetail v-show="selectedSourceType === 'satellite'" />
+      <OSMBuildingDetail v-show="selectedSourceType === 'osmBuilding'" />
     </div>
   </el-drawer>
 </template>

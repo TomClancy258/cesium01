@@ -18,7 +18,8 @@ export function useAviationWiring(viewerInput: ShallowRef<Cesium.Viewer | null>)
     onAviationDataUpdated: mouseEvents.refreshActiveSpatialSelections,
   })
 
-  const satellites = useSatellites(viewer, {
+  //构造参数 代替mitt实现跨业务hook之间的事件通信，这里就是卫星hook向飞机、机场hook的通信
+  const satellite = useSatellites(viewer, {
     refreshSatelliteConeScanWithAircraft: aircraft.refreshSatelliteConeScan,
     refreshSatelliteConeScanWithAirport: airport.refreshSatelliteConeScan,
   })
@@ -27,6 +28,6 @@ export function useAviationWiring(viewerInput: ShallowRef<Cesium.Viewer | null>)
     mouseEvents,
     aircraft,
     airport,
-    satellites,
+    satellite,
   }
 }

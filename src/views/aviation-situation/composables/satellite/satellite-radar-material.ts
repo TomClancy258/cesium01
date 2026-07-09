@@ -32,6 +32,15 @@ export const registerSatelliteRadarMaterial = (): void => {
   // Entity：cylinder、ellipse、ellipsoid、polygon、corridor、wall…
   // Primitive：带 material 的几何体
   // 不是 Entity 专属，而是 Material 系统 专属。
+
+  //Primitive（CylinderGeometry + MaterialAppearance）
+  //   └─ appearance.material = new Cesium.Material({ fabric })   ✅
+  //
+  // Entity（cylinder / ellipse / …）
+  //   └─ material: new ColorMaterialProperty(...)              ✅
+  //   └─ material: new StripeMaterialProperty(...)             ✅
+  //   └─ material: new SatelliteRadarMaterialProperty(...)     ✅ 自定义
+  //   └─ material: new Cesium.Material(...)                    ❌
   Cesium.Material._materialCache.addMaterial(SATELLITE_RADAR_MATERIAL_TYPE, {
     fabric: {
       type: SATELLITE_RADAR_MATERIAL_TYPE,
@@ -51,7 +60,8 @@ export const registerSatelliteRadarMaterial = (): void => {
 
         //Cesium 每个片元调用一次
         // materialInput：该片元的 st、法线等
-        // 返回 czm_material 给 Cesium 做光照/混合
+        // czm_getMaterial 返回 czm_material材质结构体（含默认 diffuse/alpha/specular 等） 给 Cesium 做光照/混合，不是该片元的最终颜色
+        //就是返回该片元的材质结构体
         czm_material czm_getMaterial(czm_materialInput materialInput) {
           //material保存可用于照明的材质信息。由所有 czm_getMaterial 函数返回。
           //拿默认材质（含默认 diffuse/alpha/specular 等），后面只改需要的字段。
