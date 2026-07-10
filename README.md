@@ -1,13 +1,13 @@
 # 三维航空态势可视化系统
 
-基于 CesiumJS 实现的全球三维航空态势可视化平台。
+基于 CesiumJS 的全球三维航空态势可视化平台，面向大规模节点渲染、复杂空间交互与态势联动场景。
 
 ## 技术栈
-Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia / VueUse
+Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia / Mitt / VueUse
 
 ## 核心功能
 - 1万+航班、2万+机场、多卫星实时三维渲染
-- 卫星轨道运行与圆锥体扫描地面节点（实时高亮 + 联动）
+- 卫星轨道运行与圆锥体扫描地面节点（实时高亮 + 表格联动）
 - 空间测绘工具链（距离/多边形/圆形/半球）+ 万级节点框选碰撞检测
 - 多优先级高亮管理（选中/hover/框选/扫描）
 - 模拟WebSocket 5s推送，增量更新变化点位
@@ -21,6 +21,7 @@ Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia / VueUse
 - 相机海拔节流 + 按距离显隐管理
 - Map/Set增量更新，避免全量重建
 - BBox预筛 + Turf.js精算两级碰撞检测
+- onTick 分级节流
 
 ## 界面截图
 **卫星扫描**（实时轨道运行，扫描航空节点高亮，联动详情与表格）
