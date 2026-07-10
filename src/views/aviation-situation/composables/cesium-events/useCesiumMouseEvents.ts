@@ -355,16 +355,18 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
 
-  const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
-    pickedObjects.find((obj) => {
+  const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>{
+    return pickedObjects.find((obj) => {
       if (obj instanceof Cesium.Cesium3DTileFeature) {
         const sourceType = obj.tileset.sourceType
-        if (sourceType === 'OSMBuilding') {
+        if (sourceType === 'osmBuilding') {
           // 这是 OSM 全球建筑
           return true
         }
       }
     })
+
+  }
 
   const buildLngLatAltFromEntity = (
     entity: Cesium.Entity,
@@ -469,7 +471,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const longitude = buildingPicked.getProperty('cesium#longitude')
       const latitude = buildingPicked.getProperty('cesium#latitude')
       if (longitude == undefined || latitude == undefined) return
-
+      // console.log("buildingPicked", buildingPicked);
       const properties:OSMBuildingHoveredProperties={
         name:buildingPicked.getProperty('name')??'',
 

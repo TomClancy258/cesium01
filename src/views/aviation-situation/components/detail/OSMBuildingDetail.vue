@@ -3,8 +3,8 @@ import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { computed } from 'vue'
 import {
   displayDetailHeight,
-  displayDetailName,
-  displayDetailValue,
+  displayDetailName, displayDetailType,
+  displayDetailValue
 } from '@/views/aviation-situation/utils/format-detail-value'
 
 const aviationSelectionStore = useAviationSelectionStore()
@@ -43,7 +43,7 @@ const formattedAddress = computed(() => {
       <div class="info-grid">
         <div class="info-item">
           <span class="label">类型</span>
-          <span class="value">{{ displayDetailValue(displayType) }}</span>
+          <span class="value">{{ displayDetailType(building.type.building) }}</span>
         </div>
         <div class="info-item">
           <span class="label">预估高度</span>

@@ -7,6 +7,15 @@ export const displayDetailValue = (value: string | number | null | undefined): s
   return value
 }
 
+export const displayDetailType = (value: string | number | null | undefined): string | number => {
+  if (value === null || value === undefined || value === '') return EMPTY_DETAIL
+  else if (value === 'yes') {
+    return '未知'
+  }else {
+    return value
+  }
+}
+
 export const displayDetailHeight = (height: number | null | undefined, unit = ' m'): string => {
   if (height === null || height === undefined) return EMPTY_DETAIL
   return `${height}${unit}`

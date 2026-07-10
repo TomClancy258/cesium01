@@ -6,7 +6,8 @@ import SpatialSelection from '@/views/aviation-situation/components/map-tools/pa
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
-import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOptions.vue'
+import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
+import OSMBuildingFilter from '@/views/aviation-situation/components/map-tools/panels/OSMBuildingFilter.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
 import { useDrawingToolStore } from '@/stores/drawing-tool'
@@ -105,6 +106,7 @@ watch(
             <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
+            <OSMBuildingFilter v-show="activeIndex === 'cityModel'" />
           </el-col>
         </el-row>
       </div>

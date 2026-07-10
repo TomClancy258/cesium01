@@ -1,5 +1,5 @@
 <script setup lang="ts">
-//AircraftTrajectoryOptions.vue
+//AircraftTrajectoryOption.vue
 import { useAircraftStore } from '@/stores/aircraft'
 
 const aircraftStore = useAircraftStore()

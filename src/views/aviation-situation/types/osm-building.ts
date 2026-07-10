@@ -46,3 +46,25 @@ export interface OSMBuildingSelectedProperties extends OSMBuildingBaseProperties
 export interface OSMBuildingHighlightConfig {
   color: Cesium.Color
 }
+
+export type OSMBuildingTypeFilterValue =
+  | 'retail'
+  | 'commercial'
+  | 'yes'
+  | 'industrial'
+  | 'apartments'
+  | 'residential'
+  | 'office'
+  | 'parking'
+  | 'others'
+
+export interface OSMBuildingTypeFilterOption {
+  label: string
+  value: OSMBuildingTypeFilterValue
+}
+
+export interface OSMBuildingFilterForm {
+  types: OSMBuildingTypeFilterValue[]
+  colorByType: boolean
+  colorByDistance: boolean
+}

@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia'
 import { reactive, shallowRef, computed, triggerRef } from 'vue'
-import {
+import type{
   SatelliteFilterForm,
-  type MatchedSatellite,
+  MatchedSatellite,
 } from '@/views/aviation-situation/types/satellite'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'

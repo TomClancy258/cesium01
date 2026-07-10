@@ -1,4 +1,4 @@
-//src/views/aviation-situation/composables/useAirports.ts
+//src/views/aviation-situation/composables/useAirport.ts
 import { onUnmounted, markRaw, watch, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
@@ -61,7 +61,7 @@ export interface UseAirportsOptions {
   onAviationDataUpdated?: () => void
 }
 
-export function useAirports(
+export function useAirport(
   viewer: ShallowRef<Cesium.Viewer>,
   options: UseAirportsOptions = {},
 ) {

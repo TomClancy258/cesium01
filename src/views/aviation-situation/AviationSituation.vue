@@ -45,7 +45,7 @@ import { applyingCustomShader } from '@/views/aviation-situation/composables/ces
 import { drawColorGradient } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson02-color-gradient'
 import { drawGraphicsInTexture } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson03-draw-graphics-in-texture'
 import { drawGraphicsInTextureByTeacher } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson04-teacher.ts'
-import { useOSMBuildings } from '@/views/aviation-situation/composables/osm-building/useOSMBuildings'
+import { useOSMBuilding } from '@/views/aviation-situation/composables/osm-building/useOSMBuilding'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
@@ -91,8 +91,9 @@ const matchedAirportCount = computed(() => airportStore.matchedAirports.size)
 const { initBuildings } = useBuildings(cesiumViewer)
 const {
   initOSMBuildings,
-  tooltip:osmBuildingTooltip
-} = useOSMBuildings(cesiumViewer)
+  tooltip:osmBuildingTooltip,
+  filterOSMBuildings,
+} = useOSMBuilding(cesiumViewer)
 
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
@@ -200,6 +201,7 @@ provide('matchedAirportCount', matchedAirportCount)
 provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
+provide('filterOSMBuildings', filterOSMBuildings)
 </script>
 
 <template>

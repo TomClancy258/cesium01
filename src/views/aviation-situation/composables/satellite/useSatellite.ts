@@ -81,7 +81,7 @@ export interface UseSatellitesOptions {
   ) => Map<string, Map<string, Airport>>
 }
 
-export function useSatellites(
+export function useSatellite(
   viewer: ShallowRef<Cesium.Viewer>,
   options: UseSatellitesOptions = {},
 ) {

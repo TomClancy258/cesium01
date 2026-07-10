@@ -1,4 +1,4 @@
-//src/views/aviation-situation/composables/aircraft/useAircrafts.ts
+//src/views/aviation-situation/composables/aircraft/useAircraft.ts
 import { watch, onUnmounted } from 'vue'
 import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
@@ -42,7 +42,7 @@ export interface UseAircraftsOptions {
   onAviationDataUpdated?: () => void
 }
 
-export function useAircrafts(
+export function useAircraft(
   viewer: ShallowRef<Cesium.Viewer>,
   options: UseAircraftsOptions = {},
 ) {
