@@ -13,6 +13,7 @@ import {
 } from '@/views/aviation-situation/constants/control-zone-filter-data'
 import { formatFixed4 } from '../../../utils/format-detail-value'
 import type { ControlZoneLevel } from '@/network/control-zone/type'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 const CONTROL_ZONE_LEVEL_TAG_TYPE: Record<
   ControlZoneLevel,
@@ -51,7 +52,10 @@ const resetControlZoneForm = (formEl: FormInstance | undefined) => {
 }
 
 const onDetail = (row: ControlZoneProperties) => {
-  // flyToControlZoneById?.(row.id)
+  emitCesiumEvent('controlZoneTableOperationClicked',{
+    operationType:'detail',
+    id:row.id
+  })
 }
 
 const isAllLevelsSelected = computed({

@@ -121,7 +121,6 @@ const handleDelete = (row: DistanceMeasurementData) => {
 
 // 详情（占位，按需实现）
 const handleView = (row: DistanceMeasurementData) => {
-  console.log('详情', row)
   emitCesiumEvent('spatialSelectionTableOperationClicked',{
     operationType:'detail',
     centroidLngLatAlt:row.centroidLngLatAlt,

@@ -38,3 +38,8 @@ export interface ControlZoneTable extends ControlZoneRawProperties {
   bbox: BBox
   graphic: Graphic
 }
+
+export interface ControlZoneTableRowOperation{
+  operationType:'detail',
+  id:string
+}

@@ -375,6 +375,7 @@ export function useSatellite(
           horizontalOrigin: AVIATION_LABEL_STYLE_BASE.HORIZONTAL_ORIGIN,
           pixelOffset: new Cesium.Cartesian2(0, 30),
           outlineColor: AVIATION_LABEL_STYLE_BASE.OUTLINE_COLOR,
+          disableDepthTestDistance:0
         },
         cylinder: {
           // 在 clock.onTick 里批量更新，避免每个卫星各自 CallbackProperty 调度。
@@ -525,8 +526,6 @@ export function useSatellite(
       { deep: true },
     )
   }
-
-
 
   let unsubSatelliteHover: () => void
   let unsubSatelliteLeave: () => void

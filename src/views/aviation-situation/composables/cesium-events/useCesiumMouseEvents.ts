@@ -69,7 +69,7 @@ import {
 } from '@/views/aviation-situation/types/osm-building'
 import {
   handleOSMBuildingHover, handleOSMBuildingLeftClick
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/osmBuilding'
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/osm-building'
 import {
   clearHoveredOSMBuildingHighlight, clearSelectedOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'

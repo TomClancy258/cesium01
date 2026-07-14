@@ -69,7 +69,10 @@ export const clearSelectedRegion = (): void => {
 
   if (selected?.sourceType === 'controlZone') {
     clearSelectedControlZoneHighlight()
-  } else if (selected) {
+  } else if (selected?.sourceType === 'distanceMeasurement'||
+    selected?.sourceType === 'polygonSpatialSelection'||
+    selected?.sourceType === 'circleSpatialSelection'||
+    selected?.sourceType === 'hemisphereSpatialSelection') {
     clearSelectedDrawingToolHighlight()
   }
 

@@ -34,5 +34,4 @@ export const handleControlZoneLeftClick = (
     maxAltitude: properties.maxAltitude,
   }
   selectControlZoneRegion(entity, selected)
-  emitCesiumEvent('controlZoneLeftClick', selected, entity)
 }

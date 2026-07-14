@@ -11,7 +11,7 @@ import { CONTROL_ZONE_LEVEL_STYLES } from '@/views/aviation-situation/composable
 import { useDebounceFn } from '@vueuse/core'
 import { useControlZoneStore } from '@/stores/control-zone'
 import {
-  ControlZoneSelectedProperties,
+  ControlZoneSelectedProperties, ControlZoneTableRowOperation,
   MatchedControlZone
 } from '@/views/aviation-situation/types/control-zone'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
@@ -24,6 +24,9 @@ import {
 } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 import { OSMBuildingHoveredProperties } from '@/views/aviation-situation/types/osm-building'
+import {
+  handleControlZoneLeftClick
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/control-zone'
 
 type ControlZoneFilterQuery = {
   id?: string
@@ -194,7 +197,7 @@ export function useControlZone(viewer: ShallowRef<Cesium.Viewer>) {
 
   let unsubControlZoneHover: () => void
   let unsubControlZoneLeave: () => void
-  let unsubControlZoneLeftClick: () => void
+  let unsubControlZoneTableOperationClicked: () => void
 
   const subscribeControlZoneEvents = () => {
     unsubControlZoneHover = onCesiumEvent(
@@ -211,10 +214,20 @@ export function useControlZone(viewer: ShallowRef<Cesium.Viewer>) {
       hideControlZoneTooltip()
     })
 
-    unsubControlZoneLeftClick = onCesiumEvent(
-      'controlZoneLeftClick',
-      (_data: ControlZoneSelectedProperties, _entity: Cesium.Entity) => {
-        // 选中已在 handleControlZoneLeftClick → selectControlZoneRegion 完成
+    unsubControlZoneTableOperationClicked = onCesiumEvent(
+      'controlZoneTableOperationClicked',
+      (controlZoneTableRowOperation:ControlZoneTableRowOperation) => {
+        const controlZoneRenderState:ControlZoneRenderState|undefined = controlZoneRenderMap.get(controlZoneTableRowOperation.id)
+        if(!controlZoneRenderState) return
+        const entity=controlZoneRenderState.entity
+        if (!(entity) || !entity.properties) return
+
+        const properties: ControlZoneProperties = entity.properties.getValue()
+        handleControlZoneLeftClick(properties,entity)
+
+        viewer.value.flyTo(entity,{
+          duration:1.5
+        })
       },
     )
 
@@ -226,7 +239,7 @@ export function useControlZone(viewer: ShallowRef<Cesium.Viewer>) {
 
     unsubControlZoneHover()
     unsubControlZoneLeave()
-    unsubControlZoneLeftClick()
+    unsubControlZoneTableOperationClicked()
   })
 
   return {
