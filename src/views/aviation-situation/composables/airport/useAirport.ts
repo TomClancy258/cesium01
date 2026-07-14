@@ -302,14 +302,15 @@ export function useAirport(
     const countriesSet = new Set(query.countries)
 
     airportRenderMap.forEach(({ data: airport, billboard, label }) => {
-      const p = billboard.properties as AirportBaseProperties
+      const p: AirportBaseProperties = billboard.properties
       if (!p) return
 
       const match: boolean =
         (!query.icao || p.icao.toLowerCase().includes(query.icao)) &&
         (!query.name || p.name.toLowerCase().includes(query.name)) &&
         countriesSet.has(p.country) &&
-        (query.riskLevel === 'all' || airport.riskLevel === query.riskLevel)
+        (query.riskLevel === 'all' || airport.riskLevel === query.riskLevel) &&
+        form.visible
       // (!query.country || p.country.toLowerCase().includes(query.country))
 
       // const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
@@ -455,7 +456,7 @@ export function useAirport(
   const flyToAirportByIcao = (icao: string): void => {
     const airportRenderItem = airportRenderMap.get(icao)
     if (!airportRenderItem) return
-    const properties = airportRenderItem.billboard.properties as AirportBillboardProperties
+    const properties: AirportBillboardProperties = airportRenderItem.billboard.properties
     handleAirportLeftClick(properties, airportRenderItem.billboard)
     flyToLngLatAlt(
       viewer,

@@ -43,7 +43,7 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
             entity=viewer.value.entities.getById(dataSourceName)
           }
           if (entity) {
-            properties = entity.properties.getValue() as EntityProperties
+            properties = entity.properties.getValue()
             handleSpatialSelectionLeftClick(viewer, entity, properties)
             flyToLngLatAlt(viewer, spatialSelectionTableRowDetail.centroidLngLatAlt, 1000000)
           }

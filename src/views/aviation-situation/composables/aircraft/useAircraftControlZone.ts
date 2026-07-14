@@ -1,0 +1,64 @@
+import type { ShallowRef } from 'vue'
+import * as Cesium from 'cesium'
+import type { AviationRenderItem } from '@/views/aviation-situation/types/shared.ts'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import {
+  highlightBillboardOnSatelliteConeScan,
+  clearSatelliteConeScanSelectedHighlight,
+} from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
+import { useAircraftStore } from '@/stores/aircraft'
+import type { ConeSnapshot } from '@/views/aviation-situation/types/satellite'
+import {
+  createConeQueryContext,
+  isPointInConeWithContext,
+} from '@/views/aviation-situation/utils/satellite-cone-utils'
+
+interface Options {
+  viewer: ShallowRef<Cesium.Viewer>
+  renderMap: Map<string, AviationRenderItem<Aircraft>>
+  dangerControlZoneImageUrl: string
+  warningControlZoneImageUrl: string
+}
+
+export function useAircraftControlZone({
+  renderMap,
+  dangerControlZoneImageUrl,
+  warningControlZoneImageUrl,
+}: Options) {
+  const aircraftStore = useAircraftStore()
+
+  const refreshControlZone = (coneSnapshots: ConeSnapshot[]):Map<string, Map<string, Aircraft>> => {
+    const aircraftBySatelliteId = new Map<string, Map<string, Aircraft>>()
+
+    for (const coneSnapshot of coneSnapshots) {
+      const coneCtx = createConeQueryContext(coneSnapshot)
+      const aircraftMap = new Map<string, Aircraft>()
+      for (const icao24 of aircraftStore.matchedAircrafts.keys()) {
+        const item = renderMap.get(icao24)
+        if (!item) continue
+
+        const position: Cesium.Cartesian3 = item.billboard.position
+        const inGraphic = isPointInConeWithContext(position, coneCtx)
+
+        //高亮优先级：框选>卫星扫描
+        if (inGraphic) {
+          highlightBillboardOnSatelliteConeScan(
+            coneSnapshot.id,
+            item.billboard,
+            controlZoneImageUrl,
+          )
+          aircraftMap.set(icao24, item.data)
+        } else {
+          clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard)
+        }
+      }
+      aircraftBySatelliteId.set(coneSnapshot.id, aircraftMap)
+    }
+
+    return aircraftBySatelliteId
+  }
+
+  return {
+    refreshControlZone,
+  }
+}

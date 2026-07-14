@@ -6,8 +6,9 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData, DrawingToolEntitiesResult } from '@/views/aviation-situation/types/shared'
-import { useDrawingToolStore } from "@/stores/drawing-tool.ts"
-import { getDrawingToolEntitiesAndHighlightEntity } from "@/utils/cesiumUtils"
+import { useDrawingToolStore } from '@/stores/drawing-tool.ts'
+import { getDrawingToolEntitiesAndHighlightEntity } from '@/utils/cesiumUtils'
+import { selectDrawingToolRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
 
 const drawingToolStore = useDrawingToolStore()
 
@@ -98,5 +99,5 @@ export const handleSpatialSelectionLeftClick = (
     dataSourceName:  properties.dataSourceName,
     isDraft:  properties.isDraft,
   }
-  drawingToolStore.setSelected(selected)
+  selectDrawingToolRegion(selected)
 }

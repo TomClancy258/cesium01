@@ -1,4 +1,4 @@
-import request01 from '../request'
+import flyDataRequest from '../request'
 import type { Satellite, RawSatellite } from './type'
 
 const API = {
@@ -6,7 +6,7 @@ const API = {
 } as const
 
 export const getSatellites = (): Promise<Satellite[]> => {
-  return request01.get<RawSatellite[]>(API.SATELLITES).then(rawSatellites => {
+  return flyDataRequest.get<RawSatellite[]>(API.SATELLITES).then(rawSatellites => {
     return rawSatellites.map(rawSatellite => ({
       id: rawSatellite.id,
       name: rawSatellite.name,

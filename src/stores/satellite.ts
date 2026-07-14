@@ -80,7 +80,7 @@ export const useSatelliteStore = defineStore('useSatelliteStore', () => {
   const resetSatelliteFilterForm = () => {
     satelliteFilterForm.id = ''
     satelliteFilterForm.name = ''
-    satelliteFilterForm.countries=[]
+    satelliteFilterForm.countries=selectedSatelliteContinentCountryValues
     satelliteFilterForm.visible = true
   }
 

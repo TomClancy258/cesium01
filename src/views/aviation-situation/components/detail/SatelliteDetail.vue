@@ -60,7 +60,7 @@ const satellite = computed(() => {
 </template>
 
 <style scoped lang="scss">
-@use './detail-shared';
+@use '../../styles/detail-shared';
 
 .aviation-detail {
   .description-html {

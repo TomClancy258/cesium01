@@ -26,6 +26,9 @@ import {
   airplaneSelectedSvgRawDataUrl,
   airplaneSpatialSelectedSvgRawDataUrl,
   airplaneSatelliteConeScanSvgRawDataUrl,
+
+  airplaneDangerControlZoneSvgRawDataUrl,
+  airplaneWarningControlZoneSvgRawDataUrl,
 } from './aircraft-constants'
 type AircraftRenderItem = AviationRenderItem<Aircraft>
 import { useAviationTooltip } from '../useAviationTooltip'
@@ -37,14 +40,17 @@ import { useAircraftFilter } from './useAircraftFilter'
 import { useAircraftInteractions } from './useAircraftInteractions'
 import { useAircraftRenderer } from './useAircraftRenderer'
 import { useAircraftSync } from './useAircraftSync'
+import {
+  useAircraftControlZone
+} from '@/views/aviation-situation/composables/aircraft/useAircraftControlZone'
 
-export interface UseAircraftsOptions {
+export interface UseAircraftOptions {
   onAviationDataUpdated?: () => void
 }
 
 export function useAircraft(
   viewer: ShallowRef<Cesium.Viewer>,
-  options: UseAircraftsOptions = {},
+  options: UseAircraftOptions = {},
 ) {
   const aviationSelectionStore = useAviationSelectionStore()
   const simulatedWebSocketStore = useSimulatedWebSocketStore()
@@ -128,6 +134,12 @@ export function useAircraft(
     viewer,
     renderMap: aircraftRenderMap,
     satelliteConeScannedImageUrl: airplaneSatelliteConeScanSvgRawDataUrl,
+  })
+  const { refreshControlZone } = useAircraftControlZone({
+    viewer,
+    renderMap: aircraftRenderMap,
+    dangerControlZoneImageUrl: airplaneDangerControlZoneSvgRawDataUrl,
+    warningControlZoneImageUrl: airplaneWarningControlZoneSvgRawDataUrl,
   })
   const { filterAircrafts } = useAircraftFilter({
     renderMap: aircraftRenderMap,
@@ -327,7 +339,7 @@ export function useAircraft(
   const flyToAircraftByIcao24 = (icao24: string): void => {
     const aircraftRenderItem = aircraftRenderMap.get(icao24)
     if (!aircraftRenderItem) return
-    const properties = (aircraftRenderItem.billboard as any).properties as AircraftBillboardProperties
+    const properties: AircraftBillboardProperties = aircraftRenderItem.billboard.properties
     handleAircraftLeftClick(properties,aircraftRenderItem.billboard)
     flyToLngLatAlt(viewer,{
       longitude: aircraftRenderItem.data.longitude,
@@ -373,5 +385,6 @@ export function useAircraft(
     filterAircrafts,
     flyToAircraftByIcao24,
     refreshSatelliteConeScan,
+    refreshControlZone,
   }
 }

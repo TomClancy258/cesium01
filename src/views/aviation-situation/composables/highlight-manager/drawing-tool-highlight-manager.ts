@@ -22,7 +22,7 @@ const selected:EntityHighlightData={
  */
 const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
+  const props: EntityProperties = entity.properties.getValue()
 
   if(props.sourceType==='distanceMeasurement') {
     entity.polyline.material=props.polyline.originalMaterial
@@ -44,7 +44,7 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
  */
 const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightConfig) => {
   if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
+  const props: EntityProperties = entity.properties.getValue()
 
   // 1. 设置整体显隐
   // if (config.show !== undefined) {

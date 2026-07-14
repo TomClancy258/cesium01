@@ -1,5 +1,5 @@
 // index.ts
-import request01 from '../request'
+import flyDataRequest from '../request'
 import {
   parseAircraftStates,
   type AircraftStatesResponse,
@@ -21,13 +21,13 @@ const API = {
  * 获取飞机列表（已解析为 Aircraft[]）
  */
 export const getAircrafts = async (): Promise<AircraftStatesResponse> => {
-  const response = await request01.get<AircraftStatesRawResponse>(API.AIRCRAFTS)
+  const response = await flyDataRequest.get<AircraftStatesRawResponse>(API.AIRCRAFTS)
   const states = response?.states ?? []
   return parseAircraftStates(states)
 }
 
 export const getAircraftRouteFull = async (icao24:string): Promise<RouteFullResponse> => {
-  const response = await request01.get<RoutePointTuple[]>(API.ROUTE_FULL,{
+  const response = await flyDataRequest.get<RoutePointTuple[]>(API.ROUTE_FULL,{
     params:{ icao24 }
   })
   const trace=response?.trace??[]
@@ -36,7 +36,7 @@ export const getAircraftRouteFull = async (icao24:string): Promise<RouteFullResp
 
 
 export const getAircraftPlannedTrajectory  = async (icao24:string): Promise<RouteFullResponse> => {
-  const response = await request01.get<RoutePointTuple[]>(API.PLANNED_TRAJECTORY,{
+  const response = await flyDataRequest.get<RoutePointTuple[]>(API.PLANNED_TRAJECTORY,{
     params:{ icao24 }
   })
   const trace=response?.trace??[]

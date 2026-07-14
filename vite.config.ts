@@ -42,12 +42,17 @@ export default defineConfig({
       '/model': {
         target: 'http://127.0.0.1:8086',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/model/, '')   // rewrite 函数用于重写请求路径，这里将请求路径中的 /api 前缀移除，确保请求能够正确地发送到后端服务器上的正确路由。
+        rewrite: (path) => path.replace(/^\/model/, '')
       },
       '/fly_data': {
         target: 'http://127.0.0.1:8087',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/fly_data/, '')   // rewrite 函数用于重写请求路径，这里将请求路径中的 /api 前缀移除，确保请求能够正确地发送到后端服务器上的正确路由。
+        rewrite: (path) => path.replace(/^\/fly_data/, '')
+      },
+      '/geojson': {
+        target: 'http://127.0.0.1:8084',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/geojson/, '')
       },
     },
   }

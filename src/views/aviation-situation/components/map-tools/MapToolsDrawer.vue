@@ -5,12 +5,13 @@ import type { DrawerProps } from 'element-plus'
 import SpatialSelection from '@/views/aviation-situation/components/map-tools/panels/draw-tool/DrawingTool.vue'
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
+import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
 import OSMBuildingFilter from '@/views/aviation-situation/components/map-tools/panels/OSMBuildingFilter.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
-import { useDrawingToolStore } from '@/stores/drawing-tool'
+import { useRegionSelectionStore } from '@/stores/region-selection'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
@@ -30,15 +31,16 @@ const activeIndex = ref('aircraftFilter')
 
 const activeName = ref('')
 
-const drawingToolStore = useDrawingToolStore()
+const regionSelectionStore = useRegionSelectionStore()
 
 watch(
-  () => drawingToolStore.selected,
+  () => regionSelectionStore.selected,
   (selected) => {
     if (!selected) return
-    activeIndex.value='spatialSelection'
-    drawer.value=true
-  }
+    activeIndex.value =
+      selected.sourceType === 'controlZone' ? 'controlZoneFilter' : 'spatialSelection'
+    drawer.value = true
+  },
 )
 
 </script>
@@ -56,6 +58,7 @@ watch(
         <el-row>
           <el-col :span="2">
             <el-menu
+              :key="activeIndex"
               :default-active="activeIndex"
               class="el-menu-vertical-demo"
               @open="handleOpen"
@@ -67,6 +70,12 @@ watch(
                   <Filter />
                 </el-icon>
                 <span>飞机筛选</span>
+              </el-menu-item>
+              <el-menu-item index="trajectoryOption">
+                <el-icon class="header-icon">
+                  <Share />
+                </el-icon>
+                <span>轨迹选项</span>
               </el-menu-item>
               <el-menu-item index="airportFilter">
                 <el-icon class="header-icon">
@@ -80,11 +89,11 @@ watch(
                 </el-icon>
                 <span>卫星筛选</span>
               </el-menu-item>
-              <el-menu-item index="trajectoryOption">
+              <el-menu-item index="controlZoneFilter">
                 <el-icon class="header-icon">
-                  <Share />
+                  <Filter />
                 </el-icon>
-                <span>轨迹选项</span>
+                <span>管控地区筛选</span>
               </el-menu-item>
               <el-menu-item index="spatialSelection">
                 <el-icon class="header-icon">
@@ -102,9 +111,10 @@ watch(
           </el-col>
           <el-col :span="22" style="padding: 0 5px">
             <AircraftFilter v-show="activeIndex === 'aircraftFilter'" />
-            <AirportFilter v-show="activeIndex === 'airportFilter'" />
-            <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
+            <AirportFilter v-show="activeIndex === 'airportFilter'" />
+            <ControlZoneFilter v-show="activeIndex === 'controlZoneFilter'" />
+            <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
             <OSMBuildingFilter v-show="activeIndex === 'cityModel'" />
           </el-col>

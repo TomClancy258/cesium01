@@ -5,6 +5,7 @@ import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
 import OSMBuildingTooltip from './components/tooltip/OSMBuildingTooltip.vue'
+import ControlZoneTooltip from './components/tooltip/ControlZoneTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
@@ -28,7 +29,9 @@ import { useDistanceMeasurementStore } from '@/stores/distance-measurement.ts'
 
 import { clearAllBillboardHighlight } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { clearAllDrawingToolHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
+import { clearAllControlZoneHighlight } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
 import { clearSelectedSatelliteHighlight } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
+import { useRegionSelectionStore } from '@/stores/region-selection'
 
 import {drawPolylineGeometry} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson02-polylineGeometry.ts"
 import {drawPolylineGeometryAppearance} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson04-polylineGeometry-appearance.ts"
@@ -46,6 +49,11 @@ import { drawColorGradient } from '@/views/aviation-situation/composables/cesium
 import { drawGraphicsInTexture } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson03-draw-graphics-in-texture'
 import { drawGraphicsInTextureByTeacher } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson04-teacher.ts'
 import { useOSMBuilding } from '@/views/aviation-situation/composables/osm-building/useOSMBuilding'
+import { useControlZone } from '@/views/aviation-situation/composables/control-zone/useControlZone'
+import {
+  clearAllOSMBuildingHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
+import { useOSMBuildingStore } from '@/stores/osm-building'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
 const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
@@ -55,7 +63,9 @@ const airportStore = useAirportStore()
 
 const spatialSelectionStore = useSpatialSelectionStore()
 const drawingToolStore = useDrawingToolStore()
+const regionSelectionStore = useRegionSelectionStore()
 const distanceMeasurementStore = useDistanceMeasurementStore()
+const osmBuildingStore = useOSMBuildingStore()
 
 const {
   mouseEvents: {
@@ -95,6 +105,11 @@ const {
   filterOSMBuildings,
 } = useOSMBuilding(cesiumViewer)
 
+const {
+  initControlZones,
+  tooltip:controlZoneTooltip,
+} = useControlZone(cesiumViewer)
+
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
 const detailDrawerRef = ref(null)
@@ -120,6 +135,7 @@ onMounted(async () => {
   // test01()
   // initBuildings()
   initOSMBuildings()
+  initControlZones()
 
   // drawPolylineGeometry(cesiumViewer)
   // drawPolylineGeometryAppearance(cesiumViewer)
@@ -152,6 +168,7 @@ onMounted(async () => {
 onUnmounted(() => {
   destroyEvents() // 销毁Cesium事件监听
   simulatedWebSocketStore.close()
+
   aviationSelectionStore.clearSelected()
   // aviationSelectionStore.clearHovered()
   aviationSelectionStore.clearLastSelectedIcao24()
@@ -166,12 +183,16 @@ onUnmounted(() => {
   spatialSelectionStore.clearAllFinishedSelections()
 
   drawingToolStore.clearDrawingDataSource()
-  drawingToolStore.clearSelected()
+  regionSelectionStore.clearSelected()
+
+  osmBuildingStore.resetOSMBuildingFilterForm()
 
   distanceMeasurementStore.clearAllFinishedSelections()
 
   clearAllBillboardHighlight()
   clearAllDrawingToolHighlight()
+  clearAllControlZoneHighlight()
+  clearAllOSMBuildingHighlight()
 })
 
 const test01 = () => {
@@ -214,6 +235,7 @@ provide('filterOSMBuildings', filterOSMBuildings)
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <SatelliteTooltip :tooltip="satelliteTooltip" />
     <OSMBuildingTooltip :tooltip="osmBuildingTooltip" />
+    <ControlZoneTooltip :tooltip="controlZoneTooltip" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />

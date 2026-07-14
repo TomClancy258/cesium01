@@ -1,4 +1,4 @@
-import request01 from '../request'
+import flyDataRequest from '../request'
 import type { Airport, RawAirport } from './type'
 
 const API = {
@@ -7,10 +7,10 @@ const API = {
 } as const
 
 // export const getAirports = (): Promise<Airport[]> =>
-//   request01.get(API.AIRPORTS_3W)
+//   flyDataRequest.get(API.AIRPORTS_3W)
 
 export const getAirports = (): Promise<Airport[]> => {
-  return request01.get<RawAirport[]>(API.AIRPORTS_3W).then(rawAirports => {
+  return flyDataRequest.get<RawAirport[]>(API.AIRPORTS_3W).then(rawAirports => {
     return rawAirports.map(airport => ({
       icao: airport.icao,
       iata: airport.iata,
@@ -28,4 +28,4 @@ export const getAirports = (): Promise<Airport[]> => {
 }
 
 export const getAirports02 = (): Promise<Airport[]> =>
-  request01.get(API.AIRPORTS_8W)
+  flyDataRequest.get(API.AIRPORTS_8W)

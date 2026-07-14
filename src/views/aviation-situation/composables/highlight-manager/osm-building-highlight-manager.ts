@@ -1,6 +1,9 @@
 // highlight-manager/osm-building-highlight-manager.ts
 import * as Cesium from 'cesium'
 import { OSMBuildingHighlightConfig } from '@/views/aviation-situation/types/osm-building'
+import {
+  clearAllDrawingToolHighlight
+} from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager'
 
 let hoveredFeature: Cesium.Cesium3DTileFeature | null = null //hovered = 「当前正处于悬停状态的」
 let selectedFeature: Cesium.Cesium3DTileFeature | null = null
@@ -60,4 +63,9 @@ export function clearSelectedOSMBuildingHighlight() {
     selectedFeature.color = selectedOriginalColor
     selectedFeature = null
   }
+}
+
+export function clearAllOSMBuildingHighlight(){
+  clearHoveredOSMBuildingHighlight()
+  clearSelectedOSMBuildingHighlight()
 }

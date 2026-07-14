@@ -473,7 +473,7 @@ export function useSatellite(
       const match =
         (!query.id || satellite.id.toLowerCase().includes(query.id)) &&
         (!query.name || (satellite.name ?? '').toLowerCase().includes(query.name)) &&
-        countriesSet.has(satellite.country)&&
+        countriesSet.has(satellite.country) &&
         form.visible
       // (!countriesSet.size || countriesSet.has(satellite.originCountry))
 
@@ -580,7 +580,7 @@ export function useSatellite(
     if (!item) return
 
     const { entity } = item
-    const properties = entity.properties?.getValue() as SatelliteProperties | undefined
+    const properties: SatelliteProperties | undefined = entity.properties?.getValue()
     if (!properties) return
 
     const time = viewer.value.clock.currentTime

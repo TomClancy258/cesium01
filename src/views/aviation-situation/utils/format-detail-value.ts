@@ -30,3 +30,8 @@ export const displayDetailCoordinate = (value: number | null | undefined, fracti
   if (value === null || value === undefined) return EMPTY_DETAIL
   return value.toFixed(fractionDigits)
 }
+
+export const formatFixed4 = (value: number | undefined): string => {
+  if (typeof value !== 'number' || Number.isNaN(value)) return '--'
+  return value.toFixed(4)
+}

@@ -21,7 +21,7 @@ export const updateFinishedSelectionLabels = (viewer: ShallowRef<Cesium.Viewer>)
 
       const values = dataSources[0].entities.values
       const metricsLabelEntity = values[1]
-      const props = metricsLabelEntity.properties.getValue() as EntityProperties
+      const props: EntityProperties = metricsLabelEntity.properties.getValue()
 
       const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}`
 
@@ -34,7 +34,7 @@ export const updateFinishedSelectionLabels = (viewer: ShallowRef<Cesium.Viewer>)
     }else if(selectionRegion.sourceType === 'circleSpatialSelection'||
       selectionRegion.sourceType === 'hemisphereSpatialSelection'){
       const entity = viewer.value.entities.getById(dataSourceName)
-      const props = entity.properties.getValue() as EntityProperties
+      const props: EntityProperties = entity.properties.getValue()
       const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}\n半径：${props.label.radiusInfo.formattedRadiusStr}`
 
       const target = selectionRegion.spatialSelectionTarget

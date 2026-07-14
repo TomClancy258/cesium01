@@ -48,14 +48,15 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     let isSelectedAircraftMatched = false
 
     renderMap.forEach(({ data: aircraft, billboard, label }) => {
-      const p = billboard.properties as AircraftBaseProperties
+      const p: AircraftBaseProperties = billboard.properties
       if (!p) return
 
       const match =
         (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
         (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
         originCountriesSet.has(p.originCountry) &&
-        (query.riskLevel === 'all' || aircraft.riskLevel === query.riskLevel)
+        (query.riskLevel === 'all' || aircraft.riskLevel === query.riskLevel) &&
+        aircraftFilterForm.visible
 
       if (match) {
         addMatchedAircrafts(aircraft)

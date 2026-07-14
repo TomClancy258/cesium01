@@ -1,21 +1,23 @@
 <script lang="ts" setup>
 import { ref, watch } from 'vue'
 import { useDrawingToolStore } from '@/stores/drawing-tool'
+import { useRegionSelectionStore } from '@/stores/region-selection'
 import DraftDistanceMeasurement from './tables/distance-measurement/DraftDistanceMeasurement.vue'
 import SavedDistanceMeasurement from './tables/distance-measurement/SavedDistanceMeasurement.vue'
 import DraftSpatialSelection from './tables/spatial-selection/DraftSpatialSelection.vue'
 import SavedSpatialSelection from './tables/spatial-selection/SavedSpatialSelection.vue'
 
 const drawingToolStore = useDrawingToolStore()
+const regionSelectionStore = useRegionSelectionStore()
 
 const activeSection = ref<'distance' | 'spatial'>('distance')
 const distanceTab = ref<'draft' | 'saved'>('draft')
 const spatialTab = ref<'draft' | 'saved'>('draft')
 
 watch(
-  () => drawingToolStore.selected,
+  () => regionSelectionStore.selected,
   (selected) => {
-    if (!selected) return
+    if (!selected || selected.sourceType === 'controlZone') return
     if (selected.operationType === 'spatialSelection') {
       activeSection.value = 'spatial'
       spatialTab.value = selected.isDraft ? 'draft' : 'saved'
@@ -23,7 +25,7 @@ watch(
       activeSection.value = 'distance'
       distanceTab.value = selected.isDraft ? 'draft' : 'saved'
     }
-  }
+  },
 )
 
 const operationTypes = [

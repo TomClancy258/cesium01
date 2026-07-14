@@ -31,7 +31,7 @@ const formattedAddress = computed(() => {
 </script>
 
 <template>
-  <div v-show="props.tooltip.visible" class="satellite-tooltip" :style="tooltipStyle">
+  <div v-show="props.tooltip.visible" class="osm-building-tooltip" :style="tooltipStyle">
     <div>名称：{{ displayDetailName(tooltipProperties.name) }}</div>
     <div>类型：{{ displayDetailType(tooltipProperties.type.building) }}</div>
     <div>经度：{{ tooltipProperties.lngLatAlt?.longitude.toFixed(4) }}</div>
@@ -44,7 +44,7 @@ const formattedAddress = computed(() => {
 <style scoped lang="scss">
 @use '@/assets/css/mixins' as *;
 
-.satellite-tooltip {
+.osm-building-tooltip {
   @include map-tooltip;
 }
 </style>

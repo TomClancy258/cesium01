@@ -177,7 +177,7 @@ const chartData = {
 </template>
 
 <style scoped lang="scss">
-@use '../detail-shared';
+@use '../../../styles/detail-shared';
 
 .aircraft-detail {
   padding: 0;

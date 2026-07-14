@@ -7,10 +7,11 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { ShallowRef } from 'vue'
 import type { DrawingToolSelectedData } from '@/views/aviation-situation/types/shared'
-import {useDrawingToolStore} from "@/stores/drawing-tool.ts"
-const drawingToolStore=useDrawingToolStore()
+import { useDrawingToolStore } from '@/stores/drawing-tool.ts'
+import { selectDrawingToolRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
+import { getDrawingToolEntitiesAndHighlightEntity } from '@/utils/cesiumUtils'
 
-import {getDrawingToolEntitiesAndHighlightEntity} from "@/utils/cesiumUtils"
+const drawingToolStore = useDrawingToolStore()
 
 
 export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
@@ -44,13 +45,13 @@ export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|n
       { type: 'polyline', prop: 'material', value: Cesium.Color.fromCssColorString('#06B6D4') }
     ]
   },result.measurementEntities)
-  const selected:DrawingToolSelectedData={
-    id:entity.id,
-    type:properties.type,
-    sourceType:properties.sourceType,
-    operationType:properties.operationType,
-    dataSourceName:properties.dataSourceName,
-    isDraft:  properties.isDraft,
+  const selected: DrawingToolSelectedData = {
+    id: entity.id,
+    type: properties.type,
+    sourceType: properties.sourceType,
+    operationType: properties.operationType,
+    dataSourceName: properties.dataSourceName,
+    isDraft: properties.isDraft,
   }
-  drawingToolStore.setSelected(selected)
+  selectDrawingToolRegion(selected)
 }

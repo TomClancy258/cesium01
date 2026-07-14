@@ -1,7 +1,6 @@
 import * as Cesium from 'cesium'
 import type { EntityProperties, EntityHighlightConfig } from '@/views/aviation-situation/types/entity'
 import type { SatelliteHighlightConfig } from '@/views/aviation-situation/types/satellite'
-import { useAviationSelectionStore } from '@/stores/aviation-selection'
 
 // 仅存储Entity实例（模块单例，非响应式）
 let hoveredSatellite:Cesium.Entity=null
@@ -12,7 +11,7 @@ let selectedSatellite:Cesium.Entity=null
  */
 const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
+  const props: EntityProperties = entity.properties.getValue()
   if(props.sourceType==='satellite') {
     entity.model.silhouetteColor = props.model.silhouetteColor
     entity.model.silhouetteSize = props.model.silhouetteSize
@@ -25,7 +24,7 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
  */
 const setEntityHighlightStyle = (entity: Cesium.Entity, config: SatelliteHighlightConfig) => {
   if (!entity.properties) return
-  const props = entity.properties.getValue() as EntityProperties
+  const props: EntityProperties = entity.properties.getValue()
   if(props.sourceType==='satellite') {
     entity.model.silhouetteColor=config.modelStyle.silhouetteColor
     entity.model.silhouetteSize =config.modelStyle.silhouetteSize

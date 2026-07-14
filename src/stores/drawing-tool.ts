@@ -1,7 +1,7 @@
-// stores/measurementSelection.ts
+// stores/drawing-tool.ts
 import { defineStore } from 'pinia'
 import { reactive, ref } from 'vue'
-import type { DrawingToolSelectedData,DrawingDataSource } from '@/views/aviation-situation/types/shared'
+import type { DrawingDataSource } from '@/views/aviation-situation/types/shared'
 export interface DrawingToolForm {
   operationType: string,
   spatialSelectionSubtype: string,
@@ -15,8 +15,6 @@ export const useDrawingToolStore = defineStore('drawingToolStore', () => {
     spatialSelectionSubtype: 'none',
     spatialSelectionTarget: 'measurement',
   })
-
-  const selected = ref<DrawingToolSelectedData|null>(null)
 
   const drawingDataSource=ref<DrawingDataSource|null>(null)
 
@@ -44,34 +42,20 @@ export const useDrawingToolStore = defineStore('drawingToolStore', () => {
   }
 
   const setDrawingDataSource = (
-    data: DrawingToolSelectedData = null
+    data: DrawingDataSource | null = null
   ): void => {
     drawingDataSource.value = data
-  }
-
-  // ========== 选中相关 ==========
-  const clearSelected = (): void => {
-    selected.value = null
-  }
-
-  const setSelected = (
-    data: DrawingToolSelectedData = null
-  ): void => {
-    selected.value = data
   }
 
   return {
     // 响应式状态
     drawingToolForm,
-    selected,
     drawingDataSource,
     // 方法
     setOperationType,
     setSpatialSelectionSubtype,
     resetSpatialSelectFilterForm,
 
-    clearSelected,
-    setSelected,
     clearDrawingDataSource,
     setDrawingDataSource,
   }

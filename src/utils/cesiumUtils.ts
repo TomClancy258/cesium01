@@ -29,7 +29,7 @@ export const cloneEntityAsConfig = (
     // position: sourceEntity.position,
   };
   if (sourceEntity.properties) {
-    const props = sourceEntity.properties.getValue() as EntityProperties
+    const props: EntityProperties = sourceEntity.properties.getValue()
     props.dataSourceName=newEntityId
     cloneConfig.properties=props
   }
@@ -105,7 +105,7 @@ export const cloneEntityAsConfig = (
 
 export const showEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    const props = entity.properties.getValue() as EntityProperties
+    const props: EntityProperties = entity.properties.getValue()
     if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=true
       entity.point.show=true
@@ -117,7 +117,7 @@ export const showEntities=(entities:Cesium.Entity[])=>{
 
 export const hideEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    const props = entity.properties.getValue() as EntityProperties
+    const props: EntityProperties = entity.properties.getValue()
     if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=false
       entity.point.show=false
@@ -130,7 +130,7 @@ export const hideEntities=(entities:Cesium.Entity[])=>{
 export const showMeasurementEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     if(entity.label){
-      const props = entity.properties.getValue() as EntityProperties
+      const props: EntityProperties = entity.properties.getValue()
       entity.label.fillColor = props.label.originalFillColor;
     }
     if(entity.point){
@@ -251,7 +251,7 @@ export const getDrawingToolEntitiesAndHighlightEntity = (
     // 存储显示的实体（调整索引从0开始）
     measurementEntities[i - startIndex] = values[i]
 
-    // const entityProperties = values[i].properties.getValue() as EntityProperties
+    // const entityProperties: EntityProperties = values[i].properties.getValue()
     // 根据实体类型显示对应的组件
     // if (entityProperties.type === 'surveyPoint') {
     //   values[i].label.show = true

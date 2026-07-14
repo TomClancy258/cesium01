@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import { useDistanceMeasurementStore } from '@/stores/distance-measurement'
-import { useDrawingToolStore } from '@/stores/drawing-tool'
+import { useRegionSelectionStore } from '@/stores/region-selection'
 import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
@@ -10,7 +10,7 @@ import type { DistanceMeasurementData } from '@/views/aviation-situation/types/d
 
 const distanceMeasurementStore = useDistanceMeasurementStore()
 const { finishedGraphicsArray } = storeToRefs(distanceMeasurementStore)
-const drawingToolStore = useDrawingToolStore()
+const regionSelectionStore = useRegionSelectionStore()
 
 // 分页
 const currentPage = ref(1)
@@ -41,9 +41,9 @@ const handleSelectionChange = (val: DistanceMeasurementData[]) => {
 
 // 响应 store 中 selected 变化：跳页并勾选对应行
 watch(
-  () => drawingToolStore.selected,
+  () => regionSelectionStore.selected,
   async (selected) => {
-    if (!selected) {
+    if (!selected || selected.sourceType === 'controlZone') {
       tableRef.value?.clearSelection()
       return
     }
