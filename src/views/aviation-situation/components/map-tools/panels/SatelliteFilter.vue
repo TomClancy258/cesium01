@@ -23,7 +23,7 @@ const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return satelliteStore.matchedSatellitesArray.slice(start, start + pageSize.value)
+  return satelliteStore.matchedSatellites.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -157,7 +157,7 @@ const onDetail = (row: Satellite) => {
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
       :page-sizes="[10, 20, 50, 100]"
-      :total="satelliteStore.matchedSatellitesArray.length"
+      :total="satelliteStore.matchedSatellites.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"

@@ -17,7 +17,7 @@ export const useSatelliteScanStore = defineStore('useSatelliteScanStore', () => 
   })
 
   const finishedGraphicMap = shallowRef(new Map<string, SelectionRegionBase>())
-  const finishedGraphicsArray = computed(() => Array.from(finishedGraphicMap.value.values()))
+  const finishedGraphics = computed(() => Array.from(finishedGraphicMap.value.values()))
 
   const addAircraftToActiveSpatialSelection = (icao24: string) => {
     activeSpatialSelection.aircraft.icao24Set.add(icao24)
@@ -128,7 +128,7 @@ export const useSatelliteScanStore = defineStore('useSatelliteScanStore', () => 
     batchSetAirportSpatialSelection,
 
     finishedGraphicMap,
-    finishedGraphicsArray,
+    finishedGraphics,
     addFinishedSelection,
     removeFinishedSelection,
     clearAllFinishedSelections,

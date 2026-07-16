@@ -31,7 +31,7 @@ export function useAirportConeScannedBySatellite({
     for (const coneSnapshot of coneSnapshots) {
       const coneCtx = createConeQueryContext(coneSnapshot)
       const airportMap = new Map<string, Airport>()
-      for (const icao of airportStore.matchedAirports.keys()) {
+      for (const icao of airportStore.matchedAirportMap.keys()) {
         const item = renderMap.get(icao)
         if (!item) continue
 

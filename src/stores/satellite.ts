@@ -25,26 +25,26 @@ export const useSatelliteStore = defineStore('useSatelliteStore', () => {
   })
 
 
-  const matchedSatellites = shallowRef<Map<string, MatchedSatellite>>(new Map())
+  const matchedSatelliteMap = shallowRef<Map<string, MatchedSatellite>>(new Map())
   // const matchedSatellites2 = shallowRef<Map<string, MatchedSatelliteRenderItem>>(new Map())
-  const matchedSatellitesArray = computed(() => [...matchedSatellites.value.values()])
+  const matchedSatellites = computed(() => [...matchedSatelliteMap.value.values()])
 
   const clearMatchedSatellites = () => {
-    // matchedSatellites.value = new Map()
-    matchedSatellites.value.clear()
+    // matchedSatelliteMap.value = new Map()
+    matchedSatelliteMap.value.clear()
   }
 
   //set：可能新增也可能覆盖，add：只新增不覆盖。
   const setMatchedSatellite = (satellite: MatchedSatellite) => {
-    matchedSatellites.value.set(satellite.id, satellite)
+    matchedSatelliteMap.value.set(satellite.id, satellite)
   }
   const commitMatchedSatellites = () => {
-    triggerRef(matchedSatellites)
-    // matchedSatellites.value = new Map(matchedSatellites.value)
+    triggerRef(matchedSatelliteMap)
+    // matchedSatelliteMap.value = new Map(matchedSatelliteMap.value)
   }
 
   const updateMatchedSatellite = (newSatellite: MatchedSatellite) => {
-    const satellite= matchedSatellites.value.get(newSatellite.id)
+    const satellite= matchedSatelliteMap.value.get(newSatellite.id)
     if (satellite) {
       const lngLatAlt=satellite.lngLatAlt
       lngLatAlt.longitude=newSatellite.lngLatAlt.longitude
@@ -57,7 +57,7 @@ export const useSatelliteStore = defineStore('useSatelliteStore', () => {
     aircraftBySatelliteId: Map<string, Map<string, Aircraft>>,
     airportBySatelliteId: Map<string, Map<string, Airport>>,
   ) => {
-    // for (const [id, satellite] of matchedSatellites.value) {
+    // for (const [id, satellite] of matchedSatelliteMap.value) {
     //   satellite.aircraft = {
     //     aircraftMap: new Map(aircraftBySatelliteId.get(id) ?? []),
     //   }
@@ -66,11 +66,11 @@ export const useSatelliteStore = defineStore('useSatelliteStore', () => {
     //   }
     // }
     for (const [id, aircraftMap] of aircraftBySatelliteId.entries()) {
-      const matchedSatellite=matchedSatellites.value.get(id)
+      const matchedSatellite=matchedSatelliteMap.value.get(id)
       matchedSatellite.aircraft.aircraftMap=new Map(aircraftMap)
     }
     for (const [id, airportMap] of airportBySatelliteId.entries()) {
-      const matchedSatellite=matchedSatellites.value.get(id)
+      const matchedSatellite=matchedSatelliteMap.value.get(id)
       matchedSatellite.airport.airportMap=new Map(airportMap)
     }
     commitMatchedSatellites()
@@ -89,8 +89,8 @@ export const useSatelliteStore = defineStore('useSatelliteStore', () => {
     satelliteFilterForm,
     resetSatelliteFilterForm,
 
+    matchedSatelliteMap,
     matchedSatellites,
-    matchedSatellitesArray,
     clearMatchedSatellites,
     setMatchedSatellite,
     commitMatchedSatellites,

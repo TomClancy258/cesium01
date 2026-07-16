@@ -54,7 +54,15 @@ const ringToLngLatAltArray = (
   return lngLatAltArray
 }
 
-export function useControlZone(viewer: ShallowRef<Cesium.Viewer>) {
+export interface UseControlZoneOptions {
+  /** matched 管控区变更后回调（如刷新飞机管控区高亮） */
+  onMatchedControlZonesChanged?: () => void
+}
+
+export function useControlZone(
+  viewer: ShallowRef<Cesium.Viewer>,
+  options: UseControlZoneOptions = {},
+) {
   const controlZoneStore = useControlZoneStore()
   const controlZoneRenderMap = new Map<string, ControlZoneRenderState>()
 
@@ -176,6 +184,7 @@ export function useControlZone(viewer: ShallowRef<Cesium.Viewer>) {
     })
 
     controlZoneStore.commitMatchedControlZones()
+    options.onMatchedControlZonesChanged?.()
   }, 300)
 
   const initControlZones = (): void => {

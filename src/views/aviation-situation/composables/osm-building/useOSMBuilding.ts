@@ -44,12 +44,12 @@ export function useOSMBuilding(viewer) {
   })
 
   const initOSMBuildings = () => {
-    addOSMBuildings()
+    addOSMBuilding()
     subscribeOSMBuildingEvents()
     setupOSMBuildingFilterFormWatch()
   }
 
-  const addOSMBuildings = async () => {
+  const addOSMBuilding = async () => {
     osmBuildingTileset = viewer.value.scene.primitives.add(
       await Cesium.Cesium3DTileset.fromIonAssetId(96188),
     )

@@ -49,6 +49,7 @@ import { drawColorGradient } from '@/views/aviation-situation/composables/cesium
 import { drawGraphicsInTexture } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson03-draw-graphics-in-texture'
 import { drawGraphicsInTextureByTeacher } from '@/views/aviation-situation/composables/cesium-lessons/custom-shader/lesson04-teacher.ts'
 import { useOSMBuilding } from '@/views/aviation-situation/composables/osm-building/useOSMBuilding'
+import { usePhotogrammetry } from '@/views/aviation-situation/composables/photogrammetry/usePhotogrammetry'
 import { useControlZone } from '@/views/aviation-situation/composables/control-zone/useControlZone'
 import {
   clearAllOSMBuildingHighlight
@@ -78,6 +79,7 @@ const {
     tooltip: aircraftTooltip,
     filterAircrafts,
     flyToAircraftByIcao24,
+    highlightAircraftByControlZone,
   },
   airport: {
     initAirports,
@@ -95,8 +97,8 @@ const {
   },
 } = useAviationWiring(cesiumViewer)
 
-const matchedAircraftCount = computed(() => aircraftStore.matchedAircrafts.size)
-const matchedAirportCount = computed(() => airportStore.matchedAirports.size)
+const matchedAircraftCount = computed(() => aircraftStore.matchedAircraftMap.size)
+const matchedAirportCount = computed(() => airportStore.matchedAirportMap.size)
 
 const { initBuildings } = useBuildings(cesiumViewer)
 const {
@@ -104,11 +106,18 @@ const {
   tooltip:osmBuildingTooltip,
   filterOSMBuildings,
 } = useOSMBuilding(cesiumViewer)
+const {
+  initPhotogrammetrys,
+  tooltip:photogrammetryTooltip,
+  filterPhotogrammetrys,
+} = usePhotogrammetry(cesiumViewer)
 
 const {
   initControlZones,
   tooltip:controlZoneTooltip,
-} = useControlZone(cesiumViewer)
+} = useControlZone(cesiumViewer, {
+  onMatchedControlZonesChanged: highlightAircraftByControlZone,
+})
 
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
@@ -134,8 +143,10 @@ onMounted(async () => {
 
   // test01()
   // initBuildings()
-  initOSMBuildings()
+  // initOSMBuildings()
   initControlZones()
+
+  initPhotogrammetrys()
 
   // drawPolylineGeometry(cesiumViewer)
   // drawPolylineGeometryAppearance(cesiumViewer)
@@ -217,7 +228,7 @@ provide('filterAircrafts', filterAircrafts)
 provide('filterAirports', filterAirports)
 provide('filterSatellites', filterSatellites)
 provide('matchedAircraftCount', matchedAircraftCount)
-provide('matchedAircrafts', aircraftStore.matchedAircrafts)
+provide('matchedAircraftMap', aircraftStore.matchedAircraftMap)
 provide('matchedAirportCount', matchedAirportCount)
 provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)

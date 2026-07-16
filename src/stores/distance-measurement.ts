@@ -6,7 +6,7 @@ import type { DistanceMeasurementData } from '@/views/aviation-situation/types/d
 export const useDistanceMeasurementStore = defineStore('useDistanceMeasurementStore', () => {
 
   const finishedGraphicMap = shallowRef(new Map<string, DistanceMeasurementData>())
-  const finishedGraphicsArray = computed(() => Array.from(finishedGraphicMap.value.values()))
+  const finishedGraphics = computed(() => Array.from(finishedGraphicMap.value.values()))
 
   const addFinishedSelection=(region: DistanceMeasurementData) =>{
     // 注意：确保 region 是 plain object（特别是 Set 要转 Array，否则 Vue 无法响应式）
@@ -32,7 +32,7 @@ export const useDistanceMeasurementStore = defineStore('useDistanceMeasurementSt
 
   return {
     finishedGraphicMap,
-    finishedGraphicsArray,
+    finishedGraphics,
     addFinishedSelection,
     removeFinishedSelection,
     clearAllFinishedSelections,

@@ -50,7 +50,7 @@ export function useAirportSpatialSelection({
       }
     }
 
-    airportStore.matchedAirports.keys().forEach((icao) => {
+    airportStore.matchedAirportMap.keys().forEach((icao) => {
       const item = renderMap.get(icao)
       if (!item) return
 
@@ -96,7 +96,7 @@ export function useAirportSpatialSelection({
       // 该选区不关心机场，跳过
       if (selectionRegion.spatialSelectionTarget === 'aircraft') continue
 
-      airportStore.matchedAirports.keys().forEach((icao) => {
+      airportStore.matchedAirportMap.keys().forEach((icao) => {
         const item = renderMap.get(icao)
         if (!item) return
 

@@ -116,7 +116,7 @@ export function useSatellite(
     const airportConeSnapshots: ConeSnapshot[] = []
 
     let hasSatelliteStoreMutation = false
-    for (const [key] of satelliteStore.matchedSatellites.entries()) {
+    for (const [key] of satelliteStore.matchedSatelliteMap.entries()) {
       const item = satelliteRenderMap.get(key)
       if (!item) continue
       const position = item.positionProperty.getValue(time)
@@ -479,7 +479,7 @@ export function useSatellite(
       // (!countriesSet.size || countriesSet.has(satellite.originCountry))
 
       if (match) {
-        // matchedSatellites.push(satellite)
+        // matchedSatelliteMap.push(satellite)
         satelliteStore.setMatchedSatellite(satellite)
 
         const selected = aviationSelectionStore.selected

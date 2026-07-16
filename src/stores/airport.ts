@@ -19,19 +19,19 @@ export const useAirportStore = defineStore('useAirportStore', () => {
     alwaysVisible: false // 飞机显示状态
   })
 
-  const matchedAirports = shallowRef<Map<string, Airport>>(new Map())
-  const matchedAirportsArray = computed(() => [...matchedAirports.value.values()])
+  const matchedAirportMap = shallowRef<Map<string, Airport>>(new Map())
+  const matchedAirports = computed(() => [...matchedAirportMap.value.values()])
 
   const clearMatchedAirports = () => {
-    // matchedAirports.value = new Map()
-    matchedAirports.value.clear()
+    // matchedAirportMap.value = new Map()
+    matchedAirportMap.value.clear()
   }
   const addMatchedAirports = (airport: Airport) => {
-    matchedAirports.value.set(airport.icao, airport)
+    matchedAirportMap.value.set(airport.icao, airport)
   }
   const commitMatchedAirports = () => {
-    triggerRef(matchedAirports)
-    // matchedAirports.value = new Map(matchedAirports.value)
+    triggerRef(matchedAirportMap)
+    // matchedAirportMap.value = new Map(matchedAirportMap.value)
   }
 
   // 仅提供数据重置方法（纯数据操作）
@@ -50,8 +50,8 @@ export const useAirportStore = defineStore('useAirportStore', () => {
     airportFilterForm,
     resetAirportFilterForm,
 
+    matchedAirportMap,
     matchedAirports,
-    matchedAirportsArray,
     clearMatchedAirports,
     addMatchedAirports,
     commitMatchedAirports,

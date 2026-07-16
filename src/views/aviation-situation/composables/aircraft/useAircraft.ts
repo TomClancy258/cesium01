@@ -135,7 +135,7 @@ export function useAircraft(
     renderMap: aircraftRenderMap,
     satelliteConeScannedImageUrl: airplaneSatelliteConeScanSvgRawDataUrl,
   })
-  const { refreshControlZone } = useAircraftControlZone({
+  const { highlightAircraftByControlZone } = useAircraftControlZone({
     viewer,
     renderMap: aircraftRenderMap,
     dangerControlZoneImageUrl: airplaneDangerControlZoneSvgRawDataUrl,
@@ -156,6 +156,7 @@ export function useAircraft(
         aircraftStore.aircraftFilterForm.visible && isMatch,
       ),
     onFinishedSpatialSelection: finishedSpatialSelection,
+    onHighlightAircraftByControlZone: highlightAircraftByControlZone,
     onAviationDataUpdated: notifyAviationDataUpdated,
   })
   const {
@@ -385,6 +386,6 @@ export function useAircraft(
     filterAircrafts,
     flyToAircraftByIcao24,
     refreshSatelliteConeScan,
-    refreshControlZone,
+    highlightAircraftByControlZone,
   }
 }

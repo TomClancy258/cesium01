@@ -26,7 +26,7 @@ const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return airportStore.matchedAirportsArray.slice(start, start + pageSize.value)
+  return airportStore.matchedAirports.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -166,7 +166,7 @@ watch(
     v-model:current-page="currentPage"
     v-model:page-size="pageSize"
     :page-sizes="[10, 20, 50, 100]"
-    :total="airportStore.matchedAirportsArray.length"
+    :total="airportStore.matchedAirports.length"
     layout="total, sizes, prev, pager, next, jumper"
     @current-change="handlePageChange"
     @size-change="handleSizeChange"

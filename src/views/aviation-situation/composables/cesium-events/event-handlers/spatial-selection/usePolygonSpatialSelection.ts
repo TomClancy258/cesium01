@@ -476,13 +476,13 @@ export const usePolygonSpatialSelection = (
 
     const aircraftMap = new Map<string, Aircraft>()
     for (const icao24 of spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set) {
-      const aircraft = aircraftStore.matchedAircrafts.get(icao24)
+      const aircraft = aircraftStore.matchedAircraftMap.get(icao24)
       if (aircraft) aircraftMap.set(icao24, aircraft)
     }
 
     const airportMap = new Map<string, Airport>()
     for (const icao of spatialSelectionStore.activeSpatialSelection.airport.icaoSet) {
-      const airport = airportStore.matchedAirports.get(icao)
+      const airport = airportStore.matchedAirportMap.get(icao)
       if (airport) airportMap.set(icao, airport)
     }
 

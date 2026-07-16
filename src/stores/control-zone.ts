@@ -17,26 +17,26 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     id: '',
     name: '',
     levels: ['warning' , 'danger' , 'info' , 'normal'],
-    visible: true,
+    // visible: true,
+    visible: false,
   })
 
-
-  const matchedControlZones = shallowRef<Map<string, MatchedControlZone>>(new Map())
-  const matchedControlZonesArray = computed(() => [...matchedControlZones.value.values()])
+  const matchedControlZoneMap = shallowRef<Map<string, MatchedControlZone>>(new Map())
+  const matchedControlZones = computed(() => [...matchedControlZoneMap.value.values()])
 
   const clearMatchedControlZones = () => {
-    matchedControlZones.value.clear()
+    matchedControlZoneMap.value.clear()
   }
 
   const setMatchedControlZone = (controlZone: MatchedControlZone) => {
-    matchedControlZones.value.set(controlZone.id, controlZone)
+    matchedControlZoneMap.value.set(controlZone.id, controlZone)
   }
   const commitMatchedControlZones = () => {
-    triggerRef(matchedControlZones)
+    triggerRef(matchedControlZoneMap)
   }
 
   const updateMatchedControlZone = (newControlZone: MatchedControlZone) => {
-    const controlZone= matchedControlZones.value.get(newControlZone.id)
+    const controlZone= matchedControlZoneMap.value.get(newControlZone.id)
     if (controlZone) {
       const lngLatAlt=controlZone.lngLatAlt
       lngLatAlt.longitude=newControlZone.lngLatAlt.longitude
@@ -50,11 +50,11 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     airportByControlZoneId: Map<string, Map<string, Airport>>,
   ) => {
     for (const [id, aircraftMap] of aircraftByControlZoneId.entries()) {
-      const matchedControlZone=matchedControlZones.value.get(id)
+      const matchedControlZone=matchedControlZoneMap.value.get(id)
       matchedControlZone.aircraft.aircraftMap=new Map(aircraftMap)
     }
     for (const [id, airportMap] of airportByControlZoneId.entries()) {
-      const matchedControlZone=matchedControlZones.value.get(id)
+      const matchedControlZone=matchedControlZoneMap.value.get(id)
       matchedControlZone.airport.airportMap=new Map(airportMap)
     }
     commitMatchedControlZones()
@@ -76,18 +76,46 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     setControlZoneFilterLevels(checked ? [...allControlZoneLevelValues] : [])
   }
 
+  const clearControlZoneAircraftMaps = () => {
+    for (const [, controlZoneRegion] of matchedControlZoneMap.value) {
+      controlZoneRegion.aircraft = { aircraftMap: new Map() }
+    }
+  }
+
+  const addAircraftToControlZone = (dataSourceName: string, aircraft: Aircraft) => {
+    const region = matchedControlZoneMap.value.get(dataSourceName)
+    if (!region) return
+    region.aircraft.aircraftMap.set(aircraft.icao24, aircraft)
+  }
+
+  const commitControlZoneAircraftMaps = () => {
+    for (const [, region] of matchedControlZoneMap.value) {
+      region.aircraft = { aircraftMap: new Map(region.aircraft.aircraftMap) }
+    }
+    triggerRef(matchedControlZoneMap)
+  }
+
+  const triggerControlZoneMapUpdate = () => {
+    triggerRef(matchedControlZoneMap)
+  }
+
   return {
     controlZoneFilterForm,
     resetControlZoneFilterForm,
 
+    matchedControlZoneMap,
     matchedControlZones,
-    matchedControlZonesArray,
     clearMatchedControlZones,
     setMatchedControlZone,
     commitMatchedControlZones,
     updateMatchedControlZone,
     applyConeScanResults,
 
-    toggleAllControlZoneFilterLevels
+    toggleAllControlZoneFilterLevels,
+
+    clearControlZoneAircraftMaps,
+    addAircraftToControlZone,
+    commitControlZoneAircraftMaps,
+    triggerControlZoneMapUpdate,
   }
 })

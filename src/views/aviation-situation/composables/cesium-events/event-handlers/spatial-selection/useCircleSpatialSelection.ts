@@ -419,7 +419,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         aircraftMap: (() => {
           const map = new Map<string, Aircraft>()
           for (const icao24 of spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set) {
-            const aircraft = aircraftStore.matchedAircrafts.get(icao24)
+            const aircraft = aircraftStore.matchedAircraftMap.get(icao24)
             if (aircraft) map.set(icao24, aircraft)
           }
           return map
@@ -429,7 +429,7 @@ export const useCircleSpatialSelection = (viewer: ShallowRef<Cesium.Viewer | nul
         airportMap: (() => {
           const map = new Map<string, Airport>()
           for (const icao of spatialSelectionStore.activeSpatialSelection.airport.icaoSet) {
-            const airport = airportStore.matchedAirports.get(icao)
+            const airport = airportStore.matchedAirportMap.get(icao)
             if (airport) map.set(icao, airport)
           }
           return map

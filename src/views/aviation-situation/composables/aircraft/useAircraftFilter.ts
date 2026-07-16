@@ -17,6 +17,7 @@ interface UseAircraftFilterOptions {
   onSyncRiskRipple: (aircraft: Aircraft, billboard: Cesium.Billboard, isMatch: boolean) => void
   onFinishedSpatialSelection: () => void
   onAviationDataUpdated: () => void
+  onHighlightAircraftByControlZone: () => void
 }
 
 export function useAircraftFilter(options: UseAircraftFilterOptions) {
@@ -30,6 +31,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     getSelected,
     onSyncRiskRipple,
     onFinishedSpatialSelection,
+    onHighlightAircraftByControlZone,
     onAviationDataUpdated,
   } = options
 
@@ -81,6 +83,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
 
     commitMatchedAircrafts()
     onFinishedSpatialSelection()
+    onHighlightAircraftByControlZone()
     onAviationDataUpdated()
   }, 300)
 

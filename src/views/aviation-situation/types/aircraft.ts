@@ -25,10 +25,12 @@ export interface AircraftBillboardProperties extends AircraftBaseProperties {
     original: string | undefined
     satelliteConeScan: string | null
     spatialSelection: string | null
+    controlZone: string | null
   }
   sets: {
     dataSourceName: Set<string>
     coneScanSatelliteId: Set<string>
+    controlZoneId: Set<string>
   }
 }
 

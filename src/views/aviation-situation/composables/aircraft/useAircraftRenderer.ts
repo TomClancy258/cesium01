@@ -142,10 +142,12 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
         original: billboard.image,
         satelliteConeScan: null,
         spatialSelection: null,
+        controlZone:null
       },
       sets: {
         dataSourceName: new Set<string>(),
         coneScanSatelliteId: new Set<string>(),
+        controlZoneId: new Set<string>(),
       }
     } satisfies AircraftBillboardProperties
 

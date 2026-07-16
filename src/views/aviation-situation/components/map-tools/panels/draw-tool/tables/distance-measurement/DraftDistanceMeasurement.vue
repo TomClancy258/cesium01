@@ -9,7 +9,7 @@ import SegmentsPopover from '../../popover/SegmentsPopover.vue'
 import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'
 
 const distanceMeasurementStore = useDistanceMeasurementStore()
-const { finishedGraphicsArray } = storeToRefs(distanceMeasurementStore)
+const { finishedGraphics } = storeToRefs(distanceMeasurementStore)
 const regionSelectionStore = useRegionSelectionStore()
 
 // 分页
@@ -19,7 +19,7 @@ const pageSizes = [5, 10, 20, 50]
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return finishedGraphicsArray.value.slice(start, start + pageSize.value)
+  return finishedGraphics.value.slice(start, start + pageSize.value)
 })
 
 const handleSizeChange = (val: number) => {
@@ -48,7 +48,7 @@ watch(
       return
     }
     if (selected.operationType !== 'distanceMeasurement' || !selected.isDraft) return
-    const index = finishedGraphicsArray.value.findIndex(
+    const index = finishedGraphics.value.findIndex(
       (row) => row.dataSourceName === selected.dataSourceName
     )
     if (index === -1) return
@@ -205,7 +205,7 @@ const handleBatchDelete = () => {
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="pageSizes"
-        :total="finishedGraphicsArray.length"
+        :total="finishedGraphics.length"
         layout="total, sizes, prev, pager, next, jumper"
         background
         @size-change="handleSizeChange"

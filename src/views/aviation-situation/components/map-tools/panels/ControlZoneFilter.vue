@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //src/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue
-import { ref, computed } from 'vue'
-import type { FormInstance } from 'element-plus'
+import { ref, computed, watch, nextTick } from 'vue'
+import type { FormInstance, TableInstance } from 'element-plus'
 import { useControlZoneStore } from '@/stores/control-zone'
 import type { ControlZoneProperties } from '@/network/control-zone/type.ts'
 import AircraftIcaoPopover
@@ -14,6 +14,7 @@ import {
 import { formatFixed4 } from '../../../utils/format-detail-value'
 import type { ControlZoneLevel } from '@/network/control-zone/type'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { useRegionSelectionStore } from '@/stores/region-selection'
 
 const CONTROL_ZONE_LEVEL_TAG_TYPE: Record<
   ControlZoneLevel,
@@ -26,15 +27,18 @@ const CONTROL_ZONE_LEVEL_TAG_TYPE: Record<
 }
 
 const controlZoneStore = useControlZoneStore()
+const regionSelectionStore = useRegionSelectionStore()
 const controlZoneFilterFormRef = ref<FormInstance>()
 
 // ========== 表格与分页 ==========
+const tableRef = ref<TableInstance>()
+
 const currentPage = ref(1)
 const pageSize = ref(10)
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return controlZoneStore.matchedControlZonesArray.slice(start, start + pageSize.value)
+  return controlZoneStore.matchedControlZones.slice(start, start + pageSize.value)
 })
 
 const handlePageChange = (page: number) => {
@@ -72,6 +76,31 @@ const isTypesIndeterminate = computed(() => {
   const { levels } = controlZoneStore.controlZoneFilterForm
   return levels.length > 0 && levels.length < allControlZoneLevelValues.length
 })
+
+watch(
+  () => regionSelectionStore.selected,
+  async (selected) => {
+    if (!selected || selected.sourceType !== 'controlZone') {
+      tableRef.value?.setCurrentRow()
+      return
+    }
+    const index = controlZoneStore.matchedControlZones.findIndex(
+      (row) => row.id === selected.id,
+    )
+    if (index === -1) {
+      tableRef.value?.setCurrentRow()
+      return
+    }
+    currentPage.value = Math.floor(index / pageSize.value) + 1
+    await nextTick()
+    const row = pagedData.value[index % pageSize.value]
+    if (!row || !tableRef.value) return
+    tableRef.value.setCurrentRow(row)
+    // MapToolsDrawer 可能同步切到本面板，再等一帧确保高亮生效
+    await nextTick()
+    tableRef.value.setCurrentRow(row)
+  },
+)
 </script>
 
 <template>
@@ -96,6 +125,7 @@ const isTypesIndeterminate = computed(() => {
           multiple
           collapse-tags
           collapse-tags-tooltip
+          max-collapse-tags="2"
           clearable
           placeholder="全部等级"
           style="width: 240px"
@@ -125,7 +155,16 @@ const isTypesIndeterminate = computed(() => {
     </el-form>
 
     <!-- 飞机数据表格 -->
-    <el-table :data="pagedData" border stripe size="small" style="width: 100%">
+    <el-table
+      ref="tableRef"
+      :data="pagedData"
+      border
+      stripe
+      size="small"
+      style="width: 100%"
+      row-key="id"
+      highlight-current-row
+    >
       <el-table-column prop="id" label="id" />
       <el-table-column prop="name" label="名称" />
       <el-table-column prop="level" label="管控等级">
@@ -174,7 +213,7 @@ const isTypesIndeterminate = computed(() => {
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
       :page-sizes="[10, 20, 50, 100]"
-      :total="controlZoneStore.matchedControlZonesArray.length"
+      :total="controlZoneStore.matchedControlZones.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"

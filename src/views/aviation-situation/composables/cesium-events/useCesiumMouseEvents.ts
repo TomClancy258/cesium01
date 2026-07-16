@@ -382,6 +382,17 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     })
   }
 
+  const findPhotogrammetryPicked = (pickedObjects: PickedObjectLike[]) =>{
+    return pickedObjects.find((obj) => {
+      if (obj.primitive instanceof Cesium.Cesium3DTileset) {
+        const sourceType = obj.primitive.sourceType
+        if (sourceType === 'photogrammetry') {
+          return true
+        }
+      }
+    })
+  }
+
   const findControlZoneEntityPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
       if (!(obj.id instanceof Cesium.Entity)) return false
@@ -511,6 +522,14 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       handleOSMBuildingHover(properties,movement.endPosition,buildingPicked)
       return
     }
+
+    const photogrammetryPicked:Cesium.Cesium3DTileFeature = findPhotogrammetryPicked(pickedObjects)
+    if (photogrammetryPicked) {
+      console.log("photogrammetryPicked", photogrammetryPicked);
+      // handleOSMBuildingHover(properties,movement.endPosition,buildingPicked)
+      return
+    }
+
 
     const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
     if (drawingToolEntityPicked) {

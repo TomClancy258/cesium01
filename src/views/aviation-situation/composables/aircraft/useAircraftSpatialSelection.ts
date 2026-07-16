@@ -55,7 +55,7 @@ export function useAircraftSpatialSelection({
         }
       }
 
-      aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
+      aircraftStore.matchedAircraftMap.keys().forEach((icao24) => {
         const item = renderMap.get(icao24)
         if (!item) return
 
@@ -109,7 +109,7 @@ export function useAircraftSpatialSelection({
       if (selectionRegion.spatialSelectionTarget === 'airport') continue
 
       // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
-      aircraftStore.matchedAircrafts.keys().forEach((icao24) => {
+      aircraftStore.matchedAircraftMap.keys().forEach((icao24) => {
         const item = renderMap.get(icao24)
         if (!item) return
 

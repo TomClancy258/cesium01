@@ -22,7 +22,7 @@ const getBillboardProperties = (billboard: Cesium.Billboard): BillboardPropertie
 // 工具方法：按统一优先级刷新图片
 const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
 
-  // 优先级：selected > hovered > spatialSelected > satelliteConeScan > original
+  // 优先级：selected > hovered > spatialSelected> controlZone > satelliteConeScan > original
   if (billboard === selectedBillboard && selectedHighlightImage) {
     billboard.image = selectedHighlightImage
     return
@@ -34,6 +34,10 @@ const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
   const properties = getBillboardProperties(billboard)
   if (properties.images.spatialSelection) {
     billboard.image = properties.images.spatialSelection
+    return
+  }
+  if (properties.images.controlZone) {
+    billboard.image = properties.images.controlZone
     return
   }
   if (properties.images.satelliteConeScan) {
@@ -59,6 +63,22 @@ export function highlightBillboardOnSpatialSelection(
   applyBillboardImageByPriority(billboard)
 }
 
+export function highlightBillboardOnControlZone(
+  controlZoneId:string,
+  billboard: Cesium.Billboard,
+  highlightImage: string,
+): void {
+  const properties = getBillboardProperties(billboard)
+  const controlZoneIdMap:Set<string>=properties.sets.controlZoneId
+  const alreadyTracked = controlZoneIdMap.has(controlZoneId)
+  if (!alreadyTracked) {
+    controlZoneIdMap.add(controlZoneId)
+
+    properties.images.controlZone = highlightImage
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
 export function clearSpatialSelectedHighlight(dataSourceName: string, billboard: Cesium.Billboard): void {
   const properties = getBillboardProperties(billboard)
   const dataSourceNames:Set<string>=properties.sets.dataSourceName
@@ -68,6 +88,19 @@ export function clearSpatialSelectedHighlight(dataSourceName: string, billboard:
   // 只在最后一个区域移除时才改回原始图片，避免冗余赋值
   if (dataSourceNames.size === 0) {
     properties.images.spatialSelection = null
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
+export function clearControlZoneHighlight(controlZoneId: string, billboard: Cesium.Billboard): void {
+  const properties = getBillboardProperties(billboard)
+  const controlZoneIdSet: Set<string> = properties.sets.controlZoneId
+  if (!controlZoneIdSet.has(controlZoneId)) return
+  controlZoneIdSet.delete(controlZoneId)
+
+  // 只在最后一个管控区移除时才清掉图片，避免冗余赋值
+  if (controlZoneIdSet.size === 0) {
+    properties.images.controlZone = null
   }
   applyBillboardImageByPriority(billboard)
 }
