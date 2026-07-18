@@ -17,8 +17,8 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     id: '',
     name: '',
     levels: ['warning' , 'danger' , 'info' , 'normal'],
-    // visible: true,
-    visible: false,
+    visible: true,
+    // visible: false,
   })
 
   const matchedControlZoneMap = shallowRef<Map<string, MatchedControlZone>>(new Map())

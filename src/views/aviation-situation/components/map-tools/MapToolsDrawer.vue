@@ -8,10 +8,11 @@ import AirportFilter from '@/views/aviation-situation/components/map-tools/panel
 import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
-import OSMBuildingFilter from '@/views/aviation-situation/components/map-tools/panels/OSMBuildingFilter.vue'
 
 import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
 import { useRegionSelectionStore } from '@/stores/region-selection'
+import CityModel
+  from '@/views/aviation-situation/components/map-tools/panels/city-model/CityModel.vue'
 
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
@@ -116,7 +117,7 @@ watch(
             <ControlZoneFilter v-show="activeIndex === 'controlZoneFilter'" />
             <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
-            <OSMBuildingFilter v-show="activeIndex === 'cityModel'" />
+            <CityModel v-show="activeIndex === 'cityModel'" />
           </el-col>
         </el-row>
       </div>

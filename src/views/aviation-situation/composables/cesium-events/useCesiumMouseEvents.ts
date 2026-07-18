@@ -80,6 +80,10 @@ import {
 import {
   clearHoveredControlZoneHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
+import {
+  handlePhotogrammetryHover,
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/photogrammetry'
+import type { PhotogrammetryHoveredProperties } from '@/views/aviation-situation/types/photogrammetry'
 
 type PickedObjectLike = {
   id?: unknown
@@ -370,28 +374,24 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
 
-  const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>{
-    return pickedObjects.find((obj) => {
-      if (obj instanceof Cesium.Cesium3DTileFeature) {
-        const sourceType = obj.tileset.sourceType
-        if (sourceType === 'osmBuilding') {
-          // 这是 OSM 全球建筑
-          return true
-        }
-      }
-    })
+  const getPickedTileset = (obj: PickedObjectLike): Cesium.Cesium3DTileset | null => {
+    if (obj instanceof Cesium.Cesium3DTileFeature) {
+      return obj.tileset
+    }
+    if (obj.primitive instanceof Cesium.Cesium3DTileset) {
+      return obj.primitive
+    }
+    return null
   }
 
-  const findPhotogrammetryPicked = (pickedObjects: PickedObjectLike[]) =>{
-    return pickedObjects.find((obj) => {
-      if (obj.primitive instanceof Cesium.Cesium3DTileset) {
-        const sourceType = obj.primitive.sourceType
-        if (sourceType === 'photogrammetry') {
-          return true
-        }
-      }
+  const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj): obj is Cesium.Cesium3DTileFeature => {
+      if (!(obj instanceof Cesium.Cesium3DTileFeature)) return false
+      return obj.tileset.meta?.sourceType === 'osmBuilding'
     })
-  }
+
+  const findPhotogrammetryPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => getPickedTileset(obj)?.meta?.sourceType === 'photogrammetry')
 
   const findControlZoneEntityPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
@@ -424,6 +424,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     clearHoveredDrawingToolHighlight()
     satelliteLeave()
     osmBuildingLeave()
+    photogrammetryLeave()
     controlZoneLeave()
   }
 
@@ -440,6 +441,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       clearHoveredDrawingToolHighlight()
       osmBuildingLeave()
+      photogrammetryLeave()
       controlZoneLeave()
 
       const entity = satelliteModelPicked.id
@@ -466,6 +468,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       clearHoveredDrawingToolHighlight()
       satelliteLeave()
       osmBuildingLeave()
+      photogrammetryLeave()
       controlZoneLeave()
 
       const billboard = billboardPicked.primitive
@@ -490,7 +493,17 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       satelliteLeave()
       clearHoveredDrawingToolHighlight()
+      photogrammetryLeave()
       controlZoneLeave()
+
+      // const propertyIds = buildingPicked.getPropertyIds();
+      // const length = propertyIds.length;
+      // console.log('\n')
+      // for (let i = 0; i < length; ++i) {
+      //   const propertyId = propertyIds[i];
+      //   console.log(`${propertyId}: ${buildingPicked.getProperty(propertyId)}`);
+      // }
+      // console.log('\n')
 
       const longitude = buildingPicked.getProperty('cesium#longitude')
       const latitude = buildingPicked.getProperty('cesium#latitude')
@@ -523,10 +536,28 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       return
     }
 
-    const photogrammetryPicked:Cesium.Cesium3DTileFeature = findPhotogrammetryPicked(pickedObjects)
+    const photogrammetryPicked = findPhotogrammetryPicked(pickedObjects)
     if (photogrammetryPicked) {
-      console.log("photogrammetryPicked", photogrammetryPicked);
-      // handleOSMBuildingHover(properties,movement.endPosition,buildingPicked)
+      aviationBillboardLeave()
+      satelliteLeave()
+      clearHoveredDrawingToolHighlight()
+      osmBuildingLeave()
+      controlZoneLeave()
+
+      const cartesian = viewer.value.scene.pickPosition(movement.endPosition)
+      if (!Cesium.defined(cartesian)) return
+
+      const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
+      const properties: PhotogrammetryHoveredProperties = {
+        sourceType: 'photogrammetry',
+        lngLatAlt: {
+          longitude: Cesium.Math.toDegrees(cartographic.longitude),
+          latitude: Cesium.Math.toDegrees(cartographic.latitude),
+          height: cartographic.height,
+        },
+      }
+
+      handlePhotogrammetryHover(properties, movement.endPosition)
       return
     }
 
@@ -536,6 +567,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       satelliteLeave()
       osmBuildingLeave()
+      photogrammetryLeave()
       controlZoneLeave()
 
       const entity = drawingToolEntityPicked.id
@@ -551,6 +583,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       satelliteLeave()
       osmBuildingLeave()
+      photogrammetryLeave()
       clearHoveredDrawingToolHighlight()
 
       const entity = controlZoneEntityPicked.id
@@ -581,6 +614,10 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('osmBuildingLeave');
   }
 
+  const photogrammetryLeave=()=>{
+    emitCesiumEvent('photogrammetryLeave');
+  }
+
   const controlZoneLeave=()=>{
     clearHoveredControlZoneHighlight()
     emitCesiumEvent('controlZoneLeave');
@@ -596,6 +633,8 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'airportHover', 'airportLeave', 'airportLeftClick',
       'satelliteHover', 'satelliteLeave', 'satelliteLeftClick',
       'osmBuildingHover', 'osmBuildingLeave', 'osmBuildingLeftClick',
+      'photogrammetryHover', 'photogrammetryLeave',
+      'controlZoneHover', 'controlZoneLeave',
       'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))

@@ -5,6 +5,7 @@ import AirportTooltip from './components/tooltip/AirportTooltip.vue'
 import AircraftTooltip from './components/tooltip/AircraftTooltip.vue'
 import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
 import OSMBuildingTooltip from './components/tooltip/OSMBuildingTooltip.vue'
+import PhotogrammetryTooltip from './components/tooltip/PhotogrammetryTooltip.vue'
 import ControlZoneTooltip from './components/tooltip/ControlZoneTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
@@ -110,6 +111,7 @@ const {
   initPhotogrammetrys,
   tooltip:photogrammetryTooltip,
   filterPhotogrammetrys,
+  removePhotogrammetrys,
 } = usePhotogrammetry(cesiumViewer)
 
 const {
@@ -234,6 +236,8 @@ provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
 provide('filterOSMBuildings', filterOSMBuildings)
+
+provide('removePhotogrammetrys', removePhotogrammetrys)
 </script>
 
 <template>
@@ -246,6 +250,7 @@ provide('filterOSMBuildings', filterOSMBuildings)
     <AircraftTooltip :tooltip="aircraftTooltip" />
     <SatelliteTooltip :tooltip="satelliteTooltip" />
     <OSMBuildingTooltip :tooltip="osmBuildingTooltip" />
+    <PhotogrammetryTooltip :tooltip="photogrammetryTooltip" />
     <ControlZoneTooltip :tooltip="controlZoneTooltip" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->

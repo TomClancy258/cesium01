@@ -15,7 +15,11 @@ import type {
   OSMBuildingHoveredProperties,
   OSMBuildingSelectedProperties,
 } from '@/views/aviation-situation/types/osm-building'
-import { ControlZoneTableRowOperation } from '@/views/aviation-situation/types/control-zone'
+import type { PhotogrammetryHoveredProperties } from '@/views/aviation-situation/types/photogrammetry'
+import {
+  ControlZoneTableRowOperation,
+  type ControlZoneHoveredProperties,
+} from '@/views/aviation-situation/types/control-zone'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -33,6 +37,12 @@ export type CesiumMouseEventName =
   | 'osmBuildingHover'
   | 'osmBuildingLeave'
   | 'osmBuildingLeftClick'
+
+  | 'photogrammetryHover'
+  | 'photogrammetryLeave'
+
+  | 'controlZoneHover'
+  | 'controlZoneLeave'
 
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
@@ -69,6 +79,16 @@ export interface EventCallbackMap {
   osmBuildingHover: (properties: OSMBuildingHoveredProperties, position: Cesium.Cartesian2) => void;
   osmBuildingLeave: () => void;
   osmBuildingLeftClick: (data: OSMBuildingSelectedProperties, feature: Cesium.Cesium3DTileFeature) => void;
+
+  photogrammetryHover: (properties: PhotogrammetryHoveredProperties, position: Cesium.Cartesian2) => void;
+  photogrammetryLeave: () => void;
+
+  controlZoneHover: (
+    properties: ControlZoneHoveredProperties,
+    position: Cesium.Cartesian2,
+    entity: Cesium.Entity,
+  ) => void;
+  controlZoneLeave: () => void;
 
   mouseWheel: () => void; // 新增事件的回调类型（无参数）
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

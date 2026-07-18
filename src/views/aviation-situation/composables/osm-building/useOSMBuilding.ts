@@ -53,7 +53,9 @@ export function useOSMBuilding(viewer) {
     osmBuildingTileset = viewer.value.scene.primitives.add(
       await Cesium.Cesium3DTileset.fromIonAssetId(96188),
     )
-    osmBuildingTileset.sourceType = 'osmBuilding'
+    osmBuildingTileset.meta = {
+      sourceType: 'osmBuilding',
+    }
     // viewer.value.zoomTo(osmBuildingTileset);
   }
 

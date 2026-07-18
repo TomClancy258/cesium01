@@ -1,41 +1,22 @@
-import { onUnmounted, watch } from 'vue'
+import { onUnmounted } from 'vue'
 import * as Cesium from 'cesium'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import {
   PhotogrammetryFilterForm,
   PhotogrammetryHoveredProperties,
-  PhotogrammetrySelectedProperties, PhotogrammetryTypeFilterValue
+  PhotogrammetryTypeFilterValue,
 } from '@/views/aviation-situation/types/photogrammetry'
-import {
-  clearSelectedAviation,
-  // selectPhotogrammetry
-} from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
-// import { usePhotogrammetryStore } from '@/stores/photogrammetry'
-// import {
-//   clearSelectedPhotogrammetryHighlight
-// } from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-highlight-manager'
+import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 
 export function usePhotogrammetry(viewer) {
-  // const photogrammetryStore = usePhotogrammetryStore()
-  let photogrammetryTileset: Cesium.Cesium3DTileset | null = null
+  const photogrammetryMap = new Map<string, Cesium.Cesium3DTileset>()
   const {
     tooltip,
     showTooltip: showPhotogrammetryTooltip,
     hideTooltip: hidePhotogrammetryTooltip,
   } = useAviationTooltip<PhotogrammetryHoveredProperties>({
-    name: '',
-    type: {
-      shop: '',
-      building: '',
-    },
-    addr: {
-      housenumber: '',
-      street: '',
-      city: '',
-      state: '',
-    },
-    estimatedHeight: undefined,
+    sourceType: 'photogrammetry',
     lngLatAlt: {
       longitude: 0,
       latitude: 0,
@@ -49,18 +30,40 @@ export function usePhotogrammetry(viewer) {
     setupPhotogrammetryFilterFormWatch()
   }
 
-  const addPhotogrammetrys = async () => {
-    photogrammetryTileset = viewer.value.scene.primitives.add(
-      await Cesium.Cesium3DTileset.fromIonAssetId(354759),
-    );
-    photogrammetryTileset.sourceType = 'photogrammetry'
-    viewer.value.zoomTo(photogrammetryTileset);
-    viewer.value.zoomTo(photogrammetryTileset);
+  const addPhotogrammetryTileset = async (
+    assetId: number,
+    name: string,
+    zoomTo = false,
+  ) => {
+    const photogrammetryTileset = viewer.value.scene.primitives.add(
+      await Cesium.Cesium3DTileset.fromIonAssetId(assetId),
+    )
+    photogrammetryTileset.meta = {
+      sourceType: 'photogrammetry',
+      name,
+    }
+    photogrammetryMap.set(name, photogrammetryTileset)
+    if (zoomTo) {
+      viewer.value.zoomTo(photogrammetryTileset)
+    }
   }
+
+  const addPhotogrammetrys = () => {
+    addBostonPhotogrammetry()
+    addSanFranciscoPhotogrammetry()
+    addMelbournePhotogrammetry()
+    addWashingtonDCPhotogrammetry()
+    addWashingtonStatePhotogrammetry()
+  }
+
+  const addBostonPhotogrammetry = () => addPhotogrammetryTileset(354759, 'Boston', true)
+  const addSanFranciscoPhotogrammetry = () => addPhotogrammetryTileset(1415196, 'SanFrancisco')
+  const addMelbournePhotogrammetry = () => addPhotogrammetryTileset(69380, 'Melbourne')
+  const addWashingtonDCPhotogrammetry = () => addPhotogrammetryTileset(57588, 'WashingtonDC')
+  const addWashingtonStatePhotogrammetry = () => addPhotogrammetryTileset(57590, 'WashingtonState')
 
   let unsubPhotogrammetryHover: () => void
   let unsubPhotogrammetryLeave: () => void
-  let unsubPhotogrammetryLeftClick: () => void
 
   const subscribePhotogrammetryEvents = () => {
     unsubPhotogrammetryHover = onCesiumEvent(
@@ -73,13 +76,10 @@ export function usePhotogrammetry(viewer) {
     unsubPhotogrammetryLeave = onCesiumEvent('photogrammetryLeave', () => {
       hidePhotogrammetryTooltip()
     })
+  }
 
-    unsubPhotogrammetryLeftClick = onCesiumEvent(
-      'photogrammetryLeftClick',
-      (properties: PhotogrammetrySelectedProperties, feature: Cesium.Cesium3DTileFeature) => {
-        selectPhotogrammetry(feature, properties)
-      },
-    )
+  const removePhotogrammetrys=()=>{
+
   }
 
   const filterPhotogrammetrys = (
@@ -91,35 +91,35 @@ export function usePhotogrammetry(viewer) {
       newPhotogrammetryFilterForm.colorByType !== oldPhotogrammetryFilterForm.colorByType
     ) {
       clearSelectedAviation()
-      // clearSelectedPhotogrammetryHighlight()
     }
-    const types:PhotogrammetryTypeFilterValue[]=newPhotogrammetryFilterForm.types
-    const colorByType:boolean=newPhotogrammetryFilterForm.colorByType
-    let showStr=''
-    types.forEach((item,i)=>{
+    const types: PhotogrammetryTypeFilterValue[] = newPhotogrammetryFilterForm.types
+    const colorByType: boolean = newPhotogrammetryFilterForm.colorByType
+    let showStr = ''
+    types.forEach((item, i) => {
       if (item !== 'others') {
-        showStr+="${building} === '"+item+"'"
-      }else{
-        showStr+="(${building} !== 'retail' && " +
+        showStr += "${building} === '" + item + "'"
+      } else {
+        showStr +=
+          "(${building} !== 'retail' && " +
           "${building} !== 'commercial' && " +
           "${building} !== 'yes' && " +
           "${building} !== 'industrial' && " +
           "${building} !== 'apartments' && " +
           "${building} !== 'residential' && " +
-          "${building} !== 'office' && "+
-          "${building} !== 'parking' && "+
+          "${building} !== 'office' && " +
+          "${building} !== 'parking' && " +
           "${building} !== 'others')"
       }
       if (i !== types.length - 1) {
-        showStr+=" || "
+        showStr += ' || '
       }
     })
     if (types.length === 0) {
-      showStr='false'
+      showStr = 'false'
     }
-    let conditions=[]
+    let conditions = []
     if (colorByType) {
-      conditions=[
+      conditions = [
         ["${building} === 'retail'", "color('#f4ea2a')"],
         ["${building} === 'commercial'", "color('skyblue', 0.5)"],
         ["${building} === 'yes'", "color('grey')"],
@@ -128,48 +128,37 @@ export function usePhotogrammetry(viewer) {
         ["${building} === 'residential'", "color('lightgrey')"],
         ["${building} === 'office'", "color('lightsteelblue')"],
         ["${building} === 'parking'", "color('#b124ca')"],
-        ["true", "color('white')"], // This is the else case
+        ['true', "color('white')"],
       ]
     }
-    // console.log("showStr", showStr);
-    photogrammetryTileset.style = new Cesium.Cesium3DTileStyle({
-      defines: {
-        building: "${feature['building']}",
-      },
-      show:showStr,
-      color: {
-        conditions: conditions,
-      },
-    });
+    photogrammetryMap.forEach((photogrammetryTileset) => {
+      photogrammetryTileset.style = new Cesium.Cesium3DTileStyle({
+        defines: {
+          building: "${feature['building']}",
+        },
+        show: showStr,
+        color: {
+          conditions: conditions,
+        },
+      })
+    })
   }
-
-  // const snapshotPhotogrammetryFilterForm = (): PhotogrammetryFilterForm => ({
-  //   types: [...photogrammetryStore.photogrammetryFilterForm.types],
-  //   colorByType: photogrammetryStore.photogrammetryFilterForm.colorByType,
-  //   colorByDistance: photogrammetryStore.photogrammetryFilterForm.colorByDistance,
-  // })
 
   let unwatchPhotogrammetryFilterForm: () => void
   const setupPhotogrammetryFilterFormWatch = (): void => {
-    // unwatchPhotogrammetryFilterForm = watch(
-    //   snapshotPhotogrammetryFilterForm,
-    //   (newVal: PhotogrammetryFilterForm, oldVal: PhotogrammetryFilterForm | undefined) => {
-    //     filterPhotogrammetrys(newVal, oldVal)
-    //   },
-    // )
+    // filter form watch reserved for later
   }
 
   onUnmounted(() => {
     unsubPhotogrammetryHover()
     unsubPhotogrammetryLeave()
-    unsubPhotogrammetryLeftClick()
-
-    unwatchPhotogrammetryFilterForm()
+    unwatchPhotogrammetryFilterForm?.()
   })
 
   return {
     initPhotogrammetrys,
     tooltip,
     filterPhotogrammetrys,
+    removePhotogrammetrys,
   }
 }
