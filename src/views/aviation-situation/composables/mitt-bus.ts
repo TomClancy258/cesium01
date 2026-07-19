@@ -15,7 +15,7 @@ import type {
   OSMBuildingHoveredProperties,
   OSMBuildingSelectedProperties,
 } from '@/views/aviation-situation/types/osm-building'
-import type { PhotogrammetryHoveredProperties } from '@/views/aviation-situation/types/photogrammetry'
+import type { PhotogrammetryHoveredProperties, PhotogrammetryTableRowOperation } from '@/views/aviation-situation/types/photogrammetry'
 import {
   ControlZoneTableRowOperation,
   type ControlZoneHoveredProperties,
@@ -53,6 +53,7 @@ export type CesiumMouseEventName =
   | 'clearAirportSpatialSelection'
 
   | 'controlZoneTableOperationClicked'
+  | 'photogrammetryTableOperationClicked'
 
 // 2. 相机事件类型
 export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
@@ -99,6 +100,7 @@ export interface EventCallbackMap {
   clearAirportSpatialSelection: (clearAirportSpatialSelectionData:ClearAirportSpatialSelectionData|undefined) => void;
 
   controlZoneTableOperationClicked: (controlZoneTableRowOperation:ControlZoneTableRowOperation) => void;
+  photogrammetryTableOperationClicked: (photogrammetryTableRowOperation: PhotogrammetryTableRowOperation) => void;
 }
 
 // 4. 合并所有事件类型

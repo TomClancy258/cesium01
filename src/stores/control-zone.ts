@@ -35,31 +35,6 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     triggerRef(matchedControlZoneMap)
   }
 
-  const updateMatchedControlZone = (newControlZone: MatchedControlZone) => {
-    const controlZone= matchedControlZoneMap.value.get(newControlZone.id)
-    if (controlZone) {
-      const lngLatAlt=controlZone.lngLatAlt
-      lngLatAlt.longitude=newControlZone.lngLatAlt.longitude
-      lngLatAlt.latitude=newControlZone.lngLatAlt.latitude
-      lngLatAlt.height=newControlZone.lngLatAlt.height
-    }
-  }
-
-  const applyConeScanResults = (
-    aircraftByControlZoneId: Map<string, Map<string, Aircraft>>,
-    airportByControlZoneId: Map<string, Map<string, Airport>>,
-  ) => {
-    for (const [id, aircraftMap] of aircraftByControlZoneId.entries()) {
-      const matchedControlZone=matchedControlZoneMap.value.get(id)
-      matchedControlZone.aircraft.aircraftMap=new Map(aircraftMap)
-    }
-    for (const [id, airportMap] of airportByControlZoneId.entries()) {
-      const matchedControlZone=matchedControlZoneMap.value.get(id)
-      matchedControlZone.airport.airportMap=new Map(airportMap)
-    }
-    commitMatchedControlZones()
-  }
-
   // 仅提供数据重置方法（纯数据操作）
   const resetControlZoneFilterForm = () => {
     controlZoneFilterForm.id = ''
@@ -82,8 +57,8 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     }
   }
 
-  const addAircraftToControlZone = (dataSourceName: string, aircraft: Aircraft) => {
-    const region = matchedControlZoneMap.value.get(dataSourceName)
+  const addAircraftToControlZone = (controlZoneId: string, aircraft: Aircraft) => {
+    const region = matchedControlZoneMap.value.get(controlZoneId)
     if (!region) return
     region.aircraft.aircraftMap.set(aircraft.icao24, aircraft)
   }
@@ -92,10 +67,6 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     for (const [, region] of matchedControlZoneMap.value) {
       region.aircraft = { aircraftMap: new Map(region.aircraft.aircraftMap) }
     }
-    triggerRef(matchedControlZoneMap)
-  }
-
-  const triggerControlZoneMapUpdate = () => {
     triggerRef(matchedControlZoneMap)
   }
 
@@ -108,14 +79,11 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     clearMatchedControlZones,
     setMatchedControlZone,
     commitMatchedControlZones,
-    updateMatchedControlZone,
-    applyConeScanResults,
 
     toggleAllControlZoneFilterLevels,
 
     clearControlZoneAircraftMaps,
     addAircraftToControlZone,
     commitControlZoneAircraftMaps,
-    triggerControlZoneMapUpdate,
   }
 })

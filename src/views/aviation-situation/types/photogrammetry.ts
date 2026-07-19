@@ -19,7 +19,18 @@ export type PhotogrammetryTypeFilterValue =
   | 'others'
 
 export interface PhotogrammetryFilterForm {
-  types: PhotogrammetryTypeFilterValue[]
-  colorByType: boolean
-  colorByDistance: boolean
+  id: number
+  name: string
+  visible: boolean
+}
+
+
+export interface MatchedPhotogrammetry {
+  id: number
+  name: string
+}
+
+export interface PhotogrammetryTableRowOperation {
+  operationType: 'detail'
+  id: number
 }

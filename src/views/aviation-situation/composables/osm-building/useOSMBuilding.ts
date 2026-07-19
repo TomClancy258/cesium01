@@ -13,6 +13,7 @@ import {
 } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import { useOSMBuildingStore } from '@/stores/osm-building'
 import {
+  clearAllOSMBuildingHighlight,
   clearSelectedOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
 
@@ -49,7 +50,20 @@ export function useOSMBuilding(viewer) {
     setupOSMBuildingFilterFormWatch()
   }
 
+  const removeOSMBuilding=()=>{
+    if (osmBuildingTileset !== null) {
+      clearAllOSMBuildingHighlight()
+      clearSelectedAviation() // 若当前选中是 osmBuilding
+      hideOSMBuildingTooltip()
+      viewer.value.scene.primitives.remove(osmBuildingTileset)
+      osmBuildingTileset=null
+    }
+  }
+
   const addOSMBuilding = async () => {
+    if (osmBuildingTileset !== null) {
+      return
+    }
     osmBuildingTileset = viewer.value.scene.primitives.add(
       await Cesium.Cesium3DTileset.fromIonAssetId(96188),
     )
@@ -186,5 +200,7 @@ export function useOSMBuilding(viewer) {
     initOSMBuildings,
     tooltip,
     filterOSMBuildings,
+    removeOSMBuilding,
+    addOSMBuilding,
   }
 }

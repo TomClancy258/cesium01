@@ -125,7 +125,7 @@ watch(
           multiple
           collapse-tags
           collapse-tags-tooltip
-          max-collapse-tags="2"
+          :max-collapse-tags="2"
           clearable
           placeholder="全部等级"
           style="width: 240px"

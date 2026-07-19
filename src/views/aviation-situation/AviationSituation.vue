@@ -106,12 +106,15 @@ const {
   initOSMBuildings,
   tooltip:osmBuildingTooltip,
   filterOSMBuildings,
+  removeOSMBuilding,
+  addOSMBuilding,
 } = useOSMBuilding(cesiumViewer)
 const {
   initPhotogrammetrys,
+  addPhotogrammetryById,
   tooltip:photogrammetryTooltip,
   filterPhotogrammetrys,
-  removePhotogrammetrys,
+  removeActivePhotogrammetry,
 } = usePhotogrammetry(cesiumViewer)
 
 const {
@@ -145,7 +148,7 @@ onMounted(async () => {
 
   // test01()
   // initBuildings()
-  // initOSMBuildings()
+  initOSMBuildings()
   initControlZones()
 
   initPhotogrammetrys()
@@ -237,7 +240,11 @@ provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
 provide('filterOSMBuildings', filterOSMBuildings)
 
-provide('removePhotogrammetrys', removePhotogrammetrys)
+provide('removeOSMBuilding', removeOSMBuilding)
+provide('addOSMBuilding', addOSMBuilding)
+provide('addPhotogrammetryById', addPhotogrammetryById)
+provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
+
 </script>
 
 <template>

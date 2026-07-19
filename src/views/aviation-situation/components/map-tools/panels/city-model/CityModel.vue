@@ -11,11 +11,16 @@ const sourceOptions: { label: string; value: string }[] = [
   { label: '倾斜摄影', value: 'photogrammetry' },
 ]
 
-const removePhotogrammetrys = inject('removePhotogrammetrys')
+const removeActivePhotogrammetry = inject('removeActivePhotogrammetry')
+const removeOSMBuilding = inject('removeOSMBuilding')
+const addOSMBuilding = inject('addOSMBuilding')
 
 const sourceChange = (val) => {
   if (val === 'osmBuilding') {
-    removePhotogrammetrys()
+    removeActivePhotogrammetry()
+    addOSMBuilding()
+  } else if (val === 'photogrammetry') {
+    removeOSMBuilding()
   }
 }
 </script>

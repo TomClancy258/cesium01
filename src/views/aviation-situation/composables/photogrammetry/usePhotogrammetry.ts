@@ -8,8 +8,10 @@ import {
   PhotogrammetryTypeFilterValue,
 } from '@/views/aviation-situation/types/photogrammetry'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
+import { usePhotogrammetryStore } from '@/stores/photogrammetry'
 
 export function usePhotogrammetry(viewer) {
+  const photogrammetryStore = usePhotogrammetryStore()
   const photogrammetryMap = new Map<string, Cesium.Cesium3DTileset>()
   const {
     tooltip,
@@ -24,8 +26,14 @@ export function usePhotogrammetry(viewer) {
     },
   })
 
+  let activePhotogrammetry={
+    id:'',
+    tileset:null
+  }
+
   const initPhotogrammetrys = () => {
-    addPhotogrammetrys()
+    // addPhotogrammetrys()
+    setPhotogrammetryTable()
     subscribePhotogrammetryEvents()
     setupPhotogrammetryFilterFormWatch()
   }
@@ -35,17 +43,45 @@ export function usePhotogrammetry(viewer) {
     name: string,
     zoomTo = false,
   ) => {
-    const photogrammetryTileset = viewer.value.scene.primitives.add(
+    activePhotogrammetry.tileset = viewer.value.scene.primitives.add(
       await Cesium.Cesium3DTileset.fromIonAssetId(assetId),
     )
-    photogrammetryTileset.meta = {
+    activePhotogrammetry.id=assetId
+    activePhotogrammetry.tileset.meta = {
       sourceType: 'photogrammetry',
       name,
     }
-    photogrammetryMap.set(name, photogrammetryTileset)
-    if (zoomTo) {
-      viewer.value.zoomTo(photogrammetryTileset)
-    }
+    viewer.value.zoomTo(activePhotogrammetry.tileset)
+    // photogrammetryMap.set(name, photogrammetryTileset)
+  }
+
+  const setPhotogrammetryTable=()=>{
+    const photogrammetrys=[
+      {
+        id:354759,
+        name:'Boston'
+      },
+      {
+        id:1415196,
+        name:'SanFrancisco'
+      },
+      {
+        id:69380,
+        name:'Melbourne'
+      },
+      {
+        id:57588,
+        name:'WashingtonDC'
+      },
+      {
+        id:57590,
+        name:'WashingtonState'
+      },
+    ]
+    photogrammetrys.forEach((item,i)=>{
+      photogrammetryStore.setMatchedPhotogrammetry(item)
+    })
+    photogrammetryStore.commitMatchedPhotogrammetrys()
   }
 
   const addPhotogrammetrys = () => {
@@ -56,11 +92,32 @@ export function usePhotogrammetry(viewer) {
     addWashingtonStatePhotogrammetry()
   }
 
-  const addBostonPhotogrammetry = () => addPhotogrammetryTileset(354759, 'Boston', true)
+  const addBostonPhotogrammetry = () => addPhotogrammetryTileset(354759, 'Boston')
   const addSanFranciscoPhotogrammetry = () => addPhotogrammetryTileset(1415196, 'SanFrancisco')
   const addMelbournePhotogrammetry = () => addPhotogrammetryTileset(69380, 'Melbourne')
   const addWashingtonDCPhotogrammetry = () => addPhotogrammetryTileset(57588, 'WashingtonDC')
   const addWashingtonStatePhotogrammetry = () => addPhotogrammetryTileset(57590, 'WashingtonState')
+
+  const addPhotogrammetryById=(id:number)=>{
+    if (activePhotogrammetry.id === id) {
+      viewer.value.zoomTo(activePhotogrammetry.tileset)
+      return
+    }
+    viewer.value.scene.primitives.remove(activePhotogrammetry.tileset)
+    activePhotogrammetry.tileset=null
+    if (id === 354759) {
+      addBostonPhotogrammetry()
+    } else if (id === 1415196) {
+      addSanFranciscoPhotogrammetry()
+    } else if (id === 69380) {
+      addMelbournePhotogrammetry()
+    } else if (id === 57588) {
+      addWashingtonDCPhotogrammetry()
+    } else if (id === 57590) {
+      addWashingtonStatePhotogrammetry()
+    }
+    activePhotogrammetry.id=id
+  }
 
   let unsubPhotogrammetryHover: () => void
   let unsubPhotogrammetryLeave: () => void
@@ -78,8 +135,14 @@ export function usePhotogrammetry(viewer) {
     })
   }
 
-  const removePhotogrammetrys=()=>{
-
+  const removeActivePhotogrammetry=()=>{
+    if (activePhotogrammetry.id !== '') {
+      viewer.value.scene.primitives.remove(activePhotogrammetry.tileset)
+      activePhotogrammetry={
+        id:'',
+        tileset: null
+      }
+    }
   }
 
   const filterPhotogrammetrys = (
@@ -157,8 +220,9 @@ export function usePhotogrammetry(viewer) {
 
   return {
     initPhotogrammetrys,
+    addPhotogrammetryById,
     tooltip,
     filterPhotogrammetrys,
-    removePhotogrammetrys,
+    removeActivePhotogrammetry,
   }
 }
