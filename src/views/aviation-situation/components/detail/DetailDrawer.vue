@@ -7,6 +7,7 @@ import AircraftDetail from './aircraft/AircraftDetail.vue'
 import AirportDetail from './AirportDetail.vue'
 import SatelliteDetail from './SatelliteDetail.vue'
 import OSMBuildingDetail from './OSMBuildingDetail.vue'
+import PhotogrammetryBuildingDetail from './PhotogrammetryBuildingDetail.vue'
 
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { clearSelectedAviation } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
@@ -57,6 +58,8 @@ const aviationDetailDrawerTitle = computed(() => {
     return '卫星详情'
   } else if (selectedSourceType.value === 'osmBuilding') {
     return '建筑详情'
+  } else if (selectedSourceType.value === 'photogrammetryBuilding') {
+    return '倾斜摄影建筑详情'
   } else {
     return ''
   }
@@ -80,6 +83,7 @@ const aviationDetailDrawerTitle = computed(() => {
       <AirportDetail v-show="selectedSourceType === 'airport'" />
       <SatelliteDetail v-show="selectedSourceType === 'satellite'" />
       <OSMBuildingDetail v-show="selectedSourceType === 'osmBuilding'" />
+      <PhotogrammetryBuildingDetail v-show="selectedSourceType === 'photogrammetryBuilding'" />
     </div>
   </el-drawer>
 </template>

@@ -5,7 +5,7 @@ import type { TooltipState } from '@/views/aviation-situation/types/shared'
 import {
   displayDetailHeight,
   displayDetailName, displayDetailType,
-  displayDetailValue
+  displayDetailValue, formatFixed4
 } from '@/views/aviation-situation/utils/format-detail-value'
 
 const props = defineProps<{ tooltip: TooltipState<OSMBuildingHoveredProperties> }>()
@@ -36,7 +36,7 @@ const formattedAddress = computed(() => {
     <div>类型：{{ displayDetailType(tooltipProperties.type.building) }}</div>
     <div>经度：{{ tooltipProperties.lngLatAlt?.longitude.toFixed(4) }}</div>
     <div>纬度：{{ tooltipProperties.lngLatAlt?.latitude.toFixed(4) }}</div>
-    <div>楼高：{{ displayDetailHeight(tooltipProperties.estimatedHeight) }}</div>
+    <div>楼高：{{ displayDetailHeight(formatFixed4(tooltipProperties.estimatedHeight)) }}</div>
     <div>地址：{{ displayDetailValue(formattedAddress) }}</div>
   </div>
 </template>

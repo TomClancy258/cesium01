@@ -15,7 +15,7 @@ import type {
   OSMBuildingHoveredProperties,
   OSMBuildingSelectedProperties,
 } from '@/views/aviation-situation/types/osm-building'
-import type { PhotogrammetryHoveredProperties, PhotogrammetryTableRowOperation } from '@/views/aviation-situation/types/photogrammetry'
+import type { PhotogrammetryHoveredProperties, PhotogrammetryBuildingHoveredProperties, PhotogrammetryBuildingSelectedProperties, PhotogrammetryTableRowOperation } from '@/views/aviation-situation/types/photogrammetry'
 import {
   ControlZoneTableRowOperation,
   type ControlZoneHoveredProperties,
@@ -40,6 +40,10 @@ export type CesiumMouseEventName =
 
   | 'photogrammetryHover'
   | 'photogrammetryLeave'
+
+  | 'photogrammetryBuildingHover'
+  | 'photogrammetryBuildingLeave'
+  | 'photogrammetryBuildingLeftClick'
 
   | 'controlZoneHover'
   | 'controlZoneLeave'
@@ -83,6 +87,13 @@ export interface EventCallbackMap {
 
   photogrammetryHover: (properties: PhotogrammetryHoveredProperties, position: Cesium.Cartesian2) => void;
   photogrammetryLeave: () => void;
+
+  photogrammetryBuildingHover: (
+    properties: PhotogrammetryBuildingHoveredProperties,
+    position: Cesium.Cartesian2,
+  ) => void;
+  photogrammetryBuildingLeave: () => void;
+  photogrammetryBuildingLeftClick: (data: PhotogrammetryBuildingSelectedProperties) => void;
 
   controlZoneHover: (
     properties: ControlZoneHoveredProperties,

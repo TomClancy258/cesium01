@@ -5,6 +5,7 @@ import type { AirportSelectedData } from '@/views/aviation-situation/types/airpo
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
 import type { OSMBuildingSelectedProperties } from '@/views/aviation-situation/types/osm-building'
+import type { PhotogrammetryBuildingSelectedProperties } from '@/views/aviation-situation/types/photogrammetry'
 import {
   highlightBillboardOnSelect,
   clearSelectedBillboardHighlight,
@@ -18,11 +19,16 @@ import {
   clearSelectedOSMBuildingHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
 import {
+  highlightPhotogrammetryBuildingOnSelect,
+  clearSelectedPhotogrammetryBuildingHighlight,
+} from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
+import {
   SATELLITE_SELECTED_COLOR,
   SATELLITE_SELECTED_SILHOUETTE_SIZE,
   SATELLITE_HOVER_SELECTED_PATH_SHOW,
 } from '@/views/aviation-situation/composables/satellite/satellite-constants'
 import { OSM_BUILDING_SELECTED_COLOR } from '@/views/aviation-situation/composables/osm-building/osm-building-constants'
+import { PHOTOGRAMMETRY_BUILDING_SELECTED_COLOR } from '@/views/aviation-situation/composables/photogrammetry/photogrammetry-constants'
 
 type BillboardSelectedData = AircraftSelectedData | AirportSelectedData
 
@@ -59,6 +65,17 @@ const isSameOSMBuildingSelection = (
   )
 }
 
+const isSamePhotogrammetryBuildingSelection = (
+  selected: AviationSelectedData,
+  data: PhotogrammetryBuildingSelectedProperties,
+): boolean => {
+  return (
+    selected !== null &&
+    selected.sourceType === 'photogrammetryBuilding' &&
+    selected.id === data.id
+  )
+}
+
 export const selectBillboard = (
   billboard: Cesium.Billboard,
   highlightImage: string,
@@ -66,6 +83,7 @@ export const selectBillboard = (
 ): void => {
   clearSelectedSatelliteHighlight()
   clearSelectedOSMBuildingHighlight()
+  clearSelectedPhotogrammetryBuildingHighlight()
   highlightBillboardOnSelect(billboard, highlightImage)
 
   const aviationSelectionStore = useAviationSelectionStore()
@@ -80,6 +98,7 @@ export const selectSatellite = (
 ): void => {
   clearSelectedBillboardHighlight()
   clearSelectedOSMBuildingHighlight()
+  clearSelectedPhotogrammetryBuildingHighlight()
   highlightSatelliteOnSelect(entity, {
     sourceType: 'satellite',
     modelStyle: {
@@ -103,10 +122,25 @@ export const selectOSMBuilding = (
 ): void => {
   clearSelectedBillboardHighlight()
   clearSelectedSatelliteHighlight()
+  clearSelectedPhotogrammetryBuildingHighlight()
   highlightOSMBuildingOnSelect(feature, { color: OSM_BUILDING_SELECTED_COLOR })
 
   const store = useAviationSelectionStore()
   if (!isSameOSMBuildingSelection(store.selected, data)) {
+    store.setSelected(data)
+  }
+}
+
+export const selectPhotogrammetryBuilding = (
+  data: PhotogrammetryBuildingSelectedProperties,
+): void => {
+  clearSelectedBillboardHighlight()
+  clearSelectedSatelliteHighlight()
+  clearSelectedOSMBuildingHighlight()
+  highlightPhotogrammetryBuildingOnSelect(data.id, PHOTOGRAMMETRY_BUILDING_SELECTED_COLOR)
+
+  const store = useAviationSelectionStore()
+  if (!isSamePhotogrammetryBuildingSelection(store.selected, data)) {
     store.setSelected(data)
   }
 }
@@ -121,6 +155,8 @@ export const clearSelectedAviation = (): void => {
     clearSelectedSatelliteHighlight()
   } else if (selected?.sourceType === 'osmBuilding') {
     clearSelectedOSMBuildingHighlight()
+  } else if (selected?.sourceType === 'photogrammetryBuilding') {
+    clearSelectedPhotogrammetryBuildingHighlight()
   }
 
   aviationSelectionStore.clearSelected()

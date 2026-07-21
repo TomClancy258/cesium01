@@ -81,9 +81,17 @@ import {
   clearHoveredControlZoneHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
 import {
-  handlePhotogrammetryHover,
+  handlePhotogrammetryBuildingHover,
+  handlePhotogrammetryBuildingLeftClick,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/photogrammetry'
-import type { PhotogrammetryHoveredProperties } from '@/views/aviation-situation/types/photogrammetry'
+import {
+  clearHoveredPhotogrammetryBuildingHighlight,
+  clearSelectedPhotogrammetryBuildingHighlight,
+} from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
+import {
+  getPhotogrammetryBuildingProperties,
+  hasPhotogrammetryBuilding,
+} from '@/views/aviation-situation/composables/photogrammetry/photogrammetry-building-registry'
 
 type PickedObjectLike = {
   id?: unknown
@@ -194,6 +202,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         // 清空区域轨：测绘框选 / 管控区
         clearSelectedRegion()
         clearSelectedOSMBuildingHighlight()
+        clearSelectedPhotogrammetryBuildingHighlight()
         return
       }
 
@@ -279,6 +288,16 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         return
       }
 
+      const photogrammetryBuildingPicked = findPhotogrammetryBuildingPicked(pickedObjects)
+      if (photogrammetryBuildingPicked) {
+        const buildingId = photogrammetryBuildingPicked.id
+        if (!hasPhotogrammetryBuilding(buildingId)) return
+        const properties = getPhotogrammetryBuildingProperties(buildingId)
+        if (!properties) return
+        handlePhotogrammetryBuildingLeftClick(properties)
+        return
+      }
+
       const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
       if (drawingToolEntityPicked) {
         const entity = drawingToolEntityPicked.id
@@ -302,6 +321,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       clearSelectedAviation()
       clearSelectedRegion()
       clearSelectedOSMBuildingHighlight()
+      clearSelectedPhotogrammetryBuildingHighlight()
 
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK)
 
@@ -390,8 +410,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       return obj.tileset.meta?.sourceType === 'osmBuilding'
     })
 
-  const findPhotogrammetryPicked = (pickedObjects: PickedObjectLike[]) =>
-    pickedObjects.find((obj) => getPickedTileset(obj)?.meta?.sourceType === 'photogrammetry')
+  const findPhotogrammetryBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => {
+      if (!(obj.primitive instanceof Cesium.ClassificationPrimitive)) return false
+      return hasPhotogrammetryBuilding(obj.id)
+    })
 
   const findControlZoneEntityPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
@@ -424,7 +447,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     clearHoveredDrawingToolHighlight()
     satelliteLeave()
     osmBuildingLeave()
-    photogrammetryLeave()
+    photogrammetryBuildingLeave()
     controlZoneLeave()
   }
 
@@ -441,7 +464,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       clearHoveredDrawingToolHighlight()
       osmBuildingLeave()
-      photogrammetryLeave()
+      photogrammetryBuildingLeave()
       controlZoneLeave()
 
       const entity = satelliteModelPicked.id
@@ -468,7 +491,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       clearHoveredDrawingToolHighlight()
       satelliteLeave()
       osmBuildingLeave()
-      photogrammetryLeave()
+      photogrammetryBuildingLeave()
       controlZoneLeave()
 
       const billboard = billboardPicked.primitive
@@ -493,7 +516,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       satelliteLeave()
       clearHoveredDrawingToolHighlight()
-      photogrammetryLeave()
+      photogrammetryBuildingLeave()
       controlZoneLeave()
 
       // const propertyIds = buildingPicked.getPropertyIds();
@@ -536,38 +559,29 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       return
     }
 
-    const photogrammetryPicked = findPhotogrammetryPicked(pickedObjects)
-    if (photogrammetryPicked) {
+    const photogrammetryBuildingPicked = findPhotogrammetryBuildingPicked(pickedObjects)
+    if (photogrammetryBuildingPicked) {
       aviationBillboardLeave()
       satelliteLeave()
       clearHoveredDrawingToolHighlight()
       osmBuildingLeave()
       controlZoneLeave()
 
-      const cartesian = viewer.value.scene.pickPosition(movement.endPosition)
-      if (!Cesium.defined(cartesian)) return
+      const buildingId = photogrammetryBuildingPicked.id
+      if (!hasPhotogrammetryBuilding(buildingId)) return
+      const properties = getPhotogrammetryBuildingProperties(buildingId)
+      if (!properties) return
 
-      const cartographic = Cesium.Cartographic.fromCartesian(cartesian)
-      const properties: PhotogrammetryHoveredProperties = {
-        sourceType: 'photogrammetry',
-        lngLatAlt: {
-          longitude: Cesium.Math.toDegrees(cartographic.longitude),
-          latitude: Cesium.Math.toDegrees(cartographic.latitude),
-          height: cartographic.height,
-        },
-      }
-
-      handlePhotogrammetryHover(properties, movement.endPosition)
+      handlePhotogrammetryBuildingHover({ ...properties }, movement.endPosition)
       return
     }
-
 
     const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
     if (drawingToolEntityPicked) {
       aviationBillboardLeave()
       satelliteLeave()
       osmBuildingLeave()
-      photogrammetryLeave()
+      photogrammetryBuildingLeave()
       controlZoneLeave()
 
       const entity = drawingToolEntityPicked.id
@@ -583,7 +597,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       aviationBillboardLeave()
       satelliteLeave()
       osmBuildingLeave()
-      photogrammetryLeave()
+      photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
 
       const entity = controlZoneEntityPicked.id
@@ -614,8 +628,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     emitCesiumEvent('osmBuildingLeave');
   }
 
-  const photogrammetryLeave=()=>{
-    emitCesiumEvent('photogrammetryLeave');
+  const photogrammetryBuildingLeave=()=>{
+    clearHoveredPhotogrammetryBuildingHighlight()
+    emitCesiumEvent('photogrammetryBuildingLeave');
   }
 
   const controlZoneLeave=()=>{
@@ -633,7 +648,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'airportHover', 'airportLeave', 'airportLeftClick',
       'satelliteHover', 'satelliteLeave', 'satelliteLeftClick',
       'osmBuildingHover', 'osmBuildingLeave', 'osmBuildingLeftClick',
-      'photogrammetryHover', 'photogrammetryLeave',
+      'photogrammetryBuildingHover', 'photogrammetryBuildingLeave', 'photogrammetryBuildingLeftClick',
       'controlZoneHover', 'controlZoneLeave',
       'mouseWheel'
     ]

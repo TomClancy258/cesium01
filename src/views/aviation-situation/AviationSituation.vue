@@ -55,6 +55,9 @@ import { useControlZone } from '@/views/aviation-situation/composables/control-z
 import {
   clearAllOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
+import {
+  clearAllPhotogrammetryBuildingHighlight,
+} from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
 import { useOSMBuildingStore } from '@/stores/osm-building'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
@@ -209,6 +212,7 @@ onUnmounted(() => {
   clearAllDrawingToolHighlight()
   clearAllControlZoneHighlight()
   clearAllOSMBuildingHighlight()
+  clearAllPhotogrammetryBuildingHighlight()
 })
 
 const test01 = () => {

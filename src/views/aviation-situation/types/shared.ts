@@ -6,6 +6,7 @@ import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
 import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
 import type { OSMBuildingSelectedProperties } from '@/views/aviation-situation/types/osm-building'
+import type { PhotogrammetryBuildingSelectedProperties } from '@/views/aviation-situation/types/photogrammetry'
 
 export type LngLatAltArray=[number,number,number]
 
@@ -31,6 +32,7 @@ export type AviationSelectedData =
   | AirportSelectedData
   | SatelliteHoveredProperties
   | OSMBuildingSelectedProperties
+  | PhotogrammetryBuildingSelectedProperties
   | null
 
 export interface LngLatAlt {
