@@ -31,7 +31,16 @@ export interface SatelliteHoveredProperties {
   // screenPosition:Cesium.Cartesian2
 }
 
-export type SatelliteProperties = SatelliteHoveredProperties
+/** 挂在卫星 Entity.properties 上的完整属性（含高亮还原用的 model/path） */
+export type SatelliteProperties = SatelliteHoveredProperties & {
+  model: {
+    silhouetteSize: number
+    silhouetteColor: Cesium.Color
+  }
+  path: {
+    show: boolean
+  }
+}
 
 export interface SatelliteModelHighlightStyle {
   silhouetteColor: Cesium.Color
@@ -40,7 +49,10 @@ export interface SatelliteModelHighlightStyle {
 
 export interface SatelliteHighlightConfig {
   sourceType: 'satellite'
-  style: SatelliteModelHighlightStyle
+  modelStyle: SatelliteModelHighlightStyle
+  pathStyle: {
+    show: boolean
+  }
 }
 
 export interface SatelliteFilterForm {

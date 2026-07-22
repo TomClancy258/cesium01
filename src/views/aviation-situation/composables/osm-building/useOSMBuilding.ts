@@ -5,7 +5,7 @@ import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import {
   OSMBuildingFilterForm,
   OSMBuildingHoveredProperties,
-  OSMBuildingSelectedProperties, OSMBuildingTypeFilterValue
+  OSMBuildingSelectedProperties,
 } from '@/views/aviation-situation/types/osm-building'
 import {
   clearSelectedAviation,
@@ -60,17 +60,85 @@ export function useOSMBuilding(viewer) {
     }
   }
 
+  const snapshotOSMBuildingFilterForm = (): OSMBuildingFilterForm => ({
+    types: [...osmBuildingStore.osmBuildingFilterForm.types],
+    colorByType: osmBuildingStore.osmBuildingFilterForm.colorByType,
+    colorByDistance: osmBuildingStore.osmBuildingFilterForm.colorByDistance,
+  })
+
+  const filterOSMBuildings = () => {
+    if (!osmBuildingTileset) return
+
+    // 样式重算后旧高亮/选中可能对不上可见楼栋，统一清掉
+    clearSelectedAviation()
+    clearSelectedOSMBuildingHighlight()
+
+    const { types, colorByType } = snapshotOSMBuildingFilterForm()
+    let showStr = ''
+    types.forEach((item, i) => {
+      if (item !== 'others') {
+        showStr += "${building} === '" + item + "'"
+      } else {
+        showStr +=
+          "(${building} !== 'retail' && " +
+          "${building} !== 'commercial' && " +
+          "${building} !== 'yes' && " +
+          "${building} !== 'industrial' && " +
+          "${building} !== 'apartments' && " +
+          "${building} !== 'residential' && " +
+          "${building} !== 'office' && " +
+          "${building} !== 'parking' && " +
+          "${building} !== 'others')"
+      }
+      if (i !== types.length - 1) {
+        showStr += ' || '
+      }
+    })
+    if (types.length === 0) {
+      showStr = 'false'
+    }
+    let conditions = []
+    if (colorByType) {
+      conditions = [
+        ["${building} === 'retail'", "color('#f4ea2a')"],
+        ["${building} === 'commercial'", "color('skyblue', 0.5)"],
+        ["${building} === 'yes'", "color('grey')"],
+        ["${building} === 'industrial'", "color('indianred')"],
+        ["${building} === 'apartments'", "color('lightslategrey')"],
+        ["${building} === 'residential'", "color('lightgrey')"],
+        ["${building} === 'office'", "color('lightsteelblue')"],
+        ["${building} === 'parking'", "color('#b124ca')"],
+        ['true', "color('white')"], // This is the else case
+      ]
+    }
+    osmBuildingTileset.style = new Cesium.Cesium3DTileStyle({
+      defines: {
+        building: "${feature['building']}",
+      },
+      show: showStr,
+      color: {
+        conditions: conditions,
+      },
+    })
+  }
+
   const addOSMBuilding = async () => {
-    if (osmBuildingTileset !== null) {
+    if (osmBuildingTileset !== null || osmBuildingStore.isLoadingOSMBuilding) {
       return
     }
-    osmBuildingTileset = viewer.value.scene.primitives.add(
-      await Cesium.Cesium3DTileset.fromIonAssetId(96188),
-    )
-    osmBuildingTileset.meta = {
-      sourceType: 'osmBuilding',
+    osmBuildingStore.setIsLoadingOSMBuilding(true)
+    try {
+      const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(96188)
+      osmBuildingTileset = viewer.value.scene.primitives.add(tileset)
+      osmBuildingTileset.meta = {
+        sourceType: 'osmBuilding',
+      }
+      // viewer.value.zoomTo(osmBuildingTileset);
+      // 切回来时 tileset 是新的，需按当前表单重新套上筛选样式
+      filterOSMBuildings()
+    } finally {
+      osmBuildingStore.setIsLoadingOSMBuilding(false)
     }
-    // viewer.value.zoomTo(osmBuildingTileset);
   }
 
   let unsubOSMBuildingHover: () => void
@@ -97,73 +165,6 @@ export function useOSMBuilding(viewer) {
     )
   }
 
-  const filterOSMBuildings = (
-    newOSMBuildingFilterForm: OSMBuildingFilterForm,
-    oldOSMBuildingFilterForm?: OSMBuildingFilterForm,
-  ) => {
-    if (
-      oldOSMBuildingFilterForm &&
-      newOSMBuildingFilterForm.colorByType !== oldOSMBuildingFilterForm.colorByType
-    ) {
-      clearSelectedAviation()
-      clearSelectedOSMBuildingHighlight()
-    }
-    const types:OSMBuildingTypeFilterValue[]=newOSMBuildingFilterForm.types
-    const colorByType:boolean=newOSMBuildingFilterForm.colorByType
-    let showStr=''
-    types.forEach((item,i)=>{
-      if (item !== 'others') {
-        showStr+="${building} === '"+item+"'"
-      }else{
-        showStr+="(${building} !== 'retail' && " +
-          "${building} !== 'commercial' && " +
-          "${building} !== 'yes' && " +
-          "${building} !== 'industrial' && " +
-          "${building} !== 'apartments' && " +
-          "${building} !== 'residential' && " +
-          "${building} !== 'office' && "+
-          "${building} !== 'parking' && "+
-          "${building} !== 'others')"
-      }
-      if (i !== types.length - 1) {
-        showStr+=" || "
-      }
-    })
-    if (types.length === 0) {
-      showStr='false'
-    }
-    let conditions=[]
-    if (colorByType) {
-      conditions=[
-        ["${building} === 'retail'", "color('#f4ea2a')"],
-        ["${building} === 'commercial'", "color('skyblue', 0.5)"],
-        ["${building} === 'yes'", "color('grey')"],
-        ["${building} === 'industrial'", "color('indianred')"],
-        ["${building} === 'apartments'", "color('lightslategrey')"],
-        ["${building} === 'residential'", "color('lightgrey')"],
-        ["${building} === 'office'", "color('lightsteelblue')"],
-        ["${building} === 'parking'", "color('#b124ca')"],
-        ["true", "color('white')"], // This is the else case
-      ]
-    }
-    // console.log("showStr", showStr);
-    osmBuildingTileset.style = new Cesium.Cesium3DTileStyle({
-      defines: {
-        building: "${feature['building']}",
-      },
-      show:showStr,
-      color: {
-        conditions: conditions,
-      },
-    });
-  }
-
-  const snapshotOSMBuildingFilterForm = (): OSMBuildingFilterForm => ({
-    types: [...osmBuildingStore.osmBuildingFilterForm.types],
-    colorByType: osmBuildingStore.osmBuildingFilterForm.colorByType,
-    colorByDistance: osmBuildingStore.osmBuildingFilterForm.colorByDistance,
-  })
-
   let unwatchOSMBuildingFilterForm: () => void
   const setupOSMBuildingFilterFormWatch = (): void => {
 
@@ -180,12 +181,9 @@ export function useOSMBuilding(viewer) {
     // 直接传对象适合「整个对象任何变化我都要知道」：
     //
     // watch(wallet, (newVal,可以写oldVal) => applyFilter()) 相当于自动加了deep:true，且可以获得新旧值
-    unwatchOSMBuildingFilterForm = watch(
-      snapshotOSMBuildingFilterForm,
-      (newVal: OSMBuildingFilterForm, oldVal: OSMBuildingFilterForm | undefined) => {
-        filterOSMBuildings(newVal, oldVal)
-      },
-    )
+    unwatchOSMBuildingFilterForm = watch(snapshotOSMBuildingFilterForm, () => {
+      filterOSMBuildings()
+    })
   }
 
   onUnmounted(() => {

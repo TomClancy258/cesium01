@@ -22,7 +22,7 @@ import {
 } from "./event-handlers/spatial-selection/useCircleSpatialSelection.ts"
 
 import { ShallowRef } from 'cesium'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   clearHoveredDrawingToolHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager'
@@ -96,6 +96,10 @@ import {
 type PickedObjectLike = {
   id?: unknown
   primitive?: unknown
+}
+
+type BillboardWithProps = Cesium.Billboard & {
+  properties?: MapBillboardLabelProperties
 }
 
 // 初始化 Cesium 事件监听（核心逻辑不变，仅替换事件发布方式）
@@ -223,9 +227,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
       const billboardPicked = findBillboardPicked(pickedObjects)
       if (billboardPicked) {
-        const billboard = billboardPicked.primitive
-        if (!(billboard instanceof Cesium.Billboard)) return
-        const properties: MapBillboardLabelProperties = billboard.properties
+        const billboard = billboardPicked.primitive as BillboardWithProps
+        const properties = billboard.properties
+        if (!properties) return
 
         if (properties.sourceType === 'aircraft' && properties.type === 'billboard') {
           handleAircraftLeftClick(properties, billboard)
@@ -303,7 +307,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         const entity = drawingToolEntityPicked.id
         if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
-        const properties: EntityProperties = entity.properties.getValue()
+        const properties: DrawingToolEntityProperties = entity.properties.getValue()
         handleSpatialSelectionLeftClick(viewer, entity, properties)
         return
       }
@@ -369,14 +373,15 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         primitive instanceof Cesium.Model ||
         primitive instanceof Cesium.ModelFeature
       if (!isSatelliteModel) return false
-      const properties: EntityProperties | SatelliteProperties | undefined = obj.id.properties?.getValue()
+      const properties: SatelliteProperties | undefined = obj.id.properties?.getValue()
       return properties?.sourceType === 'satellite'
     })
 
   const findBillboardPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
       if (!(obj.primitive instanceof Cesium.Billboard)) return false
-      const properties = (obj.primitive as { properties?: MapBillboardLabelProperties }).properties
+      const billboard = obj.primitive as BillboardWithProps
+      const properties = billboard.properties
       return (
         !!properties &&
         properties.type === 'billboard' &&
@@ -387,22 +392,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const findDrawingToolEntityPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
       if (!(obj.id instanceof Cesium.Entity)) return false
-      const properties: EntityProperties | undefined = obj.id.properties?.getValue()
+      const properties: DrawingToolEntityProperties | undefined = obj.id.properties?.getValue()
       return (
         properties?.operationType === 'distanceMeasurement' ||
         properties?.operationType === 'spatialSelection'
       )
     })
-
-  const getPickedTileset = (obj: PickedObjectLike): Cesium.Cesium3DTileset | null => {
-    if (obj instanceof Cesium.Cesium3DTileFeature) {
-      return obj.tileset
-    }
-    if (obj.primitive instanceof Cesium.Cesium3DTileset) {
-      return obj.primitive
-    }
-    return null
-  }
 
   const findOSMBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj): obj is Cesium.Cesium3DTileFeature => {
@@ -419,7 +414,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const findControlZoneEntityPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
       if (!(obj.id instanceof Cesium.Entity)) return false
-      const properties: EntityProperties | undefined = obj.id.properties?.getValue()
+      const properties: ControlZoneProperties | undefined = obj.id.properties?.getValue()
       return (
         properties?.sourceType === 'controlZone'
       )
@@ -494,9 +489,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       controlZoneLeave()
 
-      const billboard = billboardPicked.primitive
-      if (!(billboard instanceof Cesium.Billboard)) return
-      const properties: MapBillboardLabelProperties = billboard.properties
+      const billboard = billboardPicked.primitive as BillboardWithProps
+      const properties = billboard.properties
+      if (!properties) return
       const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(
         viewer.value.scene,
         billboard.position,
@@ -587,7 +582,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       const entity = drawingToolEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
-      const properties: EntityProperties = entity.properties.getValue()
+      const properties: DrawingToolEntityProperties = entity.properties.getValue()
       handleDrawingToolHover(viewer, entity, properties)
       return
     }

@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import type { EntityProperties } from '@/views/aviation-situation/types/entity'
+import type { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   highlightDrawingToolOnHover,
   highlightDrawingToolOnSelect
@@ -33,7 +33,7 @@ const CLICK_COLORS: Partial<Record<string, string>> = {
 function resolveSelectionResult(
   viewer: ShallowRef<Cesium.Viewer | null>,
   entity: Cesium.Entity,
-  properties: EntityProperties,
+  properties: DrawingToolEntityProperties,
 ): DrawingToolEntitiesResult | undefined {
   const { sourceType } = properties
   if (sourceType === 'distanceMeasurement') {
@@ -60,7 +60,7 @@ function isDrawing(dataSourceName: string): boolean {
 export const handleDrawingToolHover = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   entity: Cesium.Entity,
-  properties: EntityProperties,
+  properties: DrawingToolEntityProperties,
 ): void => {
   if (isDrawing(properties.dataSourceName)) return
   const result = resolveSelectionResult(viewer, entity, properties)
@@ -77,7 +77,7 @@ export const handleDrawingToolHover = (
 export const handleSpatialSelectionLeftClick = (
   viewer: ShallowRef<Cesium.Viewer | null>,
   entity: Cesium.Entity,
-  properties: EntityProperties,
+  properties: DrawingToolEntityProperties,
 ): void => {
   if (isDrawing(properties.dataSourceName)) return
 

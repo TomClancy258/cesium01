@@ -5,7 +5,7 @@ import type { MatchedPhotogrammetry } from '@/views/aviation-situation/types/pho
 
 const photogrammetryStore = usePhotogrammetryStore()
 
-const addPhotogrammetryById=inject('addPhotogrammetryById')
+const addPhotogrammetryById = inject<(id: number) => Promise<void>>('addPhotogrammetryById')
 
 const currentPage = ref(1)
 const pageSize = ref(10)
@@ -25,6 +25,7 @@ const handleSizeChange = (size: number) => {
 }
 
 const onDetail = (row: MatchedPhotogrammetry) => {
+  if (photogrammetryStore.isLoadingPhotogrammetry || !addPhotogrammetryById) return
   addPhotogrammetryById(row.id)
 }
 </script>
@@ -32,6 +33,7 @@ const onDetail = (row: MatchedPhotogrammetry) => {
 <template>
   <div>
     <el-table
+      v-loading="photogrammetryStore.isLoadingPhotogrammetry"
       :data="pagedData"
       border
       stripe

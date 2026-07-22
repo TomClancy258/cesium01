@@ -11,7 +11,7 @@ import {
 import { LngLatAlt } from '@/views/aviation-situation/types/shared'
 import {DISTANCE_SURVEY_POLYLINE_STYLE} from "@/views/aviation-situation/constants/cesium-style-constants"
 import {cloneEntityAsConfig} from "@/utils/cesiumUtils"
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
 import { useDrawingToolStore,type DrawingToolForm } from '@/stores/drawing-tool'
 import { useDistanceMeasurementStore } from '@/stores/distance-measurement'
@@ -161,7 +161,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
   }
 
   const confirmSurveyPoint = () => {
-    const pointLabelProperties:EntityProperties={
+    const pointLabelProperties:DrawingToolEntityProperties={
       operationType:'distanceMeasurement',
       sourceType:'distanceMeasurement',
       type:'tempSurveyPoint',
@@ -174,7 +174,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
     dynamicPolylineState.pointCount++
 
     if (dynamicPolylineState.pointCount >= 2) {
-      const properties:EntityProperties={
+      const properties:DrawingToolEntityProperties={
         operationType:'distanceMeasurement',
         sourceType:'distanceMeasurement',
         type:'tempSegmentDistanceLabel',
@@ -253,7 +253,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
           originalMaterial:polylineConfig.polyline?.material
         },
         isDraft:true,
-      } as EntityProperties,
+      } as DrawingToolEntityProperties,
       ...polylineConfig, // 复用通用样式，消除重复代码
     });
   }
@@ -320,7 +320,7 @@ export const useDistanceMeasurement = (viewer: ShallowRef<Cesium.Viewer | null>,
 
     const midLngLatAlt:LngLatAlt = getLastLineSegmentMidLngLatAlt(dynamicPolylineState);
 
-    const properties:EntityProperties={
+    const properties:DrawingToolEntityProperties={
       operationType:'distanceMeasurement',
       sourceType:'distanceMeasurement',
       type:'totalDistanceLabel',

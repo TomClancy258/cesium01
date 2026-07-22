@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import type { EntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
+import type { DrawingToolEntityProperties, EntityHighlightConfig, EntityComponent } from '@/views/aviation-situation/types/entity'
 import {showEntities,hideEntities} from "@/utils/cesiumUtils"
 
 interface EntityHighlightData{
@@ -22,7 +22,7 @@ const selected:EntityHighlightData={
  */
 const restoreEntityOriginalState = (entity: Cesium.Entity) => {
   if (!entity.properties) return
-  const props: EntityProperties = entity.properties.getValue()
+  const props: DrawingToolEntityProperties = entity.properties.getValue()
 
   if(props.sourceType==='distanceMeasurement') {
     entity.polyline.material=props.polyline.originalMaterial
@@ -44,7 +44,7 @@ const restoreEntityOriginalState = (entity: Cesium.Entity) => {
  */
 const setEntityHighlightStyle = (entity: Cesium.Entity, config: EntityHighlightConfig) => {
   if (!entity.properties) return
-  const props: EntityProperties = entity.properties.getValue()
+  const props: DrawingToolEntityProperties = entity.properties.getValue()
 
   // 1. 设置整体显隐
   // if (config.show !== undefined) {

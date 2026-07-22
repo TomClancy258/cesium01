@@ -1,6 +1,6 @@
 //src/views/aviation-situation/composables/cesium-events/event-handlers/interaction/distance-measurement.ts
 import * as Cesium from 'cesium'
-import type { EntityProperties } from '@/views/aviation-situation/types/entity'
+import type { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   highlightDrawingToolOnHover,
   highlightDrawingToolOnSelect
@@ -14,7 +14,7 @@ import { getDrawingToolEntitiesAndHighlightEntity } from '@/utils/cesiumUtils'
 const drawingToolStore = useDrawingToolStore()
 
 
-export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties) => {
+export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:DrawingToolEntityProperties) => {
   const dataSourceName:string=properties.dataSourceName
   if (
     drawingToolStore.drawingDataSource &&
@@ -31,7 +31,7 @@ export const handleDistanceSurveyHover = ( viewer:ShallowRef<Cesium.Viewer|null>
 }
 
 // 处理机场左键点击
-export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:EntityProperties):void => {
+export const handleDistanceSurveyLeftClick = ( viewer:ShallowRef<Cesium.Viewer|null>,entity:Cesium.Entity,properties:DrawingToolEntityProperties):void => {
   const dataSourceName:string=properties.dataSourceName
   if (
     drawingToolStore.drawingDataSource &&

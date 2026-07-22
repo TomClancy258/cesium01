@@ -88,26 +88,33 @@ export function usePhotogrammetry(viewer) {
   const addWashingtonStatePhotogrammetry = () => addPhotogrammetryTileset(57590, 'WashingtonState')
 
   const addPhotogrammetryById = async (id: number) => {
+    if (photogrammetryStore.isLoadingPhotogrammetry) return
+
     if (activePhotogrammetry.id === id && activePhotogrammetry.tileset) {
       viewer.value.zoomTo(activePhotogrammetry.tileset)
       return
     }
 
-    removeActivePhotogrammetry()
+    photogrammetryStore.setIsLoadingPhotogrammetry(true)
+    try {
+      removeActivePhotogrammetry()
 
-    if (id === 354759) {
-      await addBostonPhotogrammetry()
-      await addBostonBuilding()
-    } else if (id === 1415196) {
-      await addSanFranciscoPhotogrammetry()
-      await addSanFranciscoBuilding()
-    } else if (id === 69380) {
-      await addMelbournePhotogrammetry()
-      await addMelbourneBuilding()
-    } else if (id === 57588) {
-      await addWashingtonDCPhotogrammetry()
-    } else if (id === 57590) {
-      await addWashingtonStatePhotogrammetry()
+      if (id === 354759) {
+        await addBostonPhotogrammetry()
+        await addBostonBuilding()
+      } else if (id === 1415196) {
+        await addSanFranciscoPhotogrammetry()
+        await addSanFranciscoBuilding()
+      } else if (id === 69380) {
+        await addMelbournePhotogrammetry()
+        await addMelbourneBuilding()
+      } else if (id === 57588) {
+        await addWashingtonDCPhotogrammetry()
+      } else if (id === 57590) {
+        await addWashingtonStatePhotogrammetry()
+      }
+    } finally {
+      photogrammetryStore.setIsLoadingPhotogrammetry(false)
     }
   }
 

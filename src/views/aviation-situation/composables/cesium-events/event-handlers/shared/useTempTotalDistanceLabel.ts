@@ -6,7 +6,7 @@ import { calculatePolylineTotalDistance, formatDistance } from '@/utils/geoUtils
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import type {TempSegmentDistanceLabel} from "./useTempSegmentDistanceLabel"
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 
 export const useTempTotalDistanceLabel = (viewer: ShallowRef<Cesium.Viewer | null>) => {
   // 初始化临时坐标标签
@@ -51,7 +51,7 @@ export const useTempTotalDistanceLabel = (viewer: ShallowRef<Cesium.Viewer | nul
     dataSource:Cesium.CustomDataSource,
     lngLatAlt:LngLatAlt,
     lngLatAltArray:number[],
-    properties:EntityProperties=null
+    properties:DrawingToolEntityProperties=null
   ):void => {
     if (lngLatAltArray.length===0 || !lngLatAlt) return;
     const totalDistance:number = calculatePolylineTotalDistance(lngLatAltArray);

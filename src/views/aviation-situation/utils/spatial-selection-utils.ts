@@ -9,6 +9,7 @@ import {
 } from '@/views/aviation-situation/types/shared'
 import * as turf from '@turf/turf'
 import { isInCircle, isInsideHemisphere } from '@/utils/geoUtils'
+import type { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 
 /** 更新各 finished 选区的 label 文字（飞机数量部分） */
 export const updateFinishedSelectionLabels = (viewer: ShallowRef<Cesium.Viewer>) => {
@@ -21,7 +22,7 @@ export const updateFinishedSelectionLabels = (viewer: ShallowRef<Cesium.Viewer>)
 
       const values = dataSources[0].entities.values
       const metricsLabelEntity = values[1]
-      const props: EntityProperties = metricsLabelEntity.properties.getValue()
+      const props: DrawingToolEntityProperties = metricsLabelEntity.properties.getValue()
 
       const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}`
 
@@ -34,7 +35,7 @@ export const updateFinishedSelectionLabels = (viewer: ShallowRef<Cesium.Viewer>)
     }else if(selectionRegion.sourceType === 'circleSpatialSelection'||
       selectionRegion.sourceType === 'hemisphereSpatialSelection'){
       const entity = viewer.value.entities.getById(dataSourceName)
-      const props: EntityProperties = entity.properties.getValue()
+      const props: DrawingToolEntityProperties = entity.properties.getValue()
       const base = `周长：${props.label.perimeterInfo.formattedPerimeterStr}\n面积：${props.label.areaInfo.formattedAreaStr}\n半径：${props.label.radiusInfo.formattedRadiusStr}`
 
       const target = selectionRegion.spatialSelectionTarget

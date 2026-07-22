@@ -2,7 +2,7 @@ import { onUnmounted, ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {
   SpatialSelectionTableRowOperation,
   SpatialSelectionTableRowDetail,
@@ -28,7 +28,7 @@ export function useSpatialSelection(viewer: ShallowRef<Cesium.Viewer>) {
           const spatialSelectionTableRowDetail =
             spatialSelectionTableRowOperation as SpatialSelectionTableRowDetail
           let entity:Cesium.Entity|null=null
-          let properties:EntityProperties|null=null
+          let properties:DrawingToolEntityProperties|null=null
           const dataSourceName=spatialSelectionTableRowDetail.dataSourceName
           if (
             spatialSelectionTableRowDetail.sourceType === 'polygonSpatialSelection' ||

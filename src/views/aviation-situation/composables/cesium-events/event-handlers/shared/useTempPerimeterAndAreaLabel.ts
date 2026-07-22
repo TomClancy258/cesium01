@@ -11,7 +11,7 @@ import {
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import * as turf from '@turf/turf'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {buildSpatialSelectionLabelText} from "@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils.ts"
 
 import {useSpatialSelectionStore} from "@/stores/spatial-selection"
@@ -114,7 +114,7 @@ export const useTempPerimeterAndAreaLabel = (viewer: ShallowRef<Cesium.Viewer | 
   const addTempPerimeterAndAreaLabelToDataSource = (
     dataSource:Cesium.CustomDataSource,
     lngLatAltArray:number[],
-    properties:EntityProperties=null,
+    properties:DrawingToolEntityProperties=null,
     graphic
   ):void => {
     if (lngLatAltArray.length===0) return;

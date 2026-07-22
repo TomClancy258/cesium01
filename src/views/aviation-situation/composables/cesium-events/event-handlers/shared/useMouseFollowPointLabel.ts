@@ -4,7 +4,7 @@ import { ShallowRef } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'
 import { formatLngLatAlt ,cartesian3ToLngLatAlt} from '@/utils/geoUtils.ts'
 import {LngLatAlt} from "@/views/aviation-situation/types/shared"
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 import {createTempPointLabelStyleConfig} from "@/utils/cesiumUtils"
 
 export interface TempPointLabelPosition  {
@@ -65,7 +65,7 @@ export const useMouseFollowPointLabel = (viewer: ShallowRef<Cesium.Viewer | null
   // 添加临时坐标标签到自定义数据源
 const addTempPointLabelToDataSource  = (
     currentDistanceSurveying,
-    properties:EntityProperties
+    properties:DrawingToolEntityProperties
   ):LngLatAlt  => {
     if (!currentDistanceSurveying.dataSource || !tempPointLabel.position.cartesian3) return;
     const { lngLatAlt, formattedLngLatAlt }: {

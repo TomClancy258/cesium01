@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive, shallowRef, computed, triggerRef } from 'vue'
+import { reactive, ref, shallowRef, computed, triggerRef } from 'vue'
 import type{
   PhotogrammetryFilterForm,
   MatchedPhotogrammetry,
@@ -14,6 +14,13 @@ export const usePhotogrammetryStore = defineStore('usePhotogrammetryStore', () =
     visible: true,
     // visible: false,
   })
+
+  /** 切换倾斜摄影模型中，用于互斥与 table / 来源 select loading */
+  const isLoadingPhotogrammetry = ref(false)
+
+  const setIsLoadingPhotogrammetry = (loading: boolean) => {
+    isLoadingPhotogrammetry.value = loading
+  }
 
   const matchedPhotogrammetryMap = shallowRef<Map<number, MatchedPhotogrammetry>>(new Map())
   const matchedPhotogrammetrys = computed(() => [...matchedPhotogrammetryMap.value.values()])
@@ -39,6 +46,8 @@ export const usePhotogrammetryStore = defineStore('usePhotogrammetryStore', () =
   return {
     photogrammetryFilterForm,
     resetPhotogrammetryFilterForm,
+    isLoadingPhotogrammetry,
+    setIsLoadingPhotogrammetry,
 
     matchedPhotogrammetryMap,
     matchedPhotogrammetrys,

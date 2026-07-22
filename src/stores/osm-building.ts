@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { reactive} from 'vue'
+import { reactive, ref } from 'vue'
 import {
   OSMBuildingFilterForm,
   OSMBuildingTypeFilterValue,
@@ -19,6 +19,12 @@ export const useOSMBuildingStore = defineStore('useOSMBuildingStore', () => {
     createDefaultOSMBuildingFilterForm(),
   )
 
+  /** 全球白膜加载中，用于与倾斜摄影切换互斥 */
+  const isLoadingOSMBuilding = ref(false)
+
+  const setIsLoadingOSMBuilding = (loading: boolean) => {
+    isLoadingOSMBuilding.value = loading
+  }
 
   // 仅提供数据重置方法（纯数据操作）
   const resetOSMBuildingFilterForm = () => {
@@ -39,5 +45,7 @@ export const useOSMBuildingStore = defineStore('useOSMBuildingStore', () => {
     resetOSMBuildingFilterForm,
     setOSMBuildingFilterTypes,
     toggleAllOSMBuildingFilterTypes,
+    isLoadingOSMBuilding,
+    setIsLoadingOSMBuilding,
   }
 })

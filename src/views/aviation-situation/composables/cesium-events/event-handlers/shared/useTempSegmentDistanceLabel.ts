@@ -6,7 +6,7 @@ import { formatDistance } from '@/utils/geoUtils.ts'
 import { createEntityLabelConfig } from '@/utils/cesiumUtils'
 import type {LngLatAlt} from "@/views/aviation-situation/types/shared"
 import type {DistanceSurveySession} from "../useDistanceMeasurement"
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 
 export interface SegmentDistanceInfo  {
   distance: number,
@@ -65,7 +65,7 @@ export const useTempSegmentDistanceLabel = (viewer: ShallowRef<Cesium.Viewer | n
   // 添加临时坐标标签到自定义数据源
   const addTempSegmentDistanceLabelToDataSource = (
     activeDistanceSurvey:DistanceSurveySession,
-    properties:EntityProperties,
+    properties:DrawingToolEntityProperties,
   ):LngLatAlt => {
     if (!activeDistanceSurvey.dataSource || !tempSegmentDistanceLabel.position.cartesian3) return;
     const { lngLatAlt }: {

@@ -16,7 +16,7 @@ import { useAirportStore } from '@/stores/airport'
 import { BOX_SELECTION_STYLE } from '@/views/aviation-situation/constants/cesium-style-constants'
 import { cloneEntityAsConfig } from '@/utils/cesiumUtils'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
-import { EntityProperties } from '@/views/aviation-situation/types/entity'
+import { DrawingToolEntityProperties } from '@/views/aviation-situation/types/entity'
 
 import { useDynamicSegmentDistanceLabel } from '@/views/aviation-situation/composables/cesium-events/event-handlers/shared/useDynamicSegmentDistanceLabel'
 
@@ -213,7 +213,7 @@ export const usePolygonSpatialSelection = (
   }
 
   const confirmSurveyPoint = () => {
-    const pointLabelProperties: EntityProperties = {
+    const pointLabelProperties: DrawingToolEntityProperties = {
       operationType: 'spatialSelection',
       sourceType: 'polygonSpatialSelection',
       type: 'tempSurveyPoint',
@@ -236,7 +236,7 @@ export const usePolygonSpatialSelection = (
     dynamicPolygonState.pointCount++
 
     if (dynamicPolygonState.pointCount >= 2) {
-      const properties: EntityProperties = {
+      const properties: DrawingToolEntityProperties = {
         operationType: 'spatialSelection',
         sourceType: 'polygonSpatialSelection',
         type: 'tempSegmentLengthLabel',
@@ -325,7 +325,7 @@ export const usePolygonSpatialSelection = (
         polygon: {
           originalMaterial: polygonConfig.polygon?.material,
         },
-      } as EntityProperties,
+      } as DrawingToolEntityProperties,
       ...polygonConfig, // 复用通用样式，消除重复代码
     })
   }
@@ -399,7 +399,7 @@ export const usePolygonSpatialSelection = (
     const newDataSource: Cesium.CustomDataSource = new Cesium.CustomDataSource(uniqueId)
     cloneDynamicPolygonToDataSource(newDataSource, uniqueId) //多边形，存放在dataSource.entities里的index=0的位置
 
-    const PerimeterAndAreaLabelProperties: EntityProperties = {
+    const PerimeterAndAreaLabelProperties: DrawingToolEntityProperties = {
       operationType: 'spatialSelection',
       sourceType: 'polygonSpatialSelection',
       type: 'perimeterAndAreaLabel',
@@ -436,7 +436,7 @@ export const usePolygonSpatialSelection = (
       polygon,
     ) //周长和面积Label，存放在dataSource.entities里的index=1的位置
 
-    const surveyPointProperties: EntityProperties = {
+    const surveyPointProperties: DrawingToolEntityProperties = {
       operationType: 'spatialSelection',
       sourceType: 'polygonSpatialSelection',
       type: 'surveyPoint',

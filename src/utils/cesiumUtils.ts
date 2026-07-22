@@ -5,7 +5,7 @@ import {
   TEMP_TOTAL_LENGTH_LABEL_STYLE
 } from '@/views/aviation-situation/constants/cesium-style-constants'
 import { ShallowRef } from 'cesium'
-import {EntityProperties} from "@/views/aviation-situation/types/entity"
+import {DrawingToolEntityProperties} from "@/views/aviation-situation/types/entity"
 
 import type {DrawingToolEntitiesResult} from "@/views/aviation-situation/types/shared"
 
@@ -29,7 +29,7 @@ export const cloneEntityAsConfig = (
     // position: sourceEntity.position,
   };
   if (sourceEntity.properties) {
-    const props: EntityProperties = sourceEntity.properties.getValue()
+    const props: DrawingToolEntityProperties = sourceEntity.properties.getValue()
     props.dataSourceName=newEntityId
     cloneConfig.properties=props
   }
@@ -105,7 +105,7 @@ export const cloneEntityAsConfig = (
 
 export const showEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    const props: EntityProperties = entity.properties.getValue()
+    const props: DrawingToolEntityProperties = entity.properties.getValue()
     if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=true
       entity.point.show=true
@@ -117,7 +117,7 @@ export const showEntities=(entities:Cesium.Entity[])=>{
 
 export const hideEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
-    const props: EntityProperties = entity.properties.getValue()
+    const props: DrawingToolEntityProperties = entity.properties.getValue()
     if (props.sourceType === 'circleSpatialSelection'||props.sourceType === 'hemisphereSpatialSelection') {
       entity.label.show=false
       entity.point.show=false
@@ -130,7 +130,7 @@ export const hideEntities=(entities:Cesium.Entity[])=>{
 export const showMeasurementEntities=(entities:Cesium.Entity[])=>{
   for (const entity of entities){
     if(entity.label){
-      const props: EntityProperties = entity.properties.getValue()
+      const props: DrawingToolEntityProperties = entity.properties.getValue()
       entity.label.fillColor = props.label.originalFillColor;
     }
     if(entity.point){
@@ -230,7 +230,7 @@ export const createTempPointLabelStyleConfig = (
  */
 export const getDrawingToolEntitiesAndHighlightEntity = (
   viewer: ShallowRef<Cesium.Viewer | null>,
-  properties: EntityProperties,
+  properties: DrawingToolEntityProperties,
   startIndex:number=1,
 ): DrawingToolEntitiesResult |undefined => {
   // 重置显示的实体数组
@@ -251,7 +251,7 @@ export const getDrawingToolEntitiesAndHighlightEntity = (
     // 存储显示的实体（调整索引从0开始）
     measurementEntities[i - startIndex] = values[i]
 
-    // const entityProperties: EntityProperties = values[i].properties.getValue()
+    // const entityProperties: DrawingToolEntityProperties = values[i].properties.getValue()
     // 根据实体类型显示对应的组件
     // if (entityProperties.type === 'surveyPoint') {
     //   values[i].label.show = true

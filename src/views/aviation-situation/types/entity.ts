@@ -20,8 +20,8 @@ export interface EntityPolygonProperties {
   originalMaterial:Cesium.Material
 }
 
-// Entity属性类型（按组件分类保存原始值）
-export interface EntityProperties {
+/** 绘制工具（量距 / 空间选择等）挂在 Entity.properties 上的业务属性 */
+export interface DrawingToolEntityProperties {
   operationType:string,
   sourceType: string; // distanceMeasurement/xxx
   type: string; // polyline/polygon/label/point （Entity整体类型）
