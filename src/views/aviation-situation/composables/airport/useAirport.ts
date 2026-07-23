@@ -514,8 +514,6 @@ export function useAirport(
     unwatchAirportFilterForm?.()
     unwatchAirportLabelVisible?.()
     // airportRiskRipple.destroy()
-
-    airportStore.resetAirportFilterForm()
   })
 
   return {

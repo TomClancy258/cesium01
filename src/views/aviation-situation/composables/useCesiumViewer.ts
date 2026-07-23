@@ -14,10 +14,16 @@ export function useCesiumViewer(containerId = 'cesium-container') {
   const initViewer = (): void => {
     viewer.value = new Cesium.Viewer(containerId, {
       // timeline: false,
-      // animation: false,
+      animation: false,
       // 1. 关闭绿色的选中框 (Selection Indicator)
       selectionIndicator: false,
       infoBox: false,
+      // fullscreenButton: false,    // 全屏
+      navigationHelpButton: false,// 帮助问号
+      sceneModePicker: false,     // 2D/3D切换
+      geocoder: false,           // 右上角搜索框
+      homeButton: false,         // 主页图标
+
       baseLayerPicker: false,
       baseLayer: Cesium.ImageryLayer.fromProviderAsync(
         new Cesium.UrlTemplateImageryProvider({
@@ -29,7 +35,7 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       //   requestVertexNormals:true,
       // }),
     })
-
+    viewer.value.timeline.container.style.display = 'none';
     viewer.value.scene.debugShowFramesPerSecond = true
     viewer.value._cesiumWidget._creditContainer.style.display = 'none'
 

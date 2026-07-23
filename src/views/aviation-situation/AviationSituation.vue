@@ -31,8 +31,11 @@ import { useDistanceMeasurementStore } from '@/stores/distance-measurement.ts'
 import { clearAllBillboardHighlight } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { clearAllDrawingToolHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager.ts'
 import { clearAllControlZoneHighlight } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
-import { clearSelectedSatelliteHighlight } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
+import { clearAllSatelliteHighlight } from '@/views/aviation-situation/composables/highlight-manager/satellite-highlight-manager'
 import { useRegionSelectionStore } from '@/stores/region-selection'
+import { useSatelliteStore } from '@/stores/satellite'
+import { usePhotogrammetryStore } from '@/stores/photogrammetry'
+import { useControlZoneStore } from '@/stores/control-zone'
 
 import {drawPolylineGeometry} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson02-polylineGeometry.ts"
 import {drawPolylineGeometryAppearance} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson04-polylineGeometry-appearance.ts"
@@ -71,6 +74,9 @@ const drawingToolStore = useDrawingToolStore()
 const regionSelectionStore = useRegionSelectionStore()
 const distanceMeasurementStore = useDistanceMeasurementStore()
 const osmBuildingStore = useOSMBuildingStore()
+const satelliteStore = useSatelliteStore()
+const photogrammetryStore = usePhotogrammetryStore()
+const controlZoneStore = useControlZoneStore()
 
 const {
   mouseEvents: {
@@ -195,6 +201,17 @@ onUnmounted(() => {
   aircraftStore.clearMatchedAircrafts()
   aircraftStore.resetAircraftTrajectoryOptions()
   airportStore.resetAirportFilterForm()
+  airportStore.clearMatchedAirports()
+
+  satelliteStore.resetSatelliteFilterForm()
+  satelliteStore.clearMatchedSatellites()
+
+  photogrammetryStore.resetPhotogrammetryFilterForm()
+  photogrammetryStore.clearMatchedPhotogrammetrys()
+  photogrammetryStore.setIsLoadingPhotogrammetry(false)
+
+  controlZoneStore.resetControlZoneFilterForm()
+  controlZoneStore.clearMatchedControlZones()
 
   drawingToolStore.resetSpatialSelectFilterForm()
   spatialSelectionStore.clearActiveAircraftSpatialSelection()
@@ -205,6 +222,7 @@ onUnmounted(() => {
   regionSelectionStore.clearSelected()
 
   osmBuildingStore.resetOSMBuildingFilterForm()
+  osmBuildingStore.setIsLoadingOSMBuilding(false)
 
   distanceMeasurementStore.clearAllFinishedSelections()
 
@@ -213,6 +231,7 @@ onUnmounted(() => {
   clearAllControlZoneHighlight()
   clearAllOSMBuildingHighlight()
   clearAllPhotogrammetryBuildingHighlight()
+  clearAllSatelliteHighlight()
 })
 
 const test01 = () => {

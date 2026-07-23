@@ -142,6 +142,7 @@ export function useControlZone(
       viewer.value.entities.remove(entity)
     }
     controlZoneRenderMap.clear()
+    controlZoneStore.clearMatchedControlZones()
   }
 
   const loadAndDrawControlZones = async (): Promise<void> => {
