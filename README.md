@@ -26,17 +26,17 @@ Vue3 / TypeScript / CesiumJS / Turf.js / Element Plus / ECharts / Pinia / Mitt /
 - onTick 分级节流
 
 ## 界面截图
-**卫星扫描**（实时轨道运行，扫描航空节点高亮，联动详情与表格）
-<img width="1907" height="884" alt="卫星扫描和table联动" src="https://github.com/user-attachments/assets/da73a590-d919-4753-8f81-74e8f953f9a0" />
+**卫星扫描 + 管控区**（轨道扫描高亮航空节点，联动详情与表格；管控区飞入高亮）
+<img width="1913" height="997" alt="卫星扫描 + 管控区" src="https://github.com/user-attachments/assets/06d82edb-f6ca-4abc-b513-8301eb4e31ea" />
 
-**测绘+框选**（支持多边形/圆形/半球实时测绘，框选碰撞检测）
-<img width="3810" height="1771" alt="测绘+框选" src="https://github.com/user-attachments/assets/80820f28-be02-4f52-9206-bb1ea205ccf4" />
-
-**测绘和table联动**（测绘区域内节点实时筛选联动）
-<img width="3817" height="1765" alt="测绘和table联动" src="https://github.com/user-attachments/assets/a7716f60-8d6a-4cee-8778-12d0a9d9e949" />
+**测绘+框选+table联动**（支持多边形/圆形/半球实时测绘，框选空间命中判定；测绘区域内节点实时筛选联动）
+<img width="1907" height="1012" alt="测绘+框选+table联动" src="https://github.com/user-attachments/assets/dbe39a5f-57b7-40c4-aac9-2c1d782b83c4" />
 
 **飞机航线和table联动**（1万+飞机节点实时渲染，点击航线与表格双向联动）
 <img width="3812" height="1794" alt="飞机航线和table联动" src="https://github.com/user-attachments/assets/4d176cd0-17da-431a-9057-c28594d7a98d" />
 
-**机场和table联动**（2万+机场节点，BillboardCollection批量渲染，稳定50fps+）
-<img width="3809" height="1773" alt="机场table联动" src="https://github.com/user-attachments/assets/90ca863e-fd22-420f-b65d-dda66cc63265" />
+**倾斜摄影与单体化**（多城切换，bbox 动态单体化，建筑拾取与详情）
+<img width="1907" height="1007" alt="倾斜摄影与单体化" src="https://github.com/user-attachments/assets/6fa7b0f7-bcaa-4266-ac89-ba3ec3ade01f" />
+
+**全球白膜建筑**（类型筛选，拾取高亮与详情）
+<img width="1906" height="1013" alt="全球白膜建筑" src="https://github.com/user-attachments/assets/d4970905-03b3-4100-8db0-ca8b5790752d" />
