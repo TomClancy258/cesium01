@@ -294,13 +294,4 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
   width: 100vw;
   height: 95vh;
 }
-
-body {
-  margin: 0 !important;
-}
-</style>
-<style lang="scss">
-body {
-  margin: 0;
-}
 </style>

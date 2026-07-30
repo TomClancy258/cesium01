@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 const AviationSituation = () =>
   import('@/views/aviation-situation/AviationSituation.vue')
+const IntelligentWaterPumpStation = () => import('@/views/intelligent_water_pump_station/IntelligentWaterPumpStation.vue')
 const User = () => import('@/views/user/User.vue')
 const WebGL = () => import('@/views/webgl/WebGL.vue')
 
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/AviationSituation',
       name: 'AviationSituation',
       component: AviationSituation,
+    },
+    {
+      path: '/IntelligentWaterPumpStation',
+      name: 'IntelligentWaterPumpStation',
+      component: IntelligentWaterPumpStation,
     },
     {
       path: '/User',

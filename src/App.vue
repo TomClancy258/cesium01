@@ -7,6 +7,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
   <el-config-provider :locale="zhCn">
     <nav>
       <RouterLink to="/AviationSituation">AviationSituation</RouterLink> |
+      <RouterLink to="/IntelligentWaterPumpStation">IntelligentWaterPumpStation</RouterLink> |
       <RouterLink to="/User">User</RouterLink> |
       <RouterLink to="/WebGL">WebGL</RouterLink>
     </nav>
@@ -28,5 +29,10 @@ nav {
 
   height: 5vh;
   line-height: 5vh;
+}
+</style>
+<style>
+body {
+  margin: 0;
 }
 </style>
