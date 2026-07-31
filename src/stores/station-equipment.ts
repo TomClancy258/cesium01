@@ -1,10 +1,6 @@
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef } from 'vue'
-import {
-  rowsToMap,
-  STATION_FRAME_COUNT,
-  stationEquipments,
-} from '@/views/intelligent_water_pump_station/mock/station-tables'
+import { rowsToMap } from '@/views/intelligent_water_pump_station/mock/station-tables'
 import type {
   CoolingTowerRow,
   CoolingTubeRow,
@@ -20,13 +16,18 @@ import type {
 } from '@/views/intelligent_water_pump_station/types/station-equipment'
 import { resolveTableKeyById } from '@/views/intelligent_water_pump_station/types/station-equipment'
 
-/** 模拟 WS 推送间隔 */
+/** 模拟 WS 推送间隔（与 simulate-websocket 一致） */
 export const STATION_WS_INTERVAL_MS = 5000
 
+/**
+ * 设备表数据 + 选中态。
+ * 模拟 WS 只维护 index（同 simulate-websocket），帧数据由 useStationRealtime 按 index 写入 Map。
+ */
 export const useStationEquipmentStore = defineStore('stationEquipment', () => {
-  const tick = ref(0)
+  /** 模拟推送下标，从 -1 起，open 后变为 0、1、2… */
+  const index = ref(-1)
   const connected = ref(false)
-  const currentPayload = ref<StationWsPayload>(stationEquipments[0])
+  const currentPayload = ref<StationWsPayload | null>(null)
 
   const activeTableKey = ref<EquipmentSource>('reservoir')
   const selectedId = ref<string | null>(null)
@@ -124,12 +125,6 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     })
   }
 
-  function applyFrame(frameIndex: number): void {
-    const index = ((frameIndex % STATION_FRAME_COUNT) + STATION_FRAME_COUNT) % STATION_FRAME_COUNT
-    tick.value = index
-    applyPayload(stationEquipments[index])
-  }
-
   function findRowByName(name: string): StationRow | null {
     return (
       reservoirMap.value.get(name) ||
@@ -144,12 +139,13 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     )
   }
 
+  /** 仅推进 index，不写业务 Map（同 simulate-websocket） */
   function open(): void {
     if (timer) return
     connected.value = true
-    applyFrame(0)
+    index.value++
     timer = setInterval(() => {
-      applyFrame(tick.value + 1)
+      index.value++
     }, STATION_WS_INTERVAL_MS)
   }
 
@@ -158,6 +154,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
       clearInterval(timer)
       timer = null
     }
+    index.value = 0
     connected.value = false
   }
 
@@ -177,11 +174,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     activeTableKey.value = key
   }
 
-  // 初始写入第 0 帧
-  applyFrame(0)
-
   return {
-    tick,
+    index,
     connected,
     currentPayload,
     activeTableKey,
@@ -206,7 +200,6 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     setHouserMap,
     setVerticalPressurizedTankBodyMap,
     applyPayload,
-    applyFrame,
     findRowByName,
     open,
     close,

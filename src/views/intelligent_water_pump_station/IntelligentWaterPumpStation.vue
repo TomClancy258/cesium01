@@ -8,15 +8,15 @@ import { useStationRealtime } from './composables/useStationRealtime'
 import { TABLE_LABEL } from './types/station-equipment'
 
 const { containerRef, scene, camera, renderer, controls, initScene } = useThreeScene()
-const { interactiveModels, objectById, loadModels, loading, loadedCount, totalCount } =
+const { interactiveModels, loadModels, loading, loadedCount, totalCount } =
   useStationModels(scene, camera, controls)
 const { hoveredName, selectedName, bindPicking } = useScenePicking(
   camera,
   renderer,
   interactiveModels,
 )
-const { store, start, stop } = useStationRealtime(objectById)
-const { hoveredRow, selectedRow, tick, connected, activeTableKey } = storeToRefs(store)
+const { store, start, stop } = useStationRealtime()
+const { hoveredRow, selectedRow, index, connected, activeTableKey } = storeToRefs(store)
 
 const tooltipText = computed(() => {
   const row = hoveredRow.value
@@ -55,7 +55,7 @@ onUnmounted(() => {
     </div>
     <template v-else>
       <div class="pick-tip">
-        <div>WS: {{ connected ? '模拟推送中' : '未连接' }} · tick {{ tick }}</div>
+        <div>WS: {{ connected ? '模拟推送中' : '未连接' }} · index {{ index }}</div>
         <div>Hover: {{ hoveredName || '-' }}</div>
         <div>Click: {{ selectedName || '-' }}</div>
         <div v-if="selectedRow">
