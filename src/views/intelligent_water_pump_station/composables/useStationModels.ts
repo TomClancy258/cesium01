@@ -28,71 +28,97 @@ const MODEL_INTERACTION_FILES = [
   'sbz-fangzi.glb',
   'sbz-guanzihefengshan.glb',
   'sbz-shuichi.glb',
+  'sbz-ludeng.glb',
   'sbz-yancun.glb',
 ] as const
 
 const MODEL_INTERACTION_FILE_SET = new Set<string>(MODEL_INTERACTION_FILES)
 
+/** 交互节点材质各自 clone，避免状态/高亮改一份 Material 导致全亮 */
+function ensureUniqueMaterials(object: THREE.Object3D): void {
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return
+    if (Array.isArray(child.material)) {
+      child.material = child.material.map((material) => material.clone())
+    } else if (child.material) {
+      child.material = child.material.clone()
+    }
+  })
+}
+
+function markInteractive(child: THREE.Object3D): void {
+  child.userData.interactive = true
+  child.userData.name = child.name
+  ensureUniqueMaterials(child)
+}
+
 function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Object3D[] {
   if (root.name === 'sbz-shuichi') {
     // 例：shuichi-01 … shuichi-14 各是独立 Group；排除 qiao-2 等非水池子节点
     return root.children.filter((child) => {
-      const isPool = child.name.startsWith('shuichi')
-      if (!isPool) return false
-      child.userData.interactive = true
-      // child.userData.chinese = child.name.replace('shuichi','水池')
+      const isReservoir = child.name.startsWith('shuichi')
+      if (!isReservoir) return false
+      markInteractive(child)
+      child.userData.text = child.name.replace('shuichi','蓄水池')
       return true
     })
-  }else if (root.name === 'sbz-guanzihefengshan') {
+  } else if (root.name === 'sbz-guanzihefengshan') {
     return root.children.filter((child) => {
-      const isPool = child.name.startsWith('paifengshan')
-      if (!isPool) return false
-      child.userData.interactive = true
-      // child.userData.chinese = child.name.replace('paifengshan','冷却塔')
-      return true
-    })
-  }else if (root.name === 'sbz-ludeng') {
-    return root.children.filter((child) => {
-      const isPool = child.name.startsWith('ld')
-      if (!isPool) return false
-      child.userData.interactive = true
-      // child.userData.chinese = child.name.replace('ld','路灯')
-      return true
-    })
-  }else if (root.name === 'sbz-yancun') {
-    return root.children.filter((child) => {
-      const isPool = child.name.startsWith('01')
-      const isTower=child.name.startsWith('yancun')
-      const isInteractive=isPool||isTower
+      const isCoolingTower = child.name.startsWith('paifengshan')
+      const isCoolingTube = child.name.startsWith('guanzi')
+      const isInteractive = isCoolingTower || isCoolingTube
       if (!isInteractive) return false
-      child.userData.interactive = true
-      // if (isPool) {
-      //   child.userData.chinese = child.name.replace('yancun', '调压塔')
-      // } else if (isTower) {
-      //   child.userData.chinese = child.name.replace('01', '搅拌池')
-      // }
+      markInteractive(child)
+      if (isCoolingTower) {
+        child.userData.text = child.name.replace('paifengshan', '冷却塔')
+      } else if (isCoolingTube) {
+        child.userData.text = child.name.replace('guanzi', '冷却管')
+      }
       return true
     })
-  }else if (root.name === 'sbz-fangzi') {
+  } else if (root.name === 'sbz-ludeng') {
     return root.children.filter((child) => {
-      const isPool = child.name.startsWith('fangzi')
-      if (!isPool) return false
-      child.userData.interactive = true
-      // child.userData.chinese = child.name.replace('fangzi','房子')
+      const isStreetLight = child.name.startsWith('ld')
+      if (!isStreetLight) return false
+      markInteractive(child)
+      child.userData.text = child.name.replace('ld','路灯')
       return true
     })
-  }else if (root.name === 'sbz-daguanzi') {
+  } else if (root.name === 'sbz-yancun') {
     return root.children.filter((child) => {
-      const isPool = child.name.startsWith('daguanzi')
-      if (!isPool) return false
-      child.userData.interactive = true
-      // child.userData.chinese = child.name.replace('daguanzi','大管子')
+      const isMixingTank = child.name.startsWith('01')
+      const isPressureRegulatingTower = child.name.startsWith('yancun')
+      const isInteractive = isMixingTank || isPressureRegulatingTower
+      if (!isInteractive) return false
+      markInteractive(child)
+      if (isPressureRegulatingTower) {
+        child.userData.text = child.name.replace('yancun', '调压塔')
+      } else if (isMixingTank) {
+        child.userData.text = child.name.replace('01', '搅拌池')
+      }
+      return true
+    })
+  } else if (root.name === 'sbz-fangzi') {
+    return root.children.filter((child) => {
+      const isHouse = child.name.startsWith('fangzi')
+      if (!isHouse) return false
+      markInteractive(child)
+      child.userData.text = child.name.replace('fangzi','房子')
+      return true
+    })
+  } else if (root.name === 'sbz-daguanzi') {
+    return root.children.filter((child) => {
+      const isVerticalPressurizedTankBody = child.name.startsWith('daguanzi')
+      if (!isVerticalPressurizedTankBody) return false
+      markInteractive(child)
+      child.userData.text = child.name.replace('daguanzi','立式承压罐体')
       return true
     })
   }
 
-
   root.userData.interactive = true
+  root.userData.name = root.name
+  ensureUniqueMaterials(root)
   return [root]
 }
 
@@ -148,11 +174,21 @@ export function useStationModels(
   const modelsGroup = shallowRef<THREE.Group | null>(null)
   /** 可交互模型根节点（非响应式，同 airportRenderMap 思路） */
   const interactiveModels: THREE.Object3D[] = []
+  /** name → Object3D，供 table / WS 状态着色 */
+  const objectById = new Map<string, THREE.Object3D>()
   const loading = ref(false)
   const loadedCount = ref(0)
   const totalCount = MODEL_FILES.length
 
   let dracoLoader: DRACOLoader | null = null
+
+  const rebuildObjectById = (list: THREE.Object3D[]): void => {
+    objectById.clear()
+    list.forEach((object) => {
+      const key = (object.userData.name as string) || object.name
+      if (key) objectById.set(key, object)
+    })
+  }
 
   const createGltfLoader = (): GLTFLoader => {
     dracoLoader ??= new DRACOLoader()
@@ -206,6 +242,7 @@ export function useStationModels(
       modelsGroup.value = group
       interactiveModels.length = 0
       interactiveModels.push(...interactiveList)
+      rebuildObjectById(interactiveList)
 
       if (camera.value) {
         fitCameraToObject(group, camera.value, controls.value)
@@ -214,6 +251,7 @@ export function useStationModels(
       console.error('[useStationModels] failed to load models', error)
       disposeObject3D(group)
       interactiveModels.length = 0
+      objectById.clear()
     } finally {
       loading.value = false
     }
@@ -222,6 +260,7 @@ export function useStationModels(
   const disposeModels = (): void => {
     const group = modelsGroup.value
     interactiveModels.length = 0
+    objectById.clear()
     if (!group) return
 
     group.removeFromParent()
@@ -239,6 +278,7 @@ export function useStationModels(
   return {
     modelsGroup,
     interactiveModels,
+    objectById,
     loading,
     loadedCount,
     totalCount,

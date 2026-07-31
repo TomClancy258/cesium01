@@ -1,25 +1,49 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useThreeScene } from './composables/useThreeScene'
 import { useStationModels } from './composables/useStationModels'
 import { useScenePicking } from './composables/useScenePicking'
+import { useStationRealtime } from './composables/useStationRealtime'
+import { TABLE_LABEL } from './types/station-equipment'
 
 const { containerRef, scene, camera, renderer, controls, initScene } = useThreeScene()
-const { interactiveModels, loadModels, loading, loadedCount, totalCount } = useStationModels(
-  scene,
-  camera,
-  controls,
-)
+const { interactiveModels, objectById, loadModels, loading, loadedCount, totalCount } =
+  useStationModels(scene, camera, controls)
 const { hoveredName, selectedName, bindPicking } = useScenePicking(
   camera,
   renderer,
   interactiveModels,
 )
+const { store, start, stop } = useStationRealtime(objectById)
+const { hoveredRow, selectedRow, tick, connected, activeTableKey } = storeToRefs(store)
+
+const tooltipText = computed(() => {
+  const row = hoveredRow.value
+  if (!row) return ''
+  const statusText =
+    row.status === 'normal' ? '正常' : row.status === 'alarm' ? '告警' : '故障'
+  return `${row.text}（${row.name}）· ${statusText}`
+})
+
+watch(hoveredName, (id) => {
+  store.setHoveredId(id)
+})
+
+watch(selectedName, (id) => {
+  store.setSelectedId(id)
+  // 后续：打开下侧 drawer，切到 activeTableKey，分页定位 selectedId 行
+})
 
 onMounted(async () => {
   initScene()
   await loadModels()
   bindPicking()
+  start()
+})
+
+onUnmounted(() => {
+  stop()
 })
 </script>
 
@@ -29,10 +53,18 @@ onMounted(async () => {
     <div v-if="loading" class="loading-tip">
       模型加载中 {{ loadedCount }} / {{ totalCount }}
     </div>
-    <div v-else class="pick-tip">
-      <div>Hover: {{ hoveredName || '-' }}</div>
-      <div>Click: {{ selectedName || '-' }}</div>
-    </div>
+    <template v-else>
+      <div class="pick-tip">
+        <div>WS: {{ connected ? '模拟推送中' : '未连接' }} · tick {{ tick }}</div>
+        <div>Hover: {{ hoveredName || '-' }}</div>
+        <div>Click: {{ selectedName || '-' }}</div>
+        <div v-if="selectedRow">
+          表: {{ TABLE_LABEL[activeTableKey] }} · {{ selectedRow.text }} ·
+          {{ selectedRow.status }}
+        </div>
+      </div>
+      <div v-if="tooltipText" class="hover-tooltip">{{ tooltipText }}</div>
+    </template>
   </div>
 </template>
 
@@ -56,7 +88,8 @@ onMounted(async () => {
 }
 
 .loading-tip,
-.pick-tip {
+.pick-tip,
+.hover-tooltip {
   position: absolute;
   padding: 8px 14px;
   border-radius: 4px;
@@ -76,5 +109,11 @@ onMounted(async () => {
   left: 12px;
   top: 12px;
   line-height: 1.6;
+}
+
+.hover-tooltip {
+  left: 12px;
+  bottom: 12px;
+  max-width: 60%;
 }
 </style>
