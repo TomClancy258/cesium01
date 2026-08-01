@@ -3,6 +3,25 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { onUnmounted, ref, shallowRef, type ShallowRef } from 'vue'
+import type { EquipmentSource, EquipmentStatus, StationWsPayload } from '../types/station-equipment'
+import {
+  resolveTableKeyById,
+  STATUS_HIGHLIGHT_COLOR,
+  STATUS_HIGHLIGHT_INTENSITY,
+} from '../types/station-equipment'
+
+type EmissiveMaterial = THREE.Material & {
+  emissive?: THREE.Color
+  emissiveIntensity?: number
+}
+
+/** 材质视觉层：只备份 original 数值；status 由入参传入，真相在 store */
+type MaterialVisual = {
+  original: {
+    emissive: number
+    emissiveIntensity: number
+  }
+}
 
 /** Draco 解码器放在 public/draco/gltf，支持内网部署 */
 const DRACO_DECODER_PATH = '/draco/gltf/'
@@ -34,7 +53,38 @@ const MODEL_INTERACTION_FILES = [
 
 const MODEL_INTERACTION_FILE_SET = new Set<string>(MODEL_INTERACTION_FILES)
 
-/** 交互节点材质各自 clone，避免状态/高亮改一份 Material 导致全亮 */
+function captureMaterialVisual(material: EmissiveMaterial): void {
+  if (!material.emissive) return
+  if (material.userData.visual) return
+  material.userData.visual = {
+    original: {
+      emissive: material.emissive.getHex(),
+      emissiveIntensity: material.emissiveIntensity ?? 1,
+    },
+  } satisfies MaterialVisual
+}
+
+/** status 由调用方传入（来自 store/帧数据）；normal 时写回 original 数值 */
+function applyMaterialByPriority(
+  material: EmissiveMaterial,
+  status: EquipmentStatus,
+): void {
+  const visual = material.userData.visual as MaterialVisual | undefined
+  if (!visual || !material.emissive) return
+
+  if (status === 'normal') {
+    material.emissive.setHex(visual.original.emissive)
+    material.emissiveIntensity = visual.original.emissiveIntensity
+    return
+  }
+
+  const color = STATUS_HIGHLIGHT_COLOR[status]
+  if (color == null) return
+  material.emissive.setHex(color)
+  material.emissiveIntensity = STATUS_HIGHLIGHT_INTENSITY[status]
+}
+
+/** 交互节点材质各自 clone，并备份 original 数值 */
 function ensureUniqueMaterials(object: THREE.Object3D): void {
   object.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return
@@ -43,6 +93,11 @@ function ensureUniqueMaterials(object: THREE.Object3D): void {
     } else if (child.material) {
       child.material = child.material.clone()
     }
+
+    const materials = Array.isArray(child.material) ? child.material : [child.material]
+    materials.forEach((material) => {
+      if (material) captureMaterialVisual(material as EmissiveMaterial)
+    })
   })
 }
 
@@ -60,6 +115,7 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       if (!isReservoir) return false
       markInteractive(child)
       child.userData.text = child.name.replace('shuichi','蓄水池')
+      child.userData.source = 'reservoir'
       return true
     })
   } else if (root.name === 'sbz-guanzihefengshan') {
@@ -71,8 +127,10 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       markInteractive(child)
       if (isCoolingTower) {
         child.userData.text = child.name.replace('paifengshan', '冷却塔')
+        child.userData.source = 'coolingTower'
       } else if (isCoolingTube) {
         child.userData.text = child.name.replace('guanzi', '冷却管')
+        child.userData.source = 'coolingTube'
       }
       return true
     })
@@ -82,6 +140,7 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       if (!isStreetLight) return false
       markInteractive(child)
       child.userData.text = child.name.replace('ld','路灯')
+      child.userData.source = 'streetLight'
       return true
     })
   } else if (root.name === 'sbz-yancun') {
@@ -93,8 +152,10 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       markInteractive(child)
       if (isPressureRegulatingTower) {
         child.userData.text = child.name.replace('yancun', '调压塔')
+        child.userData.source = 'pressureRegulatingTower'
       } else if (isMixingTank) {
         child.userData.text = child.name.replace('01', '搅拌池')
+        child.userData.source = 'mixingTank'
       }
       return true
     })
@@ -104,6 +165,7 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       if (!isHouse) return false
       markInteractive(child)
       child.userData.text = child.name.replace('fangzi','房子')
+      child.userData.source = 'house'
       return true
     })
   } else if (root.name === 'sbz-daguanzi') {
@@ -112,6 +174,7 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       if (!isVerticalPressurizedTankBody) return false
       markInteractive(child)
       child.userData.text = child.name.replace('daguanzi','立式承压罐体')
+      child.userData.source = 'verticalPressurizedTankBody'
       return true
     })
   }
@@ -120,6 +183,23 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
   root.userData.name = root.name
   ensureUniqueMaterials(root)
   return [root]
+}
+
+function applyStatusToObject(object: THREE.Object3D, status: EquipmentStatus): void {
+  /** 设备根上可选缓存，便于调试；材质上不存 status */
+  object.userData.status = status
+
+  object.traverse((child) => {
+    if (!(child instanceof THREE.Mesh)) return
+    const materials = Array.isArray(child.material) ? child.material : [child.material]
+    materials.forEach((material) => {
+      if (!material) return
+      const mat = material as EmissiveMaterial
+      captureMaterialVisual(mat)
+      if (!mat.userData.visual) return
+      applyMaterialByPriority(mat, status)
+    })
+  })
 }
 
 function disposeObject3D(object: THREE.Object3D): void {
@@ -176,17 +256,105 @@ export function useStationModels(
   const interactiveModels: THREE.Object3D[] = []
   /** name → Object3D，供 table / WS 状态着色 */
   const objectById = new Map<string, THREE.Object3D>()
+  /** 分类型 name → gltf.scene 子节点（可交互 Object3D） */
+  const reservoirMap = new Map<string, THREE.Object3D>()
+  const coolingTowerMap = new Map<string, THREE.Object3D>()
+  const coolingTubeMap = new Map<string, THREE.Object3D>()
+  const streetLightMap = new Map<string, THREE.Object3D>()
+  const pressureRegulatingTowerMap = new Map<string, THREE.Object3D>()
+  const mixingTankMap = new Map<string, THREE.Object3D>()
+  const houseMap = new Map<string, THREE.Object3D>()
+  const verticalPressurizedTankBodyMap = new Map<string, THREE.Object3D>()
   const loading = ref(false)
   const loadedCount = ref(0)
   const totalCount = MODEL_FILES.length
 
   let dracoLoader: DRACOLoader | null = null
 
-  const rebuildObjectById = (list: THREE.Object3D[]): void => {
+  const clearEquipmentMaps = (): void => {
     objectById.clear()
+    reservoirMap.clear()
+    coolingTowerMap.clear()
+    coolingTubeMap.clear()
+    streetLightMap.clear()
+    pressureRegulatingTowerMap.clear()
+    mixingTankMap.clear()
+    houseMap.clear()
+    verticalPressurizedTankBodyMap.clear()
+  }
+
+  const rebuildObjectMaps = (list: THREE.Object3D[]): void => {
+    clearEquipmentMaps()
     list.forEach((object) => {
       const key = (object.userData.name as string) || object.name
-      if (key) objectById.set(key, object)
+      if (!key) return
+      objectById.set(key, object)
+
+      switch (resolveTableKeyById(key)) {
+        case 'reservoir':
+          reservoirMap.set(key, object)
+          break
+        case 'coolingTower':
+          coolingTowerMap.set(key, object)
+          break
+        case 'coolingTube':
+          coolingTubeMap.set(key, object)
+          break
+        case 'streetLight':
+          streetLightMap.set(key, object)
+          break
+        case 'pressureRegulatingTower':
+          pressureRegulatingTowerMap.set(key, object)
+          break
+        case 'mixingTank':
+          mixingTankMap.set(key, object)
+          break
+        case 'house':
+          houseMap.set(key, object)
+          break
+        case 'verticalPressurizedTankBody':
+          verticalPressurizedTankBodyMap.set(key, object)
+          break
+      }
+    })
+  }
+
+  const getObjectMapBySource = (
+    source: EquipmentSource,
+  ): Map<string, THREE.Object3D> | null => {
+    switch (source) {
+      case 'reservoir':
+        return reservoirMap
+      case 'coolingTower':
+        return coolingTowerMap
+      case 'coolingTube':
+        return coolingTubeMap
+      case 'streetLight':
+        return streetLightMap
+      case 'pressureRegulatingTower':
+        return pressureRegulatingTowerMap
+      case 'mixingTank':
+        return mixingTankMap
+      case 'house':
+        return houseMap
+      case 'verticalPressurizedTankBody':
+        return verticalPressurizedTankBodyMap
+      default:
+        return null
+    }
+  }
+
+  /** 按帧数据 status 给对应模型上色（normal / warning / danger） */
+  const applyStatusFromPayload = (packets: StationWsPayload): void => {
+    packets.forEach((packet) => {
+      const objectMap = getObjectMapBySource(packet.source)
+      if (!objectMap) return
+
+      packet.data.forEach((row) => {
+        const object = objectMap.get(row.name)
+        if (!object) return
+        applyStatusToObject(object, row.status)
+      })
     })
   }
 
@@ -223,7 +391,6 @@ export function useStationModels(
         const gltf = await loader.loadAsync(url)
         const modelName = file.replace(/\.glb$/i, '')
         gltf.scene.name = modelName
-
         // 全部模型都要进场景显示
         group.add(gltf.scene)
 
@@ -242,7 +409,7 @@ export function useStationModels(
       modelsGroup.value = group
       interactiveModels.length = 0
       interactiveModels.push(...interactiveList)
-      rebuildObjectById(interactiveList)
+      rebuildObjectMaps(interactiveList)
 
       if (camera.value) {
         fitCameraToObject(group, camera.value, controls.value)
@@ -251,7 +418,7 @@ export function useStationModels(
       console.error('[useStationModels] failed to load models', error)
       disposeObject3D(group)
       interactiveModels.length = 0
-      objectById.clear()
+      clearEquipmentMaps()
     } finally {
       loading.value = false
     }
@@ -260,7 +427,7 @@ export function useStationModels(
   const disposeModels = (): void => {
     const group = modelsGroup.value
     interactiveModels.length = 0
-    objectById.clear()
+    clearEquipmentMaps()
     if (!group) return
 
     group.removeFromParent()
@@ -279,10 +446,19 @@ export function useStationModels(
     modelsGroup,
     interactiveModels,
     objectById,
+    reservoirMap,
+    coolingTowerMap,
+    coolingTubeMap,
+    streetLightMap,
+    pressureRegulatingTowerMap,
+    mixingTankMap,
+    houseMap,
+    verticalPressurizedTankBodyMap,
     loading,
     loadedCount,
     totalCount,
     loadModels,
     disposeModels,
+    applyStatusFromPayload,
   }
 }

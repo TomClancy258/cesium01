@@ -108,10 +108,18 @@ export function useAircraftSync(options: UseAircraftSyncOptions) {
 
         const hovered = getHovered()
         if (hovered != null && hovered.sourceType === 'aircraft' && aircraft.icao24 === hovered.icao24) {
+          //建议留在 properties 里:
+          //type: 'billboard'
+          // sourceType: 'aircraft'
+          // icao24: string          // pick 后反查 Map 的 key
+          // originalColor / images / sets   // 纯渲染态，data 里没有
           const properties: AircraftBaseProperties = {
             type: 'billboard',
             sourceType: 'aircraft',
             icao24: aircraft.icao24,
+
+            //建议不要放在 properties 里（都从 renderMap.get(icao24).data 读，比如tooltip里的信息）
+            //不然的话，不仅要更新aircraftRenderMap里每个value对象里的data原数据，还要更新billboard.properties里的这些数据，维护两个地方的数据很容易出错
             originCountry: aircraft.originCountry,
             callsign: aircraft.callsign,
             heading: aircraft.heading,

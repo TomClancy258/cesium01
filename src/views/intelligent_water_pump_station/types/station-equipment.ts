@@ -1,5 +1,5 @@
 /** 全站统一设备状态（不做 overload，少高亮、不花屏） */
-export type EquipmentStatus = 'normal' | 'alarm' | 'fault'
+export type EquipmentStatus = 'normal' | 'warning' | 'danger'
 
 /** 与 store map / 报文 source 对齐的英文表名 */
 export type EquipmentSource =
@@ -14,6 +14,12 @@ export type EquipmentSource =
 
 /** @deprecated 兼容旧名，等同 EquipmentSource */
 export type EquipmentTableKey = EquipmentSource
+
+/** hover / select 身份（对齐 aviation-selection.hovered） */
+export interface EquipmentSelection {
+  name: string
+  source: EquipmentSource
+}
 
 /**
  * 行数据：name 与三维模型 name 一致；text 为展示名。
@@ -99,10 +105,16 @@ export interface StationTablePacket {
 /** 一帧推送：8 张表 */
 export type StationWsPayload = StationTablePacket[]
 
+/** 状态自发光：固定色（不闪烁，避免多设备同时告警时花屏） */
 export const STATUS_HIGHLIGHT_COLOR: Record<EquipmentStatus, number | null> = {
   normal: null,
-  alarm: 0xeab308,
-  fault: 0xef4444,
+  warning: 0xeab308, // 琥珀黄
+  danger: 0xef4444, // 红
+}
+
+export const STATUS_HIGHLIGHT_INTENSITY: Record<Exclude<EquipmentStatus, 'normal'>, number> = {
+  warning: 0.45,
+  danger: 0.75,
 }
 
 export const TABLE_LABEL: Record<EquipmentSource, string> = {
@@ -114,6 +126,17 @@ export const TABLE_LABEL: Record<EquipmentSource, string> = {
   mixingTank: '搅拌池',
   house: '房子',
   verticalPressurizedTankBody: '立式承压罐',
+}
+
+export const STATUS_LABEL: Record<EquipmentStatus, string> = {
+  normal: '正常',
+  warning: '预警',
+  danger: '危险',
+}
+
+export interface TooltipPosition {
+  left: number
+  top: number
 }
 
 export function resolveTableKeyById(id: string): EquipmentSource | null {

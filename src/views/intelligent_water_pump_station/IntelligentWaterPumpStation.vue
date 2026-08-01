@@ -1,39 +1,41 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue'
-import { storeToRefs } from 'pinia'
+import { onMounted, onUnmounted } from 'vue'
+import { useStationEquipmentStore } from '@/stores/station-equipment'
 import { useThreeScene } from './composables/useThreeScene'
 import { useStationModels } from './composables/useStationModels'
 import { useScenePicking } from './composables/useScenePicking'
 import { useStationRealtime } from './composables/useStationRealtime'
+import ReservoirTooltip from './components/tooltip/ReservoirTooltip.vue'
 import { TABLE_LABEL } from './types/station-equipment'
 
-const { containerRef, scene, camera, renderer, controls, initScene } = useThreeScene()
-const { interactiveModels, loadModels, loading, loadedCount, totalCount } =
-  useStationModels(scene, camera, controls)
-const { hoveredName, selectedName, bindPicking } = useScenePicking(
+const {
+  containerRef,
+  scene,
+  camera,
+  renderer,
+  controls,
+  outlineHoverPass,
+  outlineSelectPass,
+  initScene,
+} = useThreeScene()
+const {
+  interactiveModels,
+  loadModels,
+  loading,
+  loadedCount,
+  totalCount,
+  applyStatusFromPayload,
+} = useStationModels(scene, camera, controls)
+const { tooltipPosition, bindPicking } = useScenePicking(
   camera,
   renderer,
   interactiveModels,
+  outlineHoverPass,
+  outlineSelectPass,
 )
-const { store, start, stop } = useStationRealtime()
-const { hoveredRow, selectedRow, index, connected, activeTableKey } = storeToRefs(store)
-
-const tooltipText = computed(() => {
-  const row = hoveredRow.value
-  if (!row) return ''
-  const statusText =
-    row.status === 'normal' ? '正常' : row.status === 'alarm' ? '告警' : '故障'
-  return `${row.text}（${row.name}）· ${statusText}`
-})
-
-watch(hoveredName, (id) => {
-  store.setHoveredId(id)
-})
-
-watch(selectedName, (id) => {
-  store.setSelectedId(id)
-  // 后续：打开下侧 drawer，切到 activeTableKey，分页定位 selectedId 行
-})
+const { start, stop } = useStationRealtime(applyStatusFromPayload)
+/** Pinia store 单例；模板里用 store.xxx 保持响应式，不必 storeToRefs */
+const store = useStationEquipmentStore()
 
 onMounted(async () => {
   initScene()
@@ -55,15 +57,21 @@ onUnmounted(() => {
     </div>
     <template v-else>
       <div class="pick-tip">
-        <div>WS: {{ connected ? '模拟推送中' : '未连接' }} · index {{ index }}</div>
-        <div>Hover: {{ hoveredName || '-' }}</div>
-        <div>Click: {{ selectedName || '-' }}</div>
-        <div v-if="selectedRow">
-          表: {{ TABLE_LABEL[activeTableKey] }} · {{ selectedRow.text }} ·
-          {{ selectedRow.status }}
+        <div>WS: {{ store.connected ? '模拟推送中' : '未连接' }} · index {{ store.index }}</div>
+        <div>
+          Hover:
+          {{ store.hovered ? `${store.hovered.source}/${store.hovered.name}` : '-' }}
+        </div>
+        <div>
+          Click:
+          {{ store.selected ? `${store.selected.source}/${store.selected.name}` : '-' }}
+        </div>
+        <div v-if="store.selectedRow">
+          表: {{ TABLE_LABEL[store.activeTableKey] }} · {{ store.selectedRow.text }} ·
+          {{ store.selectedRow.status }}
         </div>
       </div>
-      <div v-if="tooltipText" class="hover-tooltip">{{ tooltipText }}</div>
+      <ReservoirTooltip :position="tooltipPosition" />
     </template>
   </div>
 </template>
@@ -88,8 +96,7 @@ onUnmounted(() => {
 }
 
 .loading-tip,
-.pick-tip,
-.hover-tooltip {
+.pick-tip {
   position: absolute;
   padding: 8px 14px;
   border-radius: 4px;
@@ -109,11 +116,6 @@ onUnmounted(() => {
   left: 12px;
   top: 12px;
   line-height: 1.6;
-}
-
-.hover-tooltip {
-  left: 12px;
-  bottom: 12px;
-  max-width: 60%;
+  z-index: 2;
 }
 </style>

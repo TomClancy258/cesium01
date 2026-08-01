@@ -14,7 +14,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.8,
           "maxLevel": 4,
           "temperature": 18,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:00.000Z"
         },
         {
@@ -145,7 +145,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 42,
           "power": 15,
           "rpm": 900,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:00.000Z"
         },
         {
@@ -724,7 +724,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.96,
           "maxLevel": 4,
           "temperature": 18.77,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:05.000Z"
         },
         {
@@ -855,7 +855,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 43.29,
           "power": 15.64,
           "rpm": 919,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:05.000Z"
         },
         {
@@ -1434,7 +1434,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.05,
           "maxLevel": 4,
           "temperature": 19.18,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:10.000Z"
         },
         {
@@ -1565,7 +1565,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 43.97,
           "power": 15.99,
           "rpm": 930,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:10.000Z"
         },
         {
@@ -2144,7 +2144,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.02,
           "maxLevel": 4,
           "temperature": 19.04,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2162,7 +2162,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.11,
           "maxLevel": 4,
           "temperature": 17.58,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2207,7 +2207,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.36,
           "maxLevel": 4,
           "temperature": 18.79,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2275,7 +2275,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 43.73,
           "power": 15.86,
           "rpm": 926,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2685,7 +2685,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.54,
           "maxPressure": 1.6,
           "temperature": 24.02,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2748,7 +2748,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.58,
           "maxPressure": 1.6,
           "temperature": 24.63,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2854,7 +2854,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.88,
           "maxLevel": 4,
           "temperature": 18.4,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -2872,7 +2872,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.98,
           "maxLevel": 4,
           "temperature": 16.95,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -2917,7 +2917,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.45,
           "maxLevel": 4,
           "temperature": 19.19,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -2985,7 +2985,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 42.67,
           "power": 15.33,
           "rpm": 910,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -3395,7 +3395,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.56,
           "maxPressure": 1.6,
           "temperature": 24.37,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -3458,7 +3458,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.55,
           "maxPressure": 1.6,
           "temperature": 24.12,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -3564,7 +3564,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.71,
           "maxLevel": 4,
           "temperature": 17.58,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:25.000Z"
         },
         {
@@ -3695,7 +3695,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 41.3,
           "power": 14.65,
           "rpm": 889,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:25.000Z"
         },
         {
@@ -4274,7 +4274,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.58,
           "maxLevel": 4,
           "temperature": 16.95,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:30.000Z"
         },
         {
@@ -4405,7 +4405,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 40.26,
           "power": 14.13,
           "rpm": 874,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:30.000Z"
         },
         {
@@ -4984,7 +4984,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.55,
           "maxLevel": 4,
           "temperature": 16.82,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5002,7 +5002,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.2,
           "maxLevel": 4,
           "temperature": 18.02,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5047,7 +5047,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.11,
           "maxLevel": 4,
           "temperature": 17.56,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5115,7 +5115,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 40.04,
           "power": 14.02,
           "rpm": 871,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5525,7 +5525,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.66,
           "maxPressure": 1.6,
           "temperature": 25.99,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5588,7 +5588,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.6,
           "maxPressure": 1.6,
           "temperature": 25.03,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5694,7 +5694,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.64,
           "maxLevel": 4,
           "temperature": 17.24,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -5712,7 +5712,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.36,
           "maxLevel": 4,
           "temperature": 18.79,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -5757,7 +5757,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.98,
           "maxLevel": 4,
           "temperature": 16.94,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -5825,7 +5825,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 40.74,
           "power": 14.37,
           "rpm": 881,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -6235,7 +6235,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.65,
           "maxPressure": 1.6,
           "temperature": 25.85,
-          "status": "alarm",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -6298,7 +6298,7 @@ export const stationEquipments: StationWsPayload[] = [
           "pressure": 0.64,
           "maxPressure": 1.6,
           "temperature": 25.67,
-          "status": "fault",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -6404,7 +6404,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 1.8,
           "maxLevel": 4,
           "temperature": 18.02,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:45.000Z"
         },
         {
@@ -6535,7 +6535,7 @@ export const stationEquipments: StationWsPayload[] = [
           "temperature": 42.03,
           "power": 15.02,
           "rpm": 901,
-          "status": "normal",
+          "status": "danger",
           "updatedAt": "2026-01-01T00:00:45.000Z"
         },
         {
@@ -7107,5 +7107,6 @@ export const stationEquipments: StationWsPayload[] = [
 ]
 
 export function rowsToMap<T extends { name: string }>(rows: T[]): Map<string, T> {
-  return new Map(rows.map((row) => [row.name, row]))
+  const arr=rows.map((row) => [row.name, row])
+  return new Map(arr)
 }

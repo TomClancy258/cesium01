@@ -1,21 +1,18 @@
 import * as THREE from 'three'
-import { onUnmounted, ref, shallowRef, type ShallowRef } from 'vue'
+import type { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js'
+import { useThrottleFn } from '@vueuse/core'
+import { onUnmounted, reactive, shallowRef, type ShallowRef } from 'vue'
+import { useStationEquipmentStore } from '@/stores/station-equipment'
+import {
+  resolveTableKeyById,
+  type TooltipPosition,
+} from '@/views/intelligent_water_pump_station/types/station-equipment'
 
-/** 所有交互设备共用同一套高亮；hover / select 颜色区分 */
-const HIGHLIGHT = {
-  hover: { color: 0x3b82f6, intensity: 0.55 }, // 蓝
-  select: { color: 0xf59e0b, intensity: 0.85 }, // 橙
-} as const
+/** pointermove 拾取节流（与航空态势 mouseMove 一致） */
+const POINTER_MOVE_THROTTLE_MS = 100
 
-type MaterialBackup = {
-  mesh: THREE.Mesh
-  originalMaterial: THREE.Material | THREE.Material[]
-}
-
-type EmissiveMaterial = THREE.Material & {
-  emissive?: THREE.Color
-  emissiveIntensity?: number
-}
+/** 鼠标右下角偏移 */
+const TOOLTIP_OFFSET = { x: 12, y: 16 } as const
 
 /**
  * Three 没有 Cesium.ScreenSpaceEventHandler / ScreenSpaceEventType。
@@ -23,101 +20,59 @@ type EmissiveMaterial = THREE.Material & {
  * - LEFT_CLICK  ≈ click / pointerup（需自己区分拖拽）
  * - MOUSE_MOVE  ≈ pointermove / mousemove
  *
- * 高亮：整体自发光。必须 clone 材质——glTF 里多栋房子常共用同一 Material，
- * 直接改 emissive 会导致「点一个、全亮」。
+ * hover / select：OutlinePass 描边（不改子 Mesh 材质，避免和 status emissive 冲突）
  */
 export function useScenePicking(
   camera: ShallowRef<THREE.PerspectiveCamera | null>,
   renderer: ShallowRef<THREE.WebGLRenderer | null>,
   /** 可交互模型根节点列表（非响应式数组，同 airportRenderMap） */
   interactiveModels: THREE.Object3D[],
+  outlineHoverPass: ShallowRef<OutlinePass | null>,
+  outlineSelectPass: ShallowRef<OutlinePass | null>,
 ) {
+  const store = useStationEquipmentStore()
   const hoveredObject = shallowRef<THREE.Object3D | null>(null)
   const selectedObject = shallowRef<THREE.Object3D | null>(null)
-  const hoveredName = ref<string | null>(null)
-  const selectedName = ref<string | null>(null)
+  /** 相对三维容器的屏幕坐标（不进 store） */
+  const tooltipPosition = reactive<TooltipPosition>({ left: 0, top: 0 })
 
   const raycaster = new THREE.Raycaster()
   const pointer = new THREE.Vector2()
   const pointerDown = new THREE.Vector2()
 
   let boundCanvas: HTMLCanvasElement | null = null
-  let rafId = 0
-  let pendingEvent: PointerEvent | null = null
-  let hoverBackups: MaterialBackup[] = []
-  let selectBackups: MaterialBackup[] = []
 
-  const disposeMaterial = (material: THREE.Material | THREE.Material[]): void => {
-    const list = Array.isArray(material) ? material : [material]
-    list.forEach((item) => item.dispose())
-  }
-
-  const clearEmissive = (backups: MaterialBackup[]): void => {
-    backups.forEach(({ mesh, originalMaterial }) => {
-      const highlighted = mesh.material
-      mesh.material = originalMaterial
-      disposeMaterial(highlighted)
-    })
-    backups.length = 0
-  }
-
-  const cloneWithEmissive = (
-    material: THREE.Material,
-    color: number,
-    intensity: number,
-  ): THREE.Material => {
-    const cloned = material.clone() as EmissiveMaterial
-    if (cloned.emissive) {
-      cloned.emissive.setHex(color)
-      cloned.emissiveIntensity = intensity
-    }
-    return cloned
-  }
-
-  const applyEmissive = (
-    object: THREE.Object3D,
-    color: number,
-    intensity: number,
-  ): MaterialBackup[] => {
-    const backups: MaterialBackup[] = []
-    object.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return
-
-      backups.push({
-        mesh: child,
-        originalMaterial: child.material,
-      })
-
-      if (Array.isArray(child.material)) {
-        child.material = child.material.map((mat) =>
-          cloneWithEmissive(mat, color, intensity),
-        )
-      } else {
-        child.material = cloneWithEmissive(child.material, color, intensity)
-      }
-    })
-    return backups
-  }
-
-  const refreshHighlight = (): void => {
-    clearEmissive(hoverBackups)
-    clearEmissive(selectBackups)
-
+  /** 优先级：selected > hovered（与 billboard 一致）；两 Pass 可同时描不同对象 */
+  const refreshOutline = (): void => {
     const selected = selectedObject.value
     const hovered = hoveredObject.value
+    const hoverPass = outlineHoverPass.value
+    const selectPass = outlineSelectPass.value
 
-    if (selected) {
-      selectBackups = applyEmissive(
-        selected,
-        HIGHLIGHT.select.color,
-        HIGHLIGHT.select.intensity,
-      )
+    if (selectPass) {
+      selectPass.selectedObjects = selected ? [selected] : []
     }
+    if (hoverPass) {
+      hoverPass.selectedObjects =
+        hovered && hovered !== selected ? [hovered] : []
+    }
+  }
 
-    // hover 且不是当前选中时，才叠加蓝高亮
-    if (hovered && hovered !== selected) {
-      hoverBackups = applyEmissive(hovered, HIGHLIGHT.hover.color, HIGHLIGHT.hover.intensity)
-    }
+  const toSelection = (object: THREE.Object3D | null) => {
+    if (!object) return null
+    const name = (object.userData.name as string) || object.name
+    if (!name) return null
+    const source = resolveTableKeyById(name)
+    if (!source) return null
+    return { name, source }
+  }
+
+  const updateTooltipPosition = (event: PointerEvent): void => {
+    const canvas = renderer.value?.domElement
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    tooltipPosition.left = event.clientX - rect.left + TOOLTIP_OFFSET.x
+    tooltipPosition.top = event.clientY - rect.top + TOOLTIP_OFFSET.y
   }
 
   /** 命中 mesh 后回退到 interactiveModels 里的根节点 */
@@ -126,6 +81,7 @@ export function useScenePicking(
     while (current) {
       if (interactiveModels.includes(current)) return current
       current = current.parent
+      console.log("current", current);
     }
     return null
   }
@@ -146,26 +102,22 @@ export function useScenePicking(
     return resolveInteractiveRoot(hits[0].object)
   }
 
-  const flushPointerMove = (): void => {
-    rafId = 0
-    const event = pendingEvent
-    pendingEvent = null
-    if (!event) return
+  // ≈ Cesium MOUSE_MOVE（VueUse throttle）
+  const onPointerMove = useThrottleFn(
+    (event: PointerEvent): void => {
+      updateTooltipPosition(event)
 
-    const object = pickFirstObject(event)
-    if (hoveredObject.value === object) return
+      const object = pickFirstObject(event)
+      if (hoveredObject.value === object) return
 
-    hoveredObject.value = object
-    hoveredName.value = object?.name || null
-    refreshHighlight()
-  }
-
-  // ≈ Cesium MOUSE_MOVE
-  const onPointerMove = (event: PointerEvent): void => {
-    pendingEvent = event
-    if (rafId) return
-    rafId = requestAnimationFrame(flushPointerMove)
-  }
+      hoveredObject.value = object
+      store.setHovered(toSelection(object))
+      refreshOutline()
+    },
+    POINTER_MOVE_THROTTLE_MS,
+    true,
+    true,
+  )
 
   const onPointerDown = (event: PointerEvent): void => {
     pointerDown.set(event.clientX, event.clientY)
@@ -179,8 +131,8 @@ export function useScenePicking(
 
     const object = pickFirstObject(event)
     selectedObject.value = object
-    selectedName.value = object?.name || null
-    refreshHighlight()
+    store.setSelected(toSelection(object))
+    refreshOutline()
   }
 
   const bindPicking = (): void => {
@@ -198,15 +150,6 @@ export function useScenePicking(
   }
 
   const unbindPicking = (): void => {
-    if (rafId) {
-      cancelAnimationFrame(rafId)
-      rafId = 0
-    }
-    pendingEvent = null
-
-    clearEmissive(hoverBackups)
-    clearEmissive(selectBackups)
-
     if (boundCanvas) {
       boundCanvas.removeEventListener('pointermove', onPointerMove)
       boundCanvas.removeEventListener('pointerdown', onPointerDown)
@@ -216,8 +159,9 @@ export function useScenePicking(
 
     hoveredObject.value = null
     selectedObject.value = null
-    hoveredName.value = null
-    selectedName.value = null
+    if (outlineHoverPass.value) outlineHoverPass.value.selectedObjects = []
+    if (outlineSelectPass.value) outlineSelectPass.value.selectedObjects = []
+    store.clearHovered()
   }
 
   onUnmounted(() => {
@@ -227,8 +171,7 @@ export function useScenePicking(
   return {
     hoveredObject,
     selectedObject,
-    hoveredName,
-    selectedName,
+    tooltipPosition,
     pickFirstObject,
     bindPicking,
     unbindPicking,
