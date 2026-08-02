@@ -40,7 +40,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
   const reservoirMap = shallowRef<Map<string, ReservoirRow>>(new Map())
   const coolingTowerMap = shallowRef<Map<string, CoolingTowerRow>>(new Map())
   const coolingTubeMap = shallowRef<Map<string, CoolingTubeRow>>(new Map())
-  const streetLightMap = shallowRef<Map<string, StreetLightRow>>(new Map())
+  const streetlightMap = shallowRef<Map<string, StreetLightRow>>(new Map())
   const pressureRegulatingTowerMap = shallowRef<Map<string, PressureRegulatingTowerRow>>(
     new Map(),
   )
@@ -61,8 +61,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         return coolingTowerMap.value.get(selection.name) ?? null
       case 'coolingTube':
         return coolingTubeMap.value.get(selection.name) ?? null
-      case 'streetLight':
-        return streetLightMap.value.get(selection.name) ?? null
+      case 'streetlight':
+        return streetlightMap.value.get(selection.name) ?? null
       case 'pressureRegulatingTower':
         return pressureRegulatingTowerMap.value.get(selection.name) ?? null
       case 'mixingTank':
@@ -94,7 +94,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
   }
 
   function setStreetLightMap(data: StreetLightRow[]): void {
-    streetLightMap.value = rowsToMap(data)
+    streetlightMap.value = rowsToMap(data)
   }
 
   function setPressureRegulatingTowerMap(data: PressureRegulatingTowerRow[]): void {
@@ -126,7 +126,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         case 'coolingTube':
           setCoolingTubeMap(packet.data as CoolingTubeRow[])
           break
-        case 'streetLight':
+        case 'streetlight':
           setStreetLightMap(packet.data as StreetLightRow[])
           break
         case 'pressureRegulatingTower':
@@ -199,7 +199,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     reservoirMap,
     coolingTowerMap,
     coolingTubeMap,
-    streetLightMap,
+    streetlightMap,
     pressureRegulatingTowerMap,
     mixingTankMap,
     houserMap,

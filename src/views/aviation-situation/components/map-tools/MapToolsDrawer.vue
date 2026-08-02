@@ -9,7 +9,7 @@ import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/p
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
 
-import { Fold, Filter, Share,PictureRounded } from '@element-plus/icons-vue'
+import { Fold, Filter, Share,PictureRounded,OfficeBuilding } from '@element-plus/icons-vue'
 import { useRegionSelectionStore } from '@/stores/region-selection'
 import CityModel
   from '@/views/aviation-situation/components/map-tools/panels/city-model/CityModel.vue'
@@ -104,7 +104,7 @@ watch(
               </el-menu-item>
               <el-menu-item index="cityModel">
                 <el-icon class="header-icon">
-                  <PictureRounded />
+                  <OfficeBuilding />
                 </el-icon>
                 <span>城市模型</span>
               </el-menu-item>
@@ -126,43 +126,17 @@ watch(
 </template>
 
 <style lang="scss" scoped>
+@use '@/assets/css/mixins' as *;
+
 .drawer-toggle {
-  position: absolute;
-  //top: 200px;
-  font-size: 30px;
-  cursor: pointer;
-
-  background: #ffffff; /* 纯白背景 */
-  color: #2c3e50; /* 深蓝灰图标 */
-  border: 1px solid #e0e0e0; /* 浅灰描边（防白色地图融合） */
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* 轻微阴影提升层次 */
-
-  .rotate-icon {
-    transform: rotate(90deg);
-  }
+  @include drawer-toggle;
 }
 
-.drawer-toggle--right {
-  right: 0;
-}
 .drawer-toggle--bottom {
-  bottom: 0;
-  right: 30px;
-}
-.title-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.title-wrapper.is-active {
-  color: var(--el-color-primary);
+  @include drawer-toggle-bottom;
 }
 
 :deep(.map-tools-drawer) {
-  --el-drawer-padding-primary: 0;
-  .el-drawer__header{
-    margin-bottom: 0;
-  }
+  @include el-drawer-compact;
 }
 </style>

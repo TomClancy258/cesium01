@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { formatDistance } from '@/utils/geoUtils'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type { SegmentResult } from '@/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/shared/spatial-selection-label-utils'
 import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
@@ -28,13 +29,6 @@ const paged = computed(() =>
 
 const formatPoint = (pt: LngLatAlt) =>{
   return `${pt.longitude.toFixed(4)}°, ${pt.latitude.toFixed(4)}°, ${pt.height.toFixed(1)}m`
-}
-
-const formatDistance = (meter: number): string => {
-  if (meter == null) return '—'
-  return meter >= 1000
-    ? `${(meter / 1000).toFixed(2)} km`
-    : `${meter.toFixed(0)} m`
 }
 
 const handleView = (row: SegmentResult) => {

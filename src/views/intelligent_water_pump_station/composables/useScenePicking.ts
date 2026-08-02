@@ -1,8 +1,8 @@
 import * as THREE from 'three'
-import type { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js'
 import { useThrottleFn } from '@vueuse/core'
-import { onUnmounted, reactive, shallowRef, type ShallowRef } from 'vue'
+import { onUnmounted, reactive, type ShallowRef } from 'vue'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
+import type { OutlineObjects } from '@/views/intelligent_water_pump_station/composables/useThreeScene'
 import {
   resolveTableKeyById,
   type TooltipPosition,
@@ -20,20 +20,20 @@ const TOOLTIP_OFFSET = { x: 12, y: 16 } as const
  * - LEFT_CLICK  ≈ click / pointerup（需自己区分拖拽）
  * - MOUSE_MOVE  ≈ pointermove / mousemove
  *
- * hover / select：OutlinePass 描边（不改子 Mesh 材质，避免和 status emissive 冲突）
+ * hover / select：通过 setOutlineObjects 交给 scene 描边，不直接持有 OutlinePass
  */
 export function useScenePicking(
   camera: ShallowRef<THREE.PerspectiveCamera | null>,
   renderer: ShallowRef<THREE.WebGLRenderer | null>,
   /** 可交互模型根节点列表（非响应式数组，同 airportRenderMap） */
   interactiveModels: THREE.Object3D[],
-  outlineHoverPass: ShallowRef<OutlinePass | null>,
-  outlineSelectPass: ShallowRef<OutlinePass | null>,
+  setOutlineObjects: (targets: OutlineObjects) => void,
 ) {
   const store = useStationEquipmentStore()
-  const hoveredObject = shallowRef<THREE.Object3D | null>(null)
-  const selectedObject = shallowRef<THREE.Object3D | null>(null)
-  /** 相对三维容器的屏幕坐标（不进 store） */
+  /** 非响应式，仅给描边用（UI 用 store.hovered / selected） */
+  let hoveredObject: THREE.Object3D | null = null
+  let selectedObject: THREE.Object3D | null = null
+  /** 相对三维容器的屏幕坐标；必须 reactive，子组件才能跟着鼠标更新 */
   const tooltipPosition = reactive<TooltipPosition>({ left: 0, top: 0 })
 
   const raycaster = new THREE.Raycaster()
@@ -42,20 +42,11 @@ export function useScenePicking(
 
   let boundCanvas: HTMLCanvasElement | null = null
 
-  /** 优先级：selected > hovered（与 billboard 一致）；两 Pass 可同时描不同对象 */
   const refreshOutline = (): void => {
-    const selected = selectedObject.value
-    const hovered = hoveredObject.value
-    const hoverPass = outlineHoverPass.value
-    const selectPass = outlineSelectPass.value
-
-    if (selectPass) {
-      selectPass.selectedObjects = selected ? [selected] : []
-    }
-    if (hoverPass) {
-      hoverPass.selectedObjects =
-        hovered && hovered !== selected ? [hovered] : []
-    }
+    setOutlineObjects({
+      hovered: hoveredObject,
+      selected: selectedObject,
+    })
   }
 
   const toSelection = (object: THREE.Object3D | null) => {
@@ -81,7 +72,6 @@ export function useScenePicking(
     while (current) {
       if (interactiveModels.includes(current)) return current
       current = current.parent
-      console.log("current", current);
     }
     return null
   }
@@ -99,7 +89,10 @@ export function useScenePicking(
     raycaster.setFromCamera(pointer, camera.value)
     const hits = raycaster.intersectObjects(interactiveModels, true)
     if (!hits.length) return null
-    return resolveInteractiveRoot(hits[0].object)
+    const object = resolveInteractiveRoot(hits[0].object)
+    //别删除这个输出
+    console.log("object", object);
+    return object
   }
 
   // ≈ Cesium MOUSE_MOVE（VueUse throttle）
@@ -108,9 +101,9 @@ export function useScenePicking(
       updateTooltipPosition(event)
 
       const object = pickFirstObject(event)
-      if (hoveredObject.value === object) return
+      if (hoveredObject === object) return
 
-      hoveredObject.value = object
+      hoveredObject = object
       store.setHovered(toSelection(object))
       refreshOutline()
     },
@@ -130,7 +123,7 @@ export function useScenePicking(
     if (dx * dx + dy * dy > 25) return
 
     const object = pickFirstObject(event)
-    selectedObject.value = object
+    selectedObject = object
     store.setSelected(toSelection(object))
     refreshOutline()
   }
@@ -157,11 +150,24 @@ export function useScenePicking(
       boundCanvas = null
     }
 
-    hoveredObject.value = null
-    selectedObject.value = null
-    if (outlineHoverPass.value) outlineHoverPass.value.selectedObjects = []
-    if (outlineSelectPass.value) outlineSelectPass.value.selectedObjects = []
+    hoveredObject = null
+    selectedObject = null
+    setOutlineObjects({ hovered: null, selected: null })
     store.clearHovered()
+  }
+
+  /** 表格详情等外部选中：同步 store + OutlinePass */
+  const selectObject = (object: THREE.Object3D | null): void => {
+    selectedObject = object
+    store.setSelected(toSelection(object))
+    refreshOutline()
+  }
+
+  const selectByName = (
+    name: string,
+    objectById: Map<string, THREE.Object3D>,
+  ): void => {
+    selectObject(objectById.get(name) ?? null)
   }
 
   onUnmounted(() => {
@@ -169,11 +175,11 @@ export function useScenePicking(
   })
 
   return {
-    hoveredObject,
-    selectedObject,
     tooltipPosition,
     pickFirstObject,
     bindPicking,
     unbindPicking,
+    selectObject,
+    selectByName,
   }
 }

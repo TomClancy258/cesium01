@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useEquipmentTooltip } from '../../composables/useEquipmentTooltip'
-import type { ReservoirRow, TooltipPosition } from '../../types/station-equipment'
+import type {
+  TooltipPosition,
+  VerticalPressurizedTankBodyRow,
+} from '../../types/station-equipment'
 import { STATUS_LABEL } from '../../types/station-equipment'
 import { formatUpdatedAt } from '../../utils/format-updated-at'
 
@@ -9,7 +12,8 @@ const props = defineProps<{
   position: TooltipPosition
 }>()
 
-const { row, visible, toTooltipStyle } = useEquipmentTooltip<ReservoirRow>('reservoir')
+const { row, visible, toTooltipStyle } =
+  useEquipmentTooltip<VerticalPressurizedTankBodyRow>('verticalPressurizedTankBody')
 const tooltipStyle = computed(() => toTooltipStyle(props.position))
 </script>
 
@@ -18,9 +22,9 @@ const tooltipStyle = computed(() => toTooltipStyle(props.position))
     <template v-if="row">
       <div>编号：{{ row.name }}</div>
       <div>名称：{{ row.text }}</div>
-      <div>液位：{{ row.level }}</div>
-      <div>最高液位：{{ row.maxLevel }}</div>
-      <div>温度：{{ row.temperature }}</div>
+      <div>压力：{{ row.pressure }}</div>
+      <div>最高压力：{{ row.maxPressure }}</div>
+      <div>温度：{{ row.temperature ?? '—' }}</div>
       <div>
         状态：
         <span :class="['status-text', `status-text--${row.status}`]">

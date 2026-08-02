@@ -6,7 +6,7 @@ export type EquipmentSource =
   | 'reservoir'
   | 'coolingTower'
   | 'coolingTube'
-  | 'streetLight'
+  | 'streetlight'
   | 'pressureRegulatingTower'
   | 'mixingTank'
   | 'house'
@@ -121,7 +121,7 @@ export const TABLE_LABEL: Record<EquipmentSource, string> = {
   reservoir: '蓄水池',
   coolingTower: '冷却塔',
   coolingTube: '冷却管',
-  streetLight: '路灯',
+  streetlight: '路灯',
   pressureRegulatingTower: '调压塔',
   mixingTank: '搅拌池',
   house: '房子',
@@ -134,6 +134,30 @@ export const STATUS_LABEL: Record<EquipmentStatus, string> = {
   danger: '危险',
 }
 
+export const STATUS_FILTER_OPTIONS: { label: string; value: EquipmentStatus }[] = [
+  { label: '正常', value: 'normal' },
+  { label: '预警', value: 'warning' },
+  { label: '危险', value: 'danger' },
+]
+
+/** Element Plus el-tag type */
+export const STATUS_TAG_TYPE: Record<EquipmentStatus, 'primary' | 'warning' | 'danger'> = {
+  normal: 'primary',
+  warning: 'warning',
+  danger: 'danger',
+}
+
+export const EQUIPMENT_SOURCES: EquipmentSource[] = [
+  'reservoir',
+  'coolingTower',
+  'coolingTube',
+  'streetlight',
+  'pressureRegulatingTower',
+  'mixingTank',
+  'house',
+  'verticalPressurizedTankBody',
+]
+
 export interface TooltipPosition {
   left: number
   top: number
@@ -143,7 +167,7 @@ export function resolveTableKeyById(id: string): EquipmentSource | null {
   if (id.startsWith('shuichi-')) return 'reservoir'
   if (id.startsWith('paifengshan-')) return 'coolingTower'
   if (id.startsWith('guanzi-')) return 'coolingTube'
-  if (id.startsWith('ld')) return 'streetLight'
+  if (id.startsWith('ld')) return 'streetlight'
   if (id.startsWith('yancun-')) return 'pressureRegulatingTower'
   if (id.startsWith('01-')) return 'mixingTank'
   if (id.startsWith('fangzi-')) return 'house'

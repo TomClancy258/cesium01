@@ -29,3 +29,36 @@
     border-color: rgba(34, 40, 50, 0.9) transparent transparent transparent; // 箭头颜色与背景一致
   }
 }
+
+/** 地图/场景底侧、右侧 drawer 折叠按钮（MapToolsDrawer / EquipmentDrawer） */
+@mixin drawer-toggle {
+  position: absolute;
+  font-size: 30px;
+  cursor: pointer;
+  background: #ffffff;
+  color: #2c3e50;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+
+  .rotate-icon {
+    transform: rotate(90deg);
+  }
+}
+
+@mixin drawer-toggle-bottom {
+  bottom: 0;
+  right: 30px;
+}
+
+@mixin drawer-toggle-right {
+  right: 0;
+}
+
+/** Element Plus drawer：去掉默认内边距，收紧 header 下边距 */
+@mixin el-drawer-compact {
+  --el-drawer-padding-primary: 0;
+
+  .el-drawer__header {
+    margin-bottom: 0;
+  }
+}

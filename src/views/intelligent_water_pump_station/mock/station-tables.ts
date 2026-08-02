@@ -41,7 +41,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.62,
           "maxLevel": 4,
           "temperature": 19.04,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:00.000Z"
         },
         {
@@ -251,7 +251,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -751,7 +751,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.48,
           "maxLevel": 4,
           "temperature": 18.4,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:05.000Z"
         },
         {
@@ -961,7 +961,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -1461,7 +1461,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.31,
           "maxLevel": 4,
           "temperature": 17.58,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:10.000Z"
         },
         {
@@ -1671,7 +1671,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -2171,7 +2171,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.18,
           "maxLevel": 4,
           "temperature": 16.95,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:15.000Z"
         },
         {
@@ -2381,7 +2381,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -2881,7 +2881,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.15,
           "maxLevel": 4,
           "temperature": 16.82,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:20.000Z"
         },
         {
@@ -3091,7 +3091,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -3591,7 +3591,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.24,
           "maxLevel": 4,
           "temperature": 17.24,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:25.000Z"
         },
         {
@@ -3801,7 +3801,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -4301,7 +4301,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.4,
           "maxLevel": 4,
           "temperature": 18.02,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:30.000Z"
         },
         {
@@ -4511,7 +4511,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -5011,7 +5011,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.56,
           "maxLevel": 4,
           "temperature": 18.79,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:35.000Z"
         },
         {
@@ -5221,7 +5221,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -5721,7 +5721,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.65,
           "maxLevel": 4,
           "temperature": 19.19,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:40.000Z"
         },
         {
@@ -5931,7 +5931,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",
@@ -6431,7 +6431,7 @@ export const stationEquipments: StationWsPayload[] = [
           "level": 2.61,
           "maxLevel": 4,
           "temperature": 19.03,
-          "status": "normal",
+          "status": "warning",
           "updatedAt": "2026-01-01T00:00:45.000Z"
         },
         {
@@ -6641,7 +6641,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "streetLight",
+      "source": "streetlight",
       "data": [
         {
           "name": "ld18",

@@ -1,0 +1,20 @@
+.equipment-panel {
+  padding: 4px 8px 8px;
+}
+
+.filter-form {
+  margin-bottom: 8px;
+}
+
+.pager {
+  margin-top: 10px;
+  justify-content: flex-end;
+}
+
+:deep(.is-selected-row) {
+  //--el-table-tr-bg-color: rgba(245, 158, 11, 0.18);
+
+  td.el-table__cell {
+    background-color: rgba(245, 158, 11, 0.18) !important;
+  }
+}

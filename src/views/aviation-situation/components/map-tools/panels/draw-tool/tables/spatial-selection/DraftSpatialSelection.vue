@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
+import { storeToRefs } from 'pinia'
+import { formatDistance } from '@/utils/geoUtils'
 import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import { useRegionSelectionStore } from '@/stores/region-selection'
-import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import AircraftIcaoPopover from './popover/AircraftIcaoPopover.vue'
 import AirportIcaoPopover from './popover/AirportIcaoPopover.vue'
@@ -53,11 +54,11 @@ const formatCoord = (arr: number[] | undefined) => {
   return arr.map((v: number) => v.toFixed(4)).join(', ')
 }
 
-// 半径格式化
+// 半径格式化（展示规则与测距统一走 geoUtils.formatDistance）
 const formatRadius = (row: DistanceMeasurementData) => {
   const r = row.label?.radiusInfo?.radius
-  if (r == null) return '—'
-  return r >= 1000 ? `${(r / 1000).toFixed(2)} km` : `${r.toFixed(0)} m`
+  if (r === null || r === undefined) return '—'
+  return formatDistance(r)
 }
 
 // 表格 ref（用于编程式勾选）

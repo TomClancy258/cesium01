@@ -6,6 +6,14 @@ import { useStationModels } from './composables/useStationModels'
 import { useScenePicking } from './composables/useScenePicking'
 import { useStationRealtime } from './composables/useStationRealtime'
 import ReservoirTooltip from './components/tooltip/ReservoirTooltip.vue'
+import CoolingTowerTooltip from './components/tooltip/CoolingTowerTooltip.vue'
+import CoolingTubeTooltip from './components/tooltip/CoolingTubeTooltip.vue'
+import StreetlightTooltip from './components/tooltip/StreetlightTooltip.vue'
+import PressureRegulatingTowerTooltip from './components/tooltip/PressureRegulatingTowerTooltip.vue'
+import MixingTankTooltip from './components/tooltip/MixingTankTooltip.vue'
+import HouseTooltip from './components/tooltip/HouseTooltip.vue'
+import VerticalPressurizedTankBodyTooltip from './components/tooltip/VerticalPressurizedTankBodyTooltip.vue'
+import EquipmentDrawer from './components/EquipmentDrawer.vue'
 import { TABLE_LABEL } from './types/station-equipment'
 
 const {
@@ -14,28 +22,32 @@ const {
   camera,
   renderer,
   controls,
-  outlineHoverPass,
-  outlineSelectPass,
+  setOutlineObjects,
   initScene,
 } = useThreeScene()
 const {
   interactiveModels,
+  objectById,
   loadModels,
   loading,
   loadedCount,
   totalCount,
   applyStatusFromPayload,
+  flyToByName,
 } = useStationModels(scene, camera, controls)
-const { tooltipPosition, bindPicking } = useScenePicking(
+const { tooltipPosition, bindPicking, selectByName } = useScenePicking(
   camera,
   renderer,
   interactiveModels,
-  outlineHoverPass,
-  outlineSelectPass,
+  setOutlineObjects,
 )
 const { start, stop } = useStationRealtime(applyStatusFromPayload)
 /** Pinia store 单例；模板里用 store.xxx 保持响应式，不必 storeToRefs */
 const store = useStationEquipmentStore()
+
+const selectEquipmentByName = (name: string): void => {
+  selectByName(name, objectById)
+}
 
 onMounted(async () => {
   initScene()
@@ -72,6 +84,17 @@ onUnmounted(() => {
         </div>
       </div>
       <ReservoirTooltip :position="tooltipPosition" />
+      <CoolingTowerTooltip :position="tooltipPosition" />
+      <CoolingTubeTooltip :position="tooltipPosition" />
+      <StreetlightTooltip :position="tooltipPosition" />
+      <PressureRegulatingTowerTooltip :position="tooltipPosition" />
+      <MixingTankTooltip :position="tooltipPosition" />
+      <HouseTooltip :position="tooltipPosition" />
+      <VerticalPressurizedTankBodyTooltip :position="tooltipPosition" />
+      <EquipmentDrawer
+        :fly-to-by-name="flyToByName"
+        :select-by-name="selectEquipmentByName"
+      />
     </template>
   </div>
 </template>

@@ -53,6 +53,91 @@ const MODEL_INTERACTION_FILES = [
 
 const MODEL_INTERACTION_FILE_SET = new Set<string>(MODEL_INTERACTION_FILES)
 
+/** 单张法线做微荡；不用 Water_2 切换（切换会像两张图来回切） */
+const WATER_NORMAL_URL = '/textures/water/Water_1_M_Normal.jpg'
+
+/**
+ * 水面材质名：shui / shuimian / shuimian-1 …
+ * 蓄水池多为直系子 mesh；房子 fangzi-07 水面在更深子节点，需 traverse。
+ */
+function isWaterMaterialName(name: string): boolean {
+  return name === 'shui' || name.startsWith('shuimian')
+}
+
+let sharedWaterNormalSource: THREE.Texture | null = null
+let waterNormalLoadPromise: Promise<THREE.Texture> | null = null
+
+/**
+ * 必须 loadAsync 等图片就绪再赋给材质。
+ * 副本(2) 无报警但透明会透出丑底；当前文件用 load()+clone 未就绪纹理 → 报警。
+ * 异步就绪后再赋法线，避免 no image data。
+ */
+function ensureWaterNormalLoaded(): Promise<THREE.Texture> {
+  if (sharedWaterNormalSource?.image) {
+    return Promise.resolve(sharedWaterNormalSource)
+  }
+  if (!waterNormalLoadPromise) {
+    waterNormalLoadPromise = new THREE.TextureLoader()
+      .loadAsync(WATER_NORMAL_URL)
+      .then((texture) => {
+        texture.wrapS = THREE.RepeatWrapping
+        texture.wrapT = THREE.RepeatWrapping
+        texture.colorSpace = THREE.NoColorSpace
+        texture.repeat.set(1.5, 1.5)
+        // 禁止 disposeObject3D 误销毁共享法线
+        texture.userData.sharedWaterNormal = true
+        sharedWaterNormalSource = texture
+        return texture
+      })
+  }
+  return waterNormalLoadPromise
+}
+
+/** 水色：偏青蓝（避免沿用原材质浅色导致乳白） */
+const WATER_SURFACE_COLOR = 0x3aa8d8
+
+function applyWaterMaterialToMesh(waterMesh: THREE.Mesh): void {
+  if (!sharedWaterNormalSource?.image) return
+
+  const material = Array.isArray(waterMesh.material)
+    ? waterMesh.material[0]
+    : waterMesh.material
+  if (!(material instanceof THREE.MeshStandardMaterial)) return
+  if (!isWaterMaterialName(material.name)) return
+
+  // 丑图来自 AO；清掉即可（map 保留）
+  material.aoMap = null
+  material.color.setHex(WATER_SURFACE_COLOR)
+  material.normalMap = sharedWaterNormalSource
+  material.normalScale.set(0.32, 0.32)
+  material.roughness = 0.45
+  material.metalness = 0
+  material.envMapIntensity = 0.35
+  material.transparent = true
+  material.opacity = 0.92
+  material.needsUpdate = true
+
+  waterMesh.onBeforeRender = () => {
+    const mat = waterMesh.material
+    if (!(mat instanceof THREE.MeshStandardMaterial) || !mat.normalMap) return
+    const t = performance.now() * 0.001
+    const scale = 0.26 + 0.1 * Math.sin(t * 2.4) + 0.04 * Math.sin(t * 4.1)
+    mat.normalScale.set(scale, scale)
+    mat.normalMap.offset.set(Math.sin(t * 1.3) * 0.04, Math.cos(t * 1.1) * 0.035)
+  }
+}
+
+/**
+ * 青蓝半透明水面 + 单张法线微荡（已清 aoMap；不改 emissive）。
+ * 复用于蓄水池 / 房子内水面；须先 ensureWaterNormalLoaded；建议在 markInteractive 之前调用。
+ */
+function applyWaterSurfaceEffect(root: THREE.Object3D): void {
+  root.traverse((obj) => {
+    if (!(obj instanceof THREE.Mesh)) return
+    applyWaterMaterialToMesh(obj)
+  })
+}
+
 function captureMaterialVisual(material: EmissiveMaterial): void {
   if (!material.emissive) return
   if (material.userData.visual) return
@@ -79,7 +164,7 @@ function applyMaterialByPriority(
   }
 
   const color = STATUS_HIGHLIGHT_COLOR[status]
-  if (color == null) return
+  if (color === null) return
   material.emissive.setHex(color)
   material.emissiveIntensity = STATUS_HIGHLIGHT_INTENSITY[status]
 }
@@ -113,8 +198,9 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
     return root.children.filter((child) => {
       const isReservoir = child.name.startsWith('shuichi')
       if (!isReservoir) return false
+      applyWaterSurfaceEffect(child)
       markInteractive(child)
-      child.userData.text = child.name.replace('shuichi','蓄水池')
+      child.userData.text = child.name.replace('shuichi', '蓄水池')
       child.userData.source = 'reservoir'
       return true
     })
@@ -140,7 +226,7 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       if (!isStreetLight) return false
       markInteractive(child)
       child.userData.text = child.name.replace('ld','路灯')
-      child.userData.source = 'streetLight'
+      child.userData.source = 'streetlight'
       return true
     })
   } else if (root.name === 'sbz-yancun') {
@@ -163,6 +249,8 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
     return root.children.filter((child) => {
       const isHouse = child.name.startsWith('fangzi')
       if (!isHouse) return false
+      // fangzi-07 等内部可能有 shuimian-1 水面，与蓄水池共用波纹逻辑
+      applyWaterSurfaceEffect(child)
       markInteractive(child)
       child.userData.text = child.name.replace('fangzi','房子')
       child.userData.source = 'house'
@@ -191,13 +279,12 @@ function applyStatusToObject(object: THREE.Object3D, status: EquipmentStatus): v
 
   object.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return
+    //child.material有可能是MeshStandardMaterial类型的对象，也有可能是MeshStandardMaterial[]类型的数组
     const materials = Array.isArray(child.material) ? child.material : [child.material]
     materials.forEach((material) => {
       if (!material) return
-      const mat = material as EmissiveMaterial
-      captureMaterialVisual(mat)
-      if (!mat.userData.visual) return
-      applyMaterialByPriority(mat, status)
+      // visual.original 已在 ensureUniqueMaterials 写入，此处只按 status 刷色
+      applyMaterialByPriority(material as EmissiveMaterial, status)
     })
   })
 }
@@ -210,7 +297,10 @@ function disposeObject3D(object: THREE.Object3D): void {
       materials.forEach((material) => {
         if (!material) return
         Object.values(material).forEach((value) => {
-          if (value instanceof THREE.Texture) value.dispose()
+          if (!(value instanceof THREE.Texture)) return
+          // 共享水面法线由 onUnmounted 统一 dispose，避免被材质遍历提前销毁
+          if (value.userData?.sharedWaterNormal || value === sharedWaterNormalSource) return
+          value.dispose()
         })
         material.dispose()
       })
@@ -222,19 +312,23 @@ function fitCameraToObject(
   object: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
   controls: OrbitControls | null,
+  offset?:THREE.Vector3
 ): void {
   const box = new THREE.Box3().setFromObject(object)
   if (box.isEmpty()) return
 
   const center = box.getCenter(new THREE.Vector3())
-  // const size = box.getSize(new THREE.Vector3())
-  // const maxSize = Math.max(size.x, size.y, size.z)
-  // const fitDistance =
-  //   maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))
+  const size = box.getSize(new THREE.Vector3())
+  const maxSize = Math.max(size.x, size.y, size.z)
+  const fitDistance =
+    maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))
 
-  // camera.position.copy(center).add(new THREE.Vector3(fitDistance, fitDistance * 0.6, fitDistance))
+  if (offset !== undefined) {
+    camera.position.copy(center).add(offset)
+  }else{
+    camera.position.copy(center).add(new THREE.Vector3(fitDistance, fitDistance * 0.6, fitDistance))
+  }
 
-  camera.position.copy(center).add(new THREE.Vector3(70, 50, 70))
   // camera.near = Math.max(fitDistance / 100, 0.1)
   // camera.far = Math.max(fitDistance * 100, 2000)
   camera.updateProjectionMatrix()
@@ -260,7 +354,7 @@ export function useStationModels(
   const reservoirMap = new Map<string, THREE.Object3D>()
   const coolingTowerMap = new Map<string, THREE.Object3D>()
   const coolingTubeMap = new Map<string, THREE.Object3D>()
-  const streetLightMap = new Map<string, THREE.Object3D>()
+  const streetlightMap = new Map<string, THREE.Object3D>()
   const pressureRegulatingTowerMap = new Map<string, THREE.Object3D>()
   const mixingTankMap = new Map<string, THREE.Object3D>()
   const houseMap = new Map<string, THREE.Object3D>()
@@ -276,7 +370,7 @@ export function useStationModels(
     reservoirMap.clear()
     coolingTowerMap.clear()
     coolingTubeMap.clear()
-    streetLightMap.clear()
+    streetlightMap.clear()
     pressureRegulatingTowerMap.clear()
     mixingTankMap.clear()
     houseMap.clear()
@@ -300,8 +394,8 @@ export function useStationModels(
         case 'coolingTube':
           coolingTubeMap.set(key, object)
           break
-        case 'streetLight':
-          streetLightMap.set(key, object)
+        case 'streetlight':
+          streetlightMap.set(key, object)
           break
         case 'pressureRegulatingTower':
           pressureRegulatingTowerMap.set(key, object)
@@ -329,8 +423,8 @@ export function useStationModels(
         return coolingTowerMap
       case 'coolingTube':
         return coolingTubeMap
-      case 'streetLight':
-        return streetLightMap
+      case 'streetlight':
+        return streetlightMap
       case 'pressureRegulatingTower':
         return pressureRegulatingTowerMap
       case 'mixingTank':
@@ -385,6 +479,8 @@ export function useStationModels(
     const loader = createGltfLoader()
 
     try {
+      await ensureWaterNormalLoaded()
+
       // 1. map 返回新数组：[Promise, Promise, ...]
       const promises = MODEL_FILES.map(async (file) => {
         const url = `${MODEL_BASE}/${file}`
@@ -394,6 +490,14 @@ export function useStationModels(
         // 全部模型都要进场景显示
         group.add(gltf.scene)
 
+        if (gltf.scene.name === 'sbz-dimian') {
+          // getObjectByName：整棵子树查找；children.find 只查一层
+          const cylinder: THREE.Object3D | undefined =
+            gltf.scene.getObjectByName('Cylinder001')
+          if (cylinder) {
+            cylinder.visible = false
+          }
+        }
         // 只有交互名单里的，才交给拾取
         if (MODEL_INTERACTION_FILE_SET.has(file)) {
           interactiveList.push(...collectInteractiveTargets(file, gltf.scene))
@@ -412,7 +516,7 @@ export function useStationModels(
       rebuildObjectMaps(interactiveList)
 
       if (camera.value) {
-        fitCameraToObject(group, camera.value, controls.value)
+        fitCameraToObject(group, camera.value, controls.value,new THREE.Vector3(70, 50, 70))
       }
     } catch (error) {
       console.error('[useStationModels] failed to load models', error)
@@ -440,7 +544,17 @@ export function useStationModels(
     disposeModels()
     dracoLoader?.dispose()
     dracoLoader = null
+    sharedWaterNormalSource?.dispose()
+    sharedWaterNormalSource = null
+    waterNormalLoadPromise = null
   })
+
+  /** 表格「详情」/ 定位：相机飞到指定设备 */
+  const flyToByName = (name: string): void => {
+    const object = objectById.get(name)
+    if (!object || !camera.value) return
+    fitCameraToObject(object, camera.value, controls.value)
+  }
 
   return {
     modelsGroup,
@@ -449,7 +563,7 @@ export function useStationModels(
     reservoirMap,
     coolingTowerMap,
     coolingTubeMap,
-    streetLightMap,
+    streetlightMap,
     pressureRegulatingTowerMap,
     mixingTankMap,
     houseMap,
@@ -460,5 +574,6 @@ export function useStationModels(
     loadModels,
     disposeModels,
     applyStatusFromPayload,
+    flyToByName,
   }
 }

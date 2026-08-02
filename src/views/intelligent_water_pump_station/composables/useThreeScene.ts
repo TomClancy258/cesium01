@@ -11,6 +11,25 @@ const OUTLINE = {
   hover: 0x3b82f6,
   select: 0xf59e0b,
 } as const
+//npm run build打包时：
+
+//src/assets
+// 只有被代码 import / 模板引用到的才会进产物
+// 没引用的文件不会被打包进去
+// 引用到的会经 Vite 处理（hash、可能压缩等）
+
+// public
+// 整个目录原样拷到产物根目录，不管有没有被用到
+// 不走模块打包，也没有 tree-shaking
+// 没用到的大图也会跟着部署体积走
+
+/** public/textures 下的等距柱状天空图 */
+const DAY_SKY_URL = '/textures/daySky.jpg'
+
+export type OutlineObjects = {
+  hovered: THREE.Object3D | null
+  selected: THREE.Object3D | null
+}
 
 export function useThreeScene() {
   const containerRef = ref<HTMLElement | null>(null)
@@ -18,23 +37,26 @@ export function useThreeScene() {
   const camera = shallowRef<THREE.PerspectiveCamera | null>(null)
   const renderer = shallowRef<THREE.WebGLRenderer | null>(null)
   const controls = shallowRef<OrbitControls | null>(null)
-  const composer = shallowRef<EffectComposer | null>(null)
-  const outlineHoverPass = shallowRef<OutlinePass | null>(null)
-  const outlineSelectPass = shallowRef<OutlinePass | null>(null)
+
+  /** 非响应式：后处理实例只给渲染/描边用 */
+  let composer: EffectComposer | null = null
+  let outlineHoverPass: OutlinePass | null = null
+  let outlineSelectPass: OutlinePass | null = null
+  let skyTexture: THREE.Texture | null = null
 
   let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
 
   const renderLoop = (): void => {
-    if (!composer.value) return
+    if (!composer) return
     animationFrameId = requestAnimationFrame(renderLoop)
     controls.value?.update()
-    composer.value.render()
+    composer.render()
   }
 
   const handleResize = (): void => {
     const container = containerRef.value
-    if (!container || !camera.value || !renderer.value || !composer.value) return
+    if (!container || !camera.value || !renderer.value || !composer) return
 
     const { clientWidth, clientHeight } = container
     if (clientWidth === 0 || clientHeight === 0) return
@@ -42,11 +64,11 @@ export function useThreeScene() {
     camera.value.aspect = clientWidth / clientHeight
     camera.value.updateProjectionMatrix()
     renderer.value.setSize(clientWidth, clientHeight)
-    composer.value.setSize(clientWidth, clientHeight)
+    composer.setSize(clientWidth, clientHeight)
 
     const resolution = new THREE.Vector2(clientWidth, clientHeight)
-    outlineHoverPass.value?.resolution.copy(resolution)
-    outlineSelectPass.value?.resolution.copy(resolution)
+    outlineHoverPass?.resolution.copy(resolution)
+    outlineSelectPass?.resolution.copy(resolution)
   }
 
   const createOutlinePass = (
@@ -70,6 +92,17 @@ export function useThreeScene() {
     return pass
   }
 
+  /** picking 只传「描谁」；Pass 细节留在 scene 内 */
+  const setOutlineObjects = ({ hovered, selected }: OutlineObjects): void => {
+    if (outlineSelectPass) {
+      outlineSelectPass.selectedObjects = selected ? [selected] : []
+    }
+    if (outlineHoverPass) {
+      outlineHoverPass.selectedObjects =
+        hovered && hovered !== selected ? [hovered] : []
+    }
+  }
+
   const initScene = (): void => {
     const container = containerRef.value
     if (!container) {
@@ -81,7 +114,29 @@ export function useThreeScene() {
     const height = container.clientHeight || window.innerHeight
 
     const threeScene = new THREE.Scene()
+    // 加载前先用深色底，避免白闪
     threeScene.background = new THREE.Color(0x0b1220)
+    scene.value = threeScene
+
+    new THREE.TextureLoader().load(
+      DAY_SKY_URL,
+      (texture) => {
+        // 已销毁或已换 scene 时丢弃晚到的贴图
+        if (scene.value !== threeScene) {
+          texture.dispose()
+          return
+        }
+        texture.mapping = THREE.EquirectangularReflectionMapping
+        texture.colorSpace = THREE.SRGBColorSpace
+        skyTexture?.dispose()
+        skyTexture = texture
+        threeScene.background = texture
+      },
+      undefined,
+      (error) => {
+        console.error('[useThreeScene] failed to load skybox', DAY_SKY_URL, error)
+      },
+    )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     threeCamera.position.set(0, 8, 16)
@@ -115,19 +170,28 @@ export function useThreeScene() {
     threeComposer.setSize(width, height)
     threeComposer.addPass(new RenderPass(threeScene, threeCamera))
 
-    const hoverPass = createOutlinePass(threeScene, threeCamera, width, height, OUTLINE.hover)
-    const selectPass = createOutlinePass(threeScene, threeCamera, width, height, OUTLINE.select)
-    threeComposer.addPass(hoverPass)
-    threeComposer.addPass(selectPass)
+    outlineHoverPass = createOutlinePass(
+      threeScene,
+      threeCamera,
+      width,
+      height,
+      OUTLINE.hover,
+    )
+    outlineSelectPass = createOutlinePass(
+      threeScene,
+      threeCamera,
+      width,
+      height,
+      OUTLINE.select,
+    )
+    threeComposer.addPass(outlineHoverPass)
+    threeComposer.addPass(outlineSelectPass)
     threeComposer.addPass(new OutputPass())
+    composer = threeComposer
 
-    scene.value = threeScene
     camera.value = threeCamera
     renderer.value = threeRenderer
     controls.value = orbitControls
-    composer.value = threeComposer
-    outlineHoverPass.value = hoverPass
-    outlineSelectPass.value = selectPass
 
     //盯局部 container → 用 ResizeObserver 是推荐做法；不是 Three 官方 API，但是前端里监听容器大小的标准方式。
     resizeObserver = new ResizeObserver(handleResize)
@@ -146,10 +210,11 @@ export function useThreeScene() {
     controls.value?.dispose()
     controls.value = null
 
-    composer.value?.dispose()
-    composer.value = null
-    outlineHoverPass.value = null
-    outlineSelectPass.value = null
+    setOutlineObjects({ hovered: null, selected: null })
+    composer?.dispose()
+    composer = null
+    outlineHoverPass = null
+    outlineSelectPass = null
 
     if (renderer.value) {
       const canvas = renderer.value.domElement
@@ -158,8 +223,13 @@ export function useThreeScene() {
       renderer.value = null
     }
 
-    scene.value?.clear()
-    scene.value = null
+    if (scene.value) {
+      scene.value.background = null
+      scene.value.clear()
+      scene.value = null
+    }
+    skyTexture?.dispose()
+    skyTexture = null
     camera.value = null
   }
 
@@ -173,9 +243,7 @@ export function useThreeScene() {
     camera,
     renderer,
     controls,
-    composer,
-    outlineHoverPass,
-    outlineSelectPass,
+    setOutlineObjects,
     initScene,
     destroyScene,
   }

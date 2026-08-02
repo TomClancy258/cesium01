@@ -1,0 +1,18 @@
+@use '@/assets/css/mixins' as *;
+
+.equipment-tooltip {
+  @include map-tooltip;
+  pointer-events: none;
+}
+
+.status-text--normal {
+  color: #3b82f6;
+}
+
+.status-text--warning {
+  color: #eab308;
+}
+
+.status-text--danger {
+  color: #ef4444;
+}
