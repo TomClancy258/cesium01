@@ -511,7 +511,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -1221,7 +1221,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -1931,7 +1931,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -2641,7 +2641,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -3351,7 +3351,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -4061,7 +4061,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -4771,7 +4771,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -5481,7 +5481,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -6191,7 +6191,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",
@@ -6901,7 +6901,7 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "verticalPressurizedTankBody",
+      "source": "pressurizedTank",
       "data": [
         {
           "name": "daguanzi-01",

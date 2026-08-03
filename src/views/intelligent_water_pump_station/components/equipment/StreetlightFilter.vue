@@ -58,6 +58,12 @@ const resetFilter = (): void => {
   applyFilterNow()
 }
 
+/** 头顶标签显隐：独立于筛选项，不随重置 */
+const showLabels = computed({
+  get: () => store.labelVisibleBySource.streetlight,
+  set: (value: boolean) => store.setLabelVisible('streetlight', value),
+})
+
 </script>
 
 <template>
@@ -95,6 +101,12 @@ const resetFilter = (): void => {
           <el-option label="开" :value="true" />
           <el-option label="关" :value="false" />
         </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="showLabels">显示标签</el-checkbox>
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="store.labelVisibleBySource.streetlight">显示标签</el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

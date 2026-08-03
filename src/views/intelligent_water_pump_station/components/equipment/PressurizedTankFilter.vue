@@ -31,7 +31,7 @@ const createEmptyForm = () => ({
 const filterForm = reactive(createEmptyForm())
 const appliedFilter = ref(createEmptyForm())
 
-const sourceRows = computed(() => Array.from(store.verticalPressurizedTankBodyMap.values()))
+const sourceRows = computed(() => Array.from(store.pressurizedTankMap.values()))
 
 const filteredRows = computed(() => {
   const f = appliedFilter.value
@@ -65,7 +65,7 @@ const filteredRows = computed(() => {
 })
 
 const { currentPage, pageSize, pagedData, rowClassName, resetToFirstPage } =
-  useEquipmentTablePage('verticalPressurizedTankBody', filteredRows)
+  useEquipmentTablePage('pressurizedTank', filteredRows)
 
 const applyFilterNow = (): void => {
   appliedFilter.value = { ...filterForm, status: [...filterForm.status] }
@@ -82,7 +82,7 @@ const resetFilter = (): void => {
 
 <template>
   <div class="equipment-panel">
-    <el-form :inline="true" size="default" label-width="68px" class="filter-form">
+    <el-form :inline="true" size="default" label-width="40px" class="filter-form">
       <el-form-item label="编号">
         <el-input v-model="filterForm.name" clearable style="width: 140px" />
       </el-form-item>
@@ -110,11 +110,14 @@ const resetFilter = (): void => {
       <el-form-item label="压力">
         <el-input v-model="filterForm.pressure" clearable style="width: 110px" />
       </el-form-item>
-      <el-form-item label="最高压力">
+      <el-form-item label="最高压力" label-width="68px">
         <el-input v-model="filterForm.maxPressure" clearable style="width: 110px" />
       </el-form-item>
       <el-form-item label="温度">
         <el-input v-model="filterForm.temperature" clearable style="width: 110px" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="store.labelVisibleBySource.pressurizedTank">显示标签</el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

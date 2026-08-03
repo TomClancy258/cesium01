@@ -1,22 +1,23 @@
 import { defineStore } from 'pinia'
-import { computed, ref, shallowRef } from 'vue'
+import { computed, reactive, ref, shallowRef } from 'vue'
 import {
   rowsToMap,
   STATION_FRAME_COUNT,
 } from '@/views/intelligent_water_pump_station/mock/station-tables'
-import type {
-  CoolingTowerRow,
-  CoolingTubeRow,
-  EquipmentSelection,
-  EquipmentSource,
-  HouseRow,
-  MixingTankRow,
-  PressureRegulatingTowerRow,
-  ReservoirRow,
-  StationRow,
-  StationWsPayload,
-  StreetLightRow,
-  VerticalPressurizedTankBodyRow,
+import {
+  EQUIPMENT_SOURCES,
+  type CoolingTowerRow,
+  type CoolingTubeRow,
+  type EquipmentSelection,
+  type EquipmentSource,
+  type HouseRow,
+  type MixingTankRow,
+  type PressureRegulatingTowerRow,
+  type ReservoirRow,
+  type StationRow,
+  type StationWsPayload,
+  type StreetLightRow,
+  type VerticalPressurizedTankBodyRow,
 } from '@/views/intelligent_water_pump_station/types/station-equipment'
 
 /** 模拟 WS 推送间隔（与 simulate-websocket 一致） */
@@ -37,6 +38,33 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
   const hovered = ref<EquipmentSelection | null>(null)
   const selected = ref<EquipmentSelection | null>(null)
 
+  /** 头顶名称标签显隐（与筛选重置无关；默认：蓄水池/冷却塔/搅拌池/承压罐） */
+  const labelVisibleBySource = reactive<Record<EquipmentSource, boolean>>({
+    reservoir: true,
+    coolingTower: true,
+    coolingTube: false,
+    streetlight: false,
+    pressureRegulatingTower: false,
+    mixingTank: true,
+    house: false,
+    pressurizedTank: true,
+  })
+
+  const allLabelsVisible = computed({
+    get: () => EQUIPMENT_SOURCES.every((source) => labelVisibleBySource[source]),
+    set: (visible: boolean) => {
+      EQUIPMENT_SOURCES.forEach((source) => {
+        labelVisibleBySource[source] = visible
+      })
+    },
+  })
+
+  //用来判断：是不是至少有一种设备类型开了头顶标签。
+  const someLabelsVisible = computed(() =>
+    //some类似与find，但是some返回的是true/false，find是返回符合条件的的值，但some得到false时仍会继续遍历，直到找到true
+    EQUIPMENT_SOURCES.some((source) => labelVisibleBySource[source]),
+  )
+
   const reservoirMap = shallowRef<Map<string, ReservoirRow>>(new Map())
   const coolingTowerMap = shallowRef<Map<string, CoolingTowerRow>>(new Map())
   const coolingTubeMap = shallowRef<Map<string, CoolingTubeRow>>(new Map())
@@ -46,7 +74,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
   )
   const mixingTankMap = shallowRef<Map<string, MixingTankRow>>(new Map())
   const houserMap = shallowRef<Map<string, HouseRow>>(new Map())
-  const verticalPressurizedTankBodyMap = shallowRef<
+  const pressurizedTankMap = shallowRef<
     Map<string, VerticalPressurizedTankBodyRow>
   >(new Map())
 
@@ -69,8 +97,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         return mixingTankMap.value.get(selection.name) ?? null
       case 'house':
         return houserMap.value.get(selection.name) ?? null
-      case 'verticalPressurizedTankBody':
-        return verticalPressurizedTankBodyMap.value.get(selection.name) ?? null
+      case 'pressurizedTank':
+        return pressurizedTankMap.value.get(selection.name) ?? null
       default:
         return null
     }
@@ -110,7 +138,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
   }
 
   function setVerticalPressurizedTankBodyMap(data: VerticalPressurizedTankBodyRow[]): void {
-    verticalPressurizedTankBodyMap.value = rowsToMap(data)
+    pressurizedTankMap.value = rowsToMap(data)
   }
 
   function applyPayload(packets: StationWsPayload): void {
@@ -138,7 +166,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         case 'house':
           setHouserMap(packet.data as HouseRow[])
           break
-        case 'verticalPressurizedTankBody':
+        case 'pressurizedTank':
           setVerticalPressurizedTankBodyMap(packet.data as VerticalPressurizedTankBodyRow[])
           break
         default:
@@ -187,6 +215,14 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     activeTableKey.value = key
   }
 
+  function setLabelVisible(source: EquipmentSource, visible: boolean): void {
+    labelVisibleBySource[source] = visible
+  }
+
+  function setAllLabelsVisible(visible: boolean): void {
+    allLabelsVisible.value = visible
+  }
+
   return {
     index,
     connected,
@@ -196,6 +232,9 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     selected,
     selectedRow,
     hoveredRow,
+    labelVisibleBySource,
+    allLabelsVisible,
+    someLabelsVisible,
     reservoirMap,
     coolingTowerMap,
     coolingTubeMap,
@@ -203,7 +242,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     pressureRegulatingTowerMap,
     mixingTankMap,
     houserMap,
-    verticalPressurizedTankBodyMap,
+    pressurizedTankMap,
     setReservoirMap,
     setCoolingTowerMap,
     setCoolingTubeMap,
@@ -221,5 +260,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     setSelected,
     clearSelected,
     setActiveTableKey,
+    setLabelVisible,
+    setAllLabelsVisible,
   }
 })

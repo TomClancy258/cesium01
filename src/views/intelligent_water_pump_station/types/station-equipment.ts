@@ -10,7 +10,7 @@ export type EquipmentSource =
   | 'pressureRegulatingTower'
   | 'mixingTank'
   | 'house'
-  | 'verticalPressurizedTankBody'
+  | 'pressurizedTank'
 
 /** @deprecated 兼容旧名，等同 EquipmentSource */
 export type EquipmentTableKey = EquipmentSource
@@ -117,17 +117,6 @@ export const STATUS_HIGHLIGHT_INTENSITY: Record<Exclude<EquipmentStatus, 'normal
   danger: 0.75,
 }
 
-export const TABLE_LABEL: Record<EquipmentSource, string> = {
-  reservoir: '蓄水池',
-  coolingTower: '冷却塔',
-  coolingTube: '冷却管',
-  streetlight: '路灯',
-  pressureRegulatingTower: '调压塔',
-  mixingTank: '搅拌池',
-  house: '房子',
-  verticalPressurizedTankBody: '立式承压罐',
-}
-
 export const STATUS_LABEL: Record<EquipmentStatus, string> = {
   normal: '正常',
   warning: '预警',
@@ -155,7 +144,7 @@ export const EQUIPMENT_SOURCES: EquipmentSource[] = [
   'pressureRegulatingTower',
   'mixingTank',
   'house',
-  'verticalPressurizedTankBody',
+  'pressurizedTank',
 ]
 
 export interface TooltipPosition {
@@ -171,16 +160,6 @@ export function resolveTableKeyById(id: string): EquipmentSource | null {
   if (id.startsWith('yancun-')) return 'pressureRegulatingTower'
   if (id.startsWith('01-')) return 'mixingTank'
   if (id.startsWith('fangzi-')) return 'house'
-  if (id.startsWith('daguanzi-')) return 'verticalPressurizedTankBody'
+  if (id.startsWith('daguanzi-')) return 'pressurizedTank'
   return null
-}
-
-export function packetsToRecord(
-  packets: StationWsPayload,
-): Record<EquipmentSource, StationRow[]> {
-  const record = {} as Record<EquipmentSource, StationRow[]>
-  packets.forEach((packet) => {
-    record[packet.source] = packet.data
-  })
-  return record
 }

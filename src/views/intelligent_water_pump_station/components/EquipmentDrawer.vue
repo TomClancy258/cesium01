@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { DrawerProps } from 'element-plus'
 import { Fold } from '@element-plus/icons-vue'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
@@ -11,14 +11,14 @@ import StreetlightFilter from './equipment/StreetlightFilter.vue'
 import PressureRegulatingTowerFilter from './equipment/PressureRegulatingTowerFilter.vue'
 import MixingTankFilter from './equipment/MixingTankFilter.vue'
 import HouseFilter from './equipment/HouseFilter.vue'
-import VerticalPressurizedTankBodyFilter from './equipment/VerticalPressurizedTankBodyFilter.vue'
+import PressurizedTankFilter from './equipment/PressurizedTankFilter.vue'
 
 import reservoirSvg from "@/assets/img/reservoir/reservoir.svg"
 import fanSvg from "@/assets/img/fan/fan.svg"
 import streetlightSvg from "@/assets/img/streetlight/streetlight.svg"
 import cellTowerSvg from "@/assets/img/tower/cell-tower.svg"
 import mixingSvg from "@/assets/img/mixing/mixing.svg"
-import factorySvg from "@/assets/img/build/factory.svg"
+import factorySvg from "@/assets/img/building/factory.svg"
 import jarSvg from "@/assets/img/jar/jar.svg"
 
 const props = defineProps<{
@@ -30,6 +30,10 @@ const store = useStationEquipmentStore()
 const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
 const activeIndex = ref<EquipmentSource>(store.activeTableKey)
+
+const labelsIndeterminate = computed(
+  () => store.someLabelsVisible && !store.allLabelsVisible,
+)
 
 const toggleDrawer = (): void => {
   drawer.value = !drawer.value
@@ -74,6 +78,14 @@ const onDetail = (row: StationRow): void => {
       :modal-penetrable="true"
     >
       <div class="drawer-body">
+        <div class="label-toolbar">
+          <el-checkbox
+            v-model="store.allLabelsVisible"
+            :indeterminate="labelsIndeterminate"
+          >
+            显示全部设备标签
+          </el-checkbox>
+        </div>
         <el-row>
           <el-col :span="2">
             <el-menu
@@ -123,11 +135,11 @@ const onDetail = (row: StationRow): void => {
                 </el-icon>
                 <span>房子</span>
               </el-menu-item>
-              <el-menu-item index="verticalPressurizedTankBody">
+              <el-menu-item index="pressurizedTank">
                 <el-icon class="header-icon">
                   <img :src="jarSvg" alt="" class="menu-svg-icon" />
                 </el-icon>
-                <span>立式承压罐</span>
+                <span>承压罐</span>
               </el-menu-item>
             </el-menu>
           </el-col>
@@ -142,8 +154,8 @@ const onDetail = (row: StationRow): void => {
             />
             <MixingTankFilter v-show="activeIndex === 'mixingTank'" @detail="onDetail" />
             <HouseFilter v-show="activeIndex === 'house'" @detail="onDetail" />
-            <VerticalPressurizedTankBodyFilter
-              v-show="activeIndex === 'verticalPressurizedTankBody'"
+            <PressurizedTankFilter
+              v-show="activeIndex === 'pressurizedTank'"
               @detail="onDetail"
             />
           </el-col>
@@ -167,6 +179,12 @@ const onDetail = (row: StationRow): void => {
 .drawer-body {
   height: 100%;
   overflow: auto;
+}
+
+.label-toolbar {
+  position: absolute;
+  top:-5px;
+  padding: 0 8px 8px;
 }
 
 :deep(.equipment-drawer) {

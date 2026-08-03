@@ -261,8 +261,8 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       const isVerticalPressurizedTankBody = child.name.startsWith('daguanzi')
       if (!isVerticalPressurizedTankBody) return false
       markInteractive(child)
-      child.userData.text = child.name.replace('daguanzi','立式承压罐体')
-      child.userData.source = 'verticalPressurizedTankBody'
+      child.userData.text = child.name.replace('daguanzi','承压罐')
+      child.userData.source = 'pressurizedTank'
       return true
     })
   }
@@ -358,7 +358,7 @@ export function useStationModels(
   const pressureRegulatingTowerMap = new Map<string, THREE.Object3D>()
   const mixingTankMap = new Map<string, THREE.Object3D>()
   const houseMap = new Map<string, THREE.Object3D>()
-  const verticalPressurizedTankBodyMap = new Map<string, THREE.Object3D>()
+  const pressurizedTankMap = new Map<string, THREE.Object3D>()
   const loading = ref(false)
   const loadedCount = ref(0)
   const totalCount = MODEL_FILES.length
@@ -374,7 +374,7 @@ export function useStationModels(
     pressureRegulatingTowerMap.clear()
     mixingTankMap.clear()
     houseMap.clear()
-    verticalPressurizedTankBodyMap.clear()
+    pressurizedTankMap.clear()
   }
 
   const rebuildObjectMaps = (list: THREE.Object3D[]): void => {
@@ -406,8 +406,8 @@ export function useStationModels(
         case 'house':
           houseMap.set(key, object)
           break
-        case 'verticalPressurizedTankBody':
-          verticalPressurizedTankBodyMap.set(key, object)
+        case 'pressurizedTank':
+          pressurizedTankMap.set(key, object)
           break
       }
     })
@@ -431,8 +431,8 @@ export function useStationModels(
         return mixingTankMap
       case 'house':
         return houseMap
-      case 'verticalPressurizedTankBody':
-        return verticalPressurizedTankBodyMap
+      case 'pressurizedTank':
+        return pressurizedTankMap
       default:
         return null
     }
@@ -567,7 +567,7 @@ export function useStationModels(
     pressureRegulatingTowerMap,
     mixingTankMap,
     houseMap,
-    verticalPressurizedTankBodyMap,
+    pressurizedTankMap,
     loading,
     loadedCount,
     totalCount,

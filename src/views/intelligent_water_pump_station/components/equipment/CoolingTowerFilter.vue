@@ -70,7 +70,7 @@ const resetFilter = (): void => {
 
 <template>
   <div class="equipment-panel">
-    <el-form :inline="true" size="default" label-width="68px" class="filter-form">
+    <el-form :inline="true" size="default" label-width="50px" class="filter-form">
       <el-form-item label="编号">
         <el-input v-model="filterForm.name" clearable style="width: 140px" />
       </el-form-item>
@@ -103,6 +103,9 @@ const resetFilter = (): void => {
       </el-form-item>
       <el-form-item label="转速">
         <el-input v-model="filterForm.rpm" clearable style="width: 110px" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="store.labelVisibleBySource.coolingTower">显示标签</el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

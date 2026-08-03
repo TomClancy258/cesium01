@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const { row, visible, toTooltipStyle } =
-  useEquipmentTooltip<VerticalPressurizedTankBodyRow>('verticalPressurizedTankBody')
+  useEquipmentTooltip<VerticalPressurizedTankBodyRow>('pressurizedTank')
 const tooltipStyle = computed(() => toTooltipStyle(props.position))
 </script>
 

@@ -79,7 +79,7 @@ const resetFilter = (): void => {
 
 <template>
   <div class="equipment-panel">
-    <el-form :inline="true" size="default" label-width="68px" class="filter-form">
+    <el-form :inline="true" size="default" label-width="40px" class="filter-form">
       <el-form-item label="编号">
         <el-input v-model="filterForm.name" clearable style="width: 140px" />
       </el-form-item>
@@ -107,7 +107,7 @@ const resetFilter = (): void => {
       <el-form-item label="液位">
         <el-input v-model="filterForm.level" clearable style="width: 110px" />
       </el-form-item>
-      <el-form-item label="最高液位">
+      <el-form-item label="最高液位" label-width="68px">
         <el-input v-model="filterForm.maxLevel" clearable style="width: 110px" />
       </el-form-item>
       <el-form-item label="功率">
@@ -115,6 +115,9 @@ const resetFilter = (): void => {
       </el-form-item>
       <el-form-item label="温度">
         <el-input v-model="filterForm.temperature" clearable style="width: 110px" />
+      </el-form-item>
+      <el-form-item>
+        <el-checkbox v-model="store.labelVisibleBySource.mixingTank">显示标签</el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

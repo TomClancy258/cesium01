@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import { useStationEquipmentStore } from '@/stores/station-equipment'
 import { useThreeScene } from './composables/useThreeScene'
 import { useStationModels } from './composables/useStationModels'
 import { useScenePicking } from './composables/useScenePicking'
 import { useStationRealtime } from './composables/useStationRealtime'
+import { useEquipmentLabels } from './composables/useEquipmentLabels'
 import ReservoirTooltip from './components/tooltip/ReservoirTooltip.vue'
 import CoolingTowerTooltip from './components/tooltip/CoolingTowerTooltip.vue'
 import CoolingTubeTooltip from './components/tooltip/CoolingTubeTooltip.vue'
@@ -14,7 +14,6 @@ import MixingTankTooltip from './components/tooltip/MixingTankTooltip.vue'
 import HouseTooltip from './components/tooltip/HouseTooltip.vue'
 import VerticalPressurizedTankBodyTooltip from './components/tooltip/VerticalPressurizedTankBodyTooltip.vue'
 import EquipmentDrawer from './components/EquipmentDrawer.vue'
-import { TABLE_LABEL } from './types/station-equipment'
 
 const {
   containerRef,
@@ -23,6 +22,7 @@ const {
   renderer,
   controls,
   setOutlineObjects,
+  onAfterRender,
   initScene,
 } = useThreeScene()
 const {
@@ -41,9 +41,14 @@ const { tooltipPosition, bindPicking, selectByName } = useScenePicking(
   interactiveModels,
   setOutlineObjects,
 )
+const { initLabelRenderer, rebuildLabels } = useEquipmentLabels(
+  containerRef,
+  scene,
+  camera,
+  interactiveModels,
+  onAfterRender,
+)
 const { start, stop } = useStationRealtime(applyStatusFromPayload)
-/** Pinia store 单例；模板里用 store.xxx 保持响应式，不必 storeToRefs */
-const store = useStationEquipmentStore()
 
 const selectEquipmentByName = (name: string): void => {
   selectByName(name, objectById)
@@ -51,7 +56,9 @@ const selectEquipmentByName = (name: string): void => {
 
 onMounted(async () => {
   initScene()
+  initLabelRenderer()
   await loadModels()
+  rebuildLabels()
   bindPicking()
   start()
 })
@@ -68,21 +75,6 @@ onUnmounted(() => {
       模型加载中 {{ loadedCount }} / {{ totalCount }}
     </div>
     <template v-else>
-      <div class="pick-tip">
-        <div>WS: {{ store.connected ? '模拟推送中' : '未连接' }} · index {{ store.index }}</div>
-        <div>
-          Hover:
-          {{ store.hovered ? `${store.hovered.source}/${store.hovered.name}` : '-' }}
-        </div>
-        <div>
-          Click:
-          {{ store.selected ? `${store.selected.source}/${store.selected.name}` : '-' }}
-        </div>
-        <div v-if="store.selectedRow">
-          表: {{ TABLE_LABEL[store.activeTableKey] }} · {{ store.selectedRow.text }} ·
-          {{ store.selectedRow.status }}
-        </div>
-      </div>
       <ReservoirTooltip :position="tooltipPosition" />
       <CoolingTowerTooltip :position="tooltipPosition" />
       <CoolingTubeTooltip :position="tooltipPosition" />
@@ -108,8 +100,11 @@ onUnmounted(() => {
 }
 
 .three-container {
+  position: relative;
   width: 100%;
   height: 100%;
+  /* composer/setSize 间隙时的兜底，避免透出路由页白底 */
+  background: #0b1220;
 
   :deep(canvas) {
     display: block;
@@ -118,27 +113,16 @@ onUnmounted(() => {
   }
 }
 
-.loading-tip,
-.pick-tip {
+.loading-tip {
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   padding: 8px 14px;
   border-radius: 4px;
   background: rgba(0, 0, 0, 0.65);
   color: #fff;
   font-size: 14px;
   pointer-events: none;
-}
-
-.loading-tip {
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-}
-
-.pick-tip {
-  left: 12px;
-  top: 12px;
-  line-height: 1.6;
-  z-index: 2;
 }
 </style>

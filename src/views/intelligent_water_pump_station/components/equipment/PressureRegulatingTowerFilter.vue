@@ -114,6 +114,11 @@ const resetFilter = (): void => {
         <el-input v-model="filterForm.level" clearable style="width: 110px" />
       </el-form-item>
       <el-form-item>
+        <el-checkbox v-model="store.labelVisibleBySource.pressureRegulatingTower">
+          显示标签
+        </el-checkbox>
+      </el-form-item>
+      <el-form-item>
         <el-button @click="resetFilter">重置</el-button>
       </el-form-item>
     </el-form>
