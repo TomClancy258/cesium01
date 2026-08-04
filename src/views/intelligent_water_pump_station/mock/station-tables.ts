@@ -10,6 +10,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.8,
           "maxLevel": 4,
@@ -19,6 +20,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2.16,
           "maxLevel": 4,
@@ -28,6 +30,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.45,
           "maxLevel": 4,
@@ -37,6 +40,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.62,
           "maxLevel": 4,
@@ -46,6 +50,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.68,
           "maxLevel": 4,
@@ -55,6 +60,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.71,
           "maxLevel": 4,
@@ -64,6 +70,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 1.78,
           "maxLevel": 4,
@@ -73,6 +80,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 1.95,
           "maxLevel": 4,
@@ -82,6 +90,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.24,
           "maxLevel": 4,
@@ -91,6 +100,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.6,
           "maxLevel": 4,
@@ -100,6 +110,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.96,
           "maxLevel": 4,
@@ -109,6 +120,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.25,
           "maxLevel": 4,
@@ -118,6 +130,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.41,
           "maxLevel": 4,
@@ -127,6 +140,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.48,
           "maxLevel": 4,
@@ -141,6 +155,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 42,
           "power": 15,
@@ -150,6 +165,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 43.29,
           "power": 15.64,
@@ -159,6 +175,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 43.97,
           "power": 15.99,
@@ -168,6 +185,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 43.73,
           "power": 15.86,
@@ -177,6 +195,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 42.67,
           "power": 15.33,
@@ -186,6 +205,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 41.3,
           "power": 14.65,
@@ -195,6 +215,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 40.26,
           "power": 14.13,
@@ -204,6 +225,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 40.04,
           "power": 14.02,
@@ -218,6 +240,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 36,
           "pressure": 0.35,
@@ -226,6 +249,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 36.97,
           "pressure": 0.38,
@@ -234,6 +258,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 37.48,
           "pressure": 0.39,
@@ -242,6 +267,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 37.29,
           "pressure": 0.38,
@@ -255,6 +281,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.08,
           "on": false,
@@ -263,6 +290,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.09,
           "on": true,
@@ -271,6 +299,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.09,
           "on": true,
@@ -279,6 +308,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.09,
           "on": true,
@@ -287,6 +317,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.08,
           "on": true,
@@ -295,6 +326,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.08,
           "on": false,
@@ -303,6 +335,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.07,
           "on": true,
@@ -311,6 +344,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.07,
           "on": true,
@@ -319,6 +353,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.07,
           "on": true,
@@ -327,6 +362,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.08,
           "on": true,
@@ -335,6 +371,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.09,
           "on": false,
@@ -343,6 +380,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.09,
           "on": true,
@@ -351,6 +389,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.09,
           "on": true,
@@ -359,6 +398,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.08,
           "on": true,
@@ -372,6 +412,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.55,
           "maxPressure": 1.2,
@@ -381,6 +422,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.58,
           "maxPressure": 1.2,
@@ -395,6 +437,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.8,
           "maxLevel": 3.5,
@@ -405,6 +448,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.93,
           "maxLevel": 3.5,
@@ -415,6 +459,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 2,
           "maxLevel": 3.5,
@@ -425,6 +470,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.97,
           "maxLevel": 3.5,
@@ -440,6 +486,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -447,6 +494,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -454,6 +502,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -461,6 +510,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -468,6 +518,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -475,6 +526,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -482,6 +534,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -489,6 +542,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -496,6 +550,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -503,6 +558,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -515,6 +571,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -524,6 +581,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -533,6 +591,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -542,6 +601,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -551,6 +611,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -560,6 +621,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -569,6 +631,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -578,6 +641,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -587,6 +651,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -596,6 +661,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -605,6 +671,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -614,6 +681,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -623,6 +691,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -632,6 +701,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -641,6 +711,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -650,6 +721,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -659,6 +731,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -668,6 +741,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -677,6 +751,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -686,6 +761,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -695,6 +771,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -704,6 +781,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -720,6 +798,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.96,
           "maxLevel": 4,
@@ -729,6 +808,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2.25,
           "maxLevel": 4,
@@ -738,6 +818,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.42,
           "maxLevel": 4,
@@ -747,6 +828,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.48,
           "maxLevel": 4,
@@ -756,6 +838,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.51,
           "maxLevel": 4,
@@ -765,6 +848,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.58,
           "maxLevel": 4,
@@ -774,6 +858,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 1.75,
           "maxLevel": 4,
@@ -783,6 +868,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.04,
           "maxLevel": 4,
@@ -792,6 +878,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.4,
           "maxLevel": 4,
@@ -801,6 +888,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.76,
           "maxLevel": 4,
@@ -810,6 +898,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 2.05,
           "maxLevel": 4,
@@ -819,6 +908,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.21,
           "maxLevel": 4,
@@ -828,6 +918,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.28,
           "maxLevel": 4,
@@ -837,6 +928,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.31,
           "maxLevel": 4,
@@ -851,6 +943,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 43.29,
           "power": 15.64,
@@ -860,6 +953,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 43.97,
           "power": 15.99,
@@ -869,6 +963,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 43.73,
           "power": 15.86,
@@ -878,6 +973,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 42.67,
           "power": 15.33,
@@ -887,6 +983,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 41.3,
           "power": 14.65,
@@ -896,6 +993,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 40.26,
           "power": 14.13,
@@ -905,6 +1003,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 40.04,
           "power": 14.02,
@@ -914,6 +1013,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 40.74,
           "power": 14.37,
@@ -928,6 +1028,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 36.97,
           "pressure": 0.38,
@@ -936,6 +1037,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 37.48,
           "pressure": 0.39,
@@ -944,6 +1046,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 37.29,
           "pressure": 0.38,
@@ -952,6 +1055,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 36.5,
           "pressure": 0.36,
@@ -965,6 +1069,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.09,
           "on": true,
@@ -973,6 +1078,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.09,
           "on": true,
@@ -981,6 +1087,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.09,
           "on": true,
@@ -989,6 +1096,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.08,
           "on": true,
@@ -997,6 +1105,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.08,
           "on": false,
@@ -1005,6 +1114,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.07,
           "on": true,
@@ -1013,6 +1123,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.07,
           "on": true,
@@ -1021,6 +1132,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.07,
           "on": true,
@@ -1029,6 +1141,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.08,
           "on": true,
@@ -1037,6 +1150,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.09,
           "on": false,
@@ -1045,6 +1159,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.09,
           "on": true,
@@ -1053,6 +1168,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.09,
           "on": true,
@@ -1061,6 +1177,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.08,
           "on": true,
@@ -1069,6 +1186,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.08,
           "on": true,
@@ -1082,6 +1200,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.58,
           "maxPressure": 1.2,
@@ -1091,6 +1210,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.6,
           "maxPressure": 1.2,
@@ -1105,6 +1225,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.93,
           "maxLevel": 3.5,
@@ -1115,6 +1236,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 2,
           "maxLevel": 3.5,
@@ -1125,6 +1247,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.97,
           "maxLevel": 3.5,
@@ -1135,6 +1258,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.87,
           "maxLevel": 3.5,
@@ -1150,6 +1274,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1157,6 +1282,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -1164,6 +1290,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1171,6 +1298,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -1178,6 +1306,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1185,6 +1314,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -1192,6 +1322,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1199,6 +1330,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -1206,6 +1338,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1213,6 +1346,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -1225,6 +1359,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -1234,6 +1369,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -1243,6 +1379,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -1252,6 +1389,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -1261,6 +1399,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -1270,6 +1409,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -1279,6 +1419,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -1288,6 +1429,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -1297,6 +1439,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -1306,6 +1449,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -1315,6 +1459,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -1324,6 +1469,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -1333,6 +1479,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -1342,6 +1489,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -1351,6 +1499,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -1360,6 +1509,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -1369,6 +1519,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -1378,6 +1529,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -1387,6 +1539,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -1396,6 +1549,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -1405,6 +1559,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -1414,6 +1569,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -1430,6 +1586,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 2.05,
           "maxLevel": 4,
@@ -1439,6 +1596,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2.22,
           "maxLevel": 4,
@@ -1448,6 +1606,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.28,
           "maxLevel": 4,
@@ -1457,6 +1616,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.31,
           "maxLevel": 4,
@@ -1466,6 +1626,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.38,
           "maxLevel": 4,
@@ -1475,6 +1636,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.55,
           "maxLevel": 4,
@@ -1484,6 +1646,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 1.84,
           "maxLevel": 4,
@@ -1493,6 +1656,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.2,
           "maxLevel": 4,
@@ -1502,6 +1666,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.56,
           "maxLevel": 4,
@@ -1511,6 +1676,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.85,
           "maxLevel": 4,
@@ -1520,6 +1686,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 2.01,
           "maxLevel": 4,
@@ -1529,6 +1696,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.08,
           "maxLevel": 4,
@@ -1538,6 +1706,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.11,
           "maxLevel": 4,
@@ -1547,6 +1716,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.18,
           "maxLevel": 4,
@@ -1561,6 +1731,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 43.97,
           "power": 15.99,
@@ -1570,6 +1741,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 43.73,
           "power": 15.86,
@@ -1579,6 +1751,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 42.67,
           "power": 15.33,
@@ -1588,6 +1761,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 41.3,
           "power": 14.65,
@@ -1597,6 +1771,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 40.26,
           "power": 14.13,
@@ -1606,6 +1781,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 40.04,
           "power": 14.02,
@@ -1615,6 +1791,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 40.74,
           "power": 14.37,
@@ -1624,6 +1801,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 42.03,
           "power": 15.02,
@@ -1638,6 +1816,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 37.48,
           "pressure": 0.39,
@@ -1646,6 +1825,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 37.29,
           "pressure": 0.38,
@@ -1654,6 +1834,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 36.5,
           "pressure": 0.36,
@@ -1662,6 +1843,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 35.47,
           "pressure": 0.34,
@@ -1675,6 +1857,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.09,
           "on": true,
@@ -1683,6 +1866,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.09,
           "on": true,
@@ -1691,6 +1875,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.08,
           "on": true,
@@ -1699,6 +1884,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.08,
           "on": false,
@@ -1707,6 +1893,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.07,
           "on": true,
@@ -1715,6 +1902,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.07,
           "on": true,
@@ -1723,6 +1911,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.07,
           "on": true,
@@ -1731,6 +1920,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.08,
           "on": true,
@@ -1739,6 +1929,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.09,
           "on": false,
@@ -1747,6 +1938,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.09,
           "on": true,
@@ -1755,6 +1947,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.09,
           "on": true,
@@ -1763,6 +1956,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.08,
           "on": true,
@@ -1771,6 +1965,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.08,
           "on": true,
@@ -1779,6 +1974,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.07,
           "on": false,
@@ -1792,6 +1988,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.6,
           "maxPressure": 1.2,
@@ -1801,6 +1998,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.59,
           "maxPressure": 1.2,
@@ -1815,6 +2013,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 2,
           "maxLevel": 3.5,
@@ -1825,6 +2024,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.97,
           "maxLevel": 3.5,
@@ -1835,6 +2035,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.87,
           "maxLevel": 3.5,
@@ -1845,6 +2046,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.73,
           "maxLevel": 3.5,
@@ -1860,6 +2062,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1867,6 +2070,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -1874,6 +2078,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1881,6 +2086,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -1888,6 +2094,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1895,6 +2102,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -1902,6 +2110,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1909,6 +2118,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -1916,6 +2126,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1923,6 +2134,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -1935,6 +2147,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -1944,6 +2157,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -1953,6 +2167,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -1962,6 +2177,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -1971,6 +2187,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -1980,6 +2197,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -1989,6 +2207,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -1998,6 +2217,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -2007,6 +2227,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -2016,6 +2237,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -2025,6 +2247,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -2034,6 +2257,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -2043,6 +2267,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -2052,6 +2277,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -2061,6 +2287,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -2070,6 +2297,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -2079,6 +2307,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -2088,6 +2317,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -2097,6 +2327,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -2106,6 +2337,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -2115,6 +2347,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -2124,6 +2357,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -2140,6 +2374,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 2.02,
           "maxLevel": 4,
@@ -2149,6 +2384,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2.08,
           "maxLevel": 4,
@@ -2158,6 +2394,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.11,
           "maxLevel": 4,
@@ -2167,6 +2404,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.18,
           "maxLevel": 4,
@@ -2176,6 +2414,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.35,
           "maxLevel": 4,
@@ -2185,6 +2424,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.64,
           "maxLevel": 4,
@@ -2194,6 +2434,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 2,
           "maxLevel": 4,
@@ -2203,6 +2444,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.36,
           "maxLevel": 4,
@@ -2212,6 +2454,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.65,
           "maxLevel": 4,
@@ -2221,6 +2464,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.81,
           "maxLevel": 4,
@@ -2230,6 +2474,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.88,
           "maxLevel": 4,
@@ -2239,6 +2484,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 1.91,
           "maxLevel": 4,
@@ -2248,6 +2494,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 1.98,
           "maxLevel": 4,
@@ -2257,6 +2504,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.16,
           "maxLevel": 4,
@@ -2271,6 +2519,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 43.73,
           "power": 15.86,
@@ -2280,6 +2529,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 42.67,
           "power": 15.33,
@@ -2289,6 +2539,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 41.3,
           "power": 14.65,
@@ -2298,6 +2549,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 40.26,
           "power": 14.13,
@@ -2307,6 +2559,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 40.04,
           "power": 14.02,
@@ -2316,6 +2569,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 40.74,
           "power": 14.37,
@@ -2325,6 +2579,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 42.03,
           "power": 15.02,
@@ -2334,6 +2589,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 43.31,
           "power": 15.66,
@@ -2348,6 +2604,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 37.29,
           "pressure": 0.38,
@@ -2356,6 +2613,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 36.5,
           "pressure": 0.36,
@@ -2364,6 +2622,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 35.47,
           "pressure": 0.34,
@@ -2372,6 +2631,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 34.69,
           "pressure": 0.32,
@@ -2385,6 +2645,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.09,
           "on": true,
@@ -2393,6 +2654,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.08,
           "on": true,
@@ -2401,6 +2663,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.08,
           "on": false,
@@ -2409,6 +2672,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.07,
           "on": true,
@@ -2417,6 +2681,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.07,
           "on": true,
@@ -2425,6 +2690,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.07,
           "on": true,
@@ -2433,6 +2699,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.08,
           "on": true,
@@ -2441,6 +2708,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.09,
           "on": false,
@@ -2449,6 +2717,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.09,
           "on": true,
@@ -2457,6 +2726,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.09,
           "on": true,
@@ -2465,6 +2735,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.08,
           "on": true,
@@ -2473,6 +2744,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.08,
           "on": true,
@@ -2481,6 +2753,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.07,
           "on": false,
@@ -2489,6 +2762,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.07,
           "on": true,
@@ -2502,6 +2776,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.59,
           "maxPressure": 1.2,
@@ -2511,6 +2786,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.57,
           "maxPressure": 1.2,
@@ -2525,6 +2801,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.97,
           "maxLevel": 3.5,
@@ -2535,6 +2812,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.87,
           "maxLevel": 3.5,
@@ -2545,6 +2823,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.73,
           "maxLevel": 3.5,
@@ -2555,6 +2834,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.63,
           "maxLevel": 3.5,
@@ -2570,6 +2850,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2577,6 +2858,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -2584,6 +2866,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2591,6 +2874,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -2598,6 +2882,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2605,6 +2890,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -2612,6 +2898,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2619,6 +2906,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -2626,6 +2914,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2633,6 +2922,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -2645,6 +2935,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -2654,6 +2945,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -2663,6 +2955,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -2672,6 +2965,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -2681,6 +2975,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -2690,6 +2985,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -2699,6 +2995,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -2708,6 +3005,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -2717,6 +3015,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -2726,6 +3025,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -2735,6 +3035,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -2744,6 +3045,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -2753,6 +3055,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -2762,6 +3065,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -2771,6 +3075,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -2780,6 +3085,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -2789,6 +3095,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -2798,6 +3105,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -2807,6 +3115,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -2816,6 +3125,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -2825,6 +3135,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -2834,6 +3145,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -2850,6 +3162,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.88,
           "maxLevel": 4,
@@ -2859,6 +3172,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 1.91,
           "maxLevel": 4,
@@ -2868,6 +3182,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 1.98,
           "maxLevel": 4,
@@ -2877,6 +3192,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.15,
           "maxLevel": 4,
@@ -2886,6 +3202,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.44,
           "maxLevel": 4,
@@ -2895,6 +3212,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.8,
           "maxLevel": 4,
@@ -2904,6 +3222,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 2.16,
           "maxLevel": 4,
@@ -2913,6 +3232,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.45,
           "maxLevel": 4,
@@ -2922,6 +3242,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.61,
           "maxLevel": 4,
@@ -2931,6 +3252,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.68,
           "maxLevel": 4,
@@ -2940,6 +3262,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.71,
           "maxLevel": 4,
@@ -2949,6 +3272,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 1.78,
           "maxLevel": 4,
@@ -2958,6 +3282,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 1.96,
           "maxLevel": 4,
@@ -2967,6 +3292,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.25,
           "maxLevel": 4,
@@ -2981,6 +3307,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 42.67,
           "power": 15.33,
@@ -2990,6 +3317,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 41.3,
           "power": 14.65,
@@ -2999,6 +3327,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 40.26,
           "power": 14.13,
@@ -3008,6 +3337,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 40.04,
           "power": 14.02,
@@ -3017,6 +3347,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 40.74,
           "power": 14.37,
@@ -3026,6 +3357,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 42.03,
           "power": 15.02,
@@ -3035,6 +3367,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 43.31,
           "power": 15.66,
@@ -3044,6 +3377,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 43.98,
           "power": 15.99,
@@ -3058,6 +3392,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 36.5,
           "pressure": 0.36,
@@ -3066,6 +3401,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 35.47,
           "pressure": 0.34,
@@ -3074,6 +3410,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 34.69,
           "pressure": 0.32,
@@ -3082,6 +3419,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 34.53,
           "pressure": 0.31,
@@ -3095,6 +3433,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.08,
           "on": true,
@@ -3103,6 +3442,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.08,
           "on": false,
@@ -3111,6 +3451,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.07,
           "on": true,
@@ -3119,6 +3460,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.07,
           "on": true,
@@ -3127,6 +3469,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.07,
           "on": true,
@@ -3135,6 +3478,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.08,
           "on": true,
@@ -3143,6 +3487,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.09,
           "on": false,
@@ -3151,6 +3496,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.09,
           "on": true,
@@ -3159,6 +3505,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.09,
           "on": true,
@@ -3167,6 +3514,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.08,
           "on": true,
@@ -3175,6 +3523,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.08,
           "on": true,
@@ -3183,6 +3532,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.07,
           "on": false,
@@ -3191,6 +3541,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.07,
           "on": true,
@@ -3199,6 +3550,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.07,
           "on": true,
@@ -3212,6 +3564,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.57,
           "maxPressure": 1.2,
@@ -3221,6 +3574,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.53,
           "maxPressure": 1.2,
@@ -3235,6 +3589,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.87,
           "maxLevel": 3.5,
@@ -3245,6 +3600,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.73,
           "maxLevel": 3.5,
@@ -3255,6 +3611,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.63,
           "maxLevel": 3.5,
@@ -3265,6 +3622,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.6,
           "maxLevel": 3.5,
@@ -3280,6 +3638,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3287,6 +3646,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -3294,6 +3654,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3301,6 +3662,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -3308,6 +3670,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3315,6 +3678,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -3322,6 +3686,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3329,6 +3694,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -3336,6 +3702,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3343,6 +3710,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -3355,6 +3723,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -3364,6 +3733,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -3373,6 +3743,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -3382,6 +3753,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -3391,6 +3763,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -3400,6 +3773,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -3409,6 +3783,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -3418,6 +3793,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -3427,6 +3803,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -3436,6 +3813,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -3445,6 +3823,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -3454,6 +3833,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -3463,6 +3843,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -3472,6 +3853,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -3481,6 +3863,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -3490,6 +3873,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -3499,6 +3883,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -3508,6 +3893,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -3517,6 +3903,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -3526,6 +3913,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -3535,6 +3923,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -3544,6 +3933,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -3560,6 +3950,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.71,
           "maxLevel": 4,
@@ -3569,6 +3960,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 1.78,
           "maxLevel": 4,
@@ -3578,6 +3970,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 1.95,
           "maxLevel": 4,
@@ -3587,6 +3980,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.24,
           "maxLevel": 4,
@@ -3596,6 +3990,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.6,
           "maxLevel": 4,
@@ -3605,6 +4000,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.96,
           "maxLevel": 4,
@@ -3614,6 +4010,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 2.25,
           "maxLevel": 4,
@@ -3623,6 +4020,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.41,
           "maxLevel": 4,
@@ -3632,6 +4030,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.48,
           "maxLevel": 4,
@@ -3641,6 +4040,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.51,
           "maxLevel": 4,
@@ -3650,6 +4050,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.58,
           "maxLevel": 4,
@@ -3659,6 +4060,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 1.76,
           "maxLevel": 4,
@@ -3668,6 +4070,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.05,
           "maxLevel": 4,
@@ -3677,6 +4080,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.41,
           "maxLevel": 4,
@@ -3691,6 +4095,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 41.3,
           "power": 14.65,
@@ -3700,6 +4105,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 40.26,
           "power": 14.13,
@@ -3709,6 +4115,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 40.04,
           "power": 14.02,
@@ -3718,6 +4125,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 40.74,
           "power": 14.37,
@@ -3727,6 +4135,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 42.03,
           "power": 15.02,
@@ -3736,6 +4145,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 43.31,
           "power": 15.66,
@@ -3745,6 +4155,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 43.98,
           "power": 15.99,
@@ -3754,6 +4165,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 43.71,
           "power": 15.85,
@@ -3768,6 +4180,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 35.47,
           "pressure": 0.34,
@@ -3776,6 +4189,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 34.69,
           "pressure": 0.32,
@@ -3784,6 +4198,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 34.53,
           "pressure": 0.31,
@@ -3792,6 +4207,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 35.05,
           "pressure": 0.32,
@@ -3805,6 +4221,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.08,
           "on": false,
@@ -3813,6 +4230,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.07,
           "on": true,
@@ -3821,6 +4239,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.07,
           "on": true,
@@ -3829,6 +4248,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.07,
           "on": true,
@@ -3837,6 +4257,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.08,
           "on": true,
@@ -3845,6 +4266,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.09,
           "on": false,
@@ -3853,6 +4275,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.09,
           "on": true,
@@ -3861,6 +4284,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.09,
           "on": true,
@@ -3869,6 +4293,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.08,
           "on": true,
@@ -3877,6 +4302,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.08,
           "on": true,
@@ -3885,6 +4311,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.07,
           "on": false,
@@ -3893,6 +4320,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.07,
           "on": true,
@@ -3901,6 +4329,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.07,
           "on": true,
@@ -3909,6 +4338,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.08,
           "on": true,
@@ -3922,6 +4352,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.53,
           "maxPressure": 1.2,
@@ -3931,6 +4362,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.51,
           "maxPressure": 1.2,
@@ -3945,6 +4377,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.73,
           "maxLevel": 3.5,
@@ -3955,6 +4388,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.63,
           "maxLevel": 3.5,
@@ -3965,6 +4399,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.6,
           "maxLevel": 3.5,
@@ -3975,6 +4410,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.67,
           "maxLevel": 3.5,
@@ -3990,6 +4426,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3997,6 +4434,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -4004,6 +4442,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4011,6 +4450,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -4018,6 +4458,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4025,6 +4466,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -4032,6 +4474,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4039,6 +4482,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -4046,6 +4490,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4053,6 +4498,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -4065,6 +4511,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -4074,6 +4521,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4083,6 +4531,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4092,6 +4541,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4101,6 +4551,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -4110,6 +4561,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -4119,6 +4571,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -4128,6 +4581,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -4137,6 +4591,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -4146,6 +4601,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -4155,6 +4611,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4164,6 +4621,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4173,6 +4631,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4182,6 +4641,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -4191,6 +4651,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -4200,6 +4661,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -4209,6 +4671,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -4218,6 +4681,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -4227,6 +4691,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -4236,6 +4701,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4245,6 +4711,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4254,6 +4721,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4270,6 +4738,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.58,
           "maxLevel": 4,
@@ -4279,6 +4748,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 1.75,
           "maxLevel": 4,
@@ -4288,6 +4758,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.04,
           "maxLevel": 4,
@@ -4297,6 +4768,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.4,
           "maxLevel": 4,
@@ -4306,6 +4778,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.76,
           "maxLevel": 4,
@@ -4315,6 +4788,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 2.05,
           "maxLevel": 4,
@@ -4324,6 +4798,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 2.21,
           "maxLevel": 4,
@@ -4333,6 +4808,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.28,
           "maxLevel": 4,
@@ -4342,6 +4818,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.31,
           "maxLevel": 4,
@@ -4351,6 +4828,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.38,
           "maxLevel": 4,
@@ -4360,6 +4838,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.56,
           "maxLevel": 4,
@@ -4369,6 +4848,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 1.85,
           "maxLevel": 4,
@@ -4378,6 +4858,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.21,
           "maxLevel": 4,
@@ -4387,6 +4868,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.57,
           "maxLevel": 4,
@@ -4401,6 +4883,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 40.26,
           "power": 14.13,
@@ -4410,6 +4893,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 40.04,
           "power": 14.02,
@@ -4419,6 +4903,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 40.74,
           "power": 14.37,
@@ -4428,6 +4913,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 42.03,
           "power": 15.02,
@@ -4437,6 +4923,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 43.31,
           "power": 15.66,
@@ -4446,6 +4933,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 43.98,
           "power": 15.99,
@@ -4455,6 +4943,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 43.71,
           "power": 15.85,
@@ -4464,6 +4953,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 42.64,
           "power": 15.32,
@@ -4478,6 +4968,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 34.69,
           "pressure": 0.32,
@@ -4486,6 +4977,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 34.53,
           "pressure": 0.31,
@@ -4494,6 +4986,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 35.05,
           "pressure": 0.32,
@@ -4502,6 +4995,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 36.03,
           "pressure": 0.35,
@@ -4515,6 +5009,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.07,
           "on": true,
@@ -4523,6 +5018,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.07,
           "on": true,
@@ -4531,6 +5027,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.07,
           "on": true,
@@ -4539,6 +5036,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.08,
           "on": true,
@@ -4547,6 +5045,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.09,
           "on": false,
@@ -4555,6 +5054,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.09,
           "on": true,
@@ -4563,6 +5063,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.09,
           "on": true,
@@ -4571,6 +5072,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.08,
           "on": true,
@@ -4579,6 +5081,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.08,
           "on": true,
@@ -4587,6 +5090,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.07,
           "on": false,
@@ -4595,6 +5099,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.07,
           "on": true,
@@ -4603,6 +5108,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.07,
           "on": true,
@@ -4611,6 +5117,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.08,
           "on": true,
@@ -4619,6 +5126,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.09,
           "on": true,
@@ -4632,6 +5140,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.51,
           "maxPressure": 1.2,
@@ -4641,6 +5150,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.5,
           "maxPressure": 1.2,
@@ -4655,6 +5165,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.63,
           "maxLevel": 3.5,
@@ -4665,6 +5176,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.6,
           "maxLevel": 3.5,
@@ -4675,6 +5187,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.67,
           "maxLevel": 3.5,
@@ -4685,6 +5198,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.8,
           "maxLevel": 3.5,
@@ -4700,6 +5214,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4707,6 +5222,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -4714,6 +5230,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4721,6 +5238,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -4728,6 +5246,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4735,6 +5254,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -4742,6 +5262,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4749,6 +5270,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -4756,6 +5278,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4763,6 +5286,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -4775,6 +5299,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4784,6 +5309,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4793,6 +5319,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4802,6 +5329,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -4811,6 +5339,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -4820,6 +5349,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -4829,6 +5359,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -4838,6 +5369,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -4847,6 +5379,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -4856,6 +5389,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4865,6 +5399,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4874,6 +5409,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4883,6 +5419,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -4892,6 +5429,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -4901,6 +5439,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -4910,6 +5449,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -4919,6 +5459,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -4928,6 +5469,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -4937,6 +5479,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -4946,6 +5489,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -4955,6 +5499,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -4964,6 +5509,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -4980,6 +5526,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.55,
           "maxLevel": 4,
@@ -4989,6 +5536,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 1.84,
           "maxLevel": 4,
@@ -4998,6 +5546,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.2,
           "maxLevel": 4,
@@ -5007,6 +5556,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.56,
           "maxLevel": 4,
@@ -5016,6 +5566,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.85,
           "maxLevel": 4,
@@ -5025,6 +5576,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 2.01,
           "maxLevel": 4,
@@ -5034,6 +5586,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 2.08,
           "maxLevel": 4,
@@ -5043,6 +5596,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 2.11,
           "maxLevel": 4,
@@ -5052,6 +5606,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.18,
           "maxLevel": 4,
@@ -5061,6 +5616,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.36,
           "maxLevel": 4,
@@ -5070,6 +5626,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.65,
           "maxLevel": 4,
@@ -5079,6 +5636,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.01,
           "maxLevel": 4,
@@ -5088,6 +5646,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.37,
           "maxLevel": 4,
@@ -5097,6 +5656,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.65,
           "maxLevel": 4,
@@ -5111,6 +5671,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 40.04,
           "power": 14.02,
@@ -5120,6 +5681,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 40.74,
           "power": 14.37,
@@ -5129,6 +5691,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 42.03,
           "power": 15.02,
@@ -5138,6 +5701,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 43.31,
           "power": 15.66,
@@ -5147,6 +5711,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 43.98,
           "power": 15.99,
@@ -5156,6 +5721,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 43.71,
           "power": 15.85,
@@ -5165,6 +5731,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 42.64,
           "power": 15.32,
@@ -5174,6 +5741,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 41.27,
           "power": 14.63,
@@ -5188,6 +5756,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 34.53,
           "pressure": 0.31,
@@ -5196,6 +5765,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 35.05,
           "pressure": 0.32,
@@ -5204,6 +5774,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 36.03,
           "pressure": 0.35,
@@ -5212,6 +5783,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 36.99,
           "pressure": 0.38,
@@ -5225,6 +5797,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.07,
           "on": true,
@@ -5233,6 +5806,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.07,
           "on": true,
@@ -5241,6 +5815,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.08,
           "on": true,
@@ -5249,6 +5824,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.09,
           "on": false,
@@ -5257,6 +5833,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.09,
           "on": true,
@@ -5265,6 +5842,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.09,
           "on": true,
@@ -5273,6 +5851,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.08,
           "on": true,
@@ -5281,6 +5860,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.08,
           "on": true,
@@ -5289,6 +5869,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.07,
           "on": false,
@@ -5297,6 +5878,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.07,
           "on": true,
@@ -5305,6 +5887,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.07,
           "on": true,
@@ -5313,6 +5896,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.08,
           "on": true,
@@ -5321,6 +5905,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.09,
           "on": true,
@@ -5329,6 +5914,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.09,
           "on": false,
@@ -5342,6 +5928,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.5,
           "maxPressure": 1.2,
@@ -5351,6 +5938,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.52,
           "maxPressure": 1.2,
@@ -5365,6 +5953,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.6,
           "maxLevel": 3.5,
@@ -5375,6 +5964,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.67,
           "maxLevel": 3.5,
@@ -5385,6 +5975,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.8,
           "maxLevel": 3.5,
@@ -5395,6 +5986,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.93,
           "maxLevel": 3.5,
@@ -5410,6 +6002,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5417,6 +6010,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -5424,6 +6018,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5431,6 +6026,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -5438,6 +6034,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5445,6 +6042,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -5452,6 +6050,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5459,6 +6058,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -5466,6 +6066,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5473,6 +6074,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -5485,6 +6087,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -5494,6 +6097,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -5503,6 +6107,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -5512,6 +6117,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -5521,6 +6127,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -5530,6 +6137,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -5539,6 +6147,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -5548,6 +6157,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -5557,6 +6167,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -5566,6 +6177,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -5575,6 +6187,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -5584,6 +6197,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -5593,6 +6207,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -5602,6 +6217,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -5611,6 +6227,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -5620,6 +6237,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -5629,6 +6247,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -5638,6 +6257,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -5647,6 +6267,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -5656,6 +6277,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -5665,6 +6287,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -5674,6 +6297,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -5690,6 +6314,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.64,
           "maxLevel": 4,
@@ -5699,6 +6324,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2,
           "maxLevel": 4,
@@ -5708,6 +6334,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.36,
           "maxLevel": 4,
@@ -5717,6 +6344,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.65,
           "maxLevel": 4,
@@ -5726,6 +6354,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.81,
           "maxLevel": 4,
@@ -5735,6 +6364,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.88,
           "maxLevel": 4,
@@ -5744,6 +6374,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 1.91,
           "maxLevel": 4,
@@ -5753,6 +6384,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 1.98,
           "maxLevel": 4,
@@ -5762,6 +6394,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.16,
           "maxLevel": 4,
@@ -5771,6 +6404,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.45,
           "maxLevel": 4,
@@ -5780,6 +6414,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.81,
           "maxLevel": 4,
@@ -5789,6 +6424,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.17,
           "maxLevel": 4,
@@ -5798,6 +6434,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.45,
           "maxLevel": 4,
@@ -5807,6 +6444,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.61,
           "maxLevel": 4,
@@ -5821,6 +6459,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 40.74,
           "power": 14.37,
@@ -5830,6 +6469,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 42.03,
           "power": 15.02,
@@ -5839,6 +6479,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 43.31,
           "power": 15.66,
@@ -5848,6 +6489,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 43.98,
           "power": 15.99,
@@ -5857,6 +6499,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 43.71,
           "power": 15.85,
@@ -5866,6 +6509,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 42.64,
           "power": 15.32,
@@ -5875,6 +6519,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 41.27,
           "power": 14.63,
@@ -5884,6 +6529,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 40.24,
           "power": 14.12,
@@ -5898,6 +6544,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 35.05,
           "pressure": 0.32,
@@ -5906,6 +6553,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 36.03,
           "pressure": 0.35,
@@ -5914,6 +6562,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 36.99,
           "pressure": 0.38,
@@ -5922,6 +6571,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 37.48,
           "pressure": 0.39,
@@ -5935,6 +6585,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.07,
           "on": true,
@@ -5943,6 +6594,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.08,
           "on": true,
@@ -5951,6 +6603,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.09,
           "on": false,
@@ -5959,6 +6612,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.09,
           "on": true,
@@ -5967,6 +6621,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.09,
           "on": true,
@@ -5975,6 +6630,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.08,
           "on": true,
@@ -5983,6 +6639,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.08,
           "on": true,
@@ -5991,6 +6648,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.07,
           "on": false,
@@ -5999,6 +6657,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.07,
           "on": true,
@@ -6007,6 +6666,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.07,
           "on": true,
@@ -6015,6 +6675,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.08,
           "on": true,
@@ -6023,6 +6684,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.09,
           "on": true,
@@ -6031,6 +6693,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.09,
           "on": false,
@@ -6039,6 +6702,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.09,
           "on": true,
@@ -6052,6 +6716,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.52,
           "maxPressure": 1.2,
@@ -6061,6 +6726,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.55,
           "maxPressure": 1.2,
@@ -6075,6 +6741,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.67,
           "maxLevel": 3.5,
@@ -6085,6 +6752,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.8,
           "maxLevel": 3.5,
@@ -6095,6 +6763,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 1.93,
           "maxLevel": 3.5,
@@ -6105,6 +6774,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 2,
           "maxLevel": 3.5,
@@ -6120,6 +6790,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6127,6 +6798,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -6134,6 +6806,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6141,6 +6814,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -6148,6 +6822,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6155,6 +6830,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -6162,6 +6838,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6169,6 +6846,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -6176,6 +6854,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6183,6 +6862,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -6195,6 +6875,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -6204,6 +6885,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -6213,6 +6895,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -6222,6 +6905,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -6231,6 +6915,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -6240,6 +6925,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -6249,6 +6935,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -6258,6 +6945,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -6267,6 +6955,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -6276,6 +6965,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -6285,6 +6975,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -6294,6 +6985,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -6303,6 +6995,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -6312,6 +7005,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -6321,6 +7015,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -6330,6 +7025,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -6339,6 +7035,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -6348,6 +7045,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -6357,6 +7055,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -6366,6 +7065,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -6375,6 +7075,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -6384,6 +7085,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -6400,6 +7102,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "shuichi-01",
+          "source": "reservoir",
           "text": "蓄水池-01",
           "level": 1.8,
           "maxLevel": 4,
@@ -6409,6 +7112,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-02",
+          "source": "reservoir",
           "text": "蓄水池-02",
           "level": 2.16,
           "maxLevel": 4,
@@ -6418,6 +7122,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-03",
+          "source": "reservoir",
           "text": "蓄水池-03",
           "level": 2.45,
           "maxLevel": 4,
@@ -6427,6 +7132,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-04",
+          "source": "reservoir",
           "text": "蓄水池-04",
           "level": 2.61,
           "maxLevel": 4,
@@ -6436,6 +7142,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-05",
+          "source": "reservoir",
           "text": "蓄水池-05",
           "level": 2.68,
           "maxLevel": 4,
@@ -6445,6 +7152,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-06",
+          "source": "reservoir",
           "text": "蓄水池-06",
           "level": 1.71,
           "maxLevel": 4,
@@ -6454,6 +7162,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-07",
+          "source": "reservoir",
           "text": "蓄水池-07",
           "level": 1.78,
           "maxLevel": 4,
@@ -6463,6 +7172,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-08",
+          "source": "reservoir",
           "text": "蓄水池-08",
           "level": 1.96,
           "maxLevel": 4,
@@ -6472,6 +7182,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-09",
+          "source": "reservoir",
           "text": "蓄水池-09",
           "level": 2.25,
           "maxLevel": 4,
@@ -6481,6 +7192,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-10",
+          "source": "reservoir",
           "text": "蓄水池-10",
           "level": 2.61,
           "maxLevel": 4,
@@ -6490,6 +7202,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-11",
+          "source": "reservoir",
           "text": "蓄水池-11",
           "level": 1.97,
           "maxLevel": 4,
@@ -6499,6 +7212,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-12",
+          "source": "reservoir",
           "text": "蓄水池-12",
           "level": 2.25,
           "maxLevel": 4,
@@ -6508,6 +7222,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-13",
+          "source": "reservoir",
           "text": "蓄水池-13",
           "level": 2.41,
           "maxLevel": 4,
@@ -6517,6 +7232,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "shuichi-14",
+          "source": "reservoir",
           "text": "蓄水池-14",
           "level": 2.48,
           "maxLevel": 4,
@@ -6531,6 +7247,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "paifengshan-01",
+          "source": "coolingTower",
           "text": "冷却塔-01",
           "temperature": 42.03,
           "power": 15.02,
@@ -6540,6 +7257,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-02",
+          "source": "coolingTower",
           "text": "冷却塔-02",
           "temperature": 43.31,
           "power": 15.66,
@@ -6549,6 +7267,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-03",
+          "source": "coolingTower",
           "text": "冷却塔-03",
           "temperature": 43.98,
           "power": 15.99,
@@ -6558,6 +7277,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-04",
+          "source": "coolingTower",
           "text": "冷却塔-04",
           "temperature": 43.71,
           "power": 15.85,
@@ -6567,6 +7287,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-05",
+          "source": "coolingTower",
           "text": "冷却塔-05",
           "temperature": 42.64,
           "power": 15.32,
@@ -6576,6 +7297,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-06",
+          "source": "coolingTower",
           "text": "冷却塔-06",
           "temperature": 41.27,
           "power": 14.63,
@@ -6585,6 +7307,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-07",
+          "source": "coolingTower",
           "text": "冷却塔-07",
           "temperature": 40.24,
           "power": 14.12,
@@ -6594,6 +7317,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "paifengshan-08",
+          "source": "coolingTower",
           "text": "冷却塔-08",
           "temperature": 40.04,
           "power": 14.02,
@@ -6608,6 +7332,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "guanzi-1",
+          "source": "coolingTube",
           "text": "冷却管-1",
           "temperature": 36.03,
           "pressure": 0.35,
@@ -6616,6 +7341,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-2",
+          "source": "coolingTube",
           "text": "冷却管-2",
           "temperature": 36.99,
           "pressure": 0.38,
@@ -6624,6 +7350,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-3",
+          "source": "coolingTube",
           "text": "冷却管-3",
           "temperature": 37.48,
           "pressure": 0.39,
@@ -6632,6 +7359,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "guanzi-4",
+          "source": "coolingTube",
           "text": "冷却管-4",
           "temperature": 37.28,
           "pressure": 0.38,
@@ -6645,6 +7373,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "ld18",
+          "source": "streetlight",
           "text": "路灯-18",
           "power": 0.08,
           "on": true,
@@ -6653,6 +7382,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld062",
+          "source": "streetlight",
           "text": "路灯-062",
           "power": 0.09,
           "on": false,
@@ -6661,6 +7391,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld063",
+          "source": "streetlight",
           "text": "路灯-063",
           "power": 0.09,
           "on": true,
@@ -6669,6 +7400,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld064",
+          "source": "streetlight",
           "text": "路灯-064",
           "power": 0.09,
           "on": true,
@@ -6677,6 +7409,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld065",
+          "source": "streetlight",
           "text": "路灯-065",
           "power": 0.08,
           "on": true,
@@ -6685,6 +7418,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld066",
+          "source": "streetlight",
           "text": "路灯-066",
           "power": 0.08,
           "on": true,
@@ -6693,6 +7427,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld067",
+          "source": "streetlight",
           "text": "路灯-067",
           "power": 0.07,
           "on": false,
@@ -6701,6 +7436,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld068",
+          "source": "streetlight",
           "text": "路灯-068",
           "power": 0.07,
           "on": true,
@@ -6709,6 +7445,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld069",
+          "source": "streetlight",
           "text": "路灯-069",
           "power": 0.07,
           "on": true,
@@ -6717,6 +7454,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld070",
+          "source": "streetlight",
           "text": "路灯-070",
           "power": 0.08,
           "on": true,
@@ -6725,6 +7463,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld071",
+          "source": "streetlight",
           "text": "路灯-071",
           "power": 0.09,
           "on": true,
@@ -6733,6 +7472,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld072",
+          "source": "streetlight",
           "text": "路灯-072",
           "power": 0.09,
           "on": false,
@@ -6741,6 +7481,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld073",
+          "source": "streetlight",
           "text": "路灯-073",
           "power": 0.09,
           "on": true,
@@ -6749,6 +7490,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "ld074",
+          "source": "streetlight",
           "text": "路灯-074",
           "power": 0.08,
           "on": true,
@@ -6762,6 +7504,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "yancun-01",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-01",
           "pressure": 0.55,
           "maxPressure": 1.2,
@@ -6771,6 +7514,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "yancun-02",
+          "source": "pressureRegulatingTower",
           "text": "调压塔-02",
           "pressure": 0.58,
           "maxPressure": 1.2,
@@ -6785,6 +7529,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "01-01",
+          "source": "mixingTank",
           "text": "搅拌池-01",
           "level": 1.8,
           "maxLevel": 3.5,
@@ -6795,6 +7540,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-02",
+          "source": "mixingTank",
           "text": "搅拌池-02",
           "level": 1.93,
           "maxLevel": 3.5,
@@ -6805,6 +7551,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-03",
+          "source": "mixingTank",
           "text": "搅拌池-03",
           "level": 2,
           "maxLevel": 3.5,
@@ -6815,6 +7562,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "01-04",
+          "source": "mixingTank",
           "text": "搅拌池-04",
           "level": 1.97,
           "maxLevel": 3.5,
@@ -6830,6 +7578,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "fangzi-01",
+          "source": "house",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6837,6 +7586,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
+          "source": "house",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -6844,6 +7594,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
+          "source": "house",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6851,6 +7602,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
+          "source": "house",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -6858,6 +7610,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
+          "source": "house",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6865,6 +7618,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
+          "source": "house",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -6872,6 +7626,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
+          "source": "house",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6879,6 +7634,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
+          "source": "house",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -6886,6 +7642,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
+          "source": "house",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6893,6 +7650,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
+          "source": "house",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -6905,6 +7663,7 @@ export const stationEquipments: StationWsPayload[] = [
       "data": [
         {
           "name": "daguanzi-01",
+          "source": "pressurizedTank",
           "text": "承压罐-01",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -6914,6 +7673,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-02",
+          "source": "pressurizedTank",
           "text": "承压罐-02",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -6923,6 +7683,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-03",
+          "source": "pressurizedTank",
           "text": "承压罐-03",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -6932,6 +7693,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-04",
+          "source": "pressurizedTank",
           "text": "承压罐-04",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -6941,6 +7703,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-05",
+          "source": "pressurizedTank",
           "text": "承压罐-05",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -6950,6 +7713,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-06",
+          "source": "pressurizedTank",
           "text": "承压罐-06",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -6959,6 +7723,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-07",
+          "source": "pressurizedTank",
           "text": "承压罐-07",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -6968,6 +7733,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-08",
+          "source": "pressurizedTank",
           "text": "承压罐-08",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -6977,6 +7743,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-09",
+          "source": "pressurizedTank",
           "text": "承压罐-09",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -6986,6 +7753,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-10",
+          "source": "pressurizedTank",
           "text": "承压罐-10",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -6995,6 +7763,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-11",
+          "source": "pressurizedTank",
           "text": "承压罐-11",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -7004,6 +7773,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-12",
+          "source": "pressurizedTank",
           "text": "承压罐-12",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -7013,6 +7783,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-13",
+          "source": "pressurizedTank",
           "text": "承压罐-13",
           "pressure": 0.65,
           "maxPressure": 1.6,
@@ -7022,6 +7793,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-14",
+          "source": "pressurizedTank",
           "text": "承压罐-14",
           "pressure": 0.62,
           "maxPressure": 1.6,
@@ -7031,6 +7803,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-15",
+          "source": "pressurizedTank",
           "text": "承压罐-15",
           "pressure": 0.58,
           "maxPressure": 1.6,
@@ -7040,6 +7813,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-16",
+          "source": "pressurizedTank",
           "text": "承压罐-16",
           "pressure": 0.55,
           "maxPressure": 1.6,
@@ -7049,6 +7823,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-17",
+          "source": "pressurizedTank",
           "text": "承压罐-17",
           "pressure": 0.54,
           "maxPressure": 1.6,
@@ -7058,6 +7833,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-18",
+          "source": "pressurizedTank",
           "text": "承压罐-18",
           "pressure": 0.56,
           "maxPressure": 1.6,
@@ -7067,6 +7843,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-19",
+          "source": "pressurizedTank",
           "text": "承压罐-19",
           "pressure": 0.6,
           "maxPressure": 1.6,
@@ -7076,6 +7853,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-20",
+          "source": "pressurizedTank",
           "text": "承压罐-20",
           "pressure": 0.64,
           "maxPressure": 1.6,
@@ -7085,6 +7863,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-21",
+          "source": "pressurizedTank",
           "text": "承压罐-21",
           "pressure": 0.66,
           "maxPressure": 1.6,
@@ -7094,6 +7873,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "daguanzi-22",
+          "source": "pressurizedTank",
           "text": "承压罐-22",
           "pressure": 0.65,
           "maxPressure": 1.6,

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 //src/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue
-import { ref, computed, watch, nextTick } from 'vue'
-import type { FormInstance, TableInstance } from 'element-plus'
+import { ref, computed, watch } from 'vue'
+import type { FormInstance } from 'element-plus'
 import { useControlZoneStore } from '@/stores/control-zone'
 import type { ControlZoneProperties } from '@/network/control-zone/type.ts'
 import AircraftIcaoPopover
@@ -31,8 +31,6 @@ const regionSelectionStore = useRegionSelectionStore()
 const controlZoneFilterFormRef = ref<FormInstance>()
 
 // ========== 表格与分页 ==========
-const tableRef = ref<TableInstance>()
-
 const currentPage = ref(1)
 const pageSize = ref(10)
 
@@ -49,6 +47,30 @@ const handleSizeChange = (size: number) => {
   currentPage.value = 1
 }
 
+/** 地图/详情选中管控区时翻到对应页；高亮交给 rowClassName */
+watch(
+  () => {
+    const selected = regionSelectionStore.selected
+    if (!selected || selected.sourceType !== 'controlZone') return null
+    return selected.id
+  },
+  (id) => {
+    if (id == null) return
+    const index = controlZoneStore.matchedControlZones.findIndex((row) => row.id === id)
+    if (index === -1) return
+    currentPage.value = Math.floor(index / pageSize.value) + 1
+  },
+  { immediate: true },
+)
+
+const rowClassName = ({ row }: { row: ControlZoneProperties }): string => {
+  const selected = regionSelectionStore.selected
+  if (selected?.sourceType === 'controlZone' && selected.id === row.id) {
+    return 'is-selected-row'
+  }
+  return ''
+}
+
 // ========== 表单操作 ==========
 const resetControlZoneForm = (formEl: FormInstance | undefined) => {
   if (!formEl) return
@@ -56,9 +78,9 @@ const resetControlZoneForm = (formEl: FormInstance | undefined) => {
 }
 
 const onDetail = (row: ControlZoneProperties) => {
-  emitCesiumEvent('controlZoneTableOperationClicked',{
-    operationType:'detail',
-    id:row.id
+  emitCesiumEvent('controlZoneTableOperationClicked', {
+    operationType: 'detail',
+    id: row.id,
   })
 }
 
@@ -76,35 +98,10 @@ const isTypesIndeterminate = computed(() => {
   const { levels } = controlZoneStore.controlZoneFilterForm
   return levels.length > 0 && levels.length < allControlZoneLevelValues.length
 })
-
-watch(
-  () => regionSelectionStore.selected,
-  async (selected) => {
-    if (!selected || selected.sourceType !== 'controlZone') {
-      tableRef.value?.setCurrentRow()
-      return
-    }
-    const index = controlZoneStore.matchedControlZones.findIndex(
-      (row) => row.id === selected.id,
-    )
-    if (index === -1) {
-      tableRef.value?.setCurrentRow()
-      return
-    }
-    currentPage.value = Math.floor(index / pageSize.value) + 1
-    await nextTick()
-    const row = pagedData.value[index % pageSize.value]
-    if (!row || !tableRef.value) return
-    tableRef.value.setCurrentRow(row)
-    // MapToolsDrawer 可能同步切到本面板，再等一帧确保高亮生效
-    await nextTick()
-    tableRef.value.setCurrentRow(row)
-  },
-)
 </script>
 
 <template>
-  <div>
+  <div class="control-zone-panel">
     <!-- 筛选表单 -->
     <el-form
       :model="controlZoneStore.controlZoneFilterForm"
@@ -154,16 +151,15 @@ watch(
       </el-form-item>
     </el-form>
 
-    <!-- 飞机数据表格 -->
+    <!-- 管控区域表格 -->
     <el-table
-      ref="tableRef"
       :data="pagedData"
       border
       stripe
       size="small"
       style="width: 100%"
       row-key="id"
-      highlight-current-row
+      :row-class-name="rowClassName"
     >
       <el-table-column prop="id" label="id" />
       <el-table-column prop="name" label="名称" />
@@ -222,4 +218,12 @@ watch(
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.control-zone-panel {
+  :deep(.is-selected-row) {
+    td.el-table__cell {
+      background-color: rgba(245, 158, 11, 0.18) !important;
+    }
+  }
+}
+</style>

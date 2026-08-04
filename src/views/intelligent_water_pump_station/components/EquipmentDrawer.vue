@@ -3,7 +3,11 @@ import { computed, ref, watch } from 'vue'
 import type { DrawerProps } from 'element-plus'
 import { Fold } from '@element-plus/icons-vue'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
-import type { EquipmentSource, StationRow } from '../types/station-equipment'
+import {
+  EQUIPMENT_SOURCES,
+  type EquipmentSource,
+  type StationRow,
+} from '../types/station-equipment'
 import ReservoirFilter from './equipment/ReservoirFilter.vue'
 import CoolingTowerFilter from './equipment/CoolingTowerFilter.vue'
 import CoolingTubeFilter from './equipment/CoolingTubeFilter.vue'
@@ -22,8 +26,8 @@ import factorySvg from "@/assets/img/building/factory.svg"
 import jarSvg from "@/assets/img/jar/jar.svg"
 
 const props = defineProps<{
-  flyToByName: (name: string) => void
-  selectByName: (name: string) => void
+  flyToByName: (name: string, source: EquipmentSource) => void
+  selectByName: (name: string, source: EquipmentSource) => void
 }>()
 
 const store = useStationEquipmentStore()
@@ -31,9 +35,18 @@ const drawer = ref(false)
 const direction = ref<DrawerProps['direction']>('btt')
 const activeIndex = ref<EquipmentSource>(store.activeTableKey)
 
-const labelsIndeterminate = computed(
-  () => store.someLabelsVisible && !store.allLabelsVisible,
-)
+/** 总开关：经 store.setAllLabelsVisible 统一改各类型显隐 */
+const allLabelsVisible = computed({
+  get: () => EQUIPMENT_SOURCES.every((source) => store.labelVisibleBySource[source]),
+  set: (visible: boolean) => {
+    store.setAllLabelsVisible(visible)
+  },
+})
+
+const labelsIndeterminate = computed(() => {
+  const some = EQUIPMENT_SOURCES.some((source) => store.labelVisibleBySource[source])
+  return some && !allLabelsVisible.value
+})
 
 const toggleDrawer = (): void => {
   drawer.value = !drawer.value
@@ -54,8 +67,8 @@ watch(activeIndex, (key) => {
 })
 
 const onDetail = (row: StationRow): void => {
-  props.selectByName(row.name)
-  props.flyToByName(row.name)
+  props.selectByName(row.name, row.source)
+  props.flyToByName(row.name, row.source)
 }
 </script>
 
@@ -80,7 +93,7 @@ const onDetail = (row: StationRow): void => {
       <div class="drawer-body">
         <div class="label-toolbar">
           <el-checkbox
-            v-model="store.allLabelsVisible"
+            v-model="allLabelsVisible"
             :indeterminate="labelsIndeterminate"
           >
             显示全部设备标签

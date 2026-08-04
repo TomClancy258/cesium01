@@ -22,11 +22,13 @@ export interface EquipmentSelection {
 }
 
 /**
- * 行数据：name 与三维模型 name 一致；text 为展示名。
+ * 行数据：name 与三维模型 name 一致；text 为展示名；
+ * source 与所属表一致，便于详情飞到 / 选中时直接用。
  */
 export interface EquipmentBase {
   name: string
   text: string
+  source: EquipmentSource
   status: EquipmentStatus
   updatedAt: string
 }
@@ -150,16 +152,4 @@ export const EQUIPMENT_SOURCES: EquipmentSource[] = [
 export interface TooltipPosition {
   left: number
   top: number
-}
-
-export function resolveTableKeyById(id: string): EquipmentSource | null {
-  if (id.startsWith('shuichi-')) return 'reservoir'
-  if (id.startsWith('paifengshan-')) return 'coolingTower'
-  if (id.startsWith('guanzi-')) return 'coolingTube'
-  if (id.startsWith('ld')) return 'streetlight'
-  if (id.startsWith('yancun-')) return 'pressureRegulatingTower'
-  if (id.startsWith('01-')) return 'mixingTank'
-  if (id.startsWith('fangzi-')) return 'house'
-  if (id.startsWith('daguanzi-')) return 'pressurizedTank'
-  return null
 }

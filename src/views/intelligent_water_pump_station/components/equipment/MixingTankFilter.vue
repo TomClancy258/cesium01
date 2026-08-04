@@ -118,6 +118,11 @@ const resetFilter = (): void => {
       </el-form-item>
       <el-form-item>
         <el-checkbox v-model="store.labelVisibleBySource.mixingTank">显示标签</el-checkbox>
+        <el-checkbox
+          v-model="store.labelVisibleBySource.mixingTank"
+        >
+          显示标签
+        </el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

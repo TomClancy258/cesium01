@@ -3,9 +3,9 @@ import { useThrottleFn } from '@vueuse/core'
 import { onUnmounted, reactive, type ShallowRef } from 'vue'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
 import type { OutlineObjects } from '@/views/intelligent_water_pump_station/composables/useThreeScene'
-import {
-  resolveTableKeyById,
-  type TooltipPosition,
+import type {
+  EquipmentSource,
+  TooltipPosition,
 } from '@/views/intelligent_water_pump_station/types/station-equipment'
 
 /** pointermove 拾取节流（与航空态势 mouseMove 一致） */
@@ -13,6 +13,11 @@ const POINTER_MOVE_THROTTLE_MS = 100
 
 /** 鼠标右下角偏移 */
 const TOOLTIP_OFFSET = { x: 12, y: 16 } as const
+
+type FindObjectByName = (
+  name: string,
+  source: EquipmentSource,
+) => THREE.Object3D | null
 
 /**
  * Three 没有 Cesium.ScreenSpaceEventHandler / ScreenSpaceEventType。
@@ -28,6 +33,7 @@ export function useScenePicking(
   /** 可交互模型根节点列表（非响应式数组，同 airportRenderMap） */
   interactiveModels: THREE.Object3D[],
   setOutlineObjects: (targets: OutlineObjects) => void,
+  getObjectByName: FindObjectByName,
 ) {
   const store = useStationEquipmentStore()
   /** 非响应式，仅给描边用（UI 用 store.hovered / selected） */
@@ -52,9 +58,8 @@ export function useScenePicking(
   const toSelection = (object: THREE.Object3D | null) => {
     if (!object) return null
     const name = (object.userData.name as string) || object.name
-    if (!name) return null
-    const source = resolveTableKeyById(name)
-    if (!source) return null
+    const source = object.userData.source as EquipmentSource | undefined
+    if (!name || !source) return null
     return { name, source }
   }
 
@@ -66,11 +71,11 @@ export function useScenePicking(
     tooltipPosition.top = event.clientY - rect.top + TOOLTIP_OFFSET.y
   }
 
-  /** 命中 mesh 后回退到 interactiveModels 里的根节点 */
+  /** 命中 mesh 后沿 parent 上溯到 userData.interactive 根 */
   const resolveInteractiveRoot = (hitObject: THREE.Object3D): THREE.Object3D | null => {
     let current: THREE.Object3D | null = hitObject
     while (current) {
-      if (interactiveModels.includes(current)) return current
+      if (current.userData.interactive) return current
       current = current.parent
     }
     return null
@@ -91,7 +96,7 @@ export function useScenePicking(
     if (!hits.length) return null
     const object = resolveInteractiveRoot(hits[0].object)
     //别删除这个输出
-    console.log("object", object);
+    console.log('object', object)
     return object
   }
 
@@ -163,11 +168,8 @@ export function useScenePicking(
     refreshOutline()
   }
 
-  const selectByName = (
-    name: string,
-    objectById: Map<string, THREE.Object3D>,
-  ): void => {
-    selectObject(objectById.get(name) ?? null)
+  const selectByName = (name: string, source: EquipmentSource): void => {
+    selectObject(getObjectByName(name, source))
   }
 
   onUnmounted(() => {

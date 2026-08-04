@@ -50,21 +50,6 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     pressurizedTank: true,
   })
 
-  const allLabelsVisible = computed({
-    get: () => EQUIPMENT_SOURCES.every((source) => labelVisibleBySource[source]),
-    set: (visible: boolean) => {
-      EQUIPMENT_SOURCES.forEach((source) => {
-        labelVisibleBySource[source] = visible
-      })
-    },
-  })
-
-  //用来判断：是不是至少有一种设备类型开了头顶标签。
-  const someLabelsVisible = computed(() =>
-    //some类似与find，但是some返回的是true/false，find是返回符合条件的的值，但some得到false时仍会继续遍历，直到找到true
-    EQUIPMENT_SOURCES.some((source) => labelVisibleBySource[source]),
-  )
-
   const reservoirMap = shallowRef<Map<string, ReservoirRow>>(new Map())
   const coolingTowerMap = shallowRef<Map<string, CoolingTowerRow>>(new Map())
   const coolingTubeMap = shallowRef<Map<string, CoolingTubeRow>>(new Map())
@@ -215,12 +200,10 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     activeTableKey.value = key
   }
 
-  function setLabelVisible(source: EquipmentSource, visible: boolean): void {
-    labelVisibleBySource[source] = visible
-  }
-
   function setAllLabelsVisible(visible: boolean): void {
-    allLabelsVisible.value = visible
+    EQUIPMENT_SOURCES.forEach((source) => {
+      labelVisibleBySource[source] = visible
+    })
   }
 
   return {
@@ -233,8 +216,6 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     selectedRow,
     hoveredRow,
     labelVisibleBySource,
-    allLabelsVisible,
-    someLabelsVisible,
     reservoirMap,
     coolingTowerMap,
     coolingTubeMap,
@@ -260,7 +241,6 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     setSelected,
     clearSelected,
     setActiveTableKey,
-    setLabelVisible,
     setAllLabelsVisible,
   }
 })

@@ -13,9 +13,22 @@ const RESIZE_THROTTLE_MS = 100
 
 type AfterRenderHandle = (fn: () => void) => () => void
 
+function createEmptyLabelGroups(): Record<EquipmentSource, THREE.Group> {
+  return {
+    reservoir: new THREE.Group(),
+    coolingTower: new THREE.Group(),
+    coolingTube: new THREE.Group(),
+    streetlight: new THREE.Group(),
+    pressureRegulatingTower: new THREE.Group(),
+    mixingTank: new THREE.Group(),
+    house: new THREE.Group(),
+    pressurizedTank: new THREE.Group(),
+  }
+}
+
 /**
  * 设备头顶名称条：CSS2DRenderer，仅与 store.labelVisibleBySource 联动，
- * 不跟 hover / select。
+ * 不跟 hover / select。按 source 分 Group，显隐整组。
  */
 export function useEquipmentLabels(
   containerRef: Ref<HTMLElement | null>,
@@ -27,7 +40,8 @@ export function useEquipmentLabels(
   const store = useStationEquipmentStore()
 
   let labelRenderer: CSS2DRenderer | null = null
-  let labelsGroup: THREE.Group | null = null
+  let labelsRoot: THREE.Group | null = null
+  let labelGroupsBySource: Record<EquipmentSource, THREE.Group> | null = null
   let resizeObserver: ResizeObserver | null = null
   /** onAfterRender 返回的注销器；dispose 时调用，停止每帧 labelRenderer.render */
   let removeAfterRender: (() => void) | null = null
@@ -48,36 +62,43 @@ export function useEquipmentLabels(
     true,
   )
 
-  /** 按 store.labelVisibleBySource 显隐各 source 的 CSS2DObject */
+  /** 按 store 直接显隐各 source 的标签 Group */
   const applyVisibility = (): void => {
-    if (!labelsGroup) return
-    labelsGroup.children.forEach((child: THREE.Object3D) => {
-      const source = child.userData.source as EquipmentSource | undefined
-      if (!source) return
-      child.visible = store.labelVisibleBySource[source] === true
+    if (!labelGroupsBySource) return
+    EQUIPMENT_SOURCES.forEach((source) => {
+      labelGroupsBySource![source].visible = store.labelVisibleBySource[source] === true
     })
   }
 
-  /** 清空 labelsGroup 内标签，并移除对应 DOM */
+  /** 清空各 source Group 内标签，并移除对应 DOM */
   const clearLabels = (): void => {
-    if (!labelsGroup) return
-    while (labelsGroup.children.length > 0) {
-      const child = labelsGroup.children[0]
-      labelsGroup.remove(child)
-      if (child instanceof CSS2DObject) {
-        child.element.remove()
+    if (!labelGroupsBySource) return
+    EQUIPMENT_SOURCES.forEach((source) => {
+      const group = labelGroupsBySource![source]
+      while (group.children.length > 0) {
+        const child = group.children[0]
+        group.remove(child)
+        if (child instanceof CSS2DObject) {
+          child.element.remove()
+        }
       }
-    }
+    })
   }
 
-  /** 模型加载完成后调用：按 interactiveModels + userData.text 重建头顶标签（演员） */
+  /** 模型加载完成后调用：按 interactiveModels 重建头顶标签，按 source 分 Group */
   const rebuildLabels = (): void => {
     if (!scene.value) return
 
-    if (!labelsGroup) {
-      labelsGroup = new THREE.Group()
-      labelsGroup.name = 'equipment-labels'
-      scene.value.add(labelsGroup)
+    if (!labelsRoot || !labelGroupsBySource) {
+      labelsRoot = new THREE.Group()
+      labelsRoot.name = 'equipment-labels'
+      labelGroupsBySource = createEmptyLabelGroups()
+      EQUIPMENT_SOURCES.forEach((source) => {
+        const group = labelGroupsBySource![source]
+        group.name = `equipment-labels-${source}`
+        labelsRoot!.add(group)
+      })
+      scene.value.add(labelsRoot)
     } else {
       clearLabels()
     }
@@ -101,9 +122,10 @@ export function useEquipmentLabels(
       const label = new CSS2DObject(el)
       label.position.set(center.x, box.max.y + LABEL_Y_OFFSET, center.z)
       label.userData.source = source
-      label.visible = store.labelVisibleBySource[source] === true
-      labelsGroup!.add(label)
+      labelGroupsBySource![source].add(label)
     })
+
+    applyVisibility()
   }
 
   /**
@@ -144,10 +166,11 @@ export function useEquipmentLabels(
     resizeObserver = null
 
     clearLabels()
-    if (labelsGroup) {
-      labelsGroup.removeFromParent()
-      labelsGroup = null
+    if (labelsRoot) {
+      labelsRoot.removeFromParent()
+      labelsRoot = null
     }
+    labelGroupsBySource = null
 
     if (labelRenderer) {
       labelRenderer.domElement.remove()

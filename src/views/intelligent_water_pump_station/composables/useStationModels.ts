@@ -5,10 +5,16 @@ import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { onUnmounted, ref, shallowRef, type ShallowRef } from 'vue'
 import type { EquipmentSource, EquipmentStatus, StationWsPayload } from '../types/station-equipment'
 import {
-  resolveTableKeyById,
+  EQUIPMENT_SOURCES,
   STATUS_HIGHLIGHT_COLOR,
   STATUS_HIGHLIGHT_INTENSITY,
 } from '../types/station-equipment'
+import {
+  applyWaterSurfaceEffect,
+  disposeSharedWaterNormal,
+  ensureWaterNormalLoaded,
+  isSharedWaterNormalTexture,
+} from './station-water-surface'
 
 type EmissiveMaterial = THREE.Material & {
   emissive?: THREE.Color
@@ -52,91 +58,6 @@ const MODEL_INTERACTION_FILES = [
 ] as const
 
 const MODEL_INTERACTION_FILE_SET = new Set<string>(MODEL_INTERACTION_FILES)
-
-/** 单张法线做微荡；不用 Water_2 切换（切换会像两张图来回切） */
-const WATER_NORMAL_URL = '/textures/water/Water_1_M_Normal.jpg'
-
-/**
- * 水面材质名：shui / shuimian / shuimian-1 …
- * 蓄水池多为直系子 mesh；房子 fangzi-07 水面在更深子节点，需 traverse。
- */
-function isWaterMaterialName(name: string): boolean {
-  return name === 'shui' || name.startsWith('shuimian')
-}
-
-let sharedWaterNormalSource: THREE.Texture | null = null
-let waterNormalLoadPromise: Promise<THREE.Texture> | null = null
-
-/**
- * 必须 loadAsync 等图片就绪再赋给材质。
- * 副本(2) 无报警但透明会透出丑底；当前文件用 load()+clone 未就绪纹理 → 报警。
- * 异步就绪后再赋法线，避免 no image data。
- */
-function ensureWaterNormalLoaded(): Promise<THREE.Texture> {
-  if (sharedWaterNormalSource?.image) {
-    return Promise.resolve(sharedWaterNormalSource)
-  }
-  if (!waterNormalLoadPromise) {
-    waterNormalLoadPromise = new THREE.TextureLoader()
-      .loadAsync(WATER_NORMAL_URL)
-      .then((texture) => {
-        texture.wrapS = THREE.RepeatWrapping
-        texture.wrapT = THREE.RepeatWrapping
-        texture.colorSpace = THREE.NoColorSpace
-        texture.repeat.set(1.5, 1.5)
-        // 禁止 disposeObject3D 误销毁共享法线
-        texture.userData.sharedWaterNormal = true
-        sharedWaterNormalSource = texture
-        return texture
-      })
-  }
-  return waterNormalLoadPromise
-}
-
-/** 水色：偏青蓝（避免沿用原材质浅色导致乳白） */
-const WATER_SURFACE_COLOR = 0x3aa8d8
-
-function applyWaterMaterialToMesh(waterMesh: THREE.Mesh): void {
-  if (!sharedWaterNormalSource?.image) return
-
-  const material = Array.isArray(waterMesh.material)
-    ? waterMesh.material[0]
-    : waterMesh.material
-  if (!(material instanceof THREE.MeshStandardMaterial)) return
-  if (!isWaterMaterialName(material.name)) return
-
-  // 丑图来自 AO；清掉即可（map 保留）
-  material.aoMap = null
-  material.color.setHex(WATER_SURFACE_COLOR)
-  material.normalMap = sharedWaterNormalSource
-  material.normalScale.set(0.32, 0.32)
-  material.roughness = 0.45
-  material.metalness = 0
-  material.envMapIntensity = 0.35
-  material.transparent = true
-  material.opacity = 0.92
-  material.needsUpdate = true
-
-  waterMesh.onBeforeRender = () => {
-    const mat = waterMesh.material
-    if (!(mat instanceof THREE.MeshStandardMaterial) || !mat.normalMap) return
-    const t = performance.now() * 0.001
-    const scale = 0.26 + 0.1 * Math.sin(t * 2.4) + 0.04 * Math.sin(t * 4.1)
-    mat.normalScale.set(scale, scale)
-    mat.normalMap.offset.set(Math.sin(t * 1.3) * 0.04, Math.cos(t * 1.1) * 0.035)
-  }
-}
-
-/**
- * 青蓝半透明水面 + 单张法线微荡（已清 aoMap；不改 emissive）。
- * 复用于蓄水池 / 房子内水面；须先 ensureWaterNormalLoaded；建议在 markInteractive 之前调用。
- */
-function applyWaterSurfaceEffect(root: THREE.Object3D): void {
-  root.traverse((obj) => {
-    if (!(obj instanceof THREE.Mesh)) return
-    applyWaterMaterialToMesh(obj)
-  })
-}
 
 function captureMaterialVisual(material: EmissiveMaterial): void {
   if (!material.emissive) return
@@ -267,10 +188,8 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
     })
   }
 
-  root.userData.interactive = true
-  root.userData.name = root.name
-  ensureUniqueMaterials(root)
-  return [root]
+  console.warn('[collectInteractiveTargets] unhandled interaction root', root.name, file)
+  return []
 }
 
 function applyStatusToObject(object: THREE.Object3D, status: EquipmentStatus): void {
@@ -298,8 +217,8 @@ function disposeObject3D(object: THREE.Object3D): void {
         if (!material) return
         Object.values(material).forEach((value) => {
           if (!(value instanceof THREE.Texture)) return
-          // 共享水面法线由 onUnmounted 统一 dispose，避免被材质遍历提前销毁
-          if (value.userData?.sharedWaterNormal || value === sharedWaterNormalSource) return
+          // 共享水面法线由 disposeSharedWaterNormal 统一释放
+          if (isSharedWaterNormalTexture(value)) return
           value.dispose()
         })
         material.dispose()
@@ -346,11 +265,9 @@ export function useStationModels(
   controls: ShallowRef<OrbitControls | null>,
 ) {
   const modelsGroup = shallowRef<THREE.Group | null>(null)
-  /** 可交互模型根节点（非响应式，同 airportRenderMap 思路） */
+  /** 可交互根节点扁平缓存（由各类型 Map 重建，供 raycast / 标签） */
   const interactiveModels: THREE.Object3D[] = []
-  /** name → Object3D，供 table / WS 状态着色 */
-  const objectById = new Map<string, THREE.Object3D>()
-  /** 分类型 name → gltf.scene 子节点（可交互 Object3D） */
+  /** 分类型 name → 可交互 Object3D */
   const reservoirMap = new Map<string, THREE.Object3D>()
   const coolingTowerMap = new Map<string, THREE.Object3D>()
   const coolingTubeMap = new Map<string, THREE.Object3D>()
@@ -359,59 +276,12 @@ export function useStationModels(
   const mixingTankMap = new Map<string, THREE.Object3D>()
   const houseMap = new Map<string, THREE.Object3D>()
   const pressurizedTankMap = new Map<string, THREE.Object3D>()
+
   const loading = ref(false)
   const loadedCount = ref(0)
   const totalCount = MODEL_FILES.length
 
   let dracoLoader: DRACOLoader | null = null
-
-  const clearEquipmentMaps = (): void => {
-    objectById.clear()
-    reservoirMap.clear()
-    coolingTowerMap.clear()
-    coolingTubeMap.clear()
-    streetlightMap.clear()
-    pressureRegulatingTowerMap.clear()
-    mixingTankMap.clear()
-    houseMap.clear()
-    pressurizedTankMap.clear()
-  }
-
-  const rebuildObjectMaps = (list: THREE.Object3D[]): void => {
-    clearEquipmentMaps()
-    list.forEach((object) => {
-      const key = (object.userData.name as string) || object.name
-      if (!key) return
-      objectById.set(key, object)
-
-      switch (resolveTableKeyById(key)) {
-        case 'reservoir':
-          reservoirMap.set(key, object)
-          break
-        case 'coolingTower':
-          coolingTowerMap.set(key, object)
-          break
-        case 'coolingTube':
-          coolingTubeMap.set(key, object)
-          break
-        case 'streetlight':
-          streetlightMap.set(key, object)
-          break
-        case 'pressureRegulatingTower':
-          pressureRegulatingTowerMap.set(key, object)
-          break
-        case 'mixingTank':
-          mixingTankMap.set(key, object)
-          break
-        case 'house':
-          houseMap.set(key, object)
-          break
-        case 'pressurizedTank':
-          pressurizedTankMap.set(key, object)
-          break
-      }
-    })
-  }
 
   const getObjectMapBySource = (
     source: EquipmentSource,
@@ -436,6 +306,41 @@ export function useStationModels(
       default:
         return null
     }
+  }
+
+  const clearEquipmentMaps = (): void => {
+    reservoirMap.clear()
+    coolingTowerMap.clear()
+    coolingTubeMap.clear()
+    streetlightMap.clear()
+    pressureRegulatingTowerMap.clear()
+    mixingTankMap.clear()
+    houseMap.clear()
+    pressurizedTankMap.clear()
+  }
+
+  /** 从各类型 Map 摊平到 interactiveModels（拾取 / 标签用） */
+  const rebuildInteractiveModels = (): void => {
+    interactiveModels.length = 0
+    EQUIPMENT_SOURCES.forEach((source) => {
+      const map = getObjectMapBySource(source)
+      if (!map) return
+      interactiveModels.push(...map.values())
+    })
+  }
+
+  const registerInteractiveObject = (object: THREE.Object3D): void => {
+    const key = (object.userData.name as string) || object.name
+    const source = object.userData.source as EquipmentSource | undefined
+    if (!key || !source) return
+    getObjectMapBySource(source)?.set(key, object)
+  }
+
+  const getObjectByName = (
+    name: string,
+    source: EquipmentSource,
+  ): THREE.Object3D | null => {
+    return getObjectMapBySource(source)?.get(name) ?? null
   }
 
   /** 按帧数据 status 给对应模型上色（normal / warning / danger） */
@@ -475,7 +380,6 @@ export function useStationModels(
 
     const group = new THREE.Group()
     group.name = 'intelligent-water-pump-station'
-    const interactiveList: THREE.Object3D[] = []
     const loader = createGltfLoader()
 
     try {
@@ -498,9 +402,9 @@ export function useStationModels(
             cylinder.visible = false
           }
         }
-        // 只有交互名单里的，才交给拾取
+        // 交互模型直接进各类型 Map，最后再摊平到 interactiveModels
         if (MODEL_INTERACTION_FILE_SET.has(file)) {
-          interactiveList.push(...collectInteractiveTargets(file, gltf.scene))
+          collectInteractiveTargets(file, gltf.scene).forEach(registerInteractiveObject)
         }
 
         loadedCount.value += 1
@@ -511,12 +415,10 @@ export function useStationModels(
 
       scene.value.add(group)
       modelsGroup.value = group
-      interactiveModels.length = 0
-      interactiveModels.push(...interactiveList)
-      rebuildObjectMaps(interactiveList)
+      rebuildInteractiveModels()
 
       if (camera.value) {
-        fitCameraToObject(group, camera.value, controls.value,new THREE.Vector3(70, 50, 70))
+        fitCameraToObject(group, camera.value, controls.value, new THREE.Vector3(70, 50, 70))
       }
     } catch (error) {
       console.error('[useStationModels] failed to load models', error)
@@ -544,14 +446,12 @@ export function useStationModels(
     disposeModels()
     dracoLoader?.dispose()
     dracoLoader = null
-    sharedWaterNormalSource?.dispose()
-    sharedWaterNormalSource = null
-    waterNormalLoadPromise = null
+    disposeSharedWaterNormal()
   })
 
   /** 表格「详情」/ 定位：相机飞到指定设备 */
-  const flyToByName = (name: string): void => {
-    const object = objectById.get(name)
+  const flyToByName = (name: string, source: EquipmentSource): void => {
+    const object = getObjectByName(name, source)
     if (!object || !camera.value) return
     fitCameraToObject(object, camera.value, controls.value)
   }
@@ -559,7 +459,6 @@ export function useStationModels(
   return {
     modelsGroup,
     interactiveModels,
-    objectById,
     reservoirMap,
     coolingTowerMap,
     coolingTubeMap,
@@ -574,6 +473,7 @@ export function useStationModels(
     loadModels,
     disposeModels,
     applyStatusFromPayload,
+    getObjectByName,
     flyToByName,
   }
 }

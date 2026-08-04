@@ -27,12 +27,12 @@ const {
 } = useThreeScene()
 const {
   interactiveModels,
-  objectById,
   loadModels,
   loading,
   loadedCount,
   totalCount,
   applyStatusFromPayload,
+  getObjectByName,
   flyToByName,
 } = useStationModels(scene, camera, controls)
 const { tooltipPosition, bindPicking, selectByName } = useScenePicking(
@@ -40,6 +40,7 @@ const { tooltipPosition, bindPicking, selectByName } = useScenePicking(
   renderer,
   interactiveModels,
   setOutlineObjects,
+  getObjectByName,
 )
 const { initLabelRenderer, rebuildLabels } = useEquipmentLabels(
   containerRef,
@@ -49,10 +50,6 @@ const { initLabelRenderer, rebuildLabels } = useEquipmentLabels(
   onAfterRender,
 )
 const { start, stop } = useStationRealtime(applyStatusFromPayload)
-
-const selectEquipmentByName = (name: string): void => {
-  selectByName(name, objectById)
-}
 
 onMounted(async () => {
   initScene()
@@ -85,7 +82,7 @@ onUnmounted(() => {
       <VerticalPressurizedTankBodyTooltip :position="tooltipPosition" />
       <EquipmentDrawer
         :fly-to-by-name="flyToByName"
-        :select-by-name="selectEquipmentByName"
+        :select-by-name="selectByName"
       />
     </template>
   </div>
