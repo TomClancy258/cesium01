@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { useThreeScene } from './composables/useThreeScene'
 import { useStationModels } from './composables/useStationModels'
 import { useScenePicking } from './composables/useScenePicking'
 import { useStationRealtime } from './composables/useStationRealtime'
 import { useEquipmentLabels } from './composables/useEquipmentLabels'
+import type { EquipmentSource } from './types/station-equipment'
 import ReservoirTooltip from './components/tooltip/ReservoirTooltip.vue'
 import CoolingTowerTooltip from './components/tooltip/CoolingTowerTooltip.vue'
 import CoolingTubeTooltip from './components/tooltip/CoolingTubeTooltip.vue'
@@ -14,6 +15,7 @@ import MixingTankTooltip from './components/tooltip/MixingTankTooltip.vue'
 import HouseTooltip from './components/tooltip/HouseTooltip.vue'
 import VerticalPressurizedTankBodyTooltip from './components/tooltip/VerticalPressurizedTankBodyTooltip.vue'
 import EquipmentDrawer from './components/EquipmentDrawer.vue'
+import EquipmentOverviewDrawer from './components/EquipmentOverviewDrawer.vue'
 
 const {
   containerRef,
@@ -51,6 +53,12 @@ const { initLabelRenderer, rebuildLabels } = useEquipmentLabels(
 )
 const { start, stop } = useStationRealtime(applyStatusFromPayload)
 
+const equipmentDrawerRef = ref<InstanceType<typeof EquipmentDrawer> | null>(null)
+
+const onOverviewSelectSource = (source: EquipmentSource): void => {
+  equipmentDrawerRef.value?.openToSource(source)
+}
+
 onMounted(async () => {
   initScene()
   initLabelRenderer()
@@ -80,7 +88,9 @@ onUnmounted(() => {
       <MixingTankTooltip :position="tooltipPosition" />
       <HouseTooltip :position="tooltipPosition" />
       <VerticalPressurizedTankBodyTooltip :position="tooltipPosition" />
+      <EquipmentOverviewDrawer @select-source="onOverviewSelectSource" />
       <EquipmentDrawer
+        ref="equipmentDrawerRef"
         :fly-to-by-name="flyToByName"
         :select-by-name="selectByName"
       />

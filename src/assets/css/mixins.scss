@@ -50,6 +50,15 @@
   right: 30px;
 }
 
+@mixin drawer-toggle-left {
+  left: 0;
+  top: 40%;
+
+  .rotate-icon {
+    transform: rotate(0deg);
+  }
+}
+
 @mixin drawer-toggle-right {
   right: 0;
 }

@@ -8,12 +8,12 @@ import {
   type EquipmentSource,
   type StationRow,
 } from '../types/station-equipment'
-import ReservoirFilter from './equipment/ReservoirFilter.vue'
-import CoolingTowerFilter from './equipment/CoolingTowerFilter.vue'
-import CoolingTubeFilter from './equipment/CoolingTubeFilter.vue'
-import StreetlightFilter from './equipment/StreetlightFilter.vue'
-import PressureRegulatingTowerFilter from './equipment/PressureRegulatingTowerFilter.vue'
-import MixingTankFilter from './equipment/MixingTankFilter.vue'
+import ReservoirFilter from './equipment/reservoir/ReservoirFilter.vue'
+import CoolingTowerFilter from './equipment/cooling-tower/CoolingTowerFilter.vue'
+import CoolingTubeFilter from './equipment/cooling-tube/CoolingTubeFilter.vue'
+import StreetlightFilter from './equipment/streetlight/StreetlightFilter.vue'
+import PressureRegulatingTowerFilter from './equipment/pressure-regulating-tower/PressureRegulatingTowerFilter.vue'
+import MixingTankFilter from './equipment/mixing-tank/MixingTankFilter.vue'
 import HouseFilter from './equipment/HouseFilter.vue'
 import PressurizedTankFilter from './equipment/PressurizedTankFilter.vue'
 
@@ -70,6 +70,15 @@ const onDetail = (row: StationRow): void => {
   props.selectByName(row.name, row.source)
   props.flyToByName(row.name, row.source)
 }
+
+/** 供左侧设备概况卡片跳转打开 */
+const openToSource = (source: EquipmentSource): void => {
+  activeIndex.value = source
+  store.setActiveTableKey(source)
+  drawer.value = true
+}
+
+defineExpose({ openToSource })
 </script>
 
 <template>

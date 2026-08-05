@@ -2,13 +2,14 @@
 import { computed, reactive, ref, watch } from 'vue'
 import { useDebounceFn } from '@vueuse/core'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
-import { useEquipmentTablePage } from '../../composables/useEquipmentTablePage'
-import type { CoolingTowerRow, EquipmentStatus } from '../../types/station-equipment'
-import {
-  STATUS_FILTER_OPTIONS,
-  STATUS_LABEL,
-  STATUS_TAG_TYPE,
-} from '../../types/station-equipment'
+import { useEquipmentTablePage } from '../../../composables/useEquipmentTablePage'
+import type { CoolingTowerRow, EquipmentStatus } from '../../../types/station-equipment'
+import { STATUS_FILTER_OPTIONS, STATUS_LABEL } from '../../../types/station-equipment'
+import EquipmentMetricChart, {
+  type EquipmentMetricOption,
+  type EquipmentMetricRow,
+} from '../EquipmentMetricChart.vue'
+import CoolingTowerTable from './CoolingTowerTable.vue'
 
 const emit = defineEmits<{
   detail: [row: CoolingTowerRow]
@@ -27,6 +28,14 @@ const createEmptyForm = () => ({
 
 const filterForm = reactive(createEmptyForm())
 const appliedFilter = ref(createEmptyForm())
+const activeTab = ref<'list' | 'chart'>('list')
+
+type TableSortProp = 'temperature' | 'power' | 'rpm'
+type SortOrder = 'ascending' | 'descending'
+const tableSort = ref<{ prop: TableSortProp | null; order: SortOrder | null }>({
+  prop: null,
+  order: null,
+})
 
 const sourceRows = computed(() => Array.from(store.coolingTowerMap.values()))
 
@@ -51,8 +60,47 @@ const filteredRows = computed(() => {
   })
 })
 
+const tableSortedRows = computed(() => {
+  const rows = filteredRows.value
+  const { prop, order } = tableSort.value
+  if (!prop || !order) return rows
+  const dir = order === 'ascending' ? 1 : -1
+  return [...rows].sort((a, b) => (a[prop] - b[prop]) * dir)
+})
+
 const { currentPage, pageSize, pagedData, rowClassName, resetToFirstPage } =
-  useEquipmentTablePage('coolingTower', filteredRows)
+  useEquipmentTablePage('coolingTower', tableSortedRows)
+
+const chartMetrics: EquipmentMetricOption[] = [
+  {
+    key: 'temperature',
+    label: '温度',
+    yName: '温度',
+    getValue: (row) => (row as CoolingTowerRow).temperature,
+  },
+  {
+    key: 'power',
+    label: '功率',
+    yName: '功率',
+    getValue: (row) => (row as CoolingTowerRow).power,
+  },
+  {
+    key: 'rpm',
+    label: '转速',
+    yName: '转速',
+    getValue: (row) => (row as CoolingTowerRow).rpm,
+  },
+]
+
+const formatChartTooltip = (row: EquipmentMetricRow): string[] => {
+  const r = row as CoolingTowerRow
+  return [
+    `温度：${r.temperature}`,
+    `功率：${r.power}`,
+    `转速：${r.rpm}`,
+    `状态：${STATUS_LABEL[r.status]}`,
+  ]
+}
 
 const applyFilterNow = (): void => {
   appliedFilter.value = { ...filterForm, status: [...filterForm.status] }
@@ -63,9 +111,27 @@ watch(filterForm, () => debouncedApplyFilter(), { deep: true })
 
 const resetFilter = (): void => {
   Object.assign(filterForm, createEmptyForm())
+  tableSort.value = { prop: null, order: null }
   applyFilterNow()
 }
 
+const onTableSortChange = (payload: {
+  prop: string
+  order: SortOrder | null
+}): void => {
+  const prop =
+    payload.prop === 'temperature' ||
+    payload.prop === 'power' ||
+    payload.prop === 'rpm'
+      ? payload.prop
+      : null
+  tableSort.value = { prop, order: prop ? payload.order : null }
+  resetToFirstPage()
+}
+
+const onDetail = (row: CoolingTowerRow): void => {
+  emit('detail', row)
+}
 </script>
 
 <template>
@@ -112,47 +178,42 @@ const resetFilter = (): void => {
       </el-form-item>
     </el-form>
 
-    <el-table
-      :data="pagedData"
-      border
-      stripe
-      size="small"
-      style="width: 100%"
-      :row-class-name="rowClassName"
-      row-key="name"
-    >
-      <el-table-column prop="name" label="编号" />
-      <el-table-column prop="text" label="名称" />
-      <el-table-column prop="temperature" label="温度" />
-      <el-table-column prop="power" label="功率" />
-      <el-table-column prop="rpm" label="转速" />
-      <el-table-column prop="status" label="状态">
-        <template #default="{ row }">
-          <el-tag :type="STATUS_TAG_TYPE[row.status]" size="small">
-            {{ STATUS_LABEL[row.status] }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="操作" fixed="right" width="80">
-        <template #default="{ row }">
-          <el-button type="primary" link size="small" @click="emit('detail', row)">
-            详情
-          </el-button>
-        </template>
-      </el-table-column>
-    </el-table>
+    <el-tabs v-model="activeTab" class="view-tabs">
+      <el-tab-pane label="列表" name="list">
+        <CoolingTowerTable
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :data="pagedData"
+          :total="tableSortedRows.length"
+          :row-class-name="rowClassName"
+          @sort-change="onTableSortChange"
+          @detail="onDetail"
+        />
+      </el-tab-pane>
 
-    <el-pagination
-      v-model:current-page="currentPage"
-      v-model:page-size="pageSize"
-      class="pager"
-      :page-sizes="[10, 20, 50]"
-      :total="filteredRows.length"
-      layout="total, sizes, prev, pager, next"
-    />
+      <el-tab-pane label="图表" name="chart" lazy>
+        <EquipmentMetricChart
+          :rows="filteredRows"
+          source="coolingTower"
+          :metrics="chartMetrics"
+          :format-tooltip="formatChartTooltip"
+          @detail="onDetail"
+        />
+      </el-tab-pane>
+    </el-tabs>
   </div>
 </template>
 
 <style scoped lang="scss">
-@use './equipment-panel.scss';
+@use '../equipment-panel';
+
+.view-tabs {
+  :deep(.el-tabs__header) {
+    margin-bottom: 8px;
+  }
+
+  :deep(.el-tabs__content) {
+    overflow: visible;
+  }
+}
 </style>
