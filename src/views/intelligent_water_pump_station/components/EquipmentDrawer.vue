@@ -14,8 +14,8 @@ import CoolingTubeFilter from './equipment/cooling-tube/CoolingTubeFilter.vue'
 import StreetlightFilter from './equipment/streetlight/StreetlightFilter.vue'
 import PressureRegulatingTowerFilter from './equipment/pressure-regulating-tower/PressureRegulatingTowerFilter.vue'
 import MixingTankFilter from './equipment/mixing-tank/MixingTankFilter.vue'
-import HouseFilter from './equipment/HouseFilter.vue'
-import PressurizedTankFilter from './equipment/PressurizedTankFilter.vue'
+import FactoryBuildingFilter from './equipment/FactoryBuildingFilter.vue'
+import PressurizedTankFilter from './equipment/pressurized-tank/PressurizedTankFilter.vue'
 
 import reservoirSvg from "@/assets/img/reservoir/reservoir.svg"
 import fanSvg from "@/assets/img/fan/fan.svg"
@@ -151,11 +151,11 @@ defineExpose({ openToSource })
                 </el-icon>
                 <span>搅拌池</span>
               </el-menu-item>
-              <el-menu-item index="house">
+              <el-menu-item index="factoryBuilding">
                 <el-icon class="header-icon">
                   <img :src="factorySvg" alt="" class="menu-svg-icon" />
                 </el-icon>
-                <span>房子</span>
+                <span>厂房</span>
               </el-menu-item>
               <el-menu-item index="pressurizedTank">
                 <el-icon class="header-icon">
@@ -175,7 +175,7 @@ defineExpose({ openToSource })
               @detail="onDetail"
             />
             <MixingTankFilter v-show="activeIndex === 'mixingTank'" @detail="onDetail" />
-            <HouseFilter v-show="activeIndex === 'house'" @detail="onDetail" />
+            <FactoryBuildingFilter v-show="activeIndex === 'factoryBuilding'" @detail="onDetail" />
             <PressurizedTankFilter
               v-show="activeIndex === 'pressurizedTank'"
               @detail="onDetail"

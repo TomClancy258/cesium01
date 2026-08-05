@@ -24,8 +24,8 @@ const displayType = computed(() => {
 
 const formattedAddress = computed(() => {
   if (!building.value) return ''
-  const { housenumber, street, city, state } = building.value.addr
-  return [housenumber, street, city, state].filter(Boolean).join(', ')
+  const { factoryBuildingnumber, street, city, state } = building.value.addr
+  return [factoryBuildingnumber, street, city, state].filter(Boolean).join(', ')
 })
 </script>
 

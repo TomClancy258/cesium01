@@ -46,7 +46,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     streetlight: false,
     pressureRegulatingTower: false,
     mixingTank: true,
-    house: false,
+    factoryBuilding: false,
     pressurizedTank: true,
   })
 
@@ -58,7 +58,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     new Map(),
   )
   const mixingTankMap = shallowRef<Map<string, MixingTankRow>>(new Map())
-  const houserMap = shallowRef<Map<string, HouseRow>>(new Map())
+  const factoryBuildingMap = shallowRef<Map<string, HouseRow>>(new Map())
   const pressurizedTankMap = shallowRef<
     Map<string, VerticalPressurizedTankBodyRow>
   >(new Map())
@@ -80,8 +80,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         return pressureRegulatingTowerMap.value.get(selection.name) ?? null
       case 'mixingTank':
         return mixingTankMap.value.get(selection.name) ?? null
-      case 'house':
-        return houserMap.value.get(selection.name) ?? null
+      case 'factoryBuilding':
+        return factoryBuildingMap.value.get(selection.name) ?? null
       case 'pressurizedTank':
         return pressurizedTankMap.value.get(selection.name) ?? null
       default:
@@ -118,8 +118,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     mixingTankMap.value = rowsToMap(data)
   }
 
-  function setHouserMap(data: HouseRow[]): void {
-    houserMap.value = rowsToMap(data)
+  function setFactoryBuildingMap(data: HouseRow[]): void {
+    factoryBuildingMap.value = rowsToMap(data)
   }
 
   function setVerticalPressurizedTankBodyMap(data: VerticalPressurizedTankBodyRow[]): void {
@@ -148,8 +148,8 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
         case 'mixingTank':
           setMixingTankMap(packet.data as MixingTankRow[])
           break
-        case 'house':
-          setHouserMap(packet.data as HouseRow[])
+        case 'factoryBuilding':
+          setFactoryBuildingMap(packet.data as HouseRow[])
           break
         case 'pressurizedTank':
           setVerticalPressurizedTankBodyMap(packet.data as VerticalPressurizedTankBodyRow[])
@@ -222,7 +222,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     streetlightMap,
     pressureRegulatingTowerMap,
     mixingTankMap,
-    houserMap,
+    factoryBuildingMap,
     pressurizedTankMap,
     setReservoirMap,
     setCoolingTowerMap,
@@ -230,7 +230,7 @@ export const useStationEquipmentStore = defineStore('stationEquipment', () => {
     setStreetLightMap,
     setPressureRegulatingTowerMap,
     setMixingTankMap,
-    setHouserMap,
+    setFactoryBuildingMap,
     setVerticalPressurizedTankBodyMap,
     applyPayload,
     findRowBySelection,

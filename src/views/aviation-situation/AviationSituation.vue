@@ -272,7 +272,7 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
 
 <template>
   <!-- 原有模板完全保留 -->
-  <div>
+  <div class="aviation-situation">
     <div id="cesium-container"></div>
     <DistanceSurveyHint />
     <AltitudeLegend />
@@ -290,8 +290,12 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
 
 <!-- 原有样式完全保留 -->
 <style scoped lang="scss">
+.aviation-situation{
+  position: relative;
+  overflow: hidden;
+}
 #cesium-container {
   width: 100vw;
-  height: 95vh;
+  height: calc(100vh - 48px);
 }
 </style>

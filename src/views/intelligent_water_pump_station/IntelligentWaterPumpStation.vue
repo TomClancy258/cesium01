@@ -12,7 +12,7 @@ import CoolingTubeTooltip from './components/tooltip/CoolingTubeTooltip.vue'
 import StreetlightTooltip from './components/tooltip/StreetlightTooltip.vue'
 import PressureRegulatingTowerTooltip from './components/tooltip/PressureRegulatingTowerTooltip.vue'
 import MixingTankTooltip from './components/tooltip/MixingTankTooltip.vue'
-import HouseTooltip from './components/tooltip/HouseTooltip.vue'
+import FactoryBuildingTooltip from './components/tooltip/FactoryBuildingTooltip.vue'
 import VerticalPressurizedTankBodyTooltip from './components/tooltip/VerticalPressurizedTankBodyTooltip.vue'
 import EquipmentDrawer from './components/EquipmentDrawer.vue'
 import EquipmentOverviewDrawer from './components/EquipmentOverviewDrawer.vue'
@@ -86,7 +86,7 @@ onUnmounted(() => {
       <StreetlightTooltip :position="tooltipPosition" />
       <PressureRegulatingTowerTooltip :position="tooltipPosition" />
       <MixingTankTooltip :position="tooltipPosition" />
-      <HouseTooltip :position="tooltipPosition" />
+      <FactoryBuildingTooltip :position="tooltipPosition" />
       <VerticalPressurizedTankBodyTooltip :position="tooltipPosition" />
       <EquipmentOverviewDrawer @select-source="onOverviewSelectSource" />
       <EquipmentDrawer
@@ -102,7 +102,7 @@ onUnmounted(() => {
 .water-pump-station {
   position: relative;
   width: 100%;
-  height: 95vh;
+  height: calc(100vh - 48px);
   overflow: hidden;
 }
 

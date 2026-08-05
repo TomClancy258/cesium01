@@ -262,7 +262,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
             building:buildingPicked.getProperty('building')??'',  //类型，没有shop才采用这个
           },
           addr:{
-            housenumber:buildingPicked.getProperty('addr:housenumber')??'',
+            factoryBuildingnumber:buildingPicked.getProperty('addr:factoryBuildingnumber')??'',
             street:buildingPicked.getProperty('addr:street')??'',
             city :buildingPicked.getProperty('addr:city')??'',
             state:buildingPicked.getProperty('addr:state')??'',
@@ -535,7 +535,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
           building:buildingPicked.getProperty('building')??'',  //类型，没有shop才采用这个
         },
         addr:{
-          housenumber:buildingPicked.getProperty('addr:housenumber')??'',
+          factoryBuildingnumber:buildingPicked.getProperty('addr:factoryBuildingnumber')??'',
           street:buildingPicked.getProperty('addr:street')??'',
           city :buildingPicked.getProperty('addr:city')??'',
           state:buildingPicked.getProperty('addr:state')??'',

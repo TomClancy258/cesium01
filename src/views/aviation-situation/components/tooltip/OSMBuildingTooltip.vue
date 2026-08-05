@@ -25,8 +25,8 @@ const displayType = computed(() => {
 })
 
 const formattedAddress = computed(() => {
-  const { housenumber, street, city, state } = tooltipProperties.value.addr
-  return [housenumber, street, city, state].filter(Boolean).join(', ')
+  const { factoryBuildingnumber, street, city, state } = tooltipProperties.value.addr
+  return [factoryBuildingnumber, street, city, state].filter(Boolean).join(', ')
 })
 </script>
 

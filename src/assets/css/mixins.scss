@@ -48,11 +48,13 @@
 @mixin drawer-toggle-bottom {
   bottom: 0;
   right: 30px;
+  opacity: 0.5;
 }
 
 @mixin drawer-toggle-left {
   left: 0;
   top: 40%;
+  opacity: 0.5;
 
   .rotate-icon {
     transform: rotate(0deg);
@@ -61,6 +63,7 @@
 
 @mixin drawer-toggle-right {
   right: 0;
+  opacity: 0.5;
 }
 
 /** Element Plus drawer：去掉默认内边距，收紧 header 下边距 */
@@ -69,5 +72,6 @@
 
   .el-drawer__header {
     margin-bottom: 0;
+    padding: 5px 0 5px 5px;
   }
 }

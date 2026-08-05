@@ -5,9 +5,9 @@ interface OSMBuildingType{
   building:string|undefined,  //类型，没有shop才采用这个
 }
 //地址
-//addr:housenumber + addr:street + addr:city + addr:state
+//addr:factoryBuildingnumber + addr:street + addr:city + addr:state
 interface OSMBuildingAddr{
-  housenumber:string|undefined,
+  factoryBuildingnumber:string|undefined,
   street:string|undefined,
   city:string|undefined,
   state:string|undefined,

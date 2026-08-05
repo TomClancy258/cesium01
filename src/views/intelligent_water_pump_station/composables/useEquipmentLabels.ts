@@ -21,7 +21,7 @@ function createEmptyLabelGroups(): Record<EquipmentSource, THREE.Group> {
     streetlight: new THREE.Group(),
     pressureRegulatingTower: new THREE.Group(),
     mixingTank: new THREE.Group(),
-    house: new THREE.Group(),
+    factoryBuilding: new THREE.Group(),
     pressurizedTank: new THREE.Group(),
   }
 }

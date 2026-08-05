@@ -66,30 +66,34 @@ const aviationDetailDrawerTitle = computed(() => {
 })
 </script>
 <template>
-  <el-drawer
-    v-model="drawer"
-    :title="aviationDetailDrawerTitle"
-    size="23%"
-    :direction="direction"
-    :modal="false"
-    :modal-penetrable="true"
-    @close="handleClose"
-    class="map-detail-drawer"
-    body-class="map-detail-drawer__body"
-    style="height: 70%;"
-  >
-    <div class="drawer-body">
-      <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
-      <AirportDetail v-show="selectedSourceType === 'airport'" />
-      <SatelliteDetail v-show="selectedSourceType === 'satellite'" />
-      <OSMBuildingDetail v-show="selectedSourceType === 'osmBuilding'" />
-      <PhotogrammetryBuildingDetail v-show="selectedSourceType === 'photogrammetryBuilding'" />
-    </div>
-  </el-drawer>
+  <div class="map-detail-drawer-root">
+    <el-drawer
+      v-model="drawer"
+      :title="aviationDetailDrawerTitle"
+      size="23%"
+      :direction="direction"
+      :modal="false"
+      :modal-penetrable="true"
+      class="map-detail-drawer"
+      body-class="map-detail-drawer__body"
+      style="height: calc(70% - 48px); margin-top: 48px"
+      @close="handleClose"
+    >
+      <div class="drawer-body">
+        <AircraftDetail v-show="selectedSourceType === 'aircraft'" />
+        <AirportDetail v-show="selectedSourceType === 'airport'" />
+        <SatelliteDetail v-show="selectedSourceType === 'satellite'" />
+        <OSMBuildingDetail v-show="selectedSourceType === 'osmBuilding'" />
+        <PhotogrammetryBuildingDetail v-show="selectedSourceType === 'photogrammetryBuilding'" />
+      </div>
+    </el-drawer>
+  </div>
 </template>
 
-<style lang="scss">
-.map-detail-drawer__body {
-  padding: 10px !important;
+<style scoped lang="scss">
+@use '@/assets/css/mixins' as *;
+
+:deep(.map-detail-drawer) {
+  @include el-drawer-compact;
 }
 </style>

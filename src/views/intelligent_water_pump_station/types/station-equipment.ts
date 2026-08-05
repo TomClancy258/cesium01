@@ -9,7 +9,7 @@ export type EquipmentSource =
   | 'streetlight'
   | 'pressureRegulatingTower'
   | 'mixingTank'
-  | 'house'
+  | 'factoryBuilding'
   | 'pressurizedTank'
 
 /** @deprecated 兼容旧名，等同 EquipmentSource */
@@ -145,7 +145,7 @@ export const EQUIPMENT_SOURCES: EquipmentSource[] = [
   'streetlight',
   'pressureRegulatingTower',
   'mixingTank',
-  'house',
+  'factoryBuilding',
   'pressurizedTank',
 ]
 

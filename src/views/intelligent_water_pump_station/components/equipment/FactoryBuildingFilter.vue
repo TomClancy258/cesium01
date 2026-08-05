@@ -26,7 +26,7 @@ const createEmptyForm = () => ({
 const filterForm = reactive(createEmptyForm())
 const appliedFilter = ref(createEmptyForm())
 
-const sourceRows = computed(() => Array.from(store.houserMap.values()))
+const sourceRows = computed(() => Array.from(store.factoryBuildingMap.values()))
 
 const filteredRows = computed(() => {
   const f = appliedFilter.value
@@ -47,7 +47,7 @@ const filteredRows = computed(() => {
 })
 
 const { currentPage, pageSize, pagedData, rowClassName, resetToFirstPage } =
-  useEquipmentTablePage('house', filteredRows)
+  useEquipmentTablePage('factoryBuilding', filteredRows)
 
 const applyFilterNow = (): void => {
   appliedFilter.value = { ...filterForm, status: [...filterForm.status] }
@@ -93,7 +93,7 @@ const resetFilter = (): void => {
         <el-input v-model="filterForm.remark" clearable style="width: 140px" />
       </el-form-item>
       <el-form-item>
-        <el-checkbox v-model="store.labelVisibleBySource.house">显示标签</el-checkbox>
+        <el-checkbox v-model="store.labelVisibleBySource.factoryBuilding">显示标签</el-checkbox>
       </el-form-item>
       <el-form-item>
         <el-button @click="resetFilter">重置</el-button>

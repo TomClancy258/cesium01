@@ -482,11 +482,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -494,7 +494,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -502,7 +502,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -510,7 +510,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -518,7 +518,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -526,7 +526,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -534,7 +534,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -542,7 +542,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -550,7 +550,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -558,7 +558,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -1270,11 +1270,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1282,7 +1282,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -1290,7 +1290,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1298,7 +1298,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -1306,7 +1306,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1314,7 +1314,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -1322,7 +1322,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1330,7 +1330,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -1338,7 +1338,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -1346,7 +1346,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -2058,11 +2058,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2070,7 +2070,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -2078,7 +2078,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2086,7 +2086,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -2094,7 +2094,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2102,7 +2102,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -2110,7 +2110,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2118,7 +2118,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -2126,7 +2126,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2134,7 +2134,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -2846,11 +2846,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2858,7 +2858,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -2866,7 +2866,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2874,7 +2874,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -2882,7 +2882,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2890,7 +2890,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -2898,7 +2898,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2906,7 +2906,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -2914,7 +2914,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -2922,7 +2922,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -3634,11 +3634,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3646,7 +3646,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -3654,7 +3654,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3662,7 +3662,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -3670,7 +3670,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3678,7 +3678,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -3686,7 +3686,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3694,7 +3694,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -3702,7 +3702,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -3710,7 +3710,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -4422,11 +4422,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4434,7 +4434,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -4442,7 +4442,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4450,7 +4450,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -4458,7 +4458,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4466,7 +4466,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -4474,7 +4474,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4482,7 +4482,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -4490,7 +4490,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -4498,7 +4498,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -5210,11 +5210,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5222,7 +5222,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -5230,7 +5230,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5238,7 +5238,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -5246,7 +5246,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5254,7 +5254,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -5262,7 +5262,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5270,7 +5270,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -5278,7 +5278,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -5286,7 +5286,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -5998,11 +5998,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6010,7 +6010,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -6018,7 +6018,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6026,7 +6026,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -6034,7 +6034,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6042,7 +6042,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -6050,7 +6050,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6058,7 +6058,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -6066,7 +6066,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6074,7 +6074,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -6786,11 +6786,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6798,7 +6798,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -6806,7 +6806,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6814,7 +6814,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -6822,7 +6822,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6830,7 +6830,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -6838,7 +6838,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6846,7 +6846,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -6854,7 +6854,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -6862,7 +6862,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",
@@ -7574,11 +7574,11 @@ export const stationEquipments: StationWsPayload[] = [
       ]
     },
     {
-      "source": "house",
+      "source": "factoryBuilding",
       "data": [
         {
           "name": "fangzi-01",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-01",
           "status": "normal",
           "remark": "配电/控制室",
@@ -7586,7 +7586,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-02",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-02",
           "status": "normal",
           "remark": "设备间",
@@ -7594,7 +7594,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-03",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-03",
           "status": "normal",
           "remark": "配电/控制室",
@@ -7602,7 +7602,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-04",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-04",
           "status": "normal",
           "remark": "设备间",
@@ -7610,7 +7610,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-05",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-05",
           "status": "normal",
           "remark": "配电/控制室",
@@ -7618,7 +7618,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-06",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-06",
           "status": "normal",
           "remark": "设备间",
@@ -7626,7 +7626,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-07",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-07",
           "status": "normal",
           "remark": "配电/控制室",
@@ -7634,7 +7634,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-08",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-08",
           "status": "normal",
           "remark": "设备间",
@@ -7642,7 +7642,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-09",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-09",
           "status": "normal",
           "remark": "配电/控制室",
@@ -7650,7 +7650,7 @@ export const stationEquipments: StationWsPayload[] = [
         },
         {
           "name": "fangzi-10",
-          "source": "house",
+          "source": "factoryBuilding",
           "text": "厂房-10",
           "status": "normal",
           "remark": "设备间",

@@ -8,7 +8,7 @@ const WATER_SURFACE_COLOR = 0x3aa8d8
 
 /**
  * 水面材质名：shui / shuimian / shuimian-1 …
- * 蓄水池多为直系子 mesh；房子 fangzi-07 水面在更深子节点，需 traverse。
+ * 蓄水池多为直系子 mesh；厂房 fangzi-07 水面在更深子节点，需 traverse。
  */
 function isWaterMaterialName(name: string): boolean {
   return name === 'shui' || name.startsWith('shuimian')
@@ -76,7 +76,7 @@ function applyWaterMaterialToMesh(waterMesh: THREE.Mesh): void {
 
 /**
  * 青蓝半透明水面 + 单张法线微荡（已清 aoMap；不改 emissive）。
- * 复用于蓄水池 / 房子内水面；须先 ensureWaterNormalLoaded；建议在 markInteractive 之前调用。
+ * 复用于蓄水池 / 厂房内水面；须先 ensureWaterNormalLoaded；建议在 markInteractive 之前调用。
  */
 export function applyWaterSurfaceEffect(root: THREE.Object3D): void {
   root.traverse((obj) => {

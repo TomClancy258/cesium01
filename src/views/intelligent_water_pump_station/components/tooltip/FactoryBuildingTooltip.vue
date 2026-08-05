@@ -9,7 +9,7 @@ const props = defineProps<{
   position: TooltipPosition
 }>()
 
-const { row, visible, toTooltipStyle } = useEquipmentTooltip<HouseRow>('house')
+const { row, visible, toTooltipStyle } = useEquipmentTooltip<HouseRow>('factoryBuilding')
 const tooltipStyle = computed(() => toTooltipStyle(props.position))
 </script>
 

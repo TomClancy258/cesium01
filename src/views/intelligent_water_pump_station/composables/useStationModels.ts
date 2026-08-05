@@ -173,8 +173,8 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
       // fangzi-07 等内部可能有 shuimian-1 水面，与蓄水池共用波纹逻辑
       applyWaterSurfaceEffect(child)
       markInteractive(child)
-      child.userData.text = child.name.replace('fangzi','房子')
-      child.userData.source = 'house'
+      child.userData.text = child.name.replace('fangzi','厂房')
+      child.userData.source = 'factoryBuilding'
       return true
     })
   } else if (root.name === 'sbz-daguanzi') {
@@ -274,7 +274,7 @@ export function useStationModels(
   const streetlightMap = new Map<string, THREE.Object3D>()
   const pressureRegulatingTowerMap = new Map<string, THREE.Object3D>()
   const mixingTankMap = new Map<string, THREE.Object3D>()
-  const houseMap = new Map<string, THREE.Object3D>()
+  const factoryBuildingMap = new Map<string, THREE.Object3D>()
   const pressurizedTankMap = new Map<string, THREE.Object3D>()
 
   const loading = ref(false)
@@ -299,8 +299,8 @@ export function useStationModels(
         return pressureRegulatingTowerMap
       case 'mixingTank':
         return mixingTankMap
-      case 'house':
-        return houseMap
+      case 'factoryBuilding':
+        return factoryBuildingMap
       case 'pressurizedTank':
         return pressurizedTankMap
       default:
@@ -315,7 +315,7 @@ export function useStationModels(
     streetlightMap.clear()
     pressureRegulatingTowerMap.clear()
     mixingTankMap.clear()
-    houseMap.clear()
+    factoryBuildingMap.clear()
     pressurizedTankMap.clear()
   }
 
@@ -465,7 +465,7 @@ export function useStationModels(
     streetlightMap,
     pressureRegulatingTowerMap,
     mixingTankMap,
-    houseMap,
+    factoryBuildingMap,
     pressurizedTankMap,
     loading,
     loadedCount,

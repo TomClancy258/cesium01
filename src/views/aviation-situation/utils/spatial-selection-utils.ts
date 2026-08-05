@@ -54,7 +54,7 @@ export function updateTooltip<T>(
   properties: T
 ): void {
   tooltip.position.left = screenPosition.x + 10
-  tooltip.position.top = screenPosition.y + 50
+  tooltip.position.top = screenPosition.y
   tooltip.properties = { ...properties }
   tooltip.visible = true
 }

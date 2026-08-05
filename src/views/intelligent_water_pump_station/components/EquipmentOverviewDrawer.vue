@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { DrawerProps } from 'element-plus'
-import { Fold } from '@element-plus/icons-vue'
+import { Expand } from '@element-plus/icons-vue'
 import { useStationEquipmentStore } from '@/stores/station-equipment'
 import {
   EQUIPMENT_SOURCES,
@@ -36,7 +36,7 @@ const SOURCE_META: Record<
   streetlight: { label: '路灯', icon: streetlightSvg },
   pressureRegulatingTower: { label: '调压塔', icon: cellTowerSvg },
   mixingTank: { label: '搅拌池', icon: mixingSvg },
-  house: { label: '房子', icon: factorySvg },
+  factoryBuilding: { label: '厂房', icon: factorySvg },
   pressurizedTank: { label: '承压罐', icon: jarSvg },
 }
 
@@ -73,7 +73,7 @@ const rowsBySource = computed((): Record<EquipmentSource, StationRow[]> => ({
   streetlight: Array.from(store.streetlightMap.values()),
   pressureRegulatingTower: Array.from(store.pressureRegulatingTowerMap.values()),
   mixingTank: Array.from(store.mixingTankMap.values()),
-  house: Array.from(store.houserMap.values()),
+  factoryBuilding: Array.from(store.factoryBuildingMap.values()),
   pressurizedTank: Array.from(store.pressurizedTankMap.values()),
 }))
 
@@ -107,32 +107,23 @@ const onCardClick = (source: EquipmentSource): void => {
 
 <template>
   <div class="overview-drawer-root">
-    <div
-      class="drawer-toggle drawer-toggle--left"
-      :class="{ 'drawer-toggle--left-open': drawer }"
-    >
+    <div class="drawer-toggle drawer-toggle--left">
       <el-icon class="rotate-icon" @click="toggleDrawer">
-        <Fold />
+        <Expand />
       </el-icon>
     </div>
 
     <el-drawer
       v-model="drawer"
       class="overview-drawer"
-      :with-header="false"
       size="420px"
       :direction="direction"
       :modal="false"
-      style="height: 64%;"
+      title="设备概况"
+      style="height:calc(64% - 48px);margin-top: 48px;"
       :modal-penetrable="true"
     >
       <div class="overview-panel">
-        <div class="overview-header">
-          <span class="overview-header__accent" />
-          <span class="overview-header__title">设备概况</span>
-          <span class="overview-header__accent overview-header__accent--end" />
-        </div>
-
         <div class="summary-row">
           <div class="summary-item">
             <div class="summary-item__label">设备总数</div>
@@ -184,65 +175,66 @@ const onCardClick = (source: EquipmentSource): void => {
 
 .drawer-toggle--left {
   @include drawer-toggle-left;
-  z-index: 2100;
-  transition: left 0.3s ease;
-
-  &.drawer-toggle--left-open {
-    left: 420px;
-  }
+  position: fixed;
+  top: 100px;
+  left: 0;
 }
 
 :deep(.overview-drawer) {
   @include el-drawer-compact;
-  background: rgba(11, 18, 32, 0.72);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  box-shadow: 1px 0 16px rgba(0, 0, 0, 0.35);
-  border-right: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 1px 0 16px rgba(15, 23, 42, 0.12);
+  border-right: 1px solid rgba(148, 163, 184, 0.35);
+  --el-drawer-bg-color: rgba(255, 255, 255, 0.92);
+  --el-text-color-primary: #1e293b;
+  --el-text-color-regular: #475569;
 
-  .el-drawer__body {
-    padding: 0;
-    height: 100%;
-    overflow: auto;
-  }
+  //.el-drawer__body {
+  //  padding: 0;
+  //  height: 100%;
+  //  overflow: auto;
+  //}
 }
 
 .overview-panel {
   padding: 12px 12px 16px;
-  color: #e8f4ff;
+  color: #1e293b;
 }
 
-.overview-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding: 8px 10px;
-  background: linear-gradient(
-    90deg,
-    rgba(14, 116, 144, 0.15),
-    rgba(14, 165, 233, 0.45),
-    rgba(14, 116, 144, 0.15)
-  );
-  border: 1px solid rgba(56, 189, 248, 0.35);
-}
+//.overview-header {
+//  display: flex;
+//  align-items: center;
+//  justify-content: center;
+//  gap: 8px;
+//  margin-bottom: 12px;
+//  padding: 8px 10px;
+//  background: linear-gradient(
+//    90deg,
+//    rgba(14, 165, 233, 0.06),
+//    rgba(14, 165, 233, 0.16),
+//    rgba(14, 165, 233, 0.06)
+//  );
+//  border: 1px solid rgba(14, 165, 233, 0.25);
+//}
 
 .overview-header__title {
   font-size: 15px;
   font-weight: 600;
   letter-spacing: 0.12em;
+  color: #0f172a;
 }
 
-.overview-header__accent {
-  width: 18px;
-  height: 2px;
-  background: #38bdf8;
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
-
-  &--end {
-    transform: scaleX(-1);
-  }
-}
+//.overview-header__accent {
+//  width: 18px;
+//  height: 2px;
+//  background: #0ea5e9;
+//  box-shadow: none;
+//
+//  &--end {
+//    transform: scaleX(-1);
+//  }
+//}
 
 .summary-row {
   display: grid;
@@ -254,28 +246,28 @@ const onCardClick = (source: EquipmentSource): void => {
 .summary-item {
   padding: 8px 6px;
   text-align: center;
-  background: rgba(15, 23, 42, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
 
   &__label {
     font-size: 12px;
-    color: rgba(186, 230, 253, 0.85);
+    color: #64748b;
     margin-bottom: 4px;
   }
 
   &__value {
     font-size: 18px;
     font-weight: 600;
-    color: #7dd3fc;
+    color: #0284c7;
   }
 
   &--danger .summary-item__value {
-    color: #f87171;
+    color: #dc2626;
   }
 
   &--warning .summary-item__value {
-    color: #fbbf24;
+    color: #d97706;
   }
 }
 
@@ -293,14 +285,15 @@ const onCardClick = (source: EquipmentSource): void => {
   text-align: left;
   cursor: pointer;
   color: inherit;
-  background: rgba(15, 23, 42, 0.4);
-  border: 1px solid rgba(56, 189, 248, 0.22);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 4px;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
 
   &:hover {
-    background: rgba(14, 116, 144, 0.28);
-    border-color: rgba(56, 189, 248, 0.55);
+    background: #f0f9ff;
+    border-color: #7dd3fc;
+    box-shadow: 0 1px 4px rgba(14, 165, 233, 0.12);
   }
 
   &__head {
@@ -313,7 +306,7 @@ const onCardClick = (source: EquipmentSource): void => {
     width: 24px;
     height: 24px;
     flex-shrink: 0;
-    filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.45));
+    filter: none;
   }
 
   &__title {
@@ -323,12 +316,13 @@ const onCardClick = (source: EquipmentSource): void => {
     min-width: 0;
     font-size: 13px;
     font-weight: 600;
+    color: #0f172a;
   }
 
   &__total {
     font-size: 11px;
     font-weight: 400;
-    color: rgba(186, 230, 253, 0.75);
+    color: #64748b;
   }
 
   &__tags {
@@ -346,18 +340,18 @@ const onCardClick = (source: EquipmentSource): void => {
   white-space: nowrap;
 
   &--danger {
-    color: #fecaca;
-    background: rgba(239, 68, 68, 0.22);
+    color: #b91c1c;
+    background: rgba(239, 68, 68, 0.12);
   }
 
   &--warning {
-    color: #fde68a;
-    background: rgba(245, 158, 11, 0.22);
+    color: #b45309;
+    background: rgba(245, 158, 11, 0.14);
   }
 
   &--normal {
-    color: #bae6fd;
-    background: rgba(14, 165, 233, 0.2);
+    color: #0369a1;
+    background: rgba(14, 165, 233, 0.12);
   }
 }
 </style>

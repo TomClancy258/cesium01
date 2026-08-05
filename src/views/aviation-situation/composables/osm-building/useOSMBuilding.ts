@@ -31,7 +31,7 @@ export function useOSMBuilding(viewer) {
       building: '',
     },
     addr: {
-      housenumber: '',
+      factoryBuildingnumber: '',
       street: '',
       city: '',
       state: '',
