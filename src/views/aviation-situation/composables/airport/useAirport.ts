@@ -123,10 +123,11 @@ export function useAirport(
   let unsubCameraMoveEnd: () => void
 
   // 计算相机到地面的距离，控制机场显隐
-  const handleCameraMoveEnd = (camera: Cesium.Camera) => {
+  const handleCameraMoveEnd = (camera: Cesium.Camera,type) => {
     const form: AirportFilterForm = airportStore.airportFilterForm
     const cameraHeight1: number = getCameraHeight(camera)
-    console.log('cameraHeight1', cameraHeight1)
+    console.log("type", type);
+    console.log('cameraHeightMoveEnd', cameraHeight1)
 
     if (!form.visible) {
       setAirportsVisible(false)
@@ -145,7 +146,7 @@ export function useAirport(
     // 原核心逻辑（仅当 visible=true 且 alwaysVisible=false 时执行）
     if (!airportGraphic.primitiveContainer) return
 
-    console.log('cameraHeight', cameraHeight)
+    // console.log('cameraHeight', cameraHeight)
 
     setAirportsLabelVisible(cameraHeight <= AIRPORT_SHOW_DISTANCE)
     // 核心逻辑：高度小于阈值显示机场，大于则隐藏
@@ -449,7 +450,7 @@ export function useAirport(
 
     //订阅鼠标wheel事件
     unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
-      handleCameraMoveEnd(viewer.value.camera)
+      handleCameraMoveEnd(viewer.value.camera,'mouseWheel')
     })
   }
 

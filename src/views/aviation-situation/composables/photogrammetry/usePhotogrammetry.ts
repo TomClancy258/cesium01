@@ -25,12 +25,18 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 
+import { useCesiumCameraEvent } from '@/views/aviation-situation/composables/cesium-events/cesium-camera-events'
+import type { ShallowRef, Viewer } from 'cesium'
+
 type ActivePhotogrammetry = {
   id: number | ''
   tileset: Cesium.Cesium3DTileset | null
 }
 
-export function usePhotogrammetry(viewer) {
+/** 相机海拔超过该值（米）时隐藏 ClassificationPrimitive 建筑白膜 */
+const PHOTOGRAMMETRY_BUILDING_HIDE_ALTITUDE = 3000
+
+export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   const photogrammetryStore = usePhotogrammetryStore()
   const {
     tooltip,
@@ -52,12 +58,37 @@ export function usePhotogrammetry(viewer) {
   const initPhotogrammetrys = () => {
     setPhotogrammetryTable()
     subscribePhotogrammetryEvents()
+    subscribeCameraAltitudeVisibility()
+  }
+
+  /** 海拔 > 阈值时隐藏白膜；不销毁，靠近后恢复 show */
+  const syncBuildingVisibilityByAltitude = (camera?: Cesium.Camera) => {
+    const buildingPrimitive = getPhotogrammetryBuildingPrimitive()
+    if (!buildingPrimitive) return
+    const cam = camera ?? viewer.value?.camera
+    if (!cam) return
+    const altitude = cam.positionCartographic.height
+    buildingPrimitive.show = altitude <= PHOTOGRAMMETRY_BUILDING_HIDE_ALTITUDE
+  }
+
+  let unsubCameraMoveEnd: (() => void) | undefined
+  let unsubMouseWheel: (() => void) | undefined
+  const subscribeCameraAltitudeVisibility = () => {
+    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', (camera) => {
+      syncBuildingVisibilityByAltitude(camera)
+    })
+    // 滚轮缩放过程中 moveEnd 要停住才触发，与机场显隐同一套补 mouseWheel
+    unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
+      syncBuildingVisibilityByAltitude(viewer.value?.camera)
+    })
   }
 
   const addPhotogrammetryTileset = async (assetId: number, name: string) => {
     const tileset = viewer.value.scene.primitives.add(
       await Cesium.Cesium3DTileset.fromIonAssetId(assetId),
     )
+    // 越小越清晰越耗性能，越大越糊越流畅；默认约 16
+    tileset.maximumScreenSpaceError = 16
     tileset.meta = {
       sourceType: 'photogrammetry',
       name,
@@ -196,6 +227,7 @@ export function usePhotogrammetry(viewer) {
     )
 
     registerPhotogrammetryBuildingPrimitive(buildingPrimitive)
+    syncBuildingVisibilityByAltitude()
   }
 
   const addBostonBuilding = async () => {
@@ -260,6 +292,8 @@ export function usePhotogrammetry(viewer) {
     unsubPhotogrammetryBuildingHover()
     unsubPhotogrammetryBuildingLeave()
     unsubPhotogrammetryBuildingLeftClick()
+    unsubCameraMoveEnd?.()
+    unsubMouseWheel?.()
     removeActivePhotogrammetry()
   })
 
