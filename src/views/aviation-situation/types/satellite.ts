@@ -2,7 +2,7 @@ import * as Cesium from 'cesium'
 import type { Scan, Satellite } from '@/network/satellite/type'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
-import type { LngLatAlt } from '@/views/aviation-situation/types/shared'
+import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
 
 export type MatchedSatellite = Satellite & {
   aircraft: { aircraftMap: Map<string, Aircraft> }
@@ -16,6 +16,7 @@ export interface SatelliteRenderItem {
   cylinderLengthProperty: Cesium.ConstantProperty
 }
 
+/** tooltip / 选中态业务快照（不挂在 entity.properties 上） */
 export interface SatelliteHoveredProperties {
   id: string
   sourceType: 'satellite'
@@ -28,11 +29,14 @@ export interface SatelliteHoveredProperties {
     latitude: number
     height: number
   }
-  // screenPosition:Cesium.Cartesian2
 }
 
-/** 挂在卫星 Entity.properties 上的完整属性（含高亮还原用的 model/path） */
-export type SatelliteProperties = SatelliteHoveredProperties & {
+export type SatelliteTooltipState = TooltipState<SatelliteHoveredProperties>
+
+/** 挂在卫星 Entity.properties 上：拾取身份 + 高亮还原用渲染态 */
+export interface SatelliteProperties {
+  id: string
+  sourceType: 'satellite'
   model: {
     silhouetteSize: number
     silhouetteColor: Cesium.Color

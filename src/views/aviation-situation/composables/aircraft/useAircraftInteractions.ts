@@ -1,23 +1,27 @@
 import * as Cesium from 'cesium'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type {
   AircraftBaseProperties,
+  AircraftBillboardProperties,
   AircraftSelectedData,
 } from '@/views/aviation-situation/types/aircraft'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
 import { highlightBillboardOnHover } from '../highlight-manager/billboard-highlight-manager'
 import { selectBillboard } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
+import { toAircraftBaseProperties, toAircraftSelectedData } from './aircraft-property-utils'
 
 interface AviationSelectionStoreLike {
   hovered: AviationSelectedData
   selected: AviationSelectedData
-  setHovered: (data: AircraftBaseProperties) => void
+  setHovered: (data: AircraftSelectedData) => void
   clearHovered: () => void
   setSelected: (data: AircraftSelectedData) => void
 }
 
 interface UseAircraftInteractionsOptions {
   aviationSelectionStore: AviationSelectionStoreLike
+  getAircraftByIcao24: (icao24: string) => Aircraft | undefined
   showAircraftTooltip: (position: Cesium.Cartesian2, properties: AircraftBaseProperties) => void
   hideAircraftTooltip: () => void
   onMouseWheel: (camera: Cesium.Camera) => void
@@ -28,6 +32,7 @@ interface UseAircraftInteractionsOptions {
 export function useAircraftInteractions(options: UseAircraftInteractionsOptions) {
   const {
     aviationSelectionStore,
+    getAircraftByIcao24,
     showAircraftTooltip,
     hideAircraftTooltip,
     onMouseWheel,
@@ -43,16 +48,22 @@ export function useAircraftInteractions(options: UseAircraftInteractionsOptions)
   const subscribe = (): void => {
     unsubAircraftHover = onCesiumEvent(
       'aircraftHover',
-      (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
-        showAircraftTooltip(position, properties)
-        highlightBillboardOnHover(properties, billboard, hoveredImageUrl)
+      (properties: AircraftBillboardProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => {
+        const aircraft = getAircraftByIcao24(properties.icao24)
+        if (!aircraft) return
+
+        const tooltipProperties = toAircraftBaseProperties(aircraft)
+        const selectedData = toAircraftSelectedData(aircraft)
+
+        showAircraftTooltip(position, tooltipProperties)
+        highlightBillboardOnHover(selectedData, billboard, hoveredImageUrl)
         const hovered = aviationSelectionStore.hovered
         if (
           hovered === null ||
           hovered.sourceType !== 'aircraft' ||
           hovered.icao24 !== properties.icao24
         ) {
-          aviationSelectionStore.setHovered(properties)
+          aviationSelectionStore.setHovered(selectedData)
         }
       }
     )
@@ -67,8 +78,10 @@ export function useAircraftInteractions(options: UseAircraftInteractionsOptions)
 
     unsubAircraftLeftClick = onCesiumEvent(
       'aircraftLeftClick',
-      (data: AircraftSelectedData, billboard: Cesium.Billboard) => {
-        selectBillboard(billboard, selectedImageUrl, data)
+      (properties: AircraftBillboardProperties, billboard: Cesium.Billboard) => {
+        const aircraft = getAircraftByIcao24(properties.icao24)
+        if (!aircraft) return
+        selectBillboard(billboard, selectedImageUrl, toAircraftSelectedData(aircraft))
       }
     )
 

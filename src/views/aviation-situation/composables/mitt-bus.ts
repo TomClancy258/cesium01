@@ -1,25 +1,25 @@
 // src/views/aviation-situation/composables/mitt-bus.ts
 import mitt from 'mitt';
-import {
-  AircraftBaseProperties,
-  AircraftSelectedData, ClearAircraftSpatialSelectionData
+import type {
+  AircraftBillboardProperties,
+  ClearAircraftSpatialSelectionData
 } from '@/views/aviation-situation/types/aircraft'
-import type { AirportBaseProperties, AirportSelectedData,ClearAirportSpatialSelectionData } from "@/views/aviation-situation/types/airport"
-import type {  SpatialSelectionData} from '@/views/aviation-situation/types/shared'
-import {
+import type { AirportBillboardProperties, ClearAirportSpatialSelectionData } from "@/views/aviation-situation/types/airport"
+import type {  SpatialSelectionData, LngLatAlt } from '@/views/aviation-situation/types/shared'
+import type {
   SpatialSelectionTableRowOperation
 } from '@/views/aviation-situation/types/draw-tools'
 import Cesium from 'cesium'
-import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
+import type { SatelliteProperties } from '@/views/aviation-situation/types/satellite'
 import type {
   OSMBuildingHoveredProperties,
   OSMBuildingSelectedProperties,
 } from '@/views/aviation-situation/types/osm-building'
 import type { PhotogrammetryHoveredProperties, PhotogrammetryBuildingHoveredProperties, PhotogrammetryBuildingSelectedProperties, PhotogrammetryTableRowOperation } from '@/views/aviation-situation/types/photogrammetry'
-import {
+import type {
   ControlZoneTableRowOperation,
-  type ControlZoneHoveredProperties,
 } from '@/views/aviation-situation/types/control-zone'
+import type { ControlZoneProperties } from '@/network/control-zone/type'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -47,6 +47,7 @@ export type CesiumMouseEventName =
 
   | 'controlZoneHover'
   | 'controlZoneLeave'
+  | 'controlZoneLeftClick'
 
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
@@ -65,17 +66,17 @@ export type CameraEventCallback = (camera: Cesium.Camera) => void
 
 // 3. 事件回调映射（补充 spatialSelection 的类型）
 export interface EventCallbackMap {
-  aircraftHover: (properties: AircraftBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
+  aircraftHover: (properties: AircraftBillboardProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   aircraftLeave: () => void;
-  aircraftLeftClick: (data: AircraftSelectedData, billboard: Cesium.Billboard) => void;
+  aircraftLeftClick: (properties: AircraftBillboardProperties, billboard: Cesium.Billboard) => void;
 
-  airportHover: (properties: AirportBaseProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
+  airportHover: (properties: AirportBillboardProperties, position: Cesium.Cartesian2, billboard: Cesium.Billboard) => void;
   airportLeave: () => void;
-  airportLeftClick: (data: AirportSelectedData, billboard: Cesium.Billboard) => void;
+  airportLeftClick: (properties: AirportBillboardProperties, billboard: Cesium.Billboard) => void;
 
-  satelliteHover: (properties: SatelliteHoveredProperties, position: Cesium.Cartesian2, entity: Cesium.Entity) => void;
+  satelliteHover: (properties: SatelliteProperties, position: Cesium.Cartesian2, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => void;
   satelliteLeave: () => void;
-  satelliteLeftClick: (data: SatelliteHoveredProperties, entity: Cesium.Entity) => void;
+  satelliteLeftClick: (properties: SatelliteProperties, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => void;
 
   osmBuildingHover: (properties: OSMBuildingHoveredProperties, position: Cesium.Cartesian2) => void;
   osmBuildingLeave: () => void;
@@ -92,11 +93,12 @@ export interface EventCallbackMap {
   photogrammetryBuildingLeftClick: (data: PhotogrammetryBuildingSelectedProperties) => void;
 
   controlZoneHover: (
-    properties: ControlZoneHoveredProperties,
+    properties: ControlZoneProperties,
     position: Cesium.Cartesian2,
     entity: Cesium.Entity,
   ) => void;
   controlZoneLeave: () => void;
+  controlZoneLeftClick: (properties: ControlZoneProperties, entity: Cesium.Entity) => void;
 
   mouseWheel: (camera: Cesium.Camera) => void;
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

@@ -3,7 +3,7 @@
 import { ref, computed, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { useControlZoneStore } from '@/stores/control-zone'
-import type { ControlZoneProperties } from '@/network/control-zone/type.ts'
+import type { MatchedControlZone } from '@/views/aviation-situation/types/control-zone'
 import AircraftIcaoPopover
   from '@/views/aviation-situation/components/map-tools/panels/draw-tool/tables/spatial-selection/popover/AircraftIcaoPopover.vue'
 import {
@@ -63,7 +63,7 @@ watch(
   { immediate: true },
 )
 
-const rowClassName = ({ row }: { row: ControlZoneProperties }): string => {
+const rowClassName = ({ row }: { row: MatchedControlZone }): string => {
   const selected = regionSelectionStore.selected
   if (selected?.sourceType === 'controlZone' && selected.id === row.id) {
     return 'is-selected-row'
@@ -77,7 +77,7 @@ const resetControlZoneForm = (formEl: FormInstance | undefined) => {
   formEl.resetFields()
 }
 
-const onDetail = (row: ControlZoneProperties) => {
+const onDetail = (row: MatchedControlZone) => {
   emitCesiumEvent('controlZoneTableOperationClicked', {
     operationType: 'detail',
     id: row.id,

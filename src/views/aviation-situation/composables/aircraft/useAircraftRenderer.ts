@@ -53,7 +53,7 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
   const createAircraftLabel = (item: AviationRenderItem<Aircraft>): void => {
     if (!aircraftGraphic.primitives.labels || item.label) return
 
-    const { longitude, latitude, baroAltitude, callsign, heading, icao24, originCountry } = item.data
+    const { longitude, latitude, baroAltitude, callsign, icao24 } = item.data
     const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, baroAltitude)
 
     const label = aircraftGraphic.primitives.labels.add({
@@ -75,14 +75,6 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       type: 'label',
       sourceType: 'aircraft',
       icao24,
-      originCountry,
-      callsign,
-      heading,
-      lngLatAlt: {
-        longitude,
-        latitude,
-        baroAltitude,
-      },
       originalFillColor: label.fillColor,
     } satisfies AircraftLabelProperties
 
@@ -103,7 +95,7 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
   }
 
   const drawAircraft = (aircraft: Aircraft): void => {
-    const { longitude, latitude, baroAltitude, callsign, heading, icao24, originCountry } = aircraft
+    const { longitude, latitude, baroAltitude, heading, icao24 } = aircraft
     if (!isValidCoordinate(longitude, latitude, baroAltitude)) return
 
     const position: Cesium.Cartesian3 = Cesium.Cartesian3.fromDegrees(longitude, latitude, baroAltitude)
@@ -129,26 +121,17 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       type: 'billboard',
       sourceType: 'aircraft',
       icao24,
-      originCountry,
-      callsign,
-      heading,
-      lngLatAlt: {
-        longitude,
-        latitude,
-        baroAltitude,
-      },
-      originalColor: billboard.color,
       images: {
         original: billboard.image,
         satelliteConeScan: null,
         spatialSelection: null,
-        controlZone:null
+        controlZone: null,
       },
       sets: {
         dataSourceName: new Set<string>(),
         coneScanSatelliteId: new Set<string>(),
         controlZoneId: new Set<string>(),
-      }
+      },
     } satisfies AircraftBillboardProperties
 
     const renderItem: AviationRenderItem<Aircraft> = { data: aircraft, billboard }

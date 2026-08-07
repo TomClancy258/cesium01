@@ -1,7 +1,7 @@
 import { useDebounceFn } from '@vueuse/core'
 import type * as Cesium from 'cesium'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
-import type { AircraftBaseProperties, AircraftFilterForm, AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
+import type { AircraftFilterForm, AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
 import type { AviationRenderItem, AviationSelectedData } from '@/views/aviation-situation/types/shared'
 
 type AircraftFilterQuery = Pick<AircraftFilterForm, 'icao24' | 'callsign' | 'originCountries' | 'riskLevel'>
@@ -50,13 +50,10 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     let isSelectedAircraftMatched = false
 
     renderMap.forEach(({ data: aircraft, billboard, label }) => {
-      const p: AircraftBaseProperties = billboard.properties
-      if (!p) return
-
       const match =
-        (!query.icao24 || p.icao24.toLowerCase().includes(query.icao24)) &&
-        (!query.callsign || (p.callsign ?? '').toLowerCase().includes(query.callsign)) &&
-        originCountriesSet.has(p.originCountry) &&
+        (!query.icao24 || aircraft.icao24.toLowerCase().includes(query.icao24)) &&
+        (!query.callsign || (aircraft.callsign ?? '').toLowerCase().includes(query.callsign)) &&
+        originCountriesSet.has(aircraft.originCountry) &&
         (query.riskLevel === 'all' || aircraft.riskLevel === query.riskLevel) &&
         aircraftFilterForm.visible
 
@@ -64,7 +61,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
         addMatchedAircrafts(aircraft)
 
         const selected = getSelected()
-        if (selected?.sourceType === 'aircraft' && p.icao24 === selected.icao24) {
+        if (selected?.sourceType === 'aircraft' && aircraft.icao24 === selected.icao24) {
           isSelectedAircraftMatched = true
         }
       }

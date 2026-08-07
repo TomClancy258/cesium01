@@ -7,24 +7,25 @@ import type {
 import * as Cesium from "cesium"
 import type { SpatialSelectionAircraft } from '@/views/aviation-situation/types/draw-tools'
 
+/** tooltip / UI 用业务快照（不挂在 billboard.properties 上） */
 export interface AirportBaseProperties{
   type: 'label' | 'billboard'
   sourceType: 'airport'
-  icao: string // icao 代码
+  icao: string
   country: string
   name: string
   lngLatAlt:{
-    longitude: number // 数字类型，不是字符串
-    latitude: number // 数字类型，不是字符串
-    elevation: number // 数字类型，不是字符串
+    longitude: number
+    latitude: number
+    elevation: number
   }
 }
 
-// Billboard 专用属性
-export interface AirportBillboardProperties extends AirportBaseProperties {
+/** Billboard 图元属性：拾取身份 + 纯渲染态 */
+export interface AirportBillboardProperties {
   type: 'billboard'
-  originalColor: Cesium.Color
-  riskLevel: 'high'|'medium'|'normal'
+  sourceType: 'airport'
+  icao: string
   images: {
     original: string | undefined
     satelliteConeScan: string | null
@@ -36,9 +37,11 @@ export interface AirportBillboardProperties extends AirportBaseProperties {
   }
 }
 
-// Label 专用属性
-export interface AirportLabelProperties extends AirportBaseProperties {
+/** Label 图元属性：拾取身份 + 渲染态 */
+export interface AirportLabelProperties {
   type: 'label'
+  sourceType: 'airport'
+  icao: string
   originalFillColor: Cesium.Color
 }
 
@@ -68,16 +71,12 @@ export interface AirportSelectedData {
     elevation: number;
   };
   name: string,
-  // screenPosition:Cesium.Cartesian2
 }
 
 
 // 机场图元 = 纯基础图元（无扩展）
-// export interface AirportPrimitives extends AviationPrimitivesBase {}
 export type AirportPrimitives = AviationPrimitivesBase;
 
-// 机场图元容器 = 通用容器 + 机场图元
-// export interface AirportGraphic extends AviationGraphicBase<AirportPrimitives> {}
 export type AirportGraphic = AviationGraphicBase<AirportPrimitives>;
 
 export type ClearActiveAirportSpatialSelectionData=ClearAviationSpatialSelectionDataBase

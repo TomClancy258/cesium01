@@ -10,23 +10,21 @@ import type {
 import { CONTROL_ZONE_LEVEL_STYLES } from '@/views/aviation-situation/composables/control-zone/control-zone-constants'
 import { useDebounceFn } from '@vueuse/core'
 import { useControlZoneStore } from '@/stores/control-zone'
-import {
-  ControlZoneSelectedProperties, ControlZoneTableRowOperation,
+import type {
+  ControlZoneHoveredProperties,
+  ControlZoneTableRowOperation,
   MatchedControlZone
 } from '@/views/aviation-situation/types/control-zone'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
 import * as turf from '@turf/turf'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
-import type { ControlZoneHoveredProperties } from '@/views/aviation-situation/types/control-zone'
-import {
-  selectControlZone
-} from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
-import { OSMBuildingHoveredProperties } from '@/views/aviation-situation/types/osm-building'
+import { selectControlZoneRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
 import {
-  handleControlZoneLeftClick
-} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/control-zone'
+  toControlZoneHoveredProperties,
+  toControlZoneRegionSelectedData,
+} from './control-zone-property-utils'
 
 type ControlZoneFilterQuery = {
   id?: string
@@ -118,15 +116,11 @@ export function useControlZone(
         },
         properties: {
           id: properties.id,
-          name: properties.name,
-          level: properties.level,
-          minAltitude: properties.minAltitude,
-          maxAltitude: properties.maxAltitude,
           sourceType: 'controlZone',
-          polygon:{
-            outlineColor:style.outlineColor
-          }
-        } as ControlZoneProperties,
+          polygon: {
+            outlineColor: style.outlineColor,
+          },
+        } satisfies ControlZoneProperties,
       })
 
       controlZoneRenderMap.set(properties.id, {
@@ -207,16 +201,19 @@ export function useControlZone(
 
   let unsubControlZoneHover: () => void
   let unsubControlZoneLeave: () => void
+  let unsubControlZoneLeftClick: () => void
   let unsubControlZoneTableOperationClicked: () => void
 
   const subscribeControlZoneEvents = () => {
     unsubControlZoneHover = onCesiumEvent(
       'controlZoneHover',
       (
-        properties: ControlZoneHoveredProperties,
+        properties: ControlZoneProperties,
         screenPosition: Cesium.Cartesian2,
       ) => {
-        showControlZoneTooltip(screenPosition, properties)
+        const controlZone = controlZoneRenderMap.get(properties.id)?.data
+        if (!controlZone) return
+        showControlZoneTooltip(screenPosition, toControlZoneHoveredProperties(controlZone))
       },
     )
 
@@ -224,19 +221,27 @@ export function useControlZone(
       hideControlZoneTooltip()
     })
 
+    unsubControlZoneLeftClick = onCesiumEvent(
+      'controlZoneLeftClick',
+      (properties: ControlZoneProperties, entity: Cesium.Entity) => {
+        const controlZone = controlZoneRenderMap.get(properties.id)?.data
+        if (!controlZone) return
+        selectControlZoneRegion(entity, toControlZoneRegionSelectedData(controlZone))
+      },
+    )
+
     unsubControlZoneTableOperationClicked = onCesiumEvent(
       'controlZoneTableOperationClicked',
-      (controlZoneTableRowOperation:ControlZoneTableRowOperation) => {
-        const controlZoneRenderState:ControlZoneRenderState|undefined = controlZoneRenderMap.get(controlZoneTableRowOperation.id)
-        if(!controlZoneRenderState) return
-        const entity=controlZoneRenderState.entity
-        if (!(entity) || !entity.properties) return
+      (controlZoneTableRowOperation: ControlZoneTableRowOperation) => {
+        const controlZoneRenderState = controlZoneRenderMap.get(controlZoneTableRowOperation.id)
+        if (!controlZoneRenderState) return
+        const { entity, data } = controlZoneRenderState
+        if (!entity) return
 
-        const properties: ControlZoneProperties = entity.properties.getValue()
-        handleControlZoneLeftClick(properties,entity)
+        selectControlZoneRegion(entity, toControlZoneRegionSelectedData(data))
 
-        viewer.value.flyTo(entity,{
-          duration:1.5
+        viewer.value.flyTo(entity, {
+          duration: 1.5,
         })
       },
     )
@@ -249,6 +254,7 @@ export function useControlZone(
 
     unsubControlZoneHover()
     unsubControlZoneLeave()
+    unsubControlZoneLeftClick()
     unsubControlZoneTableOperationClicked()
   })
 

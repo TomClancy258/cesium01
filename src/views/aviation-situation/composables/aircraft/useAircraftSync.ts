@@ -4,6 +4,7 @@ import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
 import type { AircraftBaseProperties } from '@/views/aviation-situation/types/aircraft'
 import type { AviationRenderItem, AviationSelectedData } from '@/views/aviation-situation/types/shared'
+import { toAircraftBaseProperties } from './aircraft-property-utils'
 
 interface UseAircraftSyncOptions {
   viewer: ShallowRef<Cesium.Viewer>
@@ -96,39 +97,9 @@ export function useAircraftSync(options: UseAircraftSyncOptions) {
         }
         aircraftRenderItem.data = aircraft
 
-        aircraftRenderItem.billboard.properties.lngLatAlt.longitude = aircraft.longitude
-        aircraftRenderItem.billboard.properties.lngLatAlt.latitude = aircraft.latitude
-        aircraftRenderItem.billboard.properties.lngLatAlt.baroAltitude = aircraft.baroAltitude
-
-        if (aircraftRenderItem.label) {
-          aircraftRenderItem.label.properties.lngLatAlt.longitude = aircraft.longitude
-          aircraftRenderItem.label.properties.lngLatAlt.latitude = aircraft.latitude
-          aircraftRenderItem.label.properties.lngLatAlt.baroAltitude = aircraft.baroAltitude
-        }
-
         const hovered = getHovered()
         if (hovered != null && hovered.sourceType === 'aircraft' && aircraft.icao24 === hovered.icao24) {
-          //建议留在 properties 里:
-          //type: 'billboard'
-          // sourceType: 'aircraft'
-          // icao24: string          // pick 后反查 Map 的 key
-          // originalColor / images / sets   // 纯渲染态，data 里没有
-          const properties: AircraftBaseProperties = {
-            type: 'billboard',
-            sourceType: 'aircraft',
-            icao24: aircraft.icao24,
-
-            //建议不要放在 properties 里（都从 renderMap.get(icao24).data 读，比如tooltip里的信息）
-            //不然的话，不仅要更新aircraftRenderMap里每个value对象里的data原数据，还要更新billboard.properties里的这些数据，维护两个地方的数据很容易出错
-            originCountry: aircraft.originCountry,
-            callsign: aircraft.callsign,
-            heading: aircraft.heading,
-            lngLatAlt: {
-              latitude: aircraft.latitude,
-              longitude: aircraft.longitude,
-              baroAltitude: aircraft.baroAltitude
-            }
-          }
+          const properties = toAircraftBaseProperties(aircraft)
           const screenPosition: Cesium.Cartesian2 =
             Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
           showAircraftTooltip(screenPosition, properties)

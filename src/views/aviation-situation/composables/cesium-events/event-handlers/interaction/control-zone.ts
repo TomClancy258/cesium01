@@ -2,11 +2,10 @@ import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus
 import type { ControlZoneProperties } from '@/network/control-zone/type'
 import type { ControlZoneHighlightConfig } from '@/views/aviation-situation/types/control-zone'
 import { highlightControlZoneOnHover } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
-import { selectControlZoneRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
-import type { ControlZoneRegionSelectedData } from '@/views/aviation-situation/types/region-selection'
 import * as Cesium from 'cesium'
 import { CONTROL_ZONE_INTERACTION_OUTLINE } from '@/views/aviation-situation/composables/control-zone/control-zone-constants'
 
+/** pick 后只转发图元身份；业务字段由 useControlZone 从 renderMap 组装 */
 export const handleControlZoneHover = (
   properties: ControlZoneProperties,
   screenPosition: Cesium.Cartesian2,
@@ -25,13 +24,5 @@ export const handleControlZoneLeftClick = (
   properties: ControlZoneProperties,
   entity: Cesium.Entity,
 ): void => {
-  const selected: ControlZoneRegionSelectedData = {
-    sourceType: 'controlZone',
-    id: properties.id,
-    name: properties.name,
-    level: properties.level,
-    minAltitude: properties.minAltitude,
-    maxAltitude: properties.maxAltitude,
-  }
-  selectControlZoneRegion(entity, selected)
+  emitCesiumEvent('controlZoneLeftClick', properties, entity)
 }

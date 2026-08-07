@@ -36,7 +36,7 @@ const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
     billboard.image = properties.images.spatialSelection
     return
   }
-  if (properties.images.controlZone) {
+  if ('controlZone' in properties.images && properties.images.controlZone) {
     billboard.image = properties.images.controlZone
     return
   }
@@ -69,6 +69,7 @@ export function highlightBillboardOnControlZone(
   highlightImage: string,
 ): void {
   const properties = getBillboardProperties(billboard)
+  if (!('controlZoneId' in properties.sets) || !('controlZone' in properties.images)) return
   const controlZoneIdMap:Set<string>=properties.sets.controlZoneId
   const alreadyTracked = controlZoneIdMap.has(controlZoneId)
   if (!alreadyTracked) {
@@ -94,6 +95,7 @@ export function clearSpatialSelectedHighlight(dataSourceName: string, billboard:
 
 export function clearControlZoneHighlight(controlZoneId: string, billboard: Cesium.Billboard): void {
   const properties = getBillboardProperties(billboard)
+  if (!('controlZoneId' in properties.sets) || !('controlZone' in properties.images)) return
   const controlZoneIdSet: Set<string> = properties.sets.controlZoneId
   if (!controlZoneIdSet.has(controlZoneId)) return
   controlZoneIdSet.delete(controlZoneId)

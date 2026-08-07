@@ -33,6 +33,7 @@ import type { Airport } from '@/network/airport/type'
 import {
   airplaneBlueSvgDataUrl
 } from '@/views/aviation-situation/composables/aircraft/aircraft-constants'
+import { toSatelliteHoveredProperties } from './satellite-property-utils'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -189,22 +190,11 @@ export function useSatellite(
       ){
         const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
         if (screenPosition) {
-          const properties: SatelliteHoveredProperties = {
-            id:satellite.id,
-            name: satellite.name ?? '',
-            country:satellite.country ?? '',
-            description: satellite.description ?? '',
-            sourceType:'satellite',
-            scan:{
-              target:satellite.scan.target,
-            },
-            lngLatAlt: {
-              longitude: longitude,
-              latitude: latitude,
-              height: height
-            }
-          }
-          // aviationSelectionStore.setHovered(properties)
+          const properties = toSatelliteHoveredProperties(satellite, {
+            longitude,
+            latitude,
+            height,
+          })
           //hovered卫星节点显示tooltip卫星简略信息时，更新tooltip里卫星的信息（比如坐标），节流100ms
           showSatelliteTooltip(screenPosition, properties)
         }
@@ -414,19 +404,14 @@ export function useSatellite(
         }),
         properties:{
           id:satellite.id,
-          name:satellite.name,
-          country:satellite.country,
-          description:satellite.description,
           sourceType:'satellite',
           model:{
             silhouetteSize:0,
             silhouetteColor:Cesium.Color.RED
           },
-          scan:{...satellite.scan},
           path:{
             show:false
           },
-          lngLatAlt:{...satellite.lngLatAlt}
         }
       })
 
@@ -535,31 +520,29 @@ export function useSatellite(
     unsubSatelliteHover = onCesiumEvent(
       'satelliteHover',
       (
-        properties: SatelliteHoveredProperties,
+        properties: SatelliteProperties,
         screenPosition: Cesium.Cartesian2,
+        lngLatAlt: LngLatAlt,
       ) => {
-        showSatelliteTooltip(screenPosition, properties)
+        const satellite = satelliteRenderMap.get(properties.id)?.data
+        if (!satellite) return
+
+        const hoveredProperties = toSatelliteHoveredProperties(satellite, lngLatAlt)
+        showSatelliteTooltip(screenPosition, hoveredProperties)
 
         if (
           aviationSelectionStore.hovered === null ||
           aviationSelectionStore.hovered.sourceType !== 'satellite' ||
           aviationSelectionStore.hovered.id !== properties.id
         ) {
-          aviationSelectionStore.setHovered(properties)
+          aviationSelectionStore.setHovered(hoveredProperties)
         }
       },
     )
 
     unsubSatelliteLeave = onCesiumEvent('satelliteLeave', () => {
       hideSatelliteTooltip()
-      // aviationSelectionStore.clearHovered()
-      // clearHoveredBillboardHighlight()
       const hovered = aviationSelectionStore.hovered
-      //hovered != null && hovered.sourceType === 'satellite'
-      //当 hovered 是 null 或 undefined 时：
-      // hovered?.sourceType 的结果是 undefined
-      // undefined === 'satellite' 是 false
-      // 所以整句会是 false，不会报错。
       if (hovered?.sourceType === 'satellite') {
         aviationSelectionStore.clearHovered()
       }
@@ -567,8 +550,10 @@ export function useSatellite(
 
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
-      (data: SatelliteHoveredProperties, entity: Cesium.Entity) => {
-        selectSatellite(entity, data)
+      (properties: SatelliteProperties, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => {
+        const satellite = satelliteRenderMap.get(properties.id)?.data
+        if (!satellite) return
+        selectSatellite(entity, toSatelliteHoveredProperties(satellite, lngLatAlt))
       },
     )
 

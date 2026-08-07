@@ -7,7 +7,6 @@ import type {
   AirportBaseProperties,
   AirportBillboardProperties,
   AirportLabelProperties,
-  AirportSelectedData,
   AirportFilterForm,
   AirportGraphic,
 } from '@/views/aviation-situation/types/airport'
@@ -41,7 +40,6 @@ import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 import {
   highlightBillboardOnHover,
-  clearHoveredBillboardHighlight,
 } from '../highlight-manager/billboard-highlight-manager'
 import { selectBillboard } from '@/views/aviation-situation/composables/selection/useAviationSelectionActions'
 
@@ -54,7 +52,12 @@ import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatel
 import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRipple'
+import {
+  toAirportBaseProperties,
+  toAirportSelectedData,
+} from './airport-property-utils'
 
+type AirportRenderItem = AviationRenderItem<Airport>
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
 
 export interface UseAirportsOptions {
@@ -220,7 +223,6 @@ export function useAirport(
       const longitude: number = airport.longitude
       const latitude: number = airport.latitude
       const elevation: number = airport.elevation
-      const country: string = airport.country
       const icao: string = airport.icao
 
       if (!isValidCoordinate(longitude, latitude, 0)) {
@@ -254,15 +256,6 @@ export function useAirport(
         type: 'billboard',
         sourceType: 'airport',
         icao,
-        country,
-        riskLevel:airport.riskLevel,
-        name: airport.name,
-        lngLatAlt: {
-          longitude,
-          latitude,
-          elevation,
-        },
-        originalColor: billboard.color,
         images: {
           original: billboard.image,
           satelliteConeScan: null,
@@ -275,25 +268,16 @@ export function useAirport(
       } satisfies AirportBillboardProperties
 
       airportRenderMap.set(icao, { data: airport, billboard })
-      // airportRiskRipple.sync({
-      //   id: icao,
-      //   position,
-      //   riskLevel: airport.riskLevel,
-      //   visible: airportStore.airportFilterForm.visible,
-      // })
     }
   }
 
   const filterAirports = useDebounceFn((): void => {
     airportStore.clearMatchedAirports()
 
-    const DEFAULT_ALPHA: number = 0.0
-    const HIGHLIGHT_ALPHA: number = 1.0
     const form: AirportFilterForm = airportStore.airportFilterForm
 
     const query: AircraftFilterQuery = {
       icao: form.icao?.trim().toLowerCase(),
-      // country: form.country?.trim().toLowerCase(),
       name: form.name?.trim().toLowerCase(),
       countries: form.countries,
       riskLevel: form.riskLevel,
@@ -302,42 +286,25 @@ export function useAirport(
     const countriesSet = new Set(query.countries)
 
     airportRenderMap.forEach(({ data: airport, billboard, label }) => {
-      const p: AirportBaseProperties = billboard.properties
-      if (!p) return
-
       const match: boolean =
-        (!query.icao || p.icao.toLowerCase().includes(query.icao)) &&
-        (!query.name || p.name.toLowerCase().includes(query.name)) &&
-        countriesSet.has(p.country) &&
+        (!query.icao || airport.icao.toLowerCase().includes(query.icao)) &&
+        (!query.name || airport.name.toLowerCase().includes(query.name)) &&
+        countriesSet.has(airport.country) &&
         (query.riskLevel === 'all' || airport.riskLevel === query.riskLevel) &&
         form.visible
-      // (!query.country || p.country.toLowerCase().includes(query.country))
 
-      // const alpha: number = match ? HIGHLIGHT_ALPHA : DEFAULT_ALPHA
       if (match) {
         airportStore.addMatchedAirports(airport)
-        // matchedBillboard=billboard
       }
-
-      // billboard.color = billboard.properties.originalColor.withAlpha(alpha)
-      // const label:Cesium.Label = airportGraphic.primitives.labelMap.get(icao)
-      // label.fillColor = label.properties.originalFillColor.withAlpha(alpha)
 
       billboard.show = match
       if (form.labelVisible && label) {
         label.show = match
       }
-      // airportRiskRipple.sync({
-      //   id: airport.icao,
-      //   position: billboard.position,
-      //   riskLevel: airport.riskLevel,
-      //   visible: form.visible && match,
-      // })
     })
     airportStore.commitMatchedAirports()
     finishedSpatialSelection()
     notifyAviationDataUpdated()
-    // 高亮匹配项
   }, 300)
 
   const removeAirportLabels = (): void => {
@@ -355,7 +322,6 @@ export function useAirport(
       const longitude: number = airport.longitude
       const latitude: number = airport.latitude
       const elevation: number = airport.elevation
-      const country: string = airport.country
       const icao: string = airport.icao
 
       if (!isValidCoordinate(longitude, latitude, 0)) {
@@ -388,13 +354,6 @@ export function useAirport(
         type: 'label',
         sourceType: 'airport',
         icao,
-        country,
-        name: airport.name,
-        lngLatAlt: {
-          longitude,
-          latitude,
-          elevation,
-        },
         originalFillColor: label.fillColor,
       } satisfies AirportLabelProperties
 
@@ -413,26 +372,31 @@ export function useAirport(
     unsubAirportHover = onCesiumEvent(
       'airportHover',
       (
-        properties: AirportBaseProperties,
+        properties: AirportBillboardProperties,
         position: Cesium.Cartesian2,
         billboard: Cesium.Billboard,
       ) => {
-        showAirportTooltip(position, properties) // 替换原方法
-        highlightBillboardOnHover(properties, billboard, airportHoveredSvgRawDataUrl)
+        const airport = airportRenderMap.get(properties.icao)?.data
+        if (!airport) return
+
+        const tooltipProperties = toAirportBaseProperties(airport)
+        const selectedData = toAirportSelectedData(airport)
+
+        showAirportTooltip(position, tooltipProperties)
+        highlightBillboardOnHover(selectedData, billboard, airportHoveredSvgRawDataUrl)
         const hovered = aviationSelectionStore.hovered
         if (
           hovered === null ||
           hovered.sourceType !== 'airport' ||
           hovered.icao !== properties.icao
         ) {
-          aviationSelectionStore.setHovered(properties)
+          aviationSelectionStore.setHovered(selectedData)
         }
       },
     )
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
-      hideAirportTooltip() // 替换原方法
-      // clearHoveredBillboardHighlight()
+      hideAirportTooltip()
       const hovered = aviationSelectionStore.hovered
       if (hovered?.sourceType === 'airport') {
         aviationSelectionStore.clearHovered()
@@ -442,8 +406,10 @@ export function useAirport(
     // 订阅机场点击事件
     unsubAirportLeftClick = onCesiumEvent(
       'airportLeftClick',
-      (data: AirportSelectedData, billboard: Cesium.Billboard) => {
-        selectBillboard(billboard, airportSelectedSvgRawDataUrl, data)
+      (properties: AirportBillboardProperties, billboard: Cesium.Billboard) => {
+        const airport = airportRenderMap.get(properties.icao)?.data
+        if (!airport) return
+        selectBillboard(billboard, airportSelectedSvgRawDataUrl, toAirportSelectedData(airport))
       },
     )
 

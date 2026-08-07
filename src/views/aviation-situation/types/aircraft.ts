@@ -3,6 +3,7 @@ import type {Aircraft} from "@/network/aircraft/types/aircraft"
 import * as Cesium from "cesium"
 import type {SpatialSelectionAircraft} from "./draw-tools"
 
+/** tooltip / UI 用业务快照（不挂在 billboard.properties 上） */
 export interface AircraftBaseProperties {
   type: 'label' | 'billboard'
   sourceType: 'aircraft'
@@ -17,10 +18,11 @@ export interface AircraftBaseProperties {
   heading: number,
 }
 
-// Billboard 专用属性
-export interface AircraftBillboardProperties extends AircraftBaseProperties {
+/** Billboard 图元属性：拾取身份 + 纯渲染态 */
+export interface AircraftBillboardProperties {
   type: 'billboard'
-  originalColor: Cesium.Color
+  sourceType: 'aircraft'
+  icao24: string
   images: {
     original: string | undefined
     satelliteConeScan: string | null
@@ -34,9 +36,11 @@ export interface AircraftBillboardProperties extends AircraftBaseProperties {
   }
 }
 
-// Label 专用属性
-export interface AircraftLabelProperties extends AircraftBaseProperties {
+/** Label 图元属性：拾取身份 + 渲染态 */
+export interface AircraftLabelProperties {
   type: 'label'
+  sourceType: 'aircraft'
+  icao24: string
   originalFillColor: Cesium.Color
 }
 

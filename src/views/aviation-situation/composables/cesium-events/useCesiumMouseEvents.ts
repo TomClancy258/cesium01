@@ -644,7 +644,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'satelliteHover', 'satelliteLeave', 'satelliteLeftClick',
       'osmBuildingHover', 'osmBuildingLeave', 'osmBuildingLeftClick',
       'photogrammetryBuildingHover', 'photogrammetryBuildingLeave', 'photogrammetryBuildingLeftClick',
-      'controlZoneHover', 'controlZoneLeave',
+      'controlZoneHover', 'controlZoneLeave', 'controlZoneLeftClick',
       'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))

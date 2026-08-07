@@ -12,7 +12,7 @@ export type ControlZonePosition = [number, number] | [number, number, number]
  */
 export type ControlZonePolygonCoordinates = ControlZonePosition[][]
 
-/** 后台 Feature.properties */
+/** 后台 Feature.properties / 业务数据 */
 export interface ControlZoneRawProperties {
   id: string
   name: string
@@ -21,11 +21,13 @@ export interface ControlZoneRawProperties {
   maxAltitude: number
 }
 
-export interface ControlZoneProperties extends ControlZoneRawProperties{
-  sourceType:'controlZone',
-  polygon:{
-    outlineColor:Cesium.COLOR
-  },
+/** 挂在 Entity.properties 上：拾取身份 + 高亮还原用渲染态 */
+export interface ControlZoneProperties {
+  id: string
+  sourceType: 'controlZone'
+  polygon: {
+    outlineColor: Cesium.Color
+  }
 }
 
 export interface ControlZonePolygonGeometry {

@@ -193,9 +193,6 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
 }
 
 function applyStatusToObject(object: THREE.Object3D, status: EquipmentStatus): void {
-  /** 设备根上可选缓存，便于调试；材质上不存 status */
-  object.userData.status = status
-
   object.traverse((child) => {
     if (!(child instanceof THREE.Mesh)) return
     //child.material有可能是MeshStandardMaterial类型的对象，也有可能是MeshStandardMaterial[]类型的数组

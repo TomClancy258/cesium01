@@ -178,6 +178,7 @@ export function useAircraft(
   })
   const aircraftInteractions = useAircraftInteractions({
     aviationSelectionStore,
+    getAircraftByIcao24: (icao24) => aircraftRenderMap.get(icao24)?.data,
     showAircraftTooltip,
     hideAircraftTooltip,
     onMouseWheel: (camera) => {
