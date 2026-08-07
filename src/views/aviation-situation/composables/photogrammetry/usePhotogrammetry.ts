@@ -74,12 +74,12 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   let unsubCameraMoveEnd: (() => void) | undefined
   let unsubMouseWheel: (() => void) | undefined
   const subscribeCameraAltitudeVisibility = () => {
-    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', (camera) => {
+    unsubCameraMoveEnd = useCesiumCameraEvent('cameraMoveEnd', (camera) => {
       syncBuildingVisibilityByAltitude(camera)
     })
     // 滚轮缩放过程中 moveEnd 要停住才触发，与机场显隐同一套补 mouseWheel
-    unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
-      syncBuildingVisibilityByAltitude(viewer.value?.camera)
+    unsubMouseWheel = onCesiumEvent('mouseWheel', (camera) => {
+      syncBuildingVisibilityByAltitude(camera)
     })
   }
 

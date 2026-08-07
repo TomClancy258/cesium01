@@ -344,9 +344,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       }
     }, Cesium.ScreenSpaceEventType.RIGHT_CLICK)
 
-    // 鼠标滚轮
-    handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {
-      mouseWheel(event)
+    // 鼠标滚轮（delta 为滚动量，业务侧用 camera 高度，此处不透传），_ 前缀表示故意不用这个参数。
+    handler.setInputAction((_delta: number) => {
+      mouseWheel()
     }, Cesium.ScreenSpaceEventType.WHEEL)
 
     handler.setInputAction((event: Cesium.ScreenSpaceEventHandler.InputEvent) => {
@@ -362,7 +362,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
   // 鼠标滚轮（节流）
   const mouseWheel = useThrottleFn(() => {
-    emitCesiumEvent('mouseWheel')
+    emitCesiumEvent('mouseWheel', viewer.value!.camera)
   }, 500)
 
   const findSatelliteModelPicked = (pickedObjects: PickedObjectLike[]) =>

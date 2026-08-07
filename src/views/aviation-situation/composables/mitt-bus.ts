@@ -59,13 +59,9 @@ export type CesiumMouseEventName =
   | 'controlZoneTableOperationClicked'
   | 'photogrammetryTableOperationClicked'
 
-// 2. 相机事件类型
-export type CesiumCameraEventName = 'moveEnd' | 'flyEnd' | 'changed';
-export type CameraEventCallback = (camera: Cesium.Camera) => void;
-interface CameraEvent {
-  type: CesiumCameraEventName;
-  payload: Cesium.Camera;
-}
+// 2. 相机事件（与鼠标事件一致：一事一名，payload 为 Camera）
+export type CesiumCameraEventName = 'cameraMoveEnd' | 'cameraFlyEnd' | 'cameraChanged'
+export type CameraEventCallback = (camera: Cesium.Camera) => void
 
 // 3. 事件回调映射（补充 spatialSelection 的类型）
 export interface EventCallbackMap {
@@ -102,7 +98,7 @@ export interface EventCallbackMap {
   ) => void;
   controlZoneLeave: () => void;
 
-  mouseWheel: () => void; // 新增事件的回调类型（无参数）
+  mouseWheel: (camera: Cesium.Camera) => void;
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
   airportSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;
   // aircraftsSynced: (aircraftsSyncData:AircraftsSyncData) => void;
@@ -116,8 +112,8 @@ export interface EventCallbackMap {
 
 // 4. 合并所有事件类型
 type AllCesiumEvents = {
-  camera: CameraEvent;
-} & { [K in CesiumMouseEventName]: Parameters<EventCallbackMap[K]> };
+  [K in CesiumCameraEventName]: Cesium.Camera
+} & { [K in CesiumMouseEventName]: Parameters<EventCallbackMap[K]> }
 
 // 5. 创建 mitt 实例
 const mittBus = mitt<AllCesiumEvents>();
@@ -143,6 +139,17 @@ export const onCesiumEvent = <T extends CesiumMouseEventName>(
     // }
   };
 
+  //一个事件名（如 'airportLeftClick'）上可以挂 多个回调，像一个列表：
+  //airportLeftClick → [ wrappedCallback_A, wrappedCallback_B, wrappedCallback_C ]
+  //每次 emit('airportLeftClick', …)，列表里的函数都会执行。
+
+  // off('airportLeftClick', wrappedCallback_A)
+  // 只删 A，B、C 还在
+
+  // off('airportLeftClick')（不传函数）
+  // 全删，A/B/C 都没了
+
+  // 所以 onCesiumEvent 返回的 unsub 里带上 当时那个 wrappedCallback，只会取消自己那一次订阅。
   mittBus.on(eventName, wrappedCallback);
   // 返回解绑函数，方便外部销毁
   return () => mittBus.off(eventName, wrappedCallback);

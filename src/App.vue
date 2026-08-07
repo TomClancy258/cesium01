@@ -11,10 +11,10 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
           <RouterLink to="/AviationSituation">AviationSituation</RouterLink>
           <RouterLink to="/IntelligentWaterPumpStation">IntelligentWaterPump</RouterLink>
         </div>
-<!--        <div class="nav-group nav-group&#45;&#45;right">-->
-<!--          <RouterLink to="/User">User</RouterLink>-->
-<!--          <RouterLink to="/WebGL">WebGL</RouterLink>-->
-<!--        </div>-->
+        <div class="nav-group nav-group--right">
+          <RouterLink to="/User">User</RouterLink>
+          <RouterLink to="/WebGL">WebGL</RouterLink>
+        </div>
       </nav>
     </header>
 
@@ -62,9 +62,9 @@ nav {
   }
 
   &--right {
-    margin-right: 100px;
+    margin-right: 150px;
     a:nth-child(1) {
-      margin-right: 80px;
+      margin-right: 200px;
     }
   }
 }</style>

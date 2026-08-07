@@ -20,7 +20,7 @@ interface UseAircraftInteractionsOptions {
   aviationSelectionStore: AviationSelectionStoreLike
   showAircraftTooltip: (position: Cesium.Cartesian2, properties: AircraftBaseProperties) => void
   hideAircraftTooltip: () => void
-  onMouseWheel: () => void
+  onMouseWheel: (camera: Cesium.Camera) => void
   hoveredImageUrl: string
   selectedImageUrl: string
 }
@@ -72,8 +72,8 @@ export function useAircraftInteractions(options: UseAircraftInteractionsOptions)
       }
     )
 
-    unsubMouseWheel = onCesiumEvent('mouseWheel', () => {
-      onMouseWheel()
+    unsubMouseWheel = onCesiumEvent('mouseWheel', (camera) => {
+      onMouseWheel(camera)
     })
   }
 

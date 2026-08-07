@@ -180,8 +180,8 @@ export function useAircraft(
     aviationSelectionStore,
     showAircraftTooltip,
     hideAircraftTooltip,
-    onMouseWheel: () => {
-      handleCameraMoveEnd(viewer.value.camera)
+    onMouseWheel: (camera) => {
+      handleCameraMoveEnd(camera)
     },
     hoveredImageUrl: airplaneHoveredSvgRawDataUrl,
     selectedImageUrl: airplaneSelectedSvgRawDataUrl,
@@ -217,7 +217,7 @@ export function useAircraft(
   }
 
   const subscribeCameraEvents = () => {
-    unsubCameraMoveEnd = useCesiumCameraEvent('moveEnd', handleCameraMoveEnd)
+    unsubCameraMoveEnd = useCesiumCameraEvent('cameraMoveEnd', handleCameraMoveEnd)
   }
 
   // ========== 初始化 ==========
