@@ -50,14 +50,15 @@ export function useOSMBuilding(viewer) {
     setupOSMBuildingFilterFormWatch()
   }
 
-  const removeOSMBuilding=()=>{
-    if (osmBuildingTileset !== null) {
-      clearAllOSMBuildingHighlight()
-      clearSelectedAviation() // 若当前选中是 osmBuilding
-      hideOSMBuildingTooltip()
+  const removeOSMBuilding = (): void => {
+    if (osmBuildingTileset === null) return
+    clearAllOSMBuildingHighlight()
+    clearSelectedAviation() // 若当前选中是 osmBuilding
+    hideOSMBuildingTooltip()
+    if (viewer.value && !viewer.value.isDestroyed()) {
       viewer.value.scene.primitives.remove(osmBuildingTileset)
-      osmBuildingTileset=null
     }
+    osmBuildingTileset = null
   }
 
   const snapshotOSMBuildingFilterForm = (): OSMBuildingFilterForm => ({
@@ -129,6 +130,11 @@ export function useOSMBuilding(viewer) {
     osmBuildingStore.setIsLoadingOSMBuilding(true)
     try {
       const tileset = await Cesium.Cesium3DTileset.fromIonAssetId(96188)
+      // 快速切走页面时 viewer 可能已销毁，勿再 add
+      if (!viewer.value || viewer.value.isDestroyed()) {
+        tileset.destroy()
+        return
+      }
       osmBuildingTileset = viewer.value.scene.primitives.add(tileset)
       osmBuildingTileset.meta = {
         sourceType: 'osmBuilding',
@@ -187,11 +193,11 @@ export function useOSMBuilding(viewer) {
   }
 
   onUnmounted(() => {
-    unsubOSMBuildingHover()
-    unsubOSMBuildingLeave()
-    unsubOSMBuildingLeftClick()
-
-    unwatchOSMBuildingFilterForm()
+    unsubOSMBuildingHover?.()
+    unsubOSMBuildingLeave?.()
+    unsubOSMBuildingLeftClick?.()
+    unwatchOSMBuildingFilterForm?.()
+    removeOSMBuilding()
   })
 
   return {

@@ -113,6 +113,15 @@ function markInteractive(child: THREE.Object3D): void {
   ensureUniqueMaterials(child)
 }
 
+/** 子树 Mesh 投射阴影（设备根多为 Group，需 traverse） */
+function setCastShadow(object: THREE.Object3D, enabled = true): void {
+  object.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.castShadow = enabled
+    }
+  })
+}
+
 function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Object3D[] {
   if (root.name === 'sbz-shuichi') {
     // 例：shuichi-01 … shuichi-14 各是独立 Group；排除 qiao-2 等非水池子节点
@@ -127,6 +136,10 @@ function collectInteractiveTargets(file: string, root: THREE.Object3D): THREE.Ob
     })
   } else if (root.name === 'sbz-guanzihefengshan') {
     return root.children.filter((child) => {
+      // const isFan=child.name.startsWith('fengshan')
+      // if (isFan) {
+      //   console.log("child", child);
+      // }
       const isCoolingTower = child.name.startsWith('paifengshan')
       const isCoolingTube = child.name.startsWith('guanzi')
       const isInteractive = isCoolingTower || isCoolingTube
@@ -256,12 +269,25 @@ function fitCameraToObject(
   }
 }
 
+type AfterRenderHandle = (fn: () => void) => () => void
+
 export function useStationModels(
   scene: ShallowRef<THREE.Scene | null>,
   camera: ShallowRef<THREE.PerspectiveCamera | null>,
   controls: ShallowRef<OrbitControls | null>,
+  onAfterRender?: AfterRenderHandle,
 ) {
   const modelsGroup = shallowRef<THREE.Group | null>(null)
+  /**
+   * 各 GLB 的 AnimationMixer 列表，供每帧统一 update。
+   * play() 只把 clip 标成「在播」；必须 mixer.update(delta) 叶片才会转。
+   */
+  const animationMixers: THREE.AnimationMixer[] = []
+  /** onAfterRender 返回的注销函数；dispose / 重载时卸掉，避免重复 tick */
+  let removeAnimationTick: (() => void) | null = null
+  /** 替代已弃用的 THREE.Clock：先 update()，再 getDelta() 取帧间隔（秒） */
+  const animationTimer = new THREE.Timer()
+  animationTimer.connect(document)
   /** 可交互根节点扁平缓存（由各类型 Map 重建，供 raycast / 标签） */
   const interactiveModels: THREE.Object3D[] = []
   /** 分类型 name → 可交互 Object3D */
@@ -331,6 +357,7 @@ export function useStationModels(
     const source = object.userData.source as EquipmentSource | undefined
     if (!key || !source) return
     getObjectMapBySource(source)?.set(key, object)
+    setCastShadow(object, true)
   }
 
   const getObjectByName = (
@@ -375,6 +402,13 @@ export function useStationModels(
     loading.value = true
     loadedCount.value = 0
 
+    // const geometry = new THREE.BoxGeometry( 1, 1, 1 );
+    // const material = new THREE.MeshBasicMaterial( { color: 0x00ff00 } );
+    // const cube = new THREE.Mesh( geometry, material );
+    // cube.position.set(-19, 1, 11);
+    // scene.value.add( cube );
+
+
     const group = new THREE.Group()
     group.name = 'intelligent-water-pump-station'
     const loader = createGltfLoader()
@@ -398,6 +432,38 @@ export function useStationModels(
           if (cylinder) {
             cylinder.visible = false
           }
+
+          // dimian_1 本身是 Mesh，直接设即可
+          const ground = gltf.scene.getObjectByName('dimian_1')
+          if (ground instanceof THREE.Mesh) {
+            ground.receiveShadow = true
+          }
+        } else if (gltf.scene.name === 'sbz-dimian-ludeng') {
+          const cylinder: THREE.Object3D | undefined =
+            gltf.scene.getObjectByName('dizhuan')
+          if (cylinder) {
+            // dizhuan_* 一层子节点已是 Mesh
+            cylinder.children.forEach((child) => {
+              if (child.name.startsWith('dizhuan') && child instanceof THREE.Mesh) {
+                child.receiveShadow = true
+              }
+            })
+          }
+        } else if (gltf.scene.name === 'sbz-guanzihefengshan') {
+          /**
+           * 风扇动画：clip 在 gltf.animations（如 All Animations），不在 fengshan-*.animations。
+           * 该 clip 内含 fengshan-01…08 的 quaternion 轨道，play 一次即八扇同转。
+           */
+          console.log("gltf", gltf);
+          if (gltf.animations.length > 0) {
+            const mixer = new THREE.AnimationMixer(gltf.scene)
+            gltf.animations.forEach((clip) => {
+              // 打开该 clip 的播放开关（等价 viewer 勾选动画）；停用用 action.stop()
+              mixer.clipAction(clip).play()
+            })
+            //可能多个 GLB 各自有动画（风扇、以后水池等）,就用数组animationMixers保存每个模型的动画管理器mixer
+            animationMixers.push(mixer)
+          }
         }
         // 交互模型直接进各类型 Map，最后再摊平到 interactiveModels
         if (MODEL_INTERACTION_FILE_SET.has(file)) {
@@ -414,11 +480,31 @@ export function useStationModels(
       modelsGroup.value = group
       rebuildInteractiveModels()
 
+      // 挂到渲染循环：每帧推进 Mixer（无此步则 play 了也不转）
+      removeAnimationTick?.()
+      removeAnimationTick = null
+      if (onAfterRender && animationMixers.length > 0) {
+        animationTimer.reset()
+        removeAnimationTick = onAfterRender(() => {
+          animationTimer.update()
+          // getDelta：相对上一帧的秒数，不是累计时间、也不是转角
+          const delta = Math.min(animationTimer.getDelta(), 0.05)
+          for (let i = 0; i < animationMixers.length; i++) {
+            // 按 delta 推进关键帧，写入 fengshan-* 等节点变换
+            animationMixers[i].update(delta)
+          }
+        })
+      }
+
       if (camera.value) {
         fitCameraToObject(group, camera.value, controls.value, new THREE.Vector3(70, 50, 70))
       }
     } catch (error) {
       console.error('[useStationModels] failed to load models', error)
+      removeAnimationTick?.()
+      removeAnimationTick = null
+      animationMixers.forEach((mixer) => mixer.stopAllAction())
+      animationMixers.length = 0
       disposeObject3D(group)
       interactiveModels.length = 0
       clearEquipmentMaps()
@@ -428,6 +514,11 @@ export function useStationModels(
   }
 
   const disposeModels = (): void => {
+    removeAnimationTick?.()
+    removeAnimationTick = null
+    animationMixers.forEach((mixer) => mixer.stopAllAction())
+    animationMixers.length = 0
+
     const group = modelsGroup.value
     interactiveModels.length = 0
     clearEquipmentMaps()
@@ -441,6 +532,7 @@ export function useStationModels(
 
   onUnmounted(() => {
     disposeModels()
+    animationTimer.dispose()
     dracoLoader?.dispose()
     dracoLoader = null
     disposeSharedWaterNormal()

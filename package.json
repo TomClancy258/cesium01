@@ -17,6 +17,7 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.20.0",
     "@element-plus/icons-vue": "^2.3.2",
     "@turf/turf": "^7.3.1",
     "@vueuse/core": "^14.1.0",
@@ -27,6 +28,7 @@
     "lodash-es": "^4.17.22",
     "mitt": "^3.0.1",
     "pinia": "^3.0.4",
+    "stats.js": "^0.17.0",
     "three": "^0.185.1",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4"
@@ -35,6 +37,7 @@
     "@tsconfig/node24": "^24.0.3",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.10.4",
+    "@types/stats.js": "^0.17.4",
     "@vitejs/plugin-vue": "^6.0.3",
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",

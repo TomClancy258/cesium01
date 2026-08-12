@@ -4,6 +4,7 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js'
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
+import Stats from 'stats.js'
 import { useThrottleFn } from '@vueuse/core'
 import { onUnmounted, ref, shallowRef } from 'vue'
 
@@ -53,8 +54,23 @@ export function useThreeScene() {
 
   let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
+  let stats: Stats | null = null
+  /** composer 之前追加（如角色相机）；存的是渲染回调，不是取消函数 */
+  const beforeRenderFns: Array<() => void> = []
   /** composer 之后追加（如 CSS2DRenderer.render）；存的是渲染回调，不是取消函数 */
   const afterRenderFns: Array<() => void> = []
+
+  /**
+   * 登记每帧渲染前要跑的回调（subscribe → 返回 unsubscribe）。
+   * 用于第三人称跟拍等必须在 composer.render 之前改相机的逻辑。
+   */
+  const onBeforeRender = (fn: () => void): (() => void) => {
+    beforeRenderFns.push(fn)
+    return () => {
+      const index = beforeRenderFns.indexOf(fn)
+      if (index >= 0) beforeRenderFns.splice(index, 1)
+    }
+  }
 
   /**
    * 登记 composer 之后每帧要跑的回调（subscribe → 返回 unsubscribe）。
@@ -71,12 +87,31 @@ export function useThreeScene() {
   /** 主循环：先 WebGL/后处理，再跑 afterRenderFns（标签等 DOM 叠加层） */
   const renderLoop = (): void => {
     if (!composer) return
+    //第 1 帧（initScene 里直接调 renderLoop()）
+    //
+    // 登记：下一帧再调 renderLoop
+    // 立刻执行 stats.begin() → … → composer.render() → stats.end()
+    // 本帧的 renderLoop 结束
+    // 稍后（约 16ms，浏览器下一帧）
+    //
+    // 浏览器再调一次 renderLoop
+    // 又登记再下一帧
+    // 再跑完本帧渲染
+    // 如此循环，同一时刻只有一个“已预约的下一帧”，不是同步递归堆出无数个。
     animationFrameId = requestAnimationFrame(renderLoop)
-    controls.value?.update()
+    stats?.begin()
+    // 漫游时 controls.enabled=false：仍调用 update() 会按 target 重写相机（像盯着原点）
+    if (controls.value?.enabled) {
+      controls.value.update()
+    }
+    for (let i = 0; i < beforeRenderFns.length; i++) {
+      beforeRenderFns[i]()
+    }
     composer.render()
     for (let i = 0; i < afterRenderFns.length; i++) {
       afterRenderFns[i]()
     }
+    stats?.end()
   }
 
   /** 同步相机 / WebGL / composer / OutlinePass 分辨率到容器尺寸 */
@@ -181,6 +216,8 @@ export function useThreeScene() {
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     threeRenderer.setSize(width, height, false)
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace
+    threeRenderer.shadowMap.enabled = true
+    threeRenderer.shadowMap.type = THREE.PCFShadowMap
     container.appendChild(threeRenderer.domElement)
 
     const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
@@ -189,10 +226,22 @@ export function useThreeScene() {
     orbitControls.target.set(0, 0, 0)
     orbitControls.update()
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2)
-    directionalLight.position.set(10, 20, 10)
-    threeScene.add(ambientLight, directionalLight)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8)
+    // 略拉远，让 shadow camera 能罩住整站
+    directionalLight.position.set(50, 80, 50)
+    directionalLight.castShadow = true
+    directionalLight.shadow.mapSize.set(2048, 2048)
+    directionalLight.shadow.bias = -0.0005
+    directionalLight.shadow.normalBias = 0.02
+    const shadowCam = directionalLight.shadow.camera
+    shadowCam.near = 1
+    shadowCam.far = 250
+    shadowCam.left = -90
+    shadowCam.right = 90
+    shadowCam.top = 90
+    shadowCam.bottom = -90
+    threeScene.add(ambientLight, directionalLight, directionalLight.target)
 
     // 红 X / 绿 Y / 蓝 Z
     const axesHelper = new THREE.AxesHelper(5)
@@ -225,6 +274,16 @@ export function useThreeScene() {
     renderer.value = threeRenderer
     controls.value = orbitControls
 
+    stats = new Stats()
+    stats.showPanel(0) // 0: fps, 1: ms, 2: mb
+    // 挂在三维容器内（默认 fixed，改为相对 container）
+    stats.dom.style.position = 'absolute'
+    stats.dom.style.left = 'auto'
+    stats.dom.style.right = '0'
+    stats.dom.style.top = '0'
+    stats.dom.style.zIndex = '10'
+    container.appendChild(stats.dom)
+
     // 盯局部 container → ResizeObserver；throttle 减轻拖拽窗口时 RT 狂建
     resizeObserver = new ResizeObserver(() => {
       throttledHandleResize()
@@ -240,7 +299,13 @@ export function useThreeScene() {
 
     resizeObserver?.disconnect()
     resizeObserver = null
+    beforeRenderFns.length = 0
     afterRenderFns.length = 0
+
+    if (stats) {
+      stats.dom.parentElement?.removeChild(stats.dom)
+      stats = null
+    }
 
     controls.value?.dispose()
     controls.value = null
@@ -279,6 +344,7 @@ export function useThreeScene() {
     renderer,
     controls,
     setOutlineObjects,
+    onBeforeRender,
     onAfterRender,
     initScene,
     destroyScene,

@@ -22,6 +22,9 @@ const emit = defineEmits<{
   selectSource: [source: EquipmentSource]
 }>()
 
+/** 第三人称机器人漫游开关（由页面绑定 usePlayerCharacter） */
+const roamEnabled = defineModel<boolean>('roamEnabled', { default: false })
+
 const store = useStationEquipmentStore()
 const drawer = ref(true)
 const direction = ref<DrawerProps['direction']>('ltr')
@@ -161,6 +164,13 @@ const onCardClick = (source: EquipmentSource): void => {
             </div>
           </button>
         </div>
+
+        <div class="roam-row">
+          <el-checkbox v-model="roamEnabled">第三人称漫游</el-checkbox>
+          <span class="roam-row__hint">
+            WASD 移动 · 空格跳 · 点击画面转视角 · 准星对准设备可高亮
+          </span>
+        </div>
       </div>
     </el-drawer>
   </div>
@@ -200,6 +210,23 @@ const onCardClick = (source: EquipmentSource): void => {
 .overview-panel {
   padding: 12px 12px 16px;
   color: #1e293b;
+}
+
+.roam-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+
+  &__hint {
+    font-size: 11px;
+    color: #64748b;
+    line-height: 1.4;
+  }
 }
 
 //.overview-header {
