@@ -4,7 +4,7 @@ import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import * as Cesium from 'cesium'
 import * as turf from '@turf/turf'
-import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
+import type { SatelliteSelectedData } from '@/views/aviation-situation/types/satellite'
 import type { OSMBuildingSelectedProperties } from '@/views/aviation-situation/types/osm-building'
 import type { PhotogrammetryBuildingSelectedProperties } from '@/views/aviation-situation/types/photogrammetry'
 
@@ -30,10 +30,15 @@ export type MapBillboardLabelProperties =
 export type AviationSelectedData =
   | AircraftSelectedData
   | AirportSelectedData
-  | SatelliteHoveredProperties
+  | SatelliteSelectedData
   | OSMBuildingSelectedProperties
   | PhotogrammetryBuildingSelectedProperties
   | null
+
+export type AviationHoveredScreenPosition = {
+  left: number
+  top: number
+}
 
 export interface LngLatAlt {
   longitude: number
@@ -169,11 +174,18 @@ export type SpatialSelectionData =
   | ActiveHemisphereSpatialSelectionData
   | FinishedSpatialSelectionData
 
+export interface AviationAssociationSets {
+  dataSourceName: Set<string>
+  coneScanSatelliteId: Set<string>
+  controlZoneId?: Set<string> // aircraft only
+}
+
 // 通用 RenderItem（用泛型）
 export interface AviationRenderItem<T> {
   data: T
   billboard: Cesium.Billboard
   label?: Cesium.Label
+  sets?: AviationAssociationSets
 }
 
 

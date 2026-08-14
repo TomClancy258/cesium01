@@ -2,14 +2,12 @@
 import { ref, computed, watch, nextTick } from 'vue'
 import { useDistanceMeasurementStore } from '@/stores/distance-measurement'
 import { useRegionSelectionStore } from '@/stores/region-selection'
-import { storeToRefs } from 'pinia'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import SurveyPointsPopover from '../../popover/SurveyPointsPopover.vue'
 import SegmentsPopover from '../../popover/SegmentsPopover.vue'
 import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'
 
 const distanceMeasurementStore = useDistanceMeasurementStore()
-const { finishedGraphics } = storeToRefs(distanceMeasurementStore)
 const regionSelectionStore = useRegionSelectionStore()
 
 // 分页
@@ -19,7 +17,7 @@ const pageSizes = [5, 10, 20, 50]
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return finishedGraphics.value.slice(start, start + pageSize.value)
+  return distanceMeasurementStore.finishedGraphics.slice(start, start + pageSize.value)
 })
 
 const handleSizeChange = (val: number) => {
@@ -48,7 +46,7 @@ watch(
       return
     }
     if (selected.operationType !== 'distanceMeasurement' || !selected.isDraft) return
-    const index = finishedGraphics.value.findIndex(
+    const index = distanceMeasurementStore.finishedGraphics.findIndex(
       (row) => row.dataSourceName === selected.dataSourceName
     )
     if (index === -1) return
@@ -205,7 +203,7 @@ const handleBatchDelete = () => {
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="pageSizes"
-        :total="finishedGraphics.length"
+        :total="distanceMeasurementStore.finishedGraphics.length"
         layout="total, sizes, prev, pager, next, jumper"
         background
         @size-change="handleSizeChange"

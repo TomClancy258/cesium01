@@ -52,7 +52,7 @@ export function useAirportSpatialSelection({
 
     airportStore.matchedAirportMap.keys().forEach((icao) => {
       const item = renderMap.get(icao)
-      if (!item) return
+      if (!item?.sets) return
 
       const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
       const inGraphic = isPointInSelectionRegion(lngLat, data, bbox)
@@ -63,9 +63,10 @@ export function useAirportSpatialSelection({
           data.dataSourceName,
           item.billboard,
           spatialSelectedImageUrl,
+          item.sets,
         )
       } else {
-        clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
+        clearSpatialSelectedHighlight(data.dataSourceName, item.billboard, item.sets)
       }
     })
 
@@ -78,8 +79,8 @@ export function useAirportSpatialSelection({
   const clearActiveSpatialSelection = () => {
     spatialSelectionStore.activeSpatialSelection.airport.icaoSet.forEach((id) => {
       const item = renderMap.get(id)
-      if (!item) return
-      clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
+      if (!item?.sets) return
+      clearSpatialSelectedHighlight(activeDataSourceName, item.billboard, item.sets)
     })
     spatialSelectionStore.clearActiveAirportSpatialSelection()
   }
@@ -98,7 +99,7 @@ export function useAirportSpatialSelection({
 
       airportStore.matchedAirportMap.keys().forEach((icao) => {
         const item = renderMap.get(icao)
-        if (!item) return
+        if (!item?.sets) return
 
         const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
         const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
@@ -109,9 +110,10 @@ export function useAirportSpatialSelection({
             dataSourceName,
             item.billboard,
             spatialSelectedImageUrl,
+            item.sets,
           )
         } else {
-          clearSpatialSelectedHighlight(dataSourceName, item.billboard)
+          clearSpatialSelectedHighlight(dataSourceName, item.billboard, item.sets)
         }
       })
     }
@@ -145,8 +147,12 @@ export function useAirportSpatialSelection({
       }else{
         for (const icao of clearAirportSpatialSelectionData.airport.airportMap.keys()) {
           const item = renderMap.get(icao)
-          if (!item) return
-          clearSpatialSelectedHighlight(clearAirportSpatialSelectionData.dataSourceName, item.billboard)
+          if (!item?.sets) return
+          clearSpatialSelectedHighlight(
+            clearAirportSpatialSelectionData.dataSourceName,
+            item.billboard,
+            item.sets,
+          )
         }
       }
     })

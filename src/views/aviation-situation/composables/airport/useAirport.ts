@@ -4,7 +4,6 @@ import * as Cesium from 'cesium'
 import { getAirports } from '@/network/airport'
 import type { Airport } from '@/network/airport/type.ts'
 import type {
-  AirportBaseProperties,
   AirportBillboardProperties,
   AirportLabelProperties,
   AirportFilterForm,
@@ -46,16 +45,13 @@ import { selectBillboard } from '@/views/aviation-situation/composables/selectio
 import { useAirportStore } from '@/stores/airport'
 import { useDebounceFn } from '@vueuse/core'
 import { AviationRenderItem } from '@/views/aviation-situation/types/shared'
-import { useAviationTooltip } from '../useAviationTooltip'
 import { useAirportSpatialSelection } from './useAirportSpatialSelection'
 import { useAirportConeScannedBySatellite } from './useAirportConeScannedBySatellite'
 import { handleAirportLeftClick } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/airport'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 import { useRiskRipple } from '@/views/aviation-situation/composables/useRiskRipple'
-import {
-  toAirportBaseProperties,
-  toAirportSelectedData,
-} from './airport-property-utils'
+import { toAirportSelectedData } from './airport-property-utils'
 
 type AirportRenderItem = AviationRenderItem<Airport>
 type AircraftFilterQuery = Pick<AirportFilterForm, 'icao' | 'name' | 'countries' | 'riskLevel'>
@@ -90,23 +86,6 @@ export function useAirport(
     primitives: {
       billboards: null,
       labels: null,
-    },
-  })
-
-  const {
-    tooltip,
-    showTooltip: showAirportTooltip,
-    hideTooltip: hideAirportTooltip,
-  } = useAviationTooltip<AirportBaseProperties>({
-    icao: '',
-    type: 'billboard',
-    sourceType: 'airport',
-    country: '',
-    name: '',
-    lngLatAlt: {
-      longitude: 0,
-      latitude: 0,
-      elevation: 0,
     },
   })
 
@@ -261,13 +240,13 @@ export function useAirport(
           satelliteConeScan: null,
           spatialSelection: null,
         },
-        sets: {
-          dataSourceName: new Set<string>(),
-          coneScanSatelliteId: new Set<string>(),
-        },
       } satisfies AirportBillboardProperties
 
-      airportRenderMap.set(icao, { data: airport, billboard })
+      const sets = {
+        dataSourceName: new Set<string>(),
+        coneScanSatelliteId: new Set<string>(),
+      }
+      airportRenderMap.set(icao, { data: airport, billboard, sets })
     }
   }
 
@@ -379,10 +358,8 @@ export function useAirport(
         const airport = airportRenderMap.get(properties.icao)?.data
         if (!airport) return
 
-        const tooltipProperties = toAirportBaseProperties(airport)
         const selectedData = toAirportSelectedData(airport)
-
-        showAirportTooltip(position, tooltipProperties)
+        setTooltipPositionFromWindow(position.x, position.y)
         highlightBillboardOnHover(selectedData, billboard, airportHoveredSvgRawDataUrl)
         const hovered = aviationSelectionStore.hovered
         if (
@@ -396,7 +373,6 @@ export function useAirport(
     )
 
     unsubAirportLeave = onCesiumEvent('airportLeave', () => {
-      hideAirportTooltip()
       const hovered = aviationSelectionStore.hovered
       if (hovered?.sourceType === 'airport') {
         aviationSelectionStore.clearHovered()
@@ -485,12 +461,9 @@ export function useAirport(
   return {
     initAirports,
     loadAndDrawAirports,
-    showAirportTooltip,
-    hideAirportTooltip,
-    tooltip,
-
     filterAirports,
     flyToAirportByIcao,
     refreshSatelliteConeScan,
+    airportRenderMap,
   }
 }

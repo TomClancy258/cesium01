@@ -8,8 +8,8 @@ export interface PhotogrammetryHoveredProperties {
 
 export type PhotogrammetrySelectedProperties = PhotogrammetryHoveredProperties
 
-/** 倾斜摄影单体化楼栋（ClassificationPrimitive） */
-export interface PhotogrammetryBuildingHoveredProperties {
+/** ClassificationPrimitive 旁路 Map 存的业务属性（registry 真相） */
+export interface PhotogrammetryBuildingInstanceProperties {
   sourceType: 'photogrammetryBuilding'
   id: string
   name: string
@@ -24,10 +24,14 @@ export interface PhotogrammetryBuildingHoveredProperties {
   roofType?: string
 }
 
-export type PhotogrammetryBuildingSelectedProperties = PhotogrammetryBuildingHoveredProperties
+/** selection / hovered：只存身份，业务数据查 registry */
+export interface PhotogrammetryBuildingSelectedProperties {
+  sourceType: 'photogrammetryBuilding'
+  id: string
+}
 
-/** ClassificationPrimitive 旁路 Map 存的业务属性 */
-export type PhotogrammetryBuildingInstanceProperties = PhotogrammetryBuildingHoveredProperties
+/** tooltip 展示用：与 registry 条目同形 */
+export type PhotogrammetryBuildingHoveredProperties = PhotogrammetryBuildingInstanceProperties
 
 export type PhotogrammetryTypeFilterValue =
   | 'retail'

@@ -11,7 +11,6 @@ import { CONTROL_ZONE_LEVEL_STYLES } from '@/views/aviation-situation/composable
 import { useDebounceFn } from '@vueuse/core'
 import { useControlZoneStore } from '@/stores/control-zone'
 import type {
-  ControlZoneHoveredProperties,
   ControlZoneTableRowOperation,
   MatchedControlZone
 } from '@/views/aviation-situation/types/control-zone'
@@ -19,12 +18,15 @@ import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
 import * as turf from '@turf/turf'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
-import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 import { selectControlZoneRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
 import {
   toControlZoneHoveredProperties,
   toControlZoneRegionSelectedData,
 } from './control-zone-property-utils'
+import {
+  setControlZoneHoveredProperties,
+} from '@/views/aviation-situation/composables/control-zone/control-zone-hover-state'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 
 type ControlZoneFilterQuery = {
   id?: string
@@ -64,18 +66,9 @@ export function useControlZone(
   const controlZoneStore = useControlZoneStore()
   const controlZoneRenderMap = new Map<string, ControlZoneRenderState>()
 
-  const {
-    tooltip,
-    showTooltip: showControlZoneTooltip,
-    hideTooltip: hideControlZoneTooltip,
-  } = useAviationTooltip<ControlZoneHoveredProperties>({
-    id: '',
-    name: '',
-    level: 'normal',
-    minAltitude: 0,
-    maxAltitude: 0
-  })
-
+  const hideControlZoneTooltip = (): void => {
+    setControlZoneHoveredProperties(null)
+  }
 
   const drawControlZones = (features: ControlZoneFeature[]): void => {
     for (const feature of features) {
@@ -213,7 +206,8 @@ export function useControlZone(
       ) => {
         const controlZone = controlZoneRenderMap.get(properties.id)?.data
         if (!controlZone) return
-        showControlZoneTooltip(screenPosition, toControlZoneHoveredProperties(controlZone))
+        setControlZoneHoveredProperties(toControlZoneHoveredProperties(controlZone))
+        setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
       },
     )
 
@@ -262,7 +256,5 @@ export function useControlZone(
     initControlZones,
     loadAndDrawControlZones,
     clearControlZones,
-
-    tooltip
   }
 }

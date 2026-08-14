@@ -89,8 +89,9 @@ import {
   clearSelectedPhotogrammetryBuildingHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
 import {
+  getPhotogrammetryBuildingPrimitive,
   getPhotogrammetryBuildingProperties,
-  hasPhotogrammetryBuilding,
+  hasPhotogrammetryBuilding
 } from '@/views/aviation-situation/composables/photogrammetry/photogrammetry-building-registry'
 
 type PickedObjectLike = {
@@ -407,7 +408,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
   const findPhotogrammetryBuildingPicked = (pickedObjects: PickedObjectLike[]) =>
     pickedObjects.find((obj) => {
-      if (!(obj.primitive instanceof Cesium.ClassificationPrimitive)) return false
+      if (obj.primitive !== getPhotogrammetryBuildingPrimitive()) return false
       return hasPhotogrammetryBuilding(obj.id)
     })
 

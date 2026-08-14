@@ -2,9 +2,8 @@ import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'
 import { getAircrafts } from '@/network/aircraft'
 import type { Aircraft, AircraftStatesResponse } from '@/network/aircraft/types/aircraft'
-import type { AircraftBaseProperties } from '@/views/aviation-situation/types/aircraft'
 import type { AviationRenderItem, AviationSelectedData } from '@/views/aviation-situation/types/shared'
-import { toAircraftBaseProperties } from './aircraft-property-utils'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 
 interface UseAircraftSyncOptions {
   viewer: ShallowRef<Cesium.Viewer>
@@ -17,7 +16,6 @@ interface UseAircraftSyncOptions {
   clearMatchedAircrafts: () => void
   syncRiskRipple: (aircraft: Aircraft, position: Cesium.Cartesian3, billboardShow: boolean) => void
   getHovered: () => AviationSelectedData
-  showAircraftTooltip: (position: Cesium.Cartesian2, properties: AircraftBaseProperties) => void
 }
 
 export function useAircraftSync(options: UseAircraftSyncOptions) {
@@ -32,7 +30,6 @@ export function useAircraftSync(options: UseAircraftSyncOptions) {
     clearMatchedAircrafts,
     syncRiskRipple,
     getHovered,
-    showAircraftTooltip,
   } = options
 
   const loadAndDrawAircrafts = async (): Promise<void> => {
@@ -99,10 +96,11 @@ export function useAircraftSync(options: UseAircraftSyncOptions) {
 
         const hovered = getHovered()
         if (hovered != null && hovered.sourceType === 'aircraft' && aircraft.icao24 === hovered.icao24) {
-          const properties = toAircraftBaseProperties(aircraft)
           const screenPosition: Cesium.Cartesian2 =
             Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
-          showAircraftTooltip(screenPosition, properties)
+          if (screenPosition) {
+            setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
+          }
         }
       } else {
         drawAircraft(aircraft)

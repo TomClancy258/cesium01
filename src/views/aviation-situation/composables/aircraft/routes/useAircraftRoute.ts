@@ -2,10 +2,11 @@
 import * as Cesium from 'cesium'
 import { getAircraftRouteFull } from '@/network/aircraft'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
-import type { AircraftSelectedData,AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
+import type {AircraftGraphic } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { altitudeColorMap } from '../aircraft-constants'
 import {useAviationSelectionStore} from '@/stores/aviation-selection'
+import { useAircraftStore } from '@/stores/aircraft'
 import { LngLatAltArray } from '@/views/aviation-situation/types/shared'
 
 export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
@@ -91,17 +92,22 @@ export function useAircraftRoute(viewer, aircraftGraphic: AircraftGraphic) {
   /**
    * 同步飞机已飞航线
    */
-  const syncAircraftRoute = async (icao24: string, selected: AircraftSelectedData): Promise<void> => {
+  const syncAircraftRoute = async (icao24: string): Promise<void> => {
     if (!icao24 || !aircraftGraphic.primitives.selectedAircraft.routePolylines) return
 
     try {
       // 请求航线数据
       const routeData:RoutePoint[] = await getAircraftRouteFull(icao24)
+      const aircraft = useAircraftStore().matchedAircraftMap.get(icao24)
+      if (!aircraft) {
+        clearAircraftRoute()
+        return
+      }
       // 追加当前位置
       routeData.push({
-        latitude: selected.lngLatAlt.latitude,
-        longitude: selected.lngLatAlt.longitude,
-        baroAltitude: selected.lngLatAlt.baroAltitude,
+        latitude: aircraft.latitude ?? 0,
+        longitude: aircraft.longitude ?? 0,
+        baroAltitude: aircraft.baroAltitude ?? 0,
       })
 
       // 数据校验

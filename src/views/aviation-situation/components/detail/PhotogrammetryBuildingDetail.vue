@@ -6,13 +6,14 @@ import {
   displayDetailName,
   displayDetailValue,
 } from '@/views/aviation-situation/utils/format-detail-value'
+import { getPhotogrammetryBuildingProperties } from '@/views/aviation-situation/composables/photogrammetry/photogrammetry-building-registry'
 
 const aviationSelectionStore = useAviationSelectionStore()
 
 const building = computed(() => {
   const sel = aviationSelectionStore.selected
-  if (sel?.sourceType === 'photogrammetryBuilding') return sel
-  return null
+  if (sel?.sourceType !== 'photogrammetryBuilding') return null
+  return getPhotogrammetryBuildingProperties(sel.id) ?? null
 })
 </script>
 

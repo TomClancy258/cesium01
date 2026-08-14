@@ -6,15 +6,14 @@ import { getSatellites } from '@/network/satellite/index.ts'
 import type { Satellite } from '@/network/satellite/type'
 import type {
   MatchedSatellite,
-  SatelliteHoveredProperties,
   SatelliteProperties,
   ConeSnapshot,
 } from '@/views/aviation-situation/types/satellite.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
-import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 
 import { AVIATION_LABEL_STYLE_BASE } from '@/views/aviation-situation/constants/cesium-style-constants.ts'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 import { useDebounceFn } from '@vueuse/core'
 import { useSatelliteStore } from '@/stores/satellite'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
@@ -33,7 +32,7 @@ import type { Airport } from '@/network/airport/type'
 import {
   airplaneBlueSvgDataUrl
 } from '@/views/aviation-situation/composables/aircraft/aircraft-constants'
-import { toSatelliteHoveredProperties } from './satellite-property-utils'
+import { toSatelliteSelectedData } from './satellite-property-utils'
 /** 圆锥最小长度（米），避免高度接近 0 时几何退化 */
 // const CYLINDER_MIN_LENGTH_M = 1
 // const CYLINDER_BOTTOM_RADIUS_M = 200000.0
@@ -190,20 +189,8 @@ export function useSatellite(
       ){
         const screenPosition = Cesium.SceneTransforms.worldToWindowCoordinates(viewer.value.scene, position)
         if (screenPosition) {
-          const properties = toSatelliteHoveredProperties(satellite, {
-            longitude,
-            latitude,
-            height,
-          })
-          //hovered卫星节点显示tooltip卫星简略信息时，更新tooltip里卫星的信息（比如坐标），节流100ms
-          showSatelliteTooltip(screenPosition, properties)
+          setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
         }
-      }
-
-      const selected=aviationSelectionStore.selected
-      if(shouldRunStoreSyncTick&&selected!==null&&selected.sourceType==='satellite'&&selected.id===satellite.id) {
-        //左键点击选中selected卫星节点显示左侧drawer卫星详细信息时，更新drawer里卫星的信息（比如坐标），节流500ms
-       aviationSelectionStore.setSelectedLngLatAlt({longitude,latitude,height})
       }
 
       if (shouldRunStoreSyncTick) { //同步卫星坐标到 Pinia，即更新底部drawer里的卫星table
@@ -480,26 +467,6 @@ export function useSatellite(
     // emitCesiumEvent('aviationFiltered')
   }, 300)
 
-  const {
-    tooltip,
-    showTooltip: showSatelliteTooltip,
-    hideTooltip: hideSatelliteTooltip
-  } = useAviationTooltip<SatelliteHoveredProperties>({
-    id: '',
-    sourceType: 'satellite',
-    name: '',
-    country: '',
-    description: '',
-    scan: {
-      target: 'none',
-    },
-    lngLatAlt: {
-      longitude: 0,
-      latitude: 0,
-      height: 0,
-    },
-  })
-
   let unwatchSatelliteFilterForm: () => void
   const setupSatelliteFilterFormWatch = (): void => {
     unwatchSatelliteFilterForm = watch(
@@ -522,26 +489,25 @@ export function useSatellite(
       (
         properties: SatelliteProperties,
         screenPosition: Cesium.Cartesian2,
-        lngLatAlt: LngLatAlt,
+        _lngLatAlt: LngLatAlt,
       ) => {
         const satellite = satelliteRenderMap.get(properties.id)?.data
         if (!satellite) return
 
-        const hoveredProperties = toSatelliteHoveredProperties(satellite, lngLatAlt)
-        showSatelliteTooltip(screenPosition, hoveredProperties)
+        const selectedData = toSatelliteSelectedData(satellite)
+        setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
 
         if (
           aviationSelectionStore.hovered === null ||
           aviationSelectionStore.hovered.sourceType !== 'satellite' ||
           aviationSelectionStore.hovered.id !== properties.id
         ) {
-          aviationSelectionStore.setHovered(hoveredProperties)
+          aviationSelectionStore.setHovered(selectedData)
         }
       },
     )
 
     unsubSatelliteLeave = onCesiumEvent('satelliteLeave', () => {
-      hideSatelliteTooltip()
       const hovered = aviationSelectionStore.hovered
       if (hovered?.sourceType === 'satellite') {
         aviationSelectionStore.clearHovered()
@@ -550,10 +516,10 @@ export function useSatellite(
 
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
-      (properties: SatelliteProperties, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => {
+      (properties: SatelliteProperties, _lngLatAlt: LngLatAlt, entity: Cesium.Entity) => {
         const satellite = satelliteRenderMap.get(properties.id)?.data
         if (!satellite) return
-        selectSatellite(entity, toSatelliteHoveredProperties(satellite, lngLatAlt))
+        selectSatellite(entity, toSatelliteSelectedData(satellite))
       },
     )
 
@@ -595,7 +561,6 @@ export function useSatellite(
   return {
     initSatellites,
     loadAndDrawSatellites,
-    tooltip,
     filterSatellites,
     flyToSatelliteById,
   }

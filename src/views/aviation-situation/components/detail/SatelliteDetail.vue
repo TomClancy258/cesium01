@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { useSatelliteStore } from '@/stores/satellite'
 import { computed } from 'vue'
 import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
 
 const aviationSelectionStore = useAviationSelectionStore()
+const satelliteStore = useSatelliteStore()
 
 const satellite = computed(() => {
   const sel = aviationSelectionStore.selected
-  if (sel?.sourceType === 'satellite') return sel
-  return null
+  if (sel?.sourceType !== 'satellite') return null
+  return satelliteStore.matchedSatelliteMap.get(sel.id) ?? null
 })
 
 </script>

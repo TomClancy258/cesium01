@@ -1,42 +1,43 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { PhotogrammetryBuildingHoveredProperties } from '@/views/aviation-situation/types/photogrammetry'
-import type { TooltipState } from '@/views/aviation-situation/types/shared'
+import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { getPhotogrammetryBuildingProperties } from '@/views/aviation-situation/composables/photogrammetry/photogrammetry-building-registry'
 import {
   displayDetailHeight,
   displayDetailName,
-  displayDetailValue, formatFixed4
+  displayDetailValue,
 } from '@/views/aviation-situation/utils/format-detail-value'
 
-const props = defineProps<{ tooltip: TooltipState<PhotogrammetryBuildingHoveredProperties> }>()
+const props = defineProps<{ position: { left: number; top: number } }>()
 
-const tooltipStyle = computed(() => {
-  const position = props.tooltip.position
-  return {
-    left: position.left + 'px',
-    top: position.top + 'px',
-  }
+const aviationSelectionStore = useAviationSelectionStore()
+
+const row = computed(() => {
+  const hovered = aviationSelectionStore.hovered
+  if (hovered?.sourceType !== 'photogrammetryBuilding') return null
+  return getPhotogrammetryBuildingProperties(hovered.id) ?? null
 })
 
-const tooltipProperties = computed(() => props.tooltip.properties)
+const visible = computed(() => row.value != null)
+
+const tooltipStyle = computed(() => ({
+  left: `${props.position.left}px`,
+  top: `${props.position.top}px`,
+}))
 </script>
 
 <template>
-  <div v-show="props.tooltip.visible" class="photogrammetry-tooltip" :style="tooltipStyle">
-    <div>名称：{{ displayDetailName(tooltipProperties.name) }}</div>
-    <div>id：{{ tooltipProperties.id }}</div>
-    <div v-if="tooltipProperties.city">城市：{{ tooltipProperties.city }}</div>
-    <div v-if="tooltipProperties.landUse">
-      类型：{{ displayDetailValue(tooltipProperties.landUse) }}
-    </div>
-    <div v-if="tooltipProperties.roofType">
-      屋顶：{{ displayDetailValue(tooltipProperties.roofType) }}
-    </div>
-    <div>
-      楼高：{{
-        displayDetailHeight(formatFixed4(tooltipProperties.buildingHeight ?? tooltipProperties.height))
-      }}
-    </div>
+  <div v-show="visible" class="photogrammetry-tooltip" :style="tooltipStyle">
+    <template v-if="row">
+      <div>名称：{{ displayDetailName(row.name) }}</div>
+      <div>id：{{ row.id }}</div>
+      <div v-if="row.city">城市：{{ row.city }}</div>
+      <div v-if="row.landUse">类型：{{ displayDetailValue(row.landUse) }}</div>
+      <div v-if="row.roofType">屋顶：{{ displayDetailValue(row.roofType) }}</div>
+      <div>
+        楼高：{{ displayDetailHeight(row.buildingHeight ?? row.height) }}
+      </div>
+    </template>
   </div>
 </template>
 

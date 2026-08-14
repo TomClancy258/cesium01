@@ -31,10 +31,6 @@ export interface AirportBillboardProperties {
     satelliteConeScan: string | null
     spatialSelection: string | null
   }
-  sets: {
-    dataSourceName: Set<string>
-    coneScanSatelliteId: Set<string>
-  }
 }
 
 /** Label 图元属性：拾取身份 + 渲染态 */
@@ -61,16 +57,10 @@ export interface AirportFilterForm {
   alwaysVisible: boolean
 }
 
+/** selection / hovered：只存身份，业务数据查 matchedAirportMap */
 export interface AirportSelectedData {
-  sourceType: 'airport';
-  icao: string;
-  country: string;
-  lngLatAlt:{
-    longitude: number;
-    latitude: number;
-    elevation: number;
-  };
-  name: string,
+  sourceType: 'airport'
+  icao: string
 }
 
 

@@ -29,11 +29,6 @@ export interface AircraftBillboardProperties {
     spatialSelection: string | null
     controlZone: string | null
   }
-  sets: {
-    dataSourceName: Set<string>
-    coneScanSatelliteId: Set<string>
-    controlZoneId: Set<string>
-  }
 }
 
 /** Label 图元属性：拾取身份 + 渲染态 */
@@ -71,18 +66,10 @@ export interface AircraftTrajectoryOptions {
   planned: TrajectoryGroup     // 计划类
 }
 
+/** selection / hovered：只存身份，业务数据查 matchedAircraftMap */
 export interface AircraftSelectedData {
-  sourceType: 'aircraft';
-  icao24: string;
-  originCountry: string;
-  callsign: string;
-  heading: number;
-  lngLatAlt:{
-    latitude: number,
-    longitude: number,
-    baroAltitude: number
-  },
-  // screenPosition:Cesium.Cartesian2
+  sourceType: 'aircraft'
+  icao24: string
 }
 
 

@@ -2,7 +2,7 @@ import * as Cesium from 'cesium'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import type { AircraftSelectedData } from '@/views/aviation-situation/types/aircraft'
 import type { AirportSelectedData } from '@/views/aviation-situation/types/airport'
-import type { SatelliteHoveredProperties } from '@/views/aviation-situation/types/satellite'
+import type { SatelliteSelectedData } from '@/views/aviation-situation/types/satellite'
 import type { AviationSelectedData } from '@/views/aviation-situation/types/shared'
 import type { OSMBuildingSelectedProperties } from '@/views/aviation-situation/types/osm-building'
 import type { PhotogrammetryBuildingSelectedProperties } from '@/views/aviation-situation/types/photogrammetry'
@@ -48,7 +48,7 @@ const isSameBillboardSelection = (
 
 const isSameSatelliteSelection = (
   selected: AviationSelectedData,
-  data: SatelliteHoveredProperties,
+  data: SatelliteSelectedData,
 ): boolean => {
   return selected !== null && selected.sourceType === 'satellite' && selected.id === data.id
 }
@@ -94,7 +94,7 @@ export const selectBillboard = (
 
 export const selectSatellite = (
   entity: Cesium.Entity,
-  data: SatelliteHoveredProperties,
+  data: SatelliteSelectedData,
 ): void => {
   clearSelectedBillboardHighlight()
   clearSelectedOSMBuildingHighlight()

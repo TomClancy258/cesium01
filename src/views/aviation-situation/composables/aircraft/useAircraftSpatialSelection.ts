@@ -57,7 +57,7 @@ export function useAircraftSpatialSelection({
 
       aircraftStore.matchedAircraftMap.keys().forEach((icao24) => {
         const item = renderMap.get(icao24)
-        if (!item) return
+        if (!item?.sets) return
 
         const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
         const inGraphic = isPointInSelectionRegion(lngLat, data, bbox)
@@ -68,9 +68,10 @@ export function useAircraftSpatialSelection({
             data.dataSourceName,
             item.billboard,
             spatialSelectedImageUrl,
+            item.sets,
           )
         } else {
-          clearSpatialSelectedHighlight(data.dataSourceName, item.billboard)
+          clearSpatialSelectedHighlight(data.dataSourceName, item.billboard, item.sets)
         }
       })
 
@@ -86,8 +87,8 @@ export function useAircraftSpatialSelection({
   const clearActiveSpatialSelection = () => {
     spatialSelectionStore.activeSpatialSelection.aircraft.icao24Set.forEach((id) => {
       const item = renderMap.get(id)
-      if (!item) return
-      clearSpatialSelectedHighlight(activeDataSourceName, item.billboard)
+      if (!item?.sets) return
+      clearSpatialSelectedHighlight(activeDataSourceName, item.billboard, item.sets)
     })
     spatialSelectionStore.clearActiveAircraftSpatialSelection()
   }
@@ -111,7 +112,7 @@ export function useAircraftSpatialSelection({
       // 2. 遍历所有匹配飞机，判断是否在各 finished 选区内
       aircraftStore.matchedAircraftMap.keys().forEach((icao24) => {
         const item = renderMap.get(icao24)
-        if (!item) return
+        if (!item?.sets) return
 
         const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
         const inGraphic = isPointInSelectionRegion(lngLat, selectionRegion)
@@ -122,9 +123,10 @@ export function useAircraftSpatialSelection({
             dataSourceName,
             item.billboard,
             spatialSelectedImageUrl,
+            item.sets,
           )
         } else {
-          clearSpatialSelectedHighlight(dataSourceName, item.billboard)
+          clearSpatialSelectedHighlight(dataSourceName, item.billboard, item.sets)
         }
       })
     }
@@ -162,10 +164,11 @@ export function useAircraftSpatialSelection({
         } else {
           for (const icao24 of clearAircraftSpatialSelectionData.aircraft.aircraftMap.keys()) {
             const item = renderMap.get(icao24)
-            if (!item) return
+            if (!item?.sets) return
             clearSpatialSelectedHighlight(
               clearAircraftSpatialSelectionData.dataSourceName,
               item.billboard,
+              item.sets,
             )
           }
         }

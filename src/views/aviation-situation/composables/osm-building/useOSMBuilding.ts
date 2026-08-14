@@ -1,6 +1,5 @@
 import { onUnmounted, watch } from 'vue'
 import * as Cesium from 'cesium'
-import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import {
   OSMBuildingFilterForm,
@@ -16,33 +15,18 @@ import {
   clearAllOSMBuildingHighlight,
   clearSelectedOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
+import {
+  setOsmBuildingHoveredProperties,
+} from '@/views/aviation-situation/composables/osm-building/osm-building-hover-state'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 
 export function useOSMBuilding(viewer) {
   const osmBuildingStore = useOSMBuildingStore()
   let osmBuildingTileset: Cesium.Cesium3DTileset | null = null
-  const {
-    tooltip,
-    showTooltip: showOSMBuildingTooltip,
-    hideTooltip: hideOSMBuildingTooltip,
-  } = useAviationTooltip<OSMBuildingHoveredProperties>({
-    name: '',
-    type: {
-      shop: '',
-      building: '',
-    },
-    addr: {
-      factoryBuildingnumber: '',
-      street: '',
-      city: '',
-      state: '',
-    },
-    estimatedHeight: undefined,
-    lngLatAlt: {
-      longitude: 0,
-      latitude: 0,
-      height: 0,
-    },
-  })
+
+  const hideOSMBuildingTooltip = (): void => {
+    setOsmBuildingHoveredProperties(null)
+  }
 
   const initOSMBuildings = () => {
     addOSMBuilding()
@@ -155,7 +139,8 @@ export function useOSMBuilding(viewer) {
     unsubOSMBuildingHover = onCesiumEvent(
       'osmBuildingHover',
       (properties: OSMBuildingHoveredProperties, screenPosition: Cesium.Cartesian2) => {
-        showOSMBuildingTooltip(screenPosition, properties)
+        setOsmBuildingHoveredProperties(properties)
+        setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
       },
     )
 
@@ -202,7 +187,6 @@ export function useOSMBuilding(viewer) {
 
   return {
     initOSMBuildings,
-    tooltip,
     filterOSMBuildings,
     removeOSMBuilding,
     addOSMBuilding,

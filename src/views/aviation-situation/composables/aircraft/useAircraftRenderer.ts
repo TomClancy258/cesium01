@@ -75,7 +75,6 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       type: 'label',
       sourceType: 'aircraft',
       icao24,
-      originalFillColor: label.fillColor,
     } satisfies AircraftLabelProperties
 
     item.label = label
@@ -127,14 +126,14 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
         spatialSelection: null,
         controlZone: null,
       },
-      sets: {
-        dataSourceName: new Set<string>(),
-        coneScanSatelliteId: new Set<string>(),
-        controlZoneId: new Set<string>(),
-      },
     } satisfies AircraftBillboardProperties
 
-    const renderItem: AviationRenderItem<Aircraft> = { data: aircraft, billboard }
+    const sets = {
+      dataSourceName: new Set<string>(),
+      coneScanSatelliteId: new Set<string>(),
+      controlZoneId: new Set<string>(),
+    }
+    const renderItem: AviationRenderItem<Aircraft> = { data: aircraft, billboard, sets }
     aircraftRenderMap.set(icao24, renderItem)
     if (aircraftFilterForm.labelVisible) {
       createAircraftLabel(renderItem)

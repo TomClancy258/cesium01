@@ -1,15 +1,73 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { useAircraftStore } from '@/stores/aircraft'
+import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import AltitudeSpeedChart from './AltitudeSpeedChart.vue'
+import type { AviationRenderItem } from '@/views/aviation-situation/types/shared'
+import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 const aviationSelectionStore = useAviationSelectionStore()
+const aircraftStore = useAircraftStore()
+const spatialSelectionStore = useSpatialSelectionStore()
+const aircraftRenderMap = inject<Map<string, AviationRenderItem<Aircraft>>>('aircraftRenderMap')
+const flyToSatelliteById = inject<(id: string) => void>('flyToSatelliteById')
 
 const aircraft = computed(() => {
   const sel = aviationSelectionStore.selected
-  if (sel?.sourceType === 'aircraft') return sel
-  return null
+  if (sel?.sourceType !== 'aircraft') return null
+  return aircraftStore.matchedAircraftMap.get(sel.icao24) ?? null
 })
+
+const associationSets = computed(() => {
+  const sel = aviationSelectionStore.selected
+  if (sel?.sourceType !== 'aircraft' || !aircraftRenderMap) return null
+  return aircraftRenderMap.get(sel.icao24)?.sets ?? null
+})
+
+const coneScanSatelliteIds = computed(() =>
+  associationSets.value?.coneScanSatelliteId
+    ? [...associationSets.value.coneScanSatelliteId]
+    : [],
+)
+
+const controlZoneIds = computed(() =>
+  associationSets.value?.controlZoneId ? [...associationSets.value.controlZoneId] : [],
+)
+
+const spatialSelectionNames = computed(() =>
+  associationSets.value?.dataSourceName ? [...associationSets.value.dataSourceName] : [],
+)
+
+const hasAssociations = computed(
+  () =>
+    coneScanSatelliteIds.value.length > 0 ||
+    controlZoneIds.value.length > 0 ||
+    spatialSelectionNames.value.length > 0,
+)
+
+const onFlyToSatellite = (id: string) => {
+  flyToSatelliteById?.(id)
+}
+
+const onOpenControlZone = (id: string) => {
+  emitCesiumEvent('controlZoneTableOperationClicked', {
+    operationType: 'detail',
+    id,
+  })
+}
+
+const onOpenSpatialSelection = (dataSourceName: string) => {
+  const region = spatialSelectionStore.finishedGraphicMap.get(dataSourceName)
+  if (!region?.centroidLngLatAlt) return
+  emitCesiumEvent('spatialSelectionTableOperationClicked', {
+    operationType: 'detail',
+    centroidLngLatAlt: region.centroidLngLatAlt,
+    dataSourceName: region.dataSourceName,
+    sourceType: region.sourceType,
+  })
+}
 
 // 静态数据：起飞/终点信息
 const flightInfo = {
@@ -118,15 +176,15 @@ const chartData = {
       <div class="info-grid">
         <div class="info-item">
           <span class="label">经度</span>
-          <span class="value">{{ aircraft.lngLatAlt.longitude.toFixed(4) }}</span>
+          <span class="value">{{ aircraft.longitude?.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">纬度</span>
-          <span class="value">{{ aircraft.lngLatAlt.latitude.toFixed(4) }}</span>
+          <span class="value">{{ aircraft.latitude?.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">高度</span>
-          <span class="value">{{ aircraft.lngLatAlt.baroAltitude.toFixed(0) }} m</span>
+          <span class="value">{{ aircraft.baroAltitude?.toFixed(0) }} m</span>
         </div>
         <div class="info-item">
           <span class="label">方位角</span>
@@ -169,6 +227,56 @@ const chartData = {
         </div>
       </div>
     </div>
+
+    <!-- 关联 -->
+    <div v-if="hasAssociations" class="detail-section">
+      <div class="section-title">关联</div>
+      <div v-if="coneScanSatelliteIds.length" class="assoc-row">
+        <span class="assoc-label">扫描卫星</span>
+        <div class="assoc-links">
+          <el-button
+            v-for="id in coneScanSatelliteIds"
+            :key="id"
+            type="primary"
+            link
+            size="small"
+            @click="onFlyToSatellite(id)"
+          >
+            {{ id }}
+          </el-button>
+        </div>
+      </div>
+      <div v-if="controlZoneIds.length" class="assoc-row">
+        <span class="assoc-label">进入管控区域</span>
+        <div class="assoc-links">
+          <el-button
+            v-for="id in controlZoneIds"
+            :key="id"
+            type="primary"
+            link
+            size="small"
+            @click="onOpenControlZone(id)"
+          >
+            {{ id }}
+          </el-button>
+        </div>
+      </div>
+      <div v-if="spatialSelectionNames.length" class="assoc-row">
+        <span class="assoc-label">空间选择</span>
+        <div class="assoc-links">
+          <el-button
+            v-for="name in spatialSelectionNames"
+            :key="name"
+            type="primary"
+            link
+            size="small"
+            @click="onOpenSpatialSelection(name)"
+          >
+            {{ name }}
+          </el-button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div v-else class="aviation-detail">
@@ -185,6 +293,30 @@ const chartData = {
   .detail-section {
     padding: 12px;
     border-bottom: 1px solid #e5e5e5;
+  }
+
+  .assoc-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .assoc-label {
+    flex-shrink: 0;
+    color: #999;
+    min-width: 84px;
+  }
+
+  .assoc-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    min-width: 0;
   }
 }
 .aircraft-header {

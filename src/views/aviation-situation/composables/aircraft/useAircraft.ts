@@ -5,7 +5,6 @@ import * as Cesium from 'cesium'
 import { useCesiumCameraEvent } from '../cesium-events/cesium-camera-events'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type {
-  AircraftBaseProperties,
   AircraftBillboardProperties,
   TrajectoryGroup,
   AircraftGraphic
@@ -31,7 +30,6 @@ import {
   airplaneWarningControlZoneSvgRawDataUrl,
 } from './aircraft-constants'
 type AircraftRenderItem = AviationRenderItem<Aircraft>
-import { useAviationTooltip } from '../useAviationTooltip'
 import { useAircraftSpatialSelection } from './useAircraftSpatialSelection'
 import { useAircraftConeScannedBySatellite } from './useAircraftConeScannedBySatellite'
 import {handleAircraftLeftClick} from "@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/aircraft.ts"
@@ -92,25 +90,6 @@ export function useAircraft(
     },
   }
 
-  const {
-    tooltip,
-    showTooltip: showAircraftTooltip,
-    hideTooltip: hideAircraftTooltip
-  } = useAviationTooltip<AircraftBaseProperties>({
-    type: 'billboard',
-    sourceType: 'aircraft',
-    icao24: '',
-    originCountry: '',
-    callsign: '',
-    lngLatAlt:{
-      longitude: 0,
-      latitude: 0,
-      baroAltitude: 0,
-    },
-    heading: 0,
-  })
-
-  // 引入航线/轨迹模块
   const { initAircraftRoute, syncAircraftRoute, clearAircraftRoute } = useAircraftRoute(
     viewer,
     aircraftGraphic,
@@ -179,8 +158,6 @@ export function useAircraft(
   const aircraftInteractions = useAircraftInteractions({
     aviationSelectionStore,
     getAircraftByIcao24: (icao24) => aircraftRenderMap.get(icao24)?.data,
-    showAircraftTooltip,
-    hideAircraftTooltip,
     onMouseWheel: (camera) => {
       handleCameraMoveEnd(camera)
     },
@@ -199,7 +176,6 @@ export function useAircraft(
     syncRiskRipple: (aircraft, position, billboardShow) =>
       syncAircraftRiskRipple(aircraft, position, aircraftStore.aircraftFilterForm.visible && billboardShow),
     getHovered: () => aviationSelectionStore.hovered,
-    showAircraftTooltip,
   })
 
   // ========== 相机事件 ==========
@@ -277,9 +253,9 @@ export function useAircraft(
         if (selected?.sourceType === 'aircraft') {
           const currentIcao24 = selected.icao24
           // 同步航线
-          syncAircraftRoute(currentIcao24, selected)
+          syncAircraftRoute(currentIcao24)
           // 同步计划轨迹
-          syncAircraftPlannedTrajectory(currentIcao24, selected)
+          syncAircraftPlannedTrajectory(currentIcao24)
           const planned: TrajectoryGroup = aircraftStore.aircraftTrajectoryOptions.planned
           if (planned.trajectoryVisible) {
             initPlannedTrajectoryCallback()
@@ -381,12 +357,10 @@ export function useAircraft(
     initAircrafts,
     loadAndDrawAircrafts,
     syncAircrafts,
-    showAircraftTooltip,
-    hideAircraftTooltip,
-    tooltip,
     filterAircrafts,
     flyToAircraftByIcao24,
     refreshSatelliteConeScan,
     highlightAircraftByControlZone,
+    aircraftRenderMap,
   }
 }

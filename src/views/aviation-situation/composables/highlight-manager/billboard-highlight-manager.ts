@@ -5,6 +5,7 @@ import type {
   AircraftSelectedData
 } from '@/views/aviation-situation/types/aircraft'
 import type { AirportBillboardProperties, AirportSelectedData } from '@/views/aviation-situation/types/airport'
+import type { AviationAssociationSets } from '@/views/aviation-situation/types/shared'
 
 // 仅存储Cesium实例（非响应式，模块单例）
 let hoveredBillboard: Cesium.Billboard | null = null
@@ -52,9 +53,10 @@ export function highlightBillboardOnSpatialSelection(
   dataSourceName:string,
   billboard: Cesium.Billboard,
   highlightImage: string,
+  sets: AviationAssociationSets,
 ): void {
   const properties = getBillboardProperties(billboard)
-  const dataSourceNames:Set<string>=properties.sets.dataSourceName
+  const dataSourceNames:Set<string>=sets.dataSourceName
   const alreadyTracked = dataSourceNames.has(dataSourceName)
   if (!alreadyTracked) {
     dataSourceNames.add(dataSourceName)
@@ -67,10 +69,11 @@ export function highlightBillboardOnControlZone(
   controlZoneId:string,
   billboard: Cesium.Billboard,
   highlightImage: string,
+  sets: AviationAssociationSets,
 ): void {
   const properties = getBillboardProperties(billboard)
-  if (!('controlZoneId' in properties.sets) || !('controlZone' in properties.images)) return
-  const controlZoneIdMap:Set<string>=properties.sets.controlZoneId
+  if (sets.controlZoneId == null || !('controlZone' in properties.images)) return
+  const controlZoneIdMap:Set<string>=sets.controlZoneId
   const alreadyTracked = controlZoneIdMap.has(controlZoneId)
   if (!alreadyTracked) {
     controlZoneIdMap.add(controlZoneId)
@@ -80,9 +83,13 @@ export function highlightBillboardOnControlZone(
   applyBillboardImageByPriority(billboard)
 }
 
-export function clearSpatialSelectedHighlight(dataSourceName: string, billboard: Cesium.Billboard): void {
+export function clearSpatialSelectedHighlight(
+  dataSourceName: string,
+  billboard: Cesium.Billboard,
+  sets: AviationAssociationSets,
+): void {
   const properties = getBillboardProperties(billboard)
-  const dataSourceNames:Set<string>=properties.sets.dataSourceName
+  const dataSourceNames:Set<string>=sets.dataSourceName
   if(!dataSourceNames.has(dataSourceName))return
   dataSourceNames.delete(dataSourceName)
 
@@ -93,10 +100,14 @@ export function clearSpatialSelectedHighlight(dataSourceName: string, billboard:
   applyBillboardImageByPriority(billboard)
 }
 
-export function clearControlZoneHighlight(controlZoneId: string, billboard: Cesium.Billboard): void {
+export function clearControlZoneHighlight(
+  controlZoneId: string,
+  billboard: Cesium.Billboard,
+  sets: AviationAssociationSets,
+): void {
   const properties = getBillboardProperties(billboard)
-  if (!('controlZoneId' in properties.sets) || !('controlZone' in properties.images)) return
-  const controlZoneIdSet: Set<string> = properties.sets.controlZoneId
+  if (sets.controlZoneId == null || !('controlZone' in properties.images)) return
+  const controlZoneIdSet: Set<string> = sets.controlZoneId
   if (!controlZoneIdSet.has(controlZoneId)) return
   controlZoneIdSet.delete(controlZoneId)
 
@@ -112,9 +123,10 @@ export function highlightBillboardOnSatelliteConeScan(
   satelliteId:string,
   billboard: Cesium.Billboard,
   highlightImage: string,
+  sets: AviationAssociationSets,
 ): void {
   const properties = getBillboardProperties(billboard)
-  const coneScanSatelliteIds: Set<string> = properties.sets.coneScanSatelliteId
+  const coneScanSatelliteIds: Set<string> = sets.coneScanSatelliteId
   const alreadyTracked = coneScanSatelliteIds.has(satelliteId)
   if (!alreadyTracked) {
     coneScanSatelliteIds.add(satelliteId)
@@ -123,9 +135,13 @@ export function highlightBillboardOnSatelliteConeScan(
   applyBillboardImageByPriority(billboard)
 }
 
-export function clearSatelliteConeScanSelectedHighlight(satelliteId: string, billboard: Cesium.Billboard): void {
+export function clearSatelliteConeScanSelectedHighlight(
+  satelliteId: string,
+  billboard: Cesium.Billboard,
+  sets: AviationAssociationSets,
+): void {
   const properties = getBillboardProperties(billboard)
-  const coneScanSatelliteIds:Set<string>=properties.sets.coneScanSatelliteId
+  const coneScanSatelliteIds:Set<string>=sets.coneScanSatelliteId
   if (!coneScanSatelliteIds.has(satelliteId)) return
   // if (coneScanSatelliteIds.size === 0) {
   //   return

@@ -2,6 +2,7 @@ import type { PhotogrammetryBuildingInstanceProperties } from '@/views/aviation-
 import type * as Cesium from 'cesium'
 
 /** 当前城 ClassificationPrimitive + 楼栋业务属性（唯一运行时真相） */
+//包含很多倾斜摄影建筑的instance的primitive
 let buildingPrimitive: Cesium.ClassificationPrimitive | null = null
 const buildingPropertiesMap = new Map<string, PhotogrammetryBuildingInstanceProperties>()
 

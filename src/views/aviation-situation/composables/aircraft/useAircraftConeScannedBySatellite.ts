@@ -4,7 +4,7 @@ import type { AviationRenderItem } from '@/views/aviation-situation/types/shared
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import {
   highlightBillboardOnSatelliteConeScan,
-  clearSatelliteConeScanSelectedHighlight, clearControlZoneHighlight
+  clearSatelliteConeScanSelectedHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/billboard-highlight-manager.ts'
 import { useAircraftStore } from '@/stores/aircraft'
 import type { ConeSnapshot } from '@/views/aviation-situation/types/satellite'
@@ -35,11 +35,10 @@ export function useAircraftConeScannedBySatellite({
 
     for (const icao24 of aircraftStore.matchedAircraftMap.keys()) {
       const item = renderMap.get(icao24)
-      if (!item) continue
-      const properties=item.billboard.properties
-      for (const coneId of [...properties.sets.coneScanSatelliteId]) {
+      if (!item?.sets) continue
+      for (const coneId of [...item.sets.coneScanSatelliteId]) {
         if (!coneScanIdSet.has(coneId)) {
-          clearSatelliteConeScanSelectedHighlight(coneId, item.billboard)
+          clearSatelliteConeScanSelectedHighlight(coneId, item.billboard, item.sets)
         }
       }
     }
@@ -49,7 +48,7 @@ export function useAircraftConeScannedBySatellite({
       const aircraftMap = new Map<string, Aircraft>()
       for (const icao24 of aircraftStore.matchedAircraftMap.keys()) {
         const item = renderMap.get(icao24)
-        if (!item) continue
+        if (!item?.sets) continue
 
         const position: Cesium.Cartesian3 = item.billboard.position
         const inGraphic = isPointInConeWithContext(position, coneCtx)
@@ -60,10 +59,11 @@ export function useAircraftConeScannedBySatellite({
             coneSnapshot.id,
             item.billboard,
             satelliteConeScannedImageUrl,
+            item.sets,
           )
           aircraftMap.set(icao24, item.data)
         } else {
-          clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard)
+          clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard, item.sets)
         }
       }
       aircraftBySatelliteId.set(coneSnapshot.id, aircraftMap)

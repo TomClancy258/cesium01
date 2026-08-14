@@ -3,10 +3,10 @@ import * as Cesium from 'cesium'
 import { getAircraftPlannedTrajectory } from '@/network/aircraft'
 import type { RoutePoint } from '@/network/aircraft/types/route-full'
 import type {
-  AircraftSelectedData,
   AircraftTrajectoryOptions,
   TrajectoryGroup,
   SelectedAircraftPlanned,
+  AircraftGraphic,
 } from '@/views/aviation-situation/types/aircraft'
 import { isValidCoordinate } from '@/utils/geoUtils'
 import { onUnmounted, watch } from 'vue'
@@ -163,16 +163,21 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
   /**
    * 同步计划轨迹
    */
-  const syncAircraftPlannedTrajectory = async (icao24: string, selected: AircraftSelectedData): Promise<void> => {
+  const syncAircraftPlannedTrajectory = async (icao24: string): Promise<void> => {
     if (!icao24 || !aircraftGraphic.primitives.selectedAircraft.planned.trajectoryPolylineEntity) return
     try {
       // 请求计划轨迹数据
       const routeData:RoutePoint[] = await getAircraftPlannedTrajectory(icao24)
+      const aircraft = aircraftStore.matchedAircraftMap.get(icao24)
+      if (!aircraft) {
+        clearAircraftPlannedWaypoints()
+        return
+      }
       // 模拟轨迹增量（开发调试用）
       routeData.push({
-        latitude: selected.lngLatAlt.latitude,
-        longitude: selected.lngLatAlt.longitude,
-        baroAltitude: selected.lngLatAlt.baroAltitude,
+        latitude: aircraft.latitude ?? 0,
+        longitude: aircraft.longitude ?? 0,
+        baroAltitude: aircraft.baroAltitude ?? 0,
       })
 
       if (!Array.isArray(routeData) || routeData.length < 2) {

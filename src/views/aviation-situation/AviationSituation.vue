@@ -13,6 +13,7 @@ import { useCesiumViewer } from './composables/useCesiumViewer.ts'
 import { useAviationWiring } from './composables/useAviationWiring'
 import { useBuildings } from './composables/useBuildings'
 import { useSpatialSelection } from './composables/useSpatialSelection'
+import { tooltipPosition } from './composables/cesium-events/tooltip-position'
 
 import MapToolsDrawer from './components/map-tools/MapToolsDrawer.vue'
 import DetailDrawer from './components/detail/DetailDrawer.vue'
@@ -86,22 +87,21 @@ const {
   aircraft: {
     initAircrafts,
     loadAndDrawAircrafts,
-    tooltip: aircraftTooltip,
     filterAircrafts,
     flyToAircraftByIcao24,
     highlightAircraftByControlZone,
+    aircraftRenderMap,
   },
   airport: {
     initAirports,
     loadAndDrawAirports,
-    tooltip: airportTooltip,
     filterAirports,
     flyToAirportByIcao,
+    airportRenderMap,
   },
   satellite: {
     initSatellites,
     loadAndDrawSatellites,
-    tooltip: satelliteTooltip,
     filterSatellites,
     flyToSatelliteById,
   },
@@ -113,7 +113,6 @@ const matchedAirportCount = computed(() => airportStore.matchedAirportMap.size)
 const { initBuildings } = useBuildings(cesiumViewer)
 const {
   initOSMBuildings,
-  tooltip:osmBuildingTooltip,
   filterOSMBuildings,
   removeOSMBuilding,
   addOSMBuilding,
@@ -121,14 +120,11 @@ const {
 const {
   initPhotogrammetrys,
   addPhotogrammetryById,
-  tooltip:photogrammetryTooltip,
-  filterPhotogrammetrys,
   removeActivePhotogrammetry,
 } = usePhotogrammetry(cesiumViewer)
 
 const {
   initControlZones,
-  tooltip:controlZoneTooltip,
 } = useControlZone(cesiumViewer, {
   onMatchedControlZonesChanged: highlightAircraftByControlZone,
 })
@@ -262,6 +258,9 @@ provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
 provide('filterOSMBuildings', filterOSMBuildings)
+provide('tooltipPosition', tooltipPosition)
+provide('aircraftRenderMap', aircraftRenderMap)
+provide('airportRenderMap', airportRenderMap)
 
 provide('removeOSMBuilding', removeOSMBuilding)
 provide('addOSMBuilding', addOSMBuilding)
@@ -276,12 +275,12 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
     <div id="cesium-container"></div>
     <DistanceSurveyHint />
     <AltitudeLegend />
-    <AirportTooltip :tooltip="airportTooltip" />
-    <AircraftTooltip :tooltip="aircraftTooltip" />
-    <SatelliteTooltip :tooltip="satelliteTooltip" />
-    <OSMBuildingTooltip :tooltip="osmBuildingTooltip" />
-    <PhotogrammetryTooltip :tooltip="photogrammetryTooltip" />
-    <ControlZoneTooltip :tooltip="controlZoneTooltip" />
+    <AirportTooltip :position="tooltipPosition" />
+    <AircraftTooltip :position="tooltipPosition" />
+    <SatelliteTooltip :position="tooltipPosition" />
+    <OSMBuildingTooltip :position="tooltipPosition" />
+    <PhotogrammetryTooltip :position="tooltipPosition" />
+    <ControlZoneTooltip :position="tooltipPosition" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />

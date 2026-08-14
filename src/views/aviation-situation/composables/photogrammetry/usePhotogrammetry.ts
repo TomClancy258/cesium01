@@ -1,6 +1,5 @@
 import { onUnmounted } from 'vue'
 import * as Cesium from 'cesium'
-import { useAviationTooltip } from '@/views/aviation-situation/composables/useAviationTooltip'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import type {
   PhotogrammetryBuildingHoveredProperties,
@@ -24,9 +23,11 @@ import {
   clearAllPhotogrammetryBuildingHighlight,
 } from '@/views/aviation-situation/composables/highlight-manager/photogrammetry-building-highlight-manager'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
+import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 
 import { useCesiumCameraEvent } from '@/views/aviation-situation/composables/cesium-events/cesium-camera-events'
-import type { ShallowRef, Viewer } from 'cesium'
+import type { ShallowRef } from 'vue'
+import type { Viewer } from 'cesium'
 
 type ActivePhotogrammetry = {
   id: number | ''
@@ -38,17 +39,7 @@ const PHOTOGRAMMETRY_BUILDING_HIDE_ALTITUDE = 3000
 
 export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   const photogrammetryStore = usePhotogrammetryStore()
-  const {
-    tooltip,
-    showTooltip: showPhotogrammetryBuildingTooltip,
-    hideTooltip: hidePhotogrammetryBuildingTooltip,
-  } = useAviationTooltip<PhotogrammetryBuildingHoveredProperties>({
-    sourceType: 'photogrammetryBuilding',
-    id: '',
-    name: '',
-    minHeight: 0,
-    height: 0,
-  })
+  const aviationSelectionStore = useAviationSelectionStore()
 
   const activePhotogrammetry: ActivePhotogrammetry = {
     id: '',
@@ -167,6 +158,9 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
 
   const createBuildingGeometryInstance = (feature: PhotogrammetryBuildingFeature) => {
     const outerRing = feature.geometry.coordinates[0]
+    if (!outerRing) {
+      throw new Error(`[photogrammetry] building ${feature.properties.id} missing outer ring`)
+    }
     const { id, name, minHeight, height, buildingHeight, city, landUse, roofType } =
       feature.properties
     const positions = Cesium.Cartesian3.fromDegreesArray(ringToDegreesArray(outerRing))
@@ -250,18 +244,36 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
     unsubPhotogrammetryBuildingHover = onCesiumEvent(
       'photogrammetryBuildingHover',
       (properties: PhotogrammetryBuildingHoveredProperties, screenPosition: Cesium.Cartesian2) => {
-        showPhotogrammetryBuildingTooltip(screenPosition, properties)
+        const selectedData: PhotogrammetryBuildingSelectedProperties = {
+          sourceType: 'photogrammetryBuilding',
+          id: properties.id,
+        }
+        setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
+        const hovered = aviationSelectionStore.hovered
+        if (
+          hovered === null ||
+          hovered.sourceType !== 'photogrammetryBuilding' ||
+          hovered.id !== properties.id
+        ) {
+          aviationSelectionStore.setHovered(selectedData)
+        }
       },
     )
 
     unsubPhotogrammetryBuildingLeave = onCesiumEvent('photogrammetryBuildingLeave', () => {
-      hidePhotogrammetryBuildingTooltip()
+      const hovered = aviationSelectionStore.hovered
+      if (hovered?.sourceType === 'photogrammetryBuilding') {
+        aviationSelectionStore.clearHovered()
+      }
     })
 
     unsubPhotogrammetryBuildingLeftClick = onCesiumEvent(
       'photogrammetryBuildingLeftClick',
       (properties: PhotogrammetryBuildingSelectedProperties) => {
-        selectPhotogrammetryBuilding(properties)
+        selectPhotogrammetryBuilding({
+          sourceType: 'photogrammetryBuilding',
+          id: properties.id,
+        })
       },
     )
   }
@@ -269,11 +281,12 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   const removeActivePhotogrammetry = () => {
     clearAllPhotogrammetryBuildingHighlight()
 
-    const aviationSelectionStore = useAviationSelectionStore()
     if (aviationSelectionStore.selected?.sourceType === 'photogrammetryBuilding') {
       aviationSelectionStore.clearSelected()
     }
-    hidePhotogrammetryBuildingTooltip()
+    if (aviationSelectionStore.hovered?.sourceType === 'photogrammetryBuilding') {
+      aviationSelectionStore.clearHovered()
+    }
 
     const buildingPrimitive = getPhotogrammetryBuildingPrimitive()
     if (buildingPrimitive) {
@@ -300,7 +313,6 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   return {
     initPhotogrammetrys,
     addPhotogrammetryById,
-    tooltip,
     removeActivePhotogrammetry,
   }
 }

@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import type { Scan, Satellite } from '@/network/satellite/type'
+import type { Satellite } from '@/network/satellite/type'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
@@ -16,22 +16,16 @@ export interface SatelliteRenderItem {
   cylinderLengthProperty: Cesium.ConstantProperty
 }
 
-/** tooltip / 选中态业务快照（不挂在 entity.properties 上） */
-export interface SatelliteHoveredProperties {
+/** selection / hovered：只存身份，业务数据查 matchedSatelliteMap */
+export interface SatelliteSelectedData {
   id: string
   sourceType: 'satellite'
-  name: string
-  country: string
-  scan: Scan
-  description: string
-  lngLatAlt: {
-    longitude: number
-    latitude: number
-    height: number
-  }
 }
 
-export type SatelliteTooltipState = TooltipState<SatelliteHoveredProperties>
+/** @deprecated 业务展示改查 Map；保留别名避免外部残留引用 */
+export type SatelliteHoveredProperties = SatelliteSelectedData
+
+export type SatelliteTooltipState = TooltipState<MatchedSatellite>
 
 /** 挂在卫星 Entity.properties 上：拾取身份 + 高亮还原用渲染态 */
 export interface SatelliteProperties {

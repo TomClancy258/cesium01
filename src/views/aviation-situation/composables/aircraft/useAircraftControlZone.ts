@@ -58,14 +58,13 @@ export function useAircraftControlZone({
     // 1. 先清掉已不匹配 / 已不参与高亮的管控区遗留高亮
     for (const icao24 of aircraftStore.matchedAircraftMap.keys()) {
       const item = renderMap.get(icao24)
-      if (!item) continue
-      const properties=item.billboard.properties
+      if (!item?.sets?.controlZoneId) continue
       //步骤 1（清遗留高亮）第一次执行highlightAircraftByControlZone
       // controlZoneId 全是空 Set，内层循环：
-      for (const zoneId of [...properties.sets.controlZoneId]) {
+      for (const zoneId of [...item.sets.controlZoneId]) {
         if (!activeHighlightZoneIds.has(zoneId)) {
-          //若该飞机.properties.sets.controlConeId里没有包含上面的危险/警戒管控区，则恢复该飞机图标
-          clearControlZoneHighlight(zoneId, item.billboard)
+          //若该飞机.sets.controlZoneId里没有包含上面的危险/警戒管控区，则恢复该飞机图标
+          clearControlZoneHighlight(zoneId, item.billboard, item.sets)
         }
       }
     }
@@ -84,16 +83,16 @@ export function useAircraftControlZone({
 
       for (const icao24 of aircraftStore.matchedAircraftMap.keys()) {
         const item = renderMap.get(icao24)
-        if (!item) continue
+        if (!item?.sets) continue
 
         const lngLat: [number, number] = [item.data.longitude, item.data.latitude]
         const inGraphic = isPointInControlZoneRegion(lngLat, controlZoneRegion)
 
         if (inGraphic) {
           controlZoneStore.addAircraftToControlZone(controlZoneId, item.data)
-          highlightBillboardOnControlZone(controlZoneId, item.billboard, controlZoneImage)
+          highlightBillboardOnControlZone(controlZoneId, item.billboard, controlZoneImage, item.sets)
         } else {
-          clearControlZoneHighlight(controlZoneId, item.billboard)
+          clearControlZoneHighlight(controlZoneId, item.billboard, item.sets)
         }
       }
     }

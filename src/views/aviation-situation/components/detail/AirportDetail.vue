@@ -1,17 +1,60 @@
 <script setup lang="ts">
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
-import { computed, ref } from 'vue'
+import { useAirportStore } from '@/stores/airport'
+import { useSpatialSelectionStore } from '@/stores/spatial-selection'
+import { computed, inject, ref } from 'vue'
+import type { AviationRenderItem } from '@/views/aviation-situation/types/shared'
+import type { Airport } from '@/network/airport/type'
+import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 const aviationSelectionStore = useAviationSelectionStore()
+const airportStore = useAirportStore()
+const spatialSelectionStore = useSpatialSelectionStore()
+const airportRenderMap = inject<Map<string, AviationRenderItem<Airport>>>('airportRenderMap')
+const flyToSatelliteById = inject<(id: string) => void>('flyToSatelliteById')
 const currentPage = ref(1)
 const pageSize = 10
 
 const airport = computed(() => {
   const sel = aviationSelectionStore.selected
-  if (sel?.sourceType === 'airport') return sel
-  return null
+  if (sel?.sourceType !== 'airport') return null
+  return airportStore.matchedAirportMap.get(sel.icao) ?? null
 })
 
+const associationSets = computed(() => {
+  const sel = aviationSelectionStore.selected
+  if (sel?.sourceType !== 'airport' || !airportRenderMap) return null
+  return airportRenderMap.get(sel.icao)?.sets ?? null
+})
+
+const coneScanSatelliteIds = computed(() =>
+  associationSets.value?.coneScanSatelliteId
+    ? [...associationSets.value.coneScanSatelliteId]
+    : [],
+)
+
+const spatialSelectionNames = computed(() =>
+  associationSets.value?.dataSourceName ? [...associationSets.value.dataSourceName] : [],
+)
+
+const hasAssociations = computed(
+  () => coneScanSatelliteIds.value.length > 0 || spatialSelectionNames.value.length > 0,
+)
+
+const onFlyToSatellite = (id: string) => {
+  flyToSatelliteById?.(id)
+}
+
+const onOpenSpatialSelection = (dataSourceName: string) => {
+  const region = spatialSelectionStore.finishedGraphicMap.get(dataSourceName)
+  if (!region?.centroidLngLatAlt) return
+  emitCesiumEvent('spatialSelectionTableOperationClicked', {
+    operationType: 'detail',
+    centroidLngLatAlt: region.centroidLngLatAlt,
+    dataSourceName: region.dataSourceName,
+    sourceType: region.sourceType,
+  })
+}
 const staticFlights = [
   { time: '08:10', destination: '上海浦东', code: 'CA1234', type: 'B738' },
   { time: '08:45', destination: '北京首都', code: 'CA5678', type: 'B738' },
@@ -85,15 +128,50 @@ const paginatedFlights = computed(() => {
         </div>
         <div class="info-item">
           <span class="label">海拔高度</span>
-          <span class="value">{{ airport.lngLatAlt.elevation }} m</span>
+          <span class="value">{{ airport.elevation }} m</span>
         </div>
         <div class="info-item">
           <span class="label">经度</span>
-          <span class="value">{{ airport.lngLatAlt.longitude.toFixed(4) }}</span>
+          <span class="value">{{ airport.longitude.toFixed(4) }}</span>
         </div>
         <div class="info-item">
           <span class="label">纬度</span>
-          <span class="value">{{ airport.lngLatAlt.latitude.toFixed(4) }}</span>
+          <span class="value">{{ airport.latitude.toFixed(4) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 关联 -->
+    <div v-if="hasAssociations" class="detail-section">
+      <div class="section-title">关联</div>
+      <div v-if="coneScanSatelliteIds.length" class="assoc-row">
+        <span class="assoc-label">扫描卫星</span>
+        <div class="assoc-links">
+          <el-button
+            v-for="id in coneScanSatelliteIds"
+            :key="id"
+            type="primary"
+            link
+            size="small"
+            @click="onFlyToSatellite(id)"
+          >
+            {{ id }}
+          </el-button>
+        </div>
+      </div>
+      <div v-if="spatialSelectionNames.length" class="assoc-row">
+        <span class="assoc-label">空间选择</span>
+        <div class="assoc-links">
+          <el-button
+            v-for="name in spatialSelectionNames"
+            :key="name"
+            type="primary"
+            link
+            size="small"
+            @click="onOpenSpatialSelection(name)"
+          >
+            {{ name }}
+          </el-button>
         </div>
       </div>
     </div>
@@ -125,4 +203,28 @@ const paginatedFlights = computed(() => {
 
 <style scoped lang="scss">
 @use '../../styles/detail-shared';
+
+.assoc-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.assoc-label {
+  flex-shrink: 0;
+  color: #999;
+  min-width: 72px;
+}
+
+.assoc-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+}
 </style>

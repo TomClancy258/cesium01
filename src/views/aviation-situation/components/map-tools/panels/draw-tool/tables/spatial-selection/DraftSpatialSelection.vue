@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
-import { storeToRefs } from 'pinia'
 import { formatDistance } from '@/utils/geoUtils'
 import { useSpatialSelectionStore } from '@/stores/spatial-selection'
 import { useRegionSelectionStore } from '@/stores/region-selection'
@@ -12,7 +11,6 @@ import SegmentsPopover from '../../popover/SegmentsPopover.vue'
 import type { DistanceMeasurementData } from '@/views/aviation-situation/types/draw-tools'
 
 const spatialSelectionStore = useSpatialSelectionStore()
-const { finishedGraphics } = storeToRefs(spatialSelectionStore)
 const regionSelectionStore = useRegionSelectionStore()
 
 // 分页
@@ -22,7 +20,7 @@ const pageSizes = [5, 10, 20, 50]
 
 const pagedData = computed(() => {
   const start = (currentPage.value - 1) * pageSize.value
-  return finishedGraphics.value.slice(start, start + pageSize.value)
+  return spatialSelectionStore.finishedGraphics.slice(start, start + pageSize.value)
 })
 
 
@@ -79,7 +77,7 @@ watch(
       return
     }
     if (selected.operationType !== 'spatialSelection' || !selected.isDraft) return
-    const index = finishedGraphics.value.findIndex(
+    const index = spatialSelectionStore.finishedGraphics.findIndex(
       (row) => row.dataSourceName === selected.dataSourceName
     )
     if (index === -1) return
@@ -286,7 +284,7 @@ const handleView = (row: DistanceMeasurementData) => {
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
         :page-sizes="pageSizes"
-        :total="finishedGraphics.length"
+        :total="spatialSelectionStore.finishedGraphics.length"
         layout="total, sizes, prev, pager, next, jumper"
         background
         @size-change="handleSizeChange"

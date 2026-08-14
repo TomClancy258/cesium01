@@ -33,7 +33,7 @@ export function useAirportConeScannedBySatellite({
       const airportMap = new Map<string, Airport>()
       for (const icao of airportStore.matchedAirportMap.keys()) {
         const item = renderMap.get(icao)
-        if (!item) continue
+        if (!item?.sets) continue
 
         const position: Cesium.Cartesian3 = item.billboard.position
         const inGraphic = isPointInConeWithContext(position, coneCtx)
@@ -44,10 +44,11 @@ export function useAirportConeScannedBySatellite({
             coneSnapshot.id,
             item.billboard,
             satelliteConeScannedImageUrl,
+            item.sets,
           )
           airportMap.set(icao, item.data)
         } else {
-          clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard)
+          clearSatelliteConeScanSelectedHighlight(coneSnapshot.id, item.billboard, item.sets)
         }
       }
       airportBySatelliteId.set(coneSnapshot.id, airportMap)
