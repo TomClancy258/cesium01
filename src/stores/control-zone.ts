@@ -28,8 +28,8 @@ export const useControlZoneStore = defineStore('useControlZoneStore', () => {
     matchedControlZoneMap.value.clear()
   }
 
-  const setMatchedControlZone = (controlZone: MatchedControlZone) => {
-    matchedControlZoneMap.value.set(controlZone.id, controlZone)
+  const setMatchedControlZone = (matched: MatchedControlZone) => {
+    matchedControlZoneMap.value.set(matched.controlZone.id, matched)
   }
   const commitMatchedControlZones = () => {
     triggerRef(matchedControlZoneMap)

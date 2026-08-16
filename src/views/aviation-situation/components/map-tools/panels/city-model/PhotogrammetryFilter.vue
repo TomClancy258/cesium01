@@ -53,14 +53,16 @@ const onDetail = (row: MatchedPhotogrammetry) => {
     <el-pagination
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
+      class="pager"
       :page-sizes="[10, 20, 50, 100]"
       :total="photogrammetryStore.matchedPhotogrammetrys.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
-      style="margin-top: 8px"
     />
   </div>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@use '@/assets/css/pager.scss';
+</style>

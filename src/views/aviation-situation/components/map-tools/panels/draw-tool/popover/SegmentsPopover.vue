@@ -82,15 +82,19 @@ const handleView = (row: SegmentResult) => {
       <el-pagination
         v-model:current-page="currentPage"
         v-model:page-size="pageSize"
+        class="pager"
         :total="segments.length"
         layout="prev, pager, next, jumper"
         size="small"
         background
-        style="margin-top: 8px; justify-content: flex-end"
       />
     </el-popover>
   </template>
 </template>
+
+<style scoped lang="scss">
+@use '@/assets/css/pager.scss';
+</style>
 
 <style lang="scss">
 .segments-popover {

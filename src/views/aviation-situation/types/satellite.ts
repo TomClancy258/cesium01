@@ -1,12 +1,22 @@
 import * as Cesium from 'cesium'
-import type { Satellite } from '@/network/satellite/type'
+import type { Satellite, Scan } from '@/network/satellite/type'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import type { LngLatAlt, TooltipState } from '@/views/aviation-situation/types/shared'
 
-export type MatchedSatellite = Satellite & {
+/** 列表行：卫星档案 + 圆锥扫描命中（与 RenderMap 纯 Satellite 分离） */
+export type MatchedSatellite = {
+  satellite: Satellite
   aircraft: { aircraftMap: Map<string, Aircraft> }
   airport: { airportMap: Map<string, Airport> }
+}
+
+export function createMatchedSatellite(satellite: Satellite): MatchedSatellite {
+  return {
+    satellite,
+    aircraft: { aircraftMap: new Map() },
+    airport: { airportMap: new Map() },
+  }
 }
 
 export interface SatelliteRenderItem {

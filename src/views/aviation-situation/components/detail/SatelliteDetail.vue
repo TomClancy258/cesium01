@@ -1,22 +1,47 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
 import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useSatelliteStore } from '@/stores/satellite'
-import { computed } from 'vue'
-import {satelliteScanTargetMap} from "@/views/aviation-situation/constants/satellite-filter-data.ts"
+import { satelliteScanTargetMap } from '@/views/aviation-situation/constants/satellite-filter-data.ts'
+import AircraftHitTable from '@/views/aviation-situation/components/shared/AircraftHitTable.vue'
+import AirportHitTable from '@/views/aviation-situation/components/shared/AirportHitTable.vue'
 
 const aviationSelectionStore = useAviationSelectionStore()
 const satelliteStore = useSatelliteStore()
 
-const satellite = computed(() => {
+const aircraftDialogVisible = ref(false)
+const airportDialogVisible = ref(false)
+
+const matched = computed(() => {
   const sel = aviationSelectionStore.selected
   if (sel?.sourceType !== 'satellite') return null
-  return satelliteStore.matchedSatelliteMap.get(sel.id) ?? null
+  const m = satelliteStore.matchedSatelliteMap.get(sel.id)
+  if (!m) return null
+  // triggerRef 后需新顶层引用，详情经纬高与扫描命中才会刷新
+  return {
+    satellite: { ...m.satellite },
+    aircraftMap: m.aircraft.aircraftMap,
+    airportMap: m.airport.airportMap,
+  }
 })
 
+const satellite = computed(() => matched.value?.satellite ?? null)
+
+const scanTarget = computed(() => satellite.value?.scan.target ?? 'none')
+
+const showScanHits = computed(() => scanTarget.value !== 'none')
+
+const showAircraftHits = computed(
+  () => scanTarget.value === 'aircraft' || scanTarget.value === 'all',
+)
+
+const showAirportHits = computed(
+  () => scanTarget.value === 'airport' || scanTarget.value === 'all',
+)
 </script>
 
 <template>
-  <div v-if="satellite" class="aviation-detail">
+  <div v-if="satellite && matched" class="aviation-detail">
     <div class="detail-header">
       <div class="detail-header__title">{{ satellite.name }}</div>
       <div class="detail-header__meta detail-header__codes">
@@ -58,6 +83,71 @@ const satellite = computed(() => {
         </div>
       </div>
     </div>
+
+    <!-- 扫描命中：详情只留摘要，完整表放到宽 Dialog -->
+    <div v-if="showScanHits" class="detail-section">
+      <div class="section-title">扫描命中</div>
+      <div v-if="showAircraftHits" class="assoc-row">
+        <span class="assoc-label">飞机</span>
+        <div class="assoc-links">
+          <span class="hit-count">{{ matched.aircraftMap.size }} 架</span>
+          <el-button
+            type="primary"
+            link
+            size="small"
+            @click="aircraftDialogVisible = true"
+          >
+            查看列表
+          </el-button>
+        </div>
+      </div>
+      <div v-if="showAirportHits" class="assoc-row">
+        <span class="assoc-label">机场</span>
+        <div class="assoc-links">
+          <span class="hit-count">{{ matched.airportMap.size }} 个</span>
+          <el-button
+            type="primary"
+            link
+            size="small"
+            @click="airportDialogVisible = true"
+          >
+            查看列表
+          </el-button>
+        </div>
+      </div>
+    </div>
+
+    <el-dialog
+      v-model="aircraftDialogVisible"
+      :title="`扫描命中 · 飞机（${matched.aircraftMap.size}）`"
+      width="72%"
+      append-to-body
+      destroy-on-close
+      :modal="false"
+      class="scan-hit-dialog"
+    >
+      <AircraftHitTable
+        :key="`${satellite.id}-aircraft-dialog`"
+        :aircraft-map="matched.aircraftMap"
+        :title="`全部飞机（${matched.aircraftMap.size} 架）`"
+      />
+    </el-dialog>
+
+    <el-dialog
+      v-model="airportDialogVisible"
+      :title="`扫描命中 · 机场（${matched.airportMap.size}）`"
+      width="72%"
+      append-to-body
+      destroy-on-close
+      :modal="false"
+      class="scan-hit-dialog"
+    >
+      <AirportHitTable
+        :key="`${satellite.id}-airport-dialog`"
+        :airport-map="matched.airportMap"
+        :title="`全部机场（${matched.airportMap.size} 个）`"
+      />
+    </el-dialog>
   </div>
 </template>
 
@@ -72,6 +162,36 @@ const satellite = computed(() => {
     :deep(p) {
       margin: 0 0 8px;
     }
+  }
+
+  .assoc-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    align-items: center;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .assoc-label {
+    flex-shrink: 0;
+    color: #999;
+    min-width: 48px;
+  }
+
+  .assoc-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    min-width: 0;
+  }
+
+  .hit-count {
+    color: #333;
   }
 }
 </style>

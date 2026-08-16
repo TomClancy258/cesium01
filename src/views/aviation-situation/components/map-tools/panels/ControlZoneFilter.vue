@@ -56,7 +56,9 @@ watch(
   },
   (id) => {
     if (id == null) return
-    const index = controlZoneStore.matchedControlZones.findIndex((row) => row.id === id)
+    const index = controlZoneStore.matchedControlZones.findIndex(
+      (row) => row.controlZone.id === id,
+    )
     if (index === -1) return
     currentPage.value = Math.floor(index / pageSize.value) + 1
   },
@@ -65,7 +67,7 @@ watch(
 
 const rowClassName = ({ row }: { row: MatchedControlZone }): string => {
   const selected = regionSelectionStore.selected
-  if (selected?.sourceType === 'controlZone' && selected.id === row.id) {
+  if (selected?.sourceType === 'controlZone' && selected.id === row.controlZone.id) {
     return 'is-selected-row'
   }
   return ''
@@ -80,9 +82,11 @@ const resetControlZoneForm = (formEl: FormInstance | undefined) => {
 const onDetail = (row: MatchedControlZone) => {
   emitCesiumEvent('controlZoneTableOperationClicked', {
     operationType: 'detail',
-    id: row.id,
+    id: row.controlZone.id,
   })
 }
+
+const getRowKey = (row: MatchedControlZone) => row.controlZone.id
 
 const isAllLevelsSelected = computed({
   get: () => {
@@ -158,45 +162,41 @@ const isTypesIndeterminate = computed(() => {
       stripe
       size="small"
       style="width: 100%"
-      row-key="id"
+      :row-key="getRowKey"
       :row-class-name="rowClassName"
     >
-      <el-table-column prop="id" label="id" />
-      <el-table-column prop="name" label="名称" />
-      <el-table-column prop="level" label="管控等级">
+      <el-table-column prop="controlZone.id" label="id" />
+      <el-table-column prop="controlZone.name" label="名称" />
+      <el-table-column prop="controlZone.level" label="管控等级">
         <template #default="{ row }">
           <el-tag
-            :type="CONTROL_ZONE_LEVEL_TAG_TYPE[row.level as ControlZoneLevel]"
+            :type="CONTROL_ZONE_LEVEL_TAG_TYPE[row.controlZone.level as ControlZoneLevel]"
             size="small"
           >
-            {{ getControlZoneLevelLabel(row.level) }}
+            {{ getControlZoneLevelLabel(row.controlZone.level) }}
           </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="最低高度">
         <template #default="{ row }">
-          {{ formatFixed4(row.minAltitude) }} m
+          {{ formatFixed4(row.controlZone.minAltitude) }} m
         </template>
       </el-table-column>
       <el-table-column label="最高高度">
         <template #default="{ row }">
-          {{ formatFixed4(row.maxAltitude) }} m
+          {{ formatFixed4(row.controlZone.maxAltitude) }} m
         </template>
       </el-table-column>
-      <!-- 飞机数量 -->
       <el-table-column label="飞机数" width="80px" align="center">
         <template #default="{ row }">
-          {{ row.aircraft?.aircraftMap?.size ?? 0 }}
+          {{ row.aircraft.aircraftMap.size }}
         </template>
       </el-table-column>
-
-      <!-- 飞机 icao24 -->
       <el-table-column label="飞机 icao24" width="200px" align="center">
         <template #default="{ row }">
-          <AircraftIcaoPopover :aircraft-map="row.aircraft?.aircraftMap" />
+          <AircraftIcaoPopover :aircraft-map="row.aircraft.aircraftMap" />
         </template>
       </el-table-column>
-
       <el-table-column label="操作">
         <template #default="{ row }">
           <el-button type="primary" link size="small" @click="onDetail(row)">详情</el-button>
@@ -208,17 +208,18 @@ const isTypesIndeterminate = computed(() => {
     <el-pagination
       v-model:current-page="currentPage"
       v-model:page-size="pageSize"
+      class="pager"
       :page-sizes="[10, 20, 50, 100]"
       :total="controlZoneStore.matchedControlZones.length"
       layout="total, sizes, prev, pager, next, jumper"
       @current-change="handlePageChange"
       @size-change="handleSizeChange"
-      style="margin-top: 8px"
     />
   </div>
 </template>
 
 <style scoped lang="scss">
+@use '@/assets/css/pager.scss';
 .control-zone-panel {
   :deep(.is-selected-row) {
     td.el-table__cell {

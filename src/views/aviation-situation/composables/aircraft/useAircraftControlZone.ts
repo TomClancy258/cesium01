@@ -50,7 +50,8 @@ export function useAircraftControlZone({
     // 当前允许参与高亮的管控区 id（筛选匹配 + 危险/警戒）
     const activeHighlightZoneIds = new Set<string>()
     for (const [controlZoneId, controlZoneRegion] of controlZoneStore.matchedControlZoneMap) {
-      if (controlZoneRegion.level === 'danger' || controlZoneRegion.level === 'warning') {
+      const level = controlZoneRegion.controlZone.level
+      if (level === 'danger' || level === 'warning') {
         activeHighlightZoneIds.add(controlZoneId)
       }
     }
@@ -71,12 +72,13 @@ export function useAircraftControlZone({
 
     // 2. 再按当前 matched 管控区做进出检测
     for (const [controlZoneId, controlZoneRegion] of controlZoneStore.matchedControlZoneMap) {
-      if (controlZoneRegion.level === 'info' || controlZoneRegion.level === 'normal') continue
+      const level = controlZoneRegion.controlZone.level
+      if (level === 'info' || level === 'normal') continue
 
       const controlZoneImage =
-        controlZoneRegion.level === 'danger'
+        level === 'danger'
           ? dangerControlZoneImageUrl
-          : controlZoneRegion.level === 'warning'
+          : level === 'warning'
             ? warningControlZoneImageUrl
             : null
       if (!controlZoneImage) continue

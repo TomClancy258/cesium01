@@ -74,9 +74,9 @@ export interface EventCallbackMap {
   airportLeave: () => void;
   airportLeftClick: (properties: AirportBillboardProperties, billboard: Cesium.Billboard) => void;
 
-  satelliteHover: (properties: SatelliteProperties, position: Cesium.Cartesian2, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => void;
+  satelliteHover: (properties: SatelliteProperties, position: Cesium.Cartesian2) => void;
   satelliteLeave: () => void;
-  satelliteLeftClick: (properties: SatelliteProperties, lngLatAlt: LngLatAlt, entity: Cesium.Entity) => void;
+  satelliteLeftClick: (properties: SatelliteProperties, entity: Cesium.Entity) => void;
 
   osmBuildingHover: (properties: OSMBuildingHoveredProperties, position: Cesium.Cartesian2) => void;
   osmBuildingLeave: () => void;

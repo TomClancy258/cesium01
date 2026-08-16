@@ -219,10 +219,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         const properties: SatelliteProperties | undefined = entity.properties?.getValue()
         if (!properties) return
 
-        const pickResult = buildLngLatAltFromEntity(entity, viewer.value.clock.currentTime)
-        if (!pickResult) return
-
-        handleSatelliteLeftClick(properties, pickResult.lngLatAlt, entity)
+        handleSatelliteLeftClick(properties, entity)
         return
       }
 
@@ -478,7 +475,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
       if (!screenPosition) return
 
-      handleSatelliteHover(properties, screenPosition, pickResult.lngLatAlt, entity)
+      handleSatelliteHover(properties, screenPosition, entity)
       return
     }
 

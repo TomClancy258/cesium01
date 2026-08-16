@@ -198,22 +198,22 @@ const handleBatchDelete = () => {
     </el-table>
 
     <!-- 分页 -->
-    <div class="pagination-wrapper">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="pageSizes"
-        :total="distanceMeasurementStore.finishedGraphics.length"
-        layout="total, sizes, prev, pager, next, jumper"
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      class="pager"
+      :page-sizes="pageSizes"
+      :total="distanceMeasurementStore.finishedGraphics.length"
+      layout="total, sizes, prev, pager, next, jumper"
+      background
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
   </div>
 </template>
 
 <style scoped lang="scss">
+@use '@/assets/css/pager.scss';
 .distance-measurement-table {
   width: 100%;
 }
@@ -235,9 +235,4 @@ const handleBatchDelete = () => {
   color: var(--el-color-primary);
 }
 
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
 </style>

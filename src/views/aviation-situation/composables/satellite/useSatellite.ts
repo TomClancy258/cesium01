@@ -5,10 +5,10 @@ import * as Cesium from 'cesium'
 import { getSatellites } from '@/network/satellite/index.ts'
 import type { Satellite } from '@/network/satellite/type'
 import type {
-  MatchedSatellite,
   SatelliteProperties,
   ConeSnapshot,
 } from '@/views/aviation-situation/types/satellite.ts'
+import { createMatchedSatellite } from '@/views/aviation-situation/types/satellite.ts'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 
 import { AVIATION_LABEL_STYLE_BASE } from '@/views/aviation-situation/constants/cesium-style-constants.ts'
@@ -55,7 +55,7 @@ type SatelliteFilterQuery = {
   countries: string[]
 }
 type SatelliteRenderState = {
-  data: MatchedSatellite
+  data: Satellite
   entity: Cesium.Entity
   positionProperty: Cesium.SampledPositionProperty
   cylinderProps: {
@@ -181,7 +181,7 @@ export function useSatellite(
         }
       }
 
-      const satellite: MatchedSatellite = item.data
+      const satellite = item.data
       if(
         shouldRunVisualTick &&
         aviationSelectionStore.hovered?.sourceType === 'satellite' &&
@@ -193,13 +193,10 @@ export function useSatellite(
         }
       }
 
-      if (shouldRunStoreSyncTick) { //同步卫星坐标到 Pinia，即更新底部drawer里的卫星table
-        const lngLatAlt=satellite.lngLatAlt
-        lngLatAlt.longitude=longitude
-        lngLatAlt.latitude=latitude
-        lngLatAlt.height=height
-
-        satelliteStore.updateMatchedSatellite(satellite)
+      if (shouldRunStoreSyncTick) { //同步卫星坐标到 Pinia（与 matched.satellite 同一引用）
+        satellite.lngLatAlt.longitude = longitude
+        satellite.lngLatAlt.latitude = latitude
+        satellite.lngLatAlt.height = height
         hasSatelliteStoreMutation = true
       }
     }
@@ -281,13 +278,6 @@ export function useSatellite(
 
   const drawSatellites = (satellites: Satellite[]) => {
     for (const satellite of satellites) {
-      const matchedSatellite = satellite as MatchedSatellite
-      matchedSatellite.aircraft = {
-        aircraftMap: new Map<string, Aircraft>(),
-      }
-      matchedSatellite.airport = {
-        airportMap: new Map<string, Airport>(),
-      }
       const positionProperty = new Cesium.SampledPositionProperty();
 
       if (!satellite.availability) continue
@@ -402,8 +392,8 @@ export function useSatellite(
         }
       })
 
-      satelliteRenderMap.set(matchedSatellite.id, {
-        data: matchedSatellite,
+      satelliteRenderMap.set(satellite.id, {
+        data: satellite,
         entity:entity,
         //positionProperty、cylinderProps它俩都可以不用在satelliteRenderMap里存储维护
         //只是开发者要记得修改length时要entity.length.setValue(xxx)，而不是entity.length=xxx 【这样也会自动包装ConstantProperty，但是稍微消耗一点点性能】
@@ -429,6 +419,7 @@ export function useSatellite(
   }
 
   const filterSatellites = useDebounceFn((): void => {
+    const previousHits = new Map(satelliteStore.matchedSatelliteMap)
     satelliteStore.clearMatchedSatellites()
 
     const form = satelliteStore.satelliteFilterForm
@@ -440,8 +431,6 @@ export function useSatellite(
 
     const countriesSet = new Set(query.countries)
 
-    let isSelectedSatelliteMatched = false
-
     satelliteRenderMap.forEach(({ data: satellite, entity }) => {
       const match =
         (!query.id || satellite.id.toLowerCase().includes(query.id)) &&
@@ -451,13 +440,13 @@ export function useSatellite(
       // (!countriesSet.size || countriesSet.has(satellite.originCountry))
 
       if (match) {
-        // matchedSatelliteMap.push(satellite)
-        satelliteStore.setMatchedSatellite(satellite)
-
-        const selected = aviationSelectionStore.selected
-        if (selected?.sourceType === 'satellite' && satellite.id === selected.id) {
-          isSelectedSatelliteMatched = true
+        const prev = previousHits.get(satellite.id)
+        const matched = createMatchedSatellite(satellite)
+        if (prev) {
+          matched.aircraft = prev.aircraft
+          matched.airport = prev.airport
         }
+        satelliteStore.setMatchedSatellite(matched)
       }
       entity.show = match
     })
@@ -489,7 +478,6 @@ export function useSatellite(
       (
         properties: SatelliteProperties,
         screenPosition: Cesium.Cartesian2,
-        _lngLatAlt: LngLatAlt,
       ) => {
         const satellite = satelliteRenderMap.get(properties.id)?.data
         if (!satellite) return
@@ -516,7 +504,7 @@ export function useSatellite(
 
     unsubSatelliteLeftClick = onCesiumEvent(
       'satelliteLeftClick',
-      (properties: SatelliteProperties, _lngLatAlt: LngLatAlt, entity: Cesium.Entity) => {
+      (properties: SatelliteProperties, entity: Cesium.Entity) => {
         const satellite = satelliteRenderMap.get(properties.id)?.data
         if (!satellite) return
         selectSatellite(entity, toSatelliteSelectedData(satellite))
@@ -544,7 +532,8 @@ export function useSatellite(
       height: carto.height,
     }
 
-    handleSatelliteLeftClick(properties, lngLatAlt, entity)
+    // 与地图左键一致：第二参必须是 Entity，才会走 selectSatellite 描边高亮
+    handleSatelliteLeftClick(properties, entity)
     flyToLngLatAlt(viewer, lngLatAlt)
   }
 

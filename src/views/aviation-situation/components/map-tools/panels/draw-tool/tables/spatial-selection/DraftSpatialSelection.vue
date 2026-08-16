@@ -279,22 +279,22 @@ const handleView = (row: DistanceMeasurementData) => {
     </el-table>
 
     <!-- 分页 -->
-    <div class="pagination-wrapper">
-      <el-pagination
-        v-model:current-page="currentPage"
-        v-model:page-size="pageSize"
-        :page-sizes="pageSizes"
-        :total="spatialSelectionStore.finishedGraphics.length"
-        layout="total, sizes, prev, pager, next, jumper"
-        background
-        @size-change="handleSizeChange"
-        @current-change="handleCurrentChange"
-      />
-    </div>
+    <el-pagination
+      v-model:current-page="currentPage"
+      v-model:page-size="pageSize"
+      class="pager"
+      :page-sizes="pageSizes"
+      :total="spatialSelectionStore.finishedGraphics.length"
+      layout="total, sizes, prev, pager, next, jumper"
+      background
+      @size-change="handleSizeChange"
+      @current-change="handleCurrentChange"
+    />
   </div>
 </template>
 
 <style scoped lang="scss">
+@use '@/assets/css/pager.scss';
 .spatial-selection-table {
   width: 100%;
 }
@@ -316,11 +316,6 @@ const handleView = (row: DistanceMeasurementData) => {
   color: var(--el-color-primary);
 }
 
-.pagination-wrapper {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 12px;
-}
 
 </style>
 

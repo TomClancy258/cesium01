@@ -14,7 +14,7 @@ export function useCesiumViewer(containerId = 'cesium-container') {
   const initViewer = (): void => {
     viewer.value = new Cesium.Viewer(containerId, {
       // timeline: false,
-      animation: false,
+      // animation: false,
       // 1. 关闭绿色的选中框 (Selection Indicator)
       selectionIndicator: false,
       infoBox: false,

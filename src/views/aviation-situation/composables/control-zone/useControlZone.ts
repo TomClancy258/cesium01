@@ -5,27 +5,25 @@ import { getControlZones } from '@/network/control-zone'
 import type {
   ControlZoneFeature,
   ControlZoneLevel,
-  ControlZoneProperties
+  ControlZoneProperties,
 } from '@/network/control-zone/type'
 import { CONTROL_ZONE_LEVEL_STYLES } from '@/views/aviation-situation/composables/control-zone/control-zone-constants'
 import { useDebounceFn } from '@vueuse/core'
 import { useControlZoneStore } from '@/stores/control-zone'
 import type {
+  ControlZoneTable,
   ControlZoneTableRowOperation,
-  MatchedControlZone
 } from '@/views/aviation-situation/types/control-zone'
+import { createMatchedControlZone } from '@/views/aviation-situation/types/control-zone'
 import { createPolygonFromLngLatAltArray } from '@/utils/geoUtils'
 import * as turf from '@turf/turf'
-import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { selectControlZoneRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
 import {
   toControlZoneHoveredProperties,
   toControlZoneRegionSelectedData,
 } from './control-zone-property-utils'
-import {
-  setControlZoneHoveredProperties,
-} from '@/views/aviation-situation/composables/control-zone/control-zone-hover-state'
+import { setControlZoneHoveredProperties } from '@/views/aviation-situation/composables/control-zone/control-zone-hover-state'
 import { setTooltipPositionFromWindow } from '@/views/aviation-situation/composables/cesium-events/tooltip-position'
 
 type ControlZoneFilterQuery = {
@@ -34,8 +32,9 @@ type ControlZoneFilterQuery = {
   levels: ControlZoneLevel[]
 }
 
+/** RenderMap：档案 + Entity（业务命中飞机只在 store MatchedControlZone） */
 type ControlZoneRenderState = {
-  data: MatchedControlZone
+  data: ControlZoneTable
   entity: Cesium.Entity
 }
 
@@ -85,13 +84,10 @@ export function useControlZone(
       const positions = Cesium.Cartesian3.fromDegreesArrayHeights(lngLatAltArray)
       const graphic = createPolygonFromLngLatAltArray(lngLatAltArray)
 
-      const matchedControlZone: MatchedControlZone = {
+      const controlZone: ControlZoneTable = {
         ...properties,
         graphic,
         bbox: turf.bbox(graphic),
-        aircraft: {
-          aircraftMap: new Map<string, Aircraft>(),
-        },
       }
 
       const entity = viewer.value.entities.add({
@@ -117,7 +113,7 @@ export function useControlZone(
       })
 
       controlZoneRenderMap.set(properties.id, {
-        data: matchedControlZone,
+        data: controlZone,
         entity,
       })
     }
@@ -148,6 +144,7 @@ export function useControlZone(
   }
 
   const filterControlZones = useDebounceFn((): void => {
+    const previousHits = new Map(controlZoneStore.matchedControlZoneMap)
     controlZoneStore.clearMatchedControlZones()
 
     const form = controlZoneStore.controlZoneFilterForm
@@ -166,7 +163,12 @@ export function useControlZone(
         form.visible
 
       if (match) {
-        controlZoneStore.setMatchedControlZone(controlZone)
+        const prev = previousHits.get(controlZone.id)
+        const matched = createMatchedControlZone(controlZone)
+        if (prev) {
+          matched.aircraft = prev.aircraft
+        }
+        controlZoneStore.setMatchedControlZone(matched)
       }
       entity.show = match
     })
@@ -200,10 +202,7 @@ export function useControlZone(
   const subscribeControlZoneEvents = () => {
     unsubControlZoneHover = onCesiumEvent(
       'controlZoneHover',
-      (
-        properties: ControlZoneProperties,
-        screenPosition: Cesium.Cartesian2,
-      ) => {
+      (properties: ControlZoneProperties, screenPosition: Cesium.Cartesian2) => {
         const controlZone = controlZoneRenderMap.get(properties.id)?.data
         if (!controlZone) return
         setControlZoneHoveredProperties(toControlZoneHoveredProperties(controlZone))
@@ -239,7 +238,6 @@ export function useControlZone(
         })
       },
     )
-
   }
 
   onUnmounted(() => {

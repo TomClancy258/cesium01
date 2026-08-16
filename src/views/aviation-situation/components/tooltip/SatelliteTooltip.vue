@@ -12,11 +12,14 @@ const satelliteStore = useSatelliteStore()
 const row = computed(() => {
   const hovered = aviationSelectionStore.hovered
   if (hovered?.sourceType !== 'satellite') return null
-  return satelliteStore.matchedSatelliteMap.get(hovered.id) ?? null
+  // matchedSatelliteMap 为 shallowRef：坐标原地改后此处仍返回同一引用，本身不会驱动刷新。
+  // 经纬高能跟着变，靠的是下方 tooltipStyle（position 每帧更新）迫使组件重渲染后再读对象。
+  return satelliteStore.matchedSatelliteMap.get(hovered.id)?.satellite ?? null
 })
 
 const visible = computed(() => row.value != null)
 
+/** 悬停时屏幕坐标每帧更新 → 组件重渲染 → 模板顺带读到最新 lngLatAlt */
 const tooltipStyle = computed(() => ({
   left: `${props.position.left}px`,
   top: `${props.position.top}px`,

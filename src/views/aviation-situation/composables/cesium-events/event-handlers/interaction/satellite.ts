@@ -20,7 +20,6 @@ import {
 export const handleSatelliteHover = (
   properties: SatelliteProperties,
   screenPosition: Cesium.Cartesian2,
-  lngLatAlt: LngLatAlt,
   entity: Cesium.Entity,
 ) => {
   const highlightConfig: SatelliteHighlightConfig = {
@@ -34,13 +33,12 @@ export const handleSatelliteHover = (
     },
   }
   highlightSatelliteOnHover(entity, highlightConfig)
-  emitCesiumEvent('satelliteHover', properties, screenPosition, lngLatAlt, entity)
+  emitCesiumEvent('satelliteHover', properties, screenPosition)
 }
 
 export const handleSatelliteLeftClick = (
   properties: SatelliteProperties,
-  lngLatAlt: LngLatAlt,
   entity: Cesium.Entity,
 ): void => {
-  emitCesiumEvent('satelliteLeftClick', properties, lngLatAlt, entity)
+  emitCesiumEvent('satelliteLeftClick', properties, entity)
 }
