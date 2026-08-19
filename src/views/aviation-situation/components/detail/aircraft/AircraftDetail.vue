@@ -7,6 +7,7 @@ import AltitudeSpeedChart from './AltitudeSpeedChart.vue'
 import type { AviationRenderItem } from '@/views/aviation-situation/types/shared'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { getAircraftRiskLevelLabel } from '@/views/aviation-situation/constants/aircraft-filter-data'
 
 const aviationSelectionStore = useAviationSelectionStore()
 const aircraftStore = useAircraftStore()
@@ -201,6 +202,10 @@ const chartData = {
         <div class="info-item">
           <span class="label">应答机编码</span>
           <span class="value">7043</span>
+        </div>
+        <div class="info-item">
+          <span class="label">危险等级</span>
+          <span class="value">{{ getAircraftRiskLevelLabel(aircraft.riskLevel) }}</span>
         </div>
       </div>
     </div>

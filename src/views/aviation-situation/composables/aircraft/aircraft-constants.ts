@@ -5,6 +5,7 @@ import airplaneSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-selected.
 import airplaneSpatialSelectedSvgRaw from '@/assets/img/airplane/svg/airplane-spatial-selected.svg?raw'
 import airplaneSatelliteConeScanSvgRaw from '@/assets/img/airplane/svg/airplane-satellite-cone-scan.svg?raw'
 import airplaneHighRiskSvgRaw from '@/assets/img/airplane/svg/airplane-high-risk.svg?raw'
+import airplaneMediumRiskSvgRaw from '@/assets/img/airplane/svg/airplane-medium-risk.svg?raw'
 import airplaneDangerControlZoneSvgRaw from '@/assets/img/airplane/svg/airplane-control-zone-danger.svg?raw'
 import airplaneWarningControlZoneSvgRaw from '@/assets/img/airplane/svg/airplane-control-zone-warning.svg?raw'
 
@@ -15,6 +16,7 @@ export const airplaneSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeUR
 export const airplaneSpatialSelectedSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSpatialSelectedSvgRaw)}`
 export const airplaneSatelliteConeScanSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneSatelliteConeScanSvgRaw)}`
 export const airplaneHighRiskSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneHighRiskSvgRaw)}`
+export const airplaneMediumRiskSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneMediumRiskSvgRaw)}`
 export const airplaneDangerControlZoneSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneDangerControlZoneSvgRaw)}`
 export const airplaneWarningControlZoneSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airplaneWarningControlZoneSvgRaw)}`
 

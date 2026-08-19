@@ -79,6 +79,7 @@ export function useAircraft(
     primitives: {
       billboards: null,
       labels: null,
+      riskRippleBillboards: null,
       selectedAircraft: {
         // 对应类型中的selectedAircraft，语义清晰
         routePolylines: null,
@@ -207,7 +208,10 @@ export function useAircraft(
 
     // 添加到场景
     viewer.value.scene.primitives.add(aircraftGraphic.primitiveContainer)
-    aircraftRiskRipple.init()
+    const riskRippleBillboards = aircraftGraphic.primitives.riskRippleBillboards
+    if (riskRippleBillboards) {
+      aircraftRiskRipple.init(riskRippleBillboards)
+    }
 
     // 初始隐藏标签
     setAircraftsLabelVisible(false)

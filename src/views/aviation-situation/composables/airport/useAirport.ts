@@ -11,6 +11,7 @@ import type {
 } from '@/views/aviation-situation/types/airport'
 import { isValidCoordinate, getCameraHeight, flyToLngLatAlt } from '@/utils/geoUtils'
 import airportGreenSvgRaw from '@/assets/img/airport/svg/airport-green.svg?raw'
+import dangerCirclePngUrl from '@/assets/img/effects/png/danger-circle.png'
 
 const airportGreenSvgRawDataUrl = `data:image/svg+xml;utf8,${encodeURIComponent(airportGreenSvgRaw)}`
 
@@ -71,8 +72,7 @@ export function useAirport(
   const airportRiskRipple = useRiskRipple(viewer, {
     idPrefix: 'airport_high_risk_ripple',
     sourceType: 'airportHighRiskRipple',
-    imageUrl: '/src/assets/img/effects/png/warning-circle-red.png',
-    color: '#D32F2F',
+    imageUrl: dangerCirclePngUrl,
   })
 
   const airportRenderMap = new Map<string, AirportRenderItem>()

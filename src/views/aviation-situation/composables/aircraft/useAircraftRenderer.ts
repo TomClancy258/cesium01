@@ -11,7 +11,7 @@ import { isValidCoordinate } from '@/utils/geoUtils'
 import {
   AIRCRAFT_LABEL_SHOW_DISTANCE,
   airplaneBlueSvgDataUrl,
-  airplaneHighRiskSvgRawDataUrl,
+  airplaneHighRiskSvgRawDataUrl, airplaneMediumRiskSvgRawDataUrl
 } from './aircraft-constants'
 
 interface UseAircraftRendererOptions {
@@ -37,17 +37,24 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
     aircraftGraphic.primitiveContainer = new Cesium.PrimitiveCollection()
     aircraftGraphic.primitives.billboards = new Cesium.BillboardCollection()
     aircraftGraphic.primitives.labels = new Cesium.LabelCollection()
+    aircraftGraphic.primitives.riskRippleBillboards = new Cesium.BillboardCollection()
 
     aircraftGraphic.primitiveContainer.id = 'aircrafts_container'
     aircraftGraphic.primitives.billboards.id = 'aircrafts_billboards'
     aircraftGraphic.primitives.labels.id = 'aircrafts_labels'
+    aircraftGraphic.primitives.riskRippleBillboards.id = 'aircrafts_risk_ripple_billboards'
 
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.billboards)
     aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.labels)
+    aircraftGraphic.primitiveContainer.add(aircraftGraphic.primitives.riskRippleBillboards)
 
     aircraftGraphic.primitiveContainer.properties = { sourceType: 'aircraft', type: 'container' }
     aircraftGraphic.primitives.billboards.properties = { sourceType: 'aircraft', type: 'billboards' }
     aircraftGraphic.primitives.labels.properties = { sourceType: 'aircraft', type: 'labels' }
+    aircraftGraphic.primitives.riskRippleBillboards.properties = {
+      sourceType: 'aircraft',
+      type: 'riskRippleBillboards',
+    }
   }
 
   const createAircraftLabel = (item: AviationRenderItem<Aircraft>): void => {
@@ -101,6 +108,8 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
     let image = airplaneBlueSvgDataUrl
     if (aircraft.riskLevel === 'high') {
       image = airplaneHighRiskSvgRawDataUrl
+    }else if (aircraft.riskLevel === 'medium') {
+      image = airplaneMediumRiskSvgRawDataUrl
     }
 
     const billboard = aircraftGraphic.primitives.billboards.add({
@@ -133,12 +142,16 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       coneScanSatelliteId: new Set<string>(),
       controlZoneId: new Set<string>(),
     }
+    //几百架里往往只有一部分高/中危，所以风险等级光圈数组（放三个billboard）不能放到renderItem里
+    //应该放到src/views/aviation-situation/composables/useRiskRipple.ts下的rippleMap里
     const renderItem: AviationRenderItem<Aircraft> = { data: aircraft, billboard, sets }
     aircraftRenderMap.set(icao24, renderItem)
     if (aircraftFilterForm.labelVisible) {
       createAircraftLabel(renderItem)
     }
-    syncRiskRipple(aircraft, position)
+    if (aircraft.riskLevel === 'high' || aircraft.riskLevel === 'medium') {
+      syncRiskRipple(aircraft, position)
+    }
   }
 
   const drawAircrafts = (data: Aircraft[]): void => {

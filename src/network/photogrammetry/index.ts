@@ -16,6 +16,10 @@ const API = {
   MELBOURNE_BUILDINGS: 'photogrammetry/Melbourne-2023-building-footprints.json',
 } as const
 
+/**
+ * 拉取 Boston 楼栋 GeoJSON → normalize 成统一 PhotogrammetryBuildingFeature[]；
+ * 若传入 tileset bbox，再按包围盒裁切（只加载当前倾斜摄影附近的楼）。
+ */
 export const getBostonPhotogrammetryBuildings = async (
   bbox?: PhotogrammetryBuildingBBox,
 ): Promise<PhotogrammetryBuildingFeature[]> => {
@@ -30,6 +34,9 @@ export const getBostonPhotogrammetryBuildings = async (
   return bbox ? filterBuildingsByBBox(normalized, bbox) : normalized
 }
 
+/**
+ * 拉取 Melbourne 楼栋 GeoJSON → normalize；可选按 tileset bbox 裁切。
+ */
 export const getMelbournePhotogrammetryBuildings = async (
   bbox?: PhotogrammetryBuildingBBox,
 ): Promise<PhotogrammetryBuildingFeature[]> => {

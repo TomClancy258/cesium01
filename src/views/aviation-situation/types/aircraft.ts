@@ -89,6 +89,8 @@ export interface SelectedAircraft {
 
 // 飞机图元 = 基础图元 + 选中飞机的专属属性
 export interface AircraftPrimitives extends AviationPrimitivesBase {
+  /** 高/中危光圈共用一个 BillboardCollection，挂在 aircrafts_container 下 */
+  riskRippleBillboards: Cesium.BillboardCollection | null
   selectedAircraft: SelectedAircraft; // 飞机独有的扩展属性
 }
 

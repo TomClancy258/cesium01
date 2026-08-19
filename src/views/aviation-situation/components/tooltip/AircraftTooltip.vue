@@ -4,6 +4,7 @@ import { useAviationSelectionStore } from '@/stores/aviation-selection'
 import { useAircraftStore } from '@/stores/aircraft'
 import type { AviationRenderItem } from '@/views/aviation-situation/types/shared'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
+import { getAircraftRiskLevelLabel } from '@/views/aviation-situation/constants/aircraft-filter-data'
 
 const props = defineProps<{ position: { left: number; top: number } }>()
 
@@ -24,20 +25,22 @@ const tooltipStyle = computed(() => ({
   top: `${props.position.top}px`,
 }))
 
-const setsSummary = computed(() => {
+const associationCounts = computed(() => {
   const hovered = aviationSelectionStore.hovered
-  if (hovered?.sourceType !== 'aircraft' || !aircraftRenderMap) return ''
+  if (hovered?.sourceType !== 'aircraft' || !aircraftRenderMap) {
+    return { scanCount: 0, controlCount: 0, spatialCount: 0 }
+  }
   const sets = aircraftRenderMap.get(hovered.icao24)?.sets
-  if (!sets) return ''
-  const parts: string[] = []
-  const scan = sets.coneScanSatelliteId?.size ?? 0
-  const control = sets.controlZoneId?.size ?? 0
-  const spatial = sets.dataSourceName?.size ?? 0
-  if (scan > 0) parts.push(`扫描 ${scan}`)
-  if (control > 0) parts.push(`管控 ${control}`)
-  if (spatial > 0) parts.push(`空间选择 ${spatial}`)
-  return parts.length > 0 ? parts.join(' · ') : ''
+  return {
+    scanCount: sets?.coneScanSatelliteId?.size ?? 0,
+    controlCount: sets?.controlZoneId?.size ?? 0,
+    spatialCount: sets?.dataSourceName?.size ?? 0,
+  }
 })
+
+const scanCount = computed(() => associationCounts.value.scanCount)
+const controlCount = computed(() => associationCounts.value.controlCount)
+const spatialCount = computed(() => associationCounts.value.spatialCount)
 </script>
 <template>
   <div v-show="visible" class="aircraft-tooltip" :style="tooltipStyle">
@@ -49,7 +52,10 @@ const setsSummary = computed(() => {
       <div>纬度：{{ row.latitude }}</div>
       <div>海拔：{{ row.baroAltitude }} m</div>
       <div>航向：{{ row.heading }}°</div>
-      <div v-if="setsSummary">{{ setsSummary }}</div>
+      <div>危险等级：{{ getAircraftRiskLevelLabel(row.riskLevel) }}</div>
+      <div v-if="scanCount">扫描：{{ scanCount }}</div>
+      <div v-if="controlCount">管控：{{ controlCount }}</div>
+      <div v-if="spatialCount">空间选择：{{ spatialCount }}</div>
     </template>
   </div>
 </template>

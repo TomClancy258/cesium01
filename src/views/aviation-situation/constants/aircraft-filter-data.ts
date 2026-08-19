@@ -1,3 +1,5 @@
+import type { AircraftRiskLevel } from '@/views/aviation-situation/types/aircraft'
+
 export const aircraftTreeData = [
   {
     value: 'all',
@@ -241,3 +243,13 @@ export const selectedContinentCountryValues = [
   'Chile',
   'Colombia'
 ];
+
+const aircraftRiskLevelLabelMap: Record<AircraftRiskLevel, string> = {
+  high: '高',
+  medium: '中',
+  normal: '正常',
+}
+
+/** 飞机风险等级 → 中文（tooltip / 详情 / 表格共用） */
+export const getAircraftRiskLevelLabel = (level: AircraftRiskLevel | string): string =>
+  aircraftRiskLevelLabelMap[level as AircraftRiskLevel] ?? level

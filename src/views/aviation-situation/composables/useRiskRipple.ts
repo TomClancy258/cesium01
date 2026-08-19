@@ -13,7 +13,8 @@ export interface UseRiskRippleOptions {
   idPrefix: string
   sourceType: string
   imageUrl: string
-  color: string
+  /** 该实例响应的风险等级，默认 high */
+  activeRiskLevel?: RiskLevel
   style?: {
     baseSizePx?: number
     maxSizePx?: number
@@ -39,9 +40,15 @@ const DEFAULT_STYLE = {
 }
 
 export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRiskRippleOptions) {
+  //若该useRiskRipple为useHighRiskRipple，则rippleMap存放的是high危险等级的飞机icao24及其信息
+  //若该useRiskRipple为useMediumRiskRipple，则rippleMap存放的是medium危险等级的飞机icao24及其信息
+  //详情见useAircraftRiskRipple.ts
   const rippleMap = new Map<string, RiskRippleState>()
-  let rippleBillboards: Cesium.BillboardCollection | null = null
+  /** 外部图层注入的 Collection（如 aircraftGraphic.primitives.riskRippleBillboards） */
+  //除了billboardCollection是外层传过来的，全部useRiskRipple共享的外，其余变量是该useHighRiskRipple或useMediumRiskRipple独享的
+  let billboardCollection: Cesium.BillboardCollection | null = null
   let unbindPreRender: (() => void) | null = null
+  const activeRiskLevel = options.activeRiskLevel ?? 'high'
 
   const style = {
     baseSizePx: options.style?.baseSizePx ?? DEFAULT_STYLE.baseSizePx,
@@ -50,11 +57,13 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
     alpha: options.style?.alpha ?? DEFAULT_STYLE.alpha,
     timeOffsetsMs: options.style?.timeOffsetsMs ?? DEFAULT_STYLE.timeOffsetsMs,
   }
-  const rippleColor = Cesium.Color.fromCssColorString(options.color)
+  // 贴图已带色；color 只用白×alpha 做呼吸淡出，避免二次染色
 
-  const init = (): void => {
-    if (rippleBillboards || !viewer.value || viewer.value.isDestroyed()) return
-    rippleBillboards = viewer.value.scene.primitives.add(new Cesium.BillboardCollection())
+  const init = (collection: Cesium.BillboardCollection): void => {
+    if (!viewer.value || viewer.value.isDestroyed()) return
+    if (!billboardCollection) {
+      billboardCollection = collection
+    }
     registerPreRender()
   }
 
@@ -64,17 +73,37 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
     const onPreRender = (): void => {
       const nowMs = Date.now()
       rippleMap.forEach((state) => {
+        //一帧里的效果（3 个圈）:三圈叠加 = 连续呼吸涟漪。
+        //圈0 (offset 0ms):   ●小亮 → ○大淡
+        //圈1 (offset 450ms):       ●小亮 → ○大淡   （错半拍）
+        //圈2 (offset 900ms):             ●小亮 → ○大淡
         state.billboards.forEach((ripple, index) => {
+          //1.相位偏移：
+          //  第 0/1/2 个圈：0 / 450 / 900ms
           const offsetMs = style.timeOffsetsMs[index] ?? 0
+
+          //2.进度 progress（0 → 1 循环）：
+          //  nowMs + offsetMs：给第 2、3 个圈「提前/滞后」相位
+          //  % durationMs：每 1.4 秒循环一圈
+          //  / durationMs：归一化到 0~1
+          //progress=0 刚起，progress→1 即将结束并回到 0。
           const progress = ((nowMs + offsetMs) % style.durationMs) / style.durationMs
+
+          //3. 尺寸：从小变大
+          //30px → 84px 线性放大，像波纹向外扩散。
           const sizePx = style.baseSizePx + (style.maxSizePx - style.baseSizePx) * progress
+
+          //4. 透明度：随扩散淡出
+          //progress=0 最亮（0.5），progress=1 完全透明；圈变大同时变淡。
           const alpha = Math.max(0, style.alpha * (1 - progress))
 
+          //5. 写回 Billboard
+          //ConstantProperty → 只给 Entity
           ripple.show = state.visible
           ripple.position = state.position
           ripple.width = sizePx
           ripple.height = sizePx
-          ripple.color = Cesium.Color.fromAlpha(rippleColor, alpha, ripple.color)
+          ripple.color = Cesium.Color.fromAlpha(Cesium.Color.WHITE, alpha, ripple.color)
         })
       })
     }
@@ -112,7 +141,7 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
   }
 
   const add = (id: string, position: Cesium.Cartesian3, visible: boolean): void => {
-    if (!rippleBillboards) return
+    if (!billboardCollection) return
     if (rippleMap.has(id)) return
 
     //一个高风险机场/目标
@@ -122,14 +151,14 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
     //             └── ripple[2]  相位 offset = 900ms
     //创建时在 add() 里一次性加 3 个：
     const billboards: Cesium.Billboard[] = style.timeOffsetsMs.map((_, index) => {
-      const billboard = rippleBillboards!.add({
+      const billboard = billboardCollection!.add({
         id: `${options.idPrefix}_${id}_${index}`,
         show: visible,
         position,
         image: options.imageUrl,
         width: style.baseSizePx,
         height: style.baseSizePx,
-        color: Cesium.Color.fromAlpha(rippleColor, style.alpha),
+        color: Cesium.Color.fromAlpha(Cesium.Color.WHITE, style.alpha),
         verticalOrigin: Cesium.VerticalOrigin.CENTER,
         horizontalOrigin: Cesium.HorizontalOrigin.CENTER,
         disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -145,28 +174,31 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
   }
 
   const remove = (id: string): void => {
-    if (!rippleBillboards) return
+    if (!billboardCollection) return
     const state = rippleMap.get(id)
     if (!state) return
 
     state.billboards.forEach((ripple) => {
-      rippleBillboards?.remove(ripple)
+      billboardCollection?.remove(ripple)
     })
     rippleMap.delete(id)
   }
 
   const sync = (input: SyncRiskRippleInput): void => {
     const { id, position, riskLevel, visible } = input
-    if (riskLevel !== 'high') {
+    //当前飞机的危险等级不是high或者medium，就删除该飞机的危险等级光圈
+    if (riskLevel !== activeRiskLevel) {
       remove(id)
       return
     }
 
+    //是新的危险等级飞机则添加
     if (!rippleMap.has(id)) {
       add(id, position, visible)
       return
     }
 
+    //已存在危险等级飞机则更新危险等级光圈的位置和显隐
     const state = rippleMap.get(id)
     if (!state) return
     state.position = position
@@ -174,17 +206,18 @@ export function useRiskRipple(viewer: ShallowRef<Cesium.Viewer>, options: UseRis
   }
 
   const clear = (): void => {
-    rippleBillboards?.removeAll()
+    // 共享 collection，只删本实例管理的圈，不能 removeAll
+    for (const id of [...rippleMap.keys()]) {
+      remove(id)
+    }
     rippleMap.clear()
   }
 
   const destroy = (): void => {
     unbindPreRender?.()
-    if (rippleBillboards && viewer.value && !viewer.value.isDestroyed()) {
-      viewer.value.scene.primitives.remove(rippleBillboards)
-    }
-    rippleBillboards = null
-    rippleMap.clear()
+    clear()
+    //只清掉模块自己的引用，并没有billboardCollection.removeAll()
+    billboardCollection = null
   }
 
   return {

@@ -7,7 +7,10 @@ export type PhotogrammetryBuildingPosition = [number, number] | [number, number,
  */
 export type PhotogrammetryBuildingPolygonCoordinates = PhotogrammetryBuildingPosition[][]
 
-/** 裁切用经纬度包围盒（度） */
+/**
+ * 裁切用经纬度包围盒（度）。
+ * west/south/east/north = 最西/南/东/北；轴对齐最小矩形（WGS84），语义同 turf.bbox 四元组。
+ */
 export interface PhotogrammetryBuildingBBox {
   west: number
   south: number

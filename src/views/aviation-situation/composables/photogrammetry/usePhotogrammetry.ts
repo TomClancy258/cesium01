@@ -140,6 +140,11 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
     }
   }
 
+  /**
+   * 当前倾斜摄影 tileset 的经纬度矩形包围盒（度）。
+   * boundingSphere → Rectangle：能包住球体的轴对齐 W/S/E/N，一般比真实 footprint 略大。
+   * 语义同 turf.bbox 的 [west,south,east,north]，这里用对象字段；不必强行换 turf。
+   */
   const getActiveTilesetBBox = (): PhotogrammetryBuildingBBox | undefined => {
     const tileset = activePhotogrammetry.tileset
     if (!tileset?.boundingSphere) return undefined

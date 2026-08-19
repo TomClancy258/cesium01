@@ -36,6 +36,10 @@ const getOuterRing = (
   return null
 }
 
+/**
+ * 外环顶点算术平均（近似质心），用于 bbox 裁切时代表该楼位置。
+ * 非 turf.centroid（面积加权）；矩形脚印够用，算得更轻。
+ */
 const ringCentroid = (ring: PhotogrammetryBuildingPosition[]): { lng: number; lat: number } => {
   let sumLng = 0
   let sumLat = 0
@@ -53,6 +57,7 @@ export const isPointInBBox = (
   bbox: PhotogrammetryBuildingBBox,
 ): boolean => lng >= bbox.west && lng <= bbox.east && lat >= bbox.south && lat <= bbox.north
 
+/** 按宽高比例外扩 bbox（默认 5%），避免边界建筑被裁掉 */
 export const expandBBox = (
   bbox: PhotogrammetryBuildingBBox,
   padRatio = 0.05,
@@ -151,6 +156,10 @@ export const normalizeMelbourneBuildingFeature = (
   }
 }
 
+/**
+ * 用 bbox 裁切楼栋：脚印质心落在（外扩后的）矩形内才保留，最多 limit 栋。
+ * 目的：倾斜摄影视野外的 GeoJSON 楼不进 ClassificationPrimitive。
+ */
 export const filterBuildingsByBBox = (
   features: PhotogrammetryBuildingFeature[],
   bbox: PhotogrammetryBuildingBBox,
