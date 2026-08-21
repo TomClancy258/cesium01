@@ -8,6 +8,7 @@ import {drawTriangle} from '@/views/webgl/composables/draw-triangle'
 import {drawTexture} from '@/views/webgl/composables/draw-texture'
 import {drawElements} from '@/views/webgl/composables/draw-elements'
 import {drawDynamicTexture} from '@/views/webgl/composables/draw-dynamic-texture'
+import {drawShader} from '@/views/webgl/composables/glsl/shader.ts'
 import { onMounted } from 'vue'
 
 onMounted(()=>{
@@ -20,7 +21,8 @@ onMounted(()=>{
   // drawTriangle()
   // drawTexture()
   // drawElements()
-  drawDynamicTexture()
+  // drawDynamicTexture()
+  drawShader()
 })
 </script>
 

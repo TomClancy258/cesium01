@@ -4,6 +4,7 @@ const AviationSituation = () =>
 const IntelligentWaterPumpStation = () => import('@/views/intelligent_water_pump_station/IntelligentWaterPumpStation.vue')
 const User = () => import('@/views/user/User.vue')
 const WebGL = () => import('@/views/webgl/WebGL.vue')
+const ShaderTest = () => import('@/views/shader/ShaderTest.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -31,6 +32,11 @@ const router = createRouter({
       path: '/WebGL',
       name: 'WebGL',
       component: WebGL,
+    },
+    {
+      path: '/ShaderTest',
+      name: 'ShaderTest',
+      component: ShaderTest,
     },
   ],
 })

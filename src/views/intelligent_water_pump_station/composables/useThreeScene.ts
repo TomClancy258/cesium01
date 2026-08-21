@@ -55,9 +55,18 @@ export function useThreeScene() {
   let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
   let stats: Stats | null = null
-  /** composer 之前追加（如角色相机）；存的是渲染回调，不是取消函数 */
+  /**
+   * 本帧 composer.render() 之前执行的回调列表（存的是回调本身，不是 unsubscribe）。
+   * 适用：改相机 / 改 uniform / 物理步进等「先改再画」的逻辑；
+   * 本项目例：第三人称跟拍、漫游准星拾取 tick。
+   * 若放到 after：本帧仍用旧值画，要等到下一帧才生效。
+   */
   const beforeRenderFns: Array<() => void> = []
-  /** composer 之后追加（如 CSS2DRenderer.render）；存的是渲染回调，不是取消函数 */
+  /**
+   * 本帧 composer.render() 之后执行的回调列表（存的是回调本身，不是 unsubscribe）。
+   * 适用：不参与本次 WebGL 绘制、或依赖「画面已画完」的收尾；
+   * 本项目例：CSS2D 设备标签、模型 AnimationMixer.update。
+   */
   const afterRenderFns: Array<() => void> = []
 
   /**
@@ -84,7 +93,13 @@ export function useThreeScene() {
     }
   }
 
-  /** 主循环：先 WebGL/后处理，再跑 afterRenderFns（标签等 DOM 叠加层） */
+  /**
+   * 主循环（同一帧内顺序，不是「下一帧」才跑 after）：
+   * beforeRenderFns → composer.render → afterRenderFns
+   * - before：为这一帧画面做准备（改相机 / uniform / 物理）
+   * - composer：后处理管线内部会调 renderer，一般不再单独 renderer.render()
+   * - after：画面画完后的 DOM/标签等叠加
+   */
   const renderLoop = (): void => {
     if (!composer) return
     //第 1 帧（initScene 里直接调 renderLoop()）
@@ -104,15 +119,46 @@ export function useThreeScene() {
     if (controls.value?.enabled) {
       controls.value.update()
     }
+    // 渲染前：更新本帧要用的相机 / uniform 等
     for (let i = 0; i < beforeRenderFns.length; i++) {
       beforeRenderFns[i]()
     }
+    // 有 composer 时由 Pass 链画场景，不再单独调 renderer.render()
     composer.render()
+    // 渲染后：标签、动画 mixer 等（不参与本次 WebGL 主绘制）
     for (let i = 0; i < afterRenderFns.length; i++) {
       afterRenderFns[i]()
     }
     stats?.end()
   }
+
+  //什么时候用回调列表/ 订阅 / 回调注册
+  // 和「这一帧怎么画」绑在一起的事：
+  //
+  // 改 shader uniform（setOffset）
+  // 第三人称相机跟随
+  // 物理步进后再渲染
+  // CSS2D 在 render 后画标签
+  // 特点：调用方就是主循环，时机固定，订阅方少而明确。
+  //
+  // 什么时候用 mitt
+  // 跨功能、跨页面模块的「发生了一件事」：
+  //
+  // 设备选中了 → 抽屉打开、tooltip 更新、统计刷新（多方监听）
+  // WebSocket 推了状态 → 多处 UI / 模型一起响应
+  // 登录成功、路由切换、全局 toast
+  // 特点：发送方不关心谁在听，事件名多，生命周期和渲染循环无关。
+  //
+  // 为啥这里不推荐 mitt
+  // 若写成 mitt.emit('beforeRender')：
+  //
+  // 每帧都 emit，事件总线当 rAF 用，杀鸡用牛刀
+  // 调试时不如数组直观（谁挂了、什么顺序）
+  // 和 useThreeScene 的职责绑死，硬拆成全局事件反而更散
+  // 一句话：
+  //
+  // 跟帧走的更新 → onBeforeRender / onAfterRender
+  // 跟业务事件走的通知 → mitt（或 Vue 的 provide/inject、store、props/emit）
 
   /** 同步相机 / WebGL / composer / OutlinePass 分辨率到容器尺寸 */
   const handleResize = (): void => {

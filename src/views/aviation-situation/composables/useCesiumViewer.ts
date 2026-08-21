@@ -88,11 +88,12 @@ export function useCesiumViewer(containerId = 'cesium-container') {
   }
 
   onUnmounted(() => {
-    destroyViewer()
+    // destroyViewer()
   })
 
   return {
     viewer,
     initViewer,
+    destroyViewer,
   }
 }

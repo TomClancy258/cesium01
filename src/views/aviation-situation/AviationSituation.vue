@@ -65,7 +65,7 @@ import {
 import { useOSMBuildingStore } from '@/stores/osm-building'
 
 const simulatedWebSocketStore = useSimulatedWebSocketStore()
-const { viewer: cesiumViewer, initViewer: initCesiumViewer } = useCesiumViewer('cesium-container')
+const { viewer: cesiumViewer, initViewer: initCesiumViewer,destroyViewer:destroyCesiumViewer } = useCesiumViewer('cesium-container')
 const aviationSelectionStore = useAviationSelectionStore()
 const aircraftStore = useAircraftStore()
 const airportStore = useAirportStore()
@@ -228,6 +228,8 @@ onUnmounted(() => {
   clearAllOSMBuildingHighlight()
   clearAllPhotogrammetryBuildingHighlight()
   clearAllSatelliteHighlight()
+
+  destroyCesiumViewer()
 })
 
 const test01 = () => {

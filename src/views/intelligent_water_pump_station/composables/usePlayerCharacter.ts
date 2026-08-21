@@ -242,6 +242,7 @@ export function usePlayerCharacter(
 
     // Timer 须先 update；getDelta 为帧间隔（秒），供动画与位移共用
     timer.update()
+    //timer.getDelta() 当前帧与上一帧之间的时间差（秒）。
     const delta = Math.min(timer.getDelta(), 0.05)
     mixer?.update(delta)
 
