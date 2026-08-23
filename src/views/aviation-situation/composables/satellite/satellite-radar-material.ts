@@ -3,12 +3,28 @@ import * as Cesium from 'cesium'
 const SATELLITE_RADAR_MATERIAL_TYPE = 'SatelliteRadarPrimitive'
 const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 
+//目标                                    更合适
+//多条细雷达环、要控间距/环宽/sweepDurationMs  mod + step
+//想要波浪感、霓虹条纹、学习 sin 相位           sin,【step 硬切会有锯齿，可用smoothstep 软边/抗锯齿】
+
+//① registerSatelliteRadarMaterial()     // 全局一次，注册 shader 模板
+//          ↓
+// ② new SatelliteRadarMaterialProperty() // 每颗卫星一次，只跑 constructor，存参数
+//          ↓
+// ③ entities.add({ cylinder: { material: ... } })
+//          ↓
+// ④ 每帧渲染时 Cesium 反复调用：
+//       getType()  → 'SatelliteRadarPrimitive'（用哪个 shader）
+//       getValue(time) → { color, time, repeat, offset, thickness }
+//          ↓
+// ⑤ GPU 片元着色器里用这些 uniform 算每个像素颜色
+
 export const SATELLITE_RADAR_DEFAULTS = {
   color: Cesium.Color.CYAN.withAlpha(0.85),
-  durationMs: 2200,
-  repeat: 30,
-  offset: 0,
-  thickness: 0.12,
+  durationMs: 2200, //一圈扫描动画的周期：2.2 秒（跟仿真时钟走）
+  repeat: 30, //径向纹理上重复 30 段，不是 30 个独立在动的圈
+  offset: 0, //整体相位偏移（环在径向上平移）
+  thickness: 0.12, //thickness 越大 → 环越粗,缝越窄，0.5时两者差不多
 }
 
 let isSatelliteRadarMaterialRegistered = false
@@ -138,7 +154,7 @@ export class SatelliteRadarMaterialProperty {
     this.phase = options.phase ?? Math.random()
   }
 
-  //false → 随时间变，要持续重算材质
+  //isConstant = false 就是在告诉 Cesium：每帧都要重新算，别缓存。
   get isConstant() {
     return false
   }
@@ -153,13 +169,15 @@ export class SatelliteRadarMaterialProperty {
     return SATELLITE_RADAR_MATERIAL_TYPE
   }
 
-  //把 color/time/repeat/offset/thickness 传给 uniform
+  //每帧渲染时 Cesium 反复调用：
+  //把新的 color/time/repeat/offset/thickness 传给 uniform
   getValue(time: Cesium.JulianDate, result?: Record<string, unknown>) {
     const materialResult = result ?? {}
     const elapsedSeconds = Cesium.JulianDate.secondsDifference(time, RADAR_TIME_EPOCH)
     const elapsedMs = elapsedSeconds * 1000
     const normalizedTime = ((elapsedMs + this.phase * this.durationMs) % this.durationMs) / this.durationMs / 10
     materialResult.color = this._color
+    //只有time在随时间变化，真正驱动动画的只有 time，其它 uniform（即这里的其它参数） 是创建时定死的常量。
     materialResult.time = normalizedTime
     materialResult.repeat = this.repeat
     materialResult.offset = this.offset

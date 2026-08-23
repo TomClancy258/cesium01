@@ -123,6 +123,7 @@ void main() {
     //// Calculates length of vector
     //float d = length(someVector);
     //即length(v)：求向量模长（长度）\(\sqrt{x^2+y^2+z^2}\)
+    //distance(p0, p1) = length(p0 - p1)。即获得向量(p1->p0)的长度
     //
     //// Returns a normalized copy
     //vec3 nv = normalize(someVector);
