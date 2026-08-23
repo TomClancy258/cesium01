@@ -15,8 +15,13 @@ void main() {
     //            vUv.x
     //    );
 
-    //smoothstep(edge1,edge2,x) 比mix更平滑
-    //return (x-edge1)/(edge2-edge1)，即 n长度/m总长度 的百分比[0,1]
+    //smoothstep(edge1,edge2,x) 比mix、InverseLerp更柔和
+    //这只是中间一步 t，不是最终输出
+    //t = (x - edge0) / (edge1 - edge0)   // x=0.3 → t=3/8
+    // smoothstep 还要再做 S 形：【和类似的InverseLerp的区别，且前者要钳在 [0, 1]】
+    //result = t * t * (3.0 - 2.0 * t)   // ≈ 0.32，不是 3/8
+    //return result，即 n长度/m总长度 的百分比[0,1]
+
     //类似于InverseLerp(currentValue, minValue, maxValue),注：glsl无内置InverseLerp
     //即return (currentValue - minValue) / (maxValue - minValue);
     //eg：
@@ -139,3 +144,9 @@ void main() {
     //vec3 rfr = refract(someVector, normal);
     //即refract(I,N,eta)：折射向量（图上省略了第三个折射率参数 eta）
 }
+
+//连续、线性、平滑（柔和）
+//词	     意思	                               例子
+//连续        没有「跳一下」的断点，挨着画能连上           折线、S 曲线都算连续
+//线性        变化匀速，像直线 y = kx + b              remap、mix、直线
+//平滑/柔和    常指观感或拐弯处不突兀；数学上也可指导数连续   smoothstep 的 S 形

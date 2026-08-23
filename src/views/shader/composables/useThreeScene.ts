@@ -3,8 +3,18 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { useThrottleFn } from '@vueuse/core'
 import { onUnmounted, ref, shallowRef } from 'vue'
 
-/** 与 scene 初始底色一致，resize 清屏时不透出页面白底 */
+/** 与 scene 初始底色一致，天空盒加载前 / resize 清屏时不透出页面白底 */
 const SCENE_CLEAR_COLOR = 0x0b1220
+
+/** public/textures/cloud_sunset：CubeTexture 顺序 px, nx, py, ny, pz, nz */
+const CLOUD_SUNSET_CUBE_URLS = [
+  '/textures/cloud_sunset/Cold_Sunset__Cam_2_Left+X.png',
+  '/textures/cloud_sunset/Cold_Sunset__Cam_3_Right-X.png',
+  '/textures/cloud_sunset/Cold_Sunset__Cam_4_Up+Y.png',
+  '/textures/cloud_sunset/Cold_Sunset__Cam_5_Down-Y.png',
+  '/textures/cloud_sunset/Cold_Sunset__Cam_0_Front+Z.png',
+  '/textures/cloud_sunset/Cold_Sunset__Cam_1_Back-Z.png',
+] as const
 
 /** 窗口拖拽中合并 setSize，减轻重建导致的闪白 */
 const RESIZE_THROTTLE_MS = 100
@@ -18,8 +28,11 @@ export function useThreeScene() {
 
   let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
+  let skyCubeTexture: THREE.CubeTexture | null = null
   /** 每帧渲染前回调（如更新 shader uniform）；存的是回调，不是取消函数 */
   const beforeRenderFns: Array<() => void> = []
+  /** 容器尺寸变化后回调；参数是 canvas CSS 像素，不是 window */
+  const resizeFns: Array<(width: number, height: number) => void> = []
 
   /**
    * 登记每帧渲染前要跑的回调（subscribe → 返回 unsubscribe）。
@@ -33,6 +46,24 @@ export function useThreeScene() {
     return () => {
       const index = beforeRenderFns.indexOf(fn)
       if (index >= 0) beforeRenderFns.splice(index, 1)
+    }
+  }
+
+  /**
+   * 登记 resize 回调，签名与 onBeforeRender 相同：subscribe → unsubscribe。
+   * 订阅时立刻用当前容器尺寸调一次（setup 在 initScene 之后，首帧 ResizeObserver 可能已经错过）。
+   */
+  const onResize = (
+    fn: (width: number, height: number) => void,
+  ): (() => void) => {
+    resizeFns.push(fn)
+    const container = containerRef.value
+    if (container && container.clientWidth > 0 && container.clientHeight > 0) {
+      fn(container.clientWidth, container.clientHeight)
+    }
+    return () => {
+      const index = resizeFns.indexOf(fn)
+      if (index >= 0) resizeFns.splice(index, 1)
     }
   }
 
@@ -66,6 +97,9 @@ export function useThreeScene() {
     camera.value.updateProjectionMatrix()
     // false：不写 canvas inline 宽高，避免和 CSS 100% 打架触发 ResizeObserver 抖动
     renderer.value.setSize(clientWidth, clientHeight, false)
+    for (let i = 0; i < resizeFns.length; i++) {
+      resizeFns[i](clientWidth, clientHeight)
+    }
   }
 
   const throttledHandleResize = useThrottleFn(handleResize, RESIZE_THROTTLE_MS, true, true)
@@ -81,8 +115,27 @@ export function useThreeScene() {
     const height = container.clientHeight || window.innerHeight
 
     const threeScene = new THREE.Scene()
+    // 加载前先用深色底，避免白闪
     threeScene.background = new THREE.Color(SCENE_CLEAR_COLOR)
     scene.value = threeScene
+
+    new THREE.CubeTextureLoader().load(
+      [...CLOUD_SUNSET_CUBE_URLS],
+      (cubeTexture) => {
+        if (scene.value !== threeScene) {
+          cubeTexture.dispose()
+          return
+        }
+        cubeTexture.colorSpace = THREE.SRGBColorSpace
+        skyCubeTexture?.dispose()
+        skyCubeTexture = cubeTexture
+        threeScene.background = cubeTexture
+      },
+      undefined,
+      (error) => {
+        console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
+      },
+    )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     threeCamera.position.set(1, 1, 2)
@@ -132,6 +185,7 @@ export function useThreeScene() {
     resizeObserver?.disconnect()
     resizeObserver = null
     beforeRenderFns.length = 0
+    resizeFns.length = 0
 
     controls.value?.dispose()
     controls.value = null
@@ -148,6 +202,8 @@ export function useThreeScene() {
       scene.value.clear()
       scene.value = null
     }
+    skyCubeTexture?.dispose()
+    skyCubeTexture = null
     camera.value = null
   }
 
@@ -162,6 +218,7 @@ export function useThreeScene() {
     renderer,
     controls,
     onBeforeRender,
+    onResize,
     initScene,
     destroyScene,
   }

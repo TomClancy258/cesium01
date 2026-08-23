@@ -277,6 +277,7 @@ export function useStationModels(
   controls: ShallowRef<OrbitControls | null>,
   onAfterRender?: AfterRenderHandle,
 ) {
+  /** 整站模型根（加载成功后才有值）；角色物理 / 销毁 / 框选整站共用 */
   const modelsGroup = shallowRef<THREE.Group | null>(null)
   /**
    * 各 GLB 的 AnimationMixer 列表，供每帧统一 update。
@@ -409,6 +410,12 @@ export function useStationModels(
     // scene.value.add( cube );
 
 
+    /**
+     * 整站模型根（局部变量，加载过程中用）。
+     * 流程：各 GLB 先 group.add 组装 → 全部成功后再 scene.add(group) 一次提交；
+     * 成功后赋给 modelsGroup，供销毁 / 飞相机 / 角色物理碰撞共用同一根。
+     * 用局部 group 而不是全程 modelsGroup.value：异步闭包里引用稳定，避免 .value 变 null。
+     */
     const group = new THREE.Group()
     group.name = 'intelligent-water-pump-station'
     const loader = createGltfLoader()
@@ -422,7 +429,7 @@ export function useStationModels(
         const gltf = await loader.loadAsync(url)
         const modelName = file.replace(/\.glb$/i, '')
         gltf.scene.name = modelName
-        // 全部模型都要进场景显示
+        // 先挂到 group 组装，尚未进 scene（批量提交前）
         group.add(gltf.scene)
 
         if (gltf.scene.name === 'sbz-dimian') {
@@ -467,16 +474,20 @@ export function useStationModels(
         }
         // 交互模型直接进各类型 Map，最后再摊平到 interactiveModels
         if (MODEL_INTERACTION_FILE_SET.has(file)) {
-          collectInteractiveTargets(file, gltf.scene).forEach(registerInteractiveObject)
+          const targets = collectInteractiveTargets(file, gltf.scene)
+          for (const target of targets) {
+            registerInteractiveObject(target)
+          }
         }
 
         loadedCount.value += 1
       })
 
-      // 2. 把这个新数组传给 Promise.all 使用
+      // 2. 全部 GLB 就绪后再一次性进场景（批量提交，避免逐个蹦出来）
       await Promise.all(promises)
 
       scene.value.add(group)
+      // 对外公布整站根：角色物理、disposeModels、fit 整站相机等
       modelsGroup.value = group
       rebuildInteractiveModels()
 
@@ -505,6 +516,7 @@ export function useStationModels(
       removeAnimationTick = null
       animationMixers.forEach((mixer) => mixer.stopAllAction())
       animationMixers.length = 0
+      // 失败时 group 可能还没 add 进 scene；直接 dispose 掉半成品，避免泄漏
       disposeObject3D(group)
       interactiveModels.length = 0
       clearEquipmentMaps()
@@ -519,6 +531,7 @@ export function useStationModels(
     animationMixers.forEach((mixer) => mixer.stopAllAction())
     animationMixers.length = 0
 
+    // 一次摘掉并释放整站根（及其下所有已提交的 GLB）
     const group = modelsGroup.value
     interactiveModels.length = 0
     clearEquipmentMaps()

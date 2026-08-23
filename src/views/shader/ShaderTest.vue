@@ -5,15 +5,22 @@ import { setupVaryingUniformAttribute } from './composables/varying_uniform_attr
 import { setupTexture } from '@/views/shader/composables/texture/setupTexture.ts'
 import { setupStepMixSmoothstep } from '@/views/shader/composables/step_ mix_ smoothstep/setupStepMixSmoothstep.ts'
 import { setupSinCos } from '@/views/shader/composables/sin_cos/setupSinCos.ts'
+import { setupLight } from '@/views/shader/composables/light/setupLight.ts'
+import { setupSimpleTransformations } from '@/views/shader/composables/simple_transformations/setupSimpleTransformations.ts'
+import { setupSimpleShape } from '@/views/shader/composables/simple_shape/setupSimpleShape.ts'
 
-const { containerRef, scene, onBeforeRender, initScene } = useThreeScene()
+const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
+const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
 
-onMounted(() => {
+onMounted( () => {
   initScene()
   // setupVaryingUniformAttribute(scene)
   // setupTexture(scene)
   // setupStepMixSmoothstep(scene)
-  setupSinCos(scene, onBeforeRender)
+  // setupSinCos(scene, onBeforeRender)
+  //  loadModel()
+  // setupSimpleTransformations(scene, onBeforeRender, onResize)
+  setupSimpleShape(scene, onBeforeRender)
 })
 </script>
 
