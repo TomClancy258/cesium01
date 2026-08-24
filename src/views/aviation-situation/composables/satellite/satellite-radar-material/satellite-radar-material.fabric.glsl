@@ -1,90 +1,54 @@
-// Cesium Fabric 材质片段（非完整 fragment shader，无 void main）
-// uniforms 由 SatelliteRadarMaterialProperty.getValue 每帧注入
-
-uniform sampler2D image;
 uniform vec4 color;
 uniform float time;
-uniform float ringCount;
 uniform float repeat;
 uniform float offset;
 uniform float thickness;
 
-const float PI = 3.14159265359;
-
-float inverseLerp(float v, float minValue, float maxValue) {
-  return (v - minValue) / (maxValue - minValue);
-}
-
-float remap(float v, float inMin, float inMax, float outMin, float outMax) {
-  float t = inverseLerp(v, inMin, inMax);
-  return mix(outMin, outMax, t);
-}
-
+//Cesium 每个片元调用一次
+// materialInput：该片元的 st、法线等
+// czm_getMaterial 返回 czm_material材质结构体（含默认 diffuse/alpha/specular 等） 给 Cesium 做光照/混合，不是该片元的最终颜色
+//就是返回该片元的材质结构体
 czm_material czm_getMaterial(czm_materialInput materialInput) {
+  //material保存可用于照明的材质信息。由所有 czm_getMaterial 函数返回。
+  //拿默认材质（含默认 diffuse/alpha/specular 等），后面只改需要的字段。
   czm_material material = czm_getDefaultMaterial(materialInput);
 
+  //纹理坐标，st.s、st.t轴的范围是[0,1]
+  //该片元对应的st坐标，比如st.s为.1，st.t为.4
   vec2 st = materialInput.st;
-  vec4 texColor = texture(image, st);
 
-  //  // 到 ST 中心距离 → 同心环带
-  //distance(p0, p1) = length(p0 - p1)。即获得向量(p1->p0)的长度
-  //从中心（即锥尖）往下由0到1
-    float radial = distance(st, vec2(0.5));
+  //spacing环间距
+  //repeat = 30 → spacing ≈ 0.033
+  // 在径向 [0,1] 上大约分 repeat 段
+  float spacing = 1.0 / repeat;
 
-  // time: 0→1 表示扫完顶→底；映射到 [0, 2.0 * PI * ringCount] 得到sweepPhase，即sin往左边偏移sweepPhase
-  //time表示单个光圈从锥尖走到底部圆边的时间，最大偏移量就得2PI*ringCount，若是ringCount-1则光圈只走到了最后2PI里的前1PI里
-  float sweepPhase = remap(time, 0.0, 1.0, 0.0, 2.0 * PI * ringCount);
-  float radialPhase = remap(radial, 0.0, 1.0, 0.0, 2.0 * PI);
-  //y = sin(x)
-  //峰在 x = π/2。
-  //
-  //y = sin(x - a)，且 a > 0：
-  //峰满足 x - a = π/2 ⇒ x = π/2 + a
-  //峰比原来 往右移了 a（+x）。
-  //
-  //时间 t 变大时，ωt 变大，相当于 a 变大 → 峰不断往右挪 → 波往 +x 传。
-  //
-  //y = sin(x + a)，a > 0：
-  //x + a = π/2 ⇒ x = π/2 - a → 峰往 左（-x）。
+  //radial径向:到 ST 中心的距离
+  //算片元 st 到 (0.5, 0.5) 的欧氏距离
+  // 同一距离 → 同一“圈”（在 ST 里是同心圆，贴到锥面上是弯带）
+  float radial = distance(st, vec2(0.5));
 
-  //一句话口诀
-  //减号：图像往正方向移；加号：往负方向移。
-  //（对 f(x ± a)，a>0 时：-a 右移，+a 左移）
-  float sinVal = sin(radialPhase * ringCount - sweepPhase);
+  // m:相位 + 动画
+  //部分                  作用
+  // radial              在哪一圈
+  // offset              整体相位
+  // - time              随时间减小 → 环在动
+  // mod(..., spacing)   折回到 [0, spacing)，形成周期重复
+  float m = mod(radial + offset - time, spacing);
 
-  //sinVal<0.88则返回0(即透明)，>=0.88则返回1(即才是亮环)，硬切=》相邻像素一个过阈值、一个不过 → 锯齿。
-//  float wave=step(0.88,sinVal);
+  //alpha:环的明暗/透明
+  //step(edge, x)：x >= edge 为 1，否则为 0。
+  //
+  //  （1）spacing * (1.0 - thickness)：每条环里“透明段”的上界
+  //  （2）thickness 大 → 不透明环更宽
+  //  （3）thickness 小 → 环更细、透明缝更多
+  //示意（一个周期内）：
+  // m:     0 --------|████████|-------- spacing
+  //                  ↑ 透明    ↑ 不透明环
+  //            step 阈值 = spacing*(1-thickness)
+  float alpha = step(spacing * (1.0 - thickness), m);
 
-  //这三行是在做一件事：别在 sinVal == 0.88 处硬切，而是在附近弄一条软过渡带，减轻锯齿。
-  float edge = 0.88;
-  // 软边宽度：用导数自适应（推荐），或写死一个小数
-  //fwidth=（右邻像素点）水平变化有多快 + （上邻像素点）竖直变化有多快 ≈ |水平导数| + |竖直导数|
-  float aa = max(fwidth(sinVal), 0.002);
-  //sinVal                       wave
-  //< 0.88 - aa                  ≈ 0（暗）
-  //[0.88 - aa,0.88 + aa]        0→1 平滑过渡（软边）
-  //> 0.88 + aa                  ≈ 1（亮）
-  float wave = smoothstep(edge - aa, edge + aa, sinVal);
-
-  //1白0黑相间条纹
-  material.diffuse = mix(vec3(0.0),color.rgb,wave);
-//  material.diffuse = texColor.rgb;
-//  material.alpha=1.0;
-  material.alpha = mix(0.0,color.a,wave);
-
-  // // repeat = 30 → spacing ≈ 0.033，径向 [0,1] 上约 30 段
-  //  float spacing = 1.0 / repeat;
-  //
-  //  // 到 ST 中心距离 → 同心环带
-  //  float radial = distance(st, vec2(0.5));
-  //
-  //  // radial + offset - time：环随仿真时间平移
-  //  float m = mod(radial + offset - time, spacing);
-  //
-  //  // thickness：每段里不透明环占的比例（0~1，非像素）
-  //  float alpha = step(spacing * (1.0 - thickness), m);
-  //
-  //  material.diffuse = color.rgb;
-  //  material.alpha = alpha * color.a;
+  //写回材质
+  material.diffuse = color.rgb; // 不透明部分用这个颜色，【RGB】
+  material.alpha = alpha * color.a;  // 透明缝 alpha≈0，环上 alpha≈color.a，【环可见、缝透明 → 雷达扫描环效果】
   return material;
 }

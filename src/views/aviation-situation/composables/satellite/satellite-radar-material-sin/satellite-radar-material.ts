@@ -8,7 +8,6 @@ const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 export const SATELLITE_RADAR_DEFAULTS = {
   image: airplane01Jpg,
   color: Cesium.Color.CYAN.withAlpha(0.85),
-  durationMs: 2200,
   /** 单圈从锥顶扫到锥底的行程时间（仿真时钟，ms） */
   sweepDurationMs: 50_000,
   /** 径向环数，对应 shader 中 sin 频率；与 time 相乘使 sweepDurationMs = 顶→底 */
@@ -23,7 +22,6 @@ let isSatelliteRadarMaterialRegistered = false
 export interface SatelliteRadarMaterialOptions {
   image?: string
   color?: Cesium.Color
-  durationMs?: number
   sweepDurationMs?: number
   ringCount?: number
   repeat?: number
@@ -59,7 +57,6 @@ export class SatelliteRadarMaterialProperty {
   private readonly _definitionChanged = new Cesium.Event()
   private readonly _image: string
   private readonly _color: Cesium.Color
-  private readonly durationMs: number
   private readonly sweepDurationMs: number
   private readonly ringCount: number
   private readonly repeat: number
@@ -70,7 +67,6 @@ export class SatelliteRadarMaterialProperty {
   constructor(options: SatelliteRadarMaterialOptions = {}) {
     this._image = options.image ?? SATELLITE_RADAR_DEFAULTS.image
     this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
-    this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
     this.sweepDurationMs = options.sweepDurationMs ?? SATELLITE_RADAR_DEFAULTS.sweepDurationMs
     this.ringCount = options.ringCount ?? SATELLITE_RADAR_DEFAULTS.ringCount
     this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
@@ -94,9 +90,12 @@ export class SatelliteRadarMaterialProperty {
   getValue(time: Cesium.JulianDate, result?: Record<string, unknown>) {
     const materialResult = result ?? {}
     const elapsedSeconds = Cesium.JulianDate.secondsDifference(time, RADAR_TIME_EPOCH)
+    //elapsedMs 从固定纪元 1970-01-01 到现在过了多少毫秒
     const elapsedMs = elapsedSeconds * 1000
+    //删掉this.phase * this.sweepDurationMs也无妨，只是把该卫星扫描的初始时间+[0,1)*光圈周期
+    //% this.sweepDurationMs=[0,this.sweepDurationMs=光圈动画周期=5s)
     const phasedMs = (elapsedMs + this.phase * this.sweepDurationMs) % this.sweepDurationMs
-    //normalizedTime 当前时间占sweepDurationMs的百分比，从0到1
+    //normalizedTime 当前时间占sweepDurationMs的百分比，[0,1)
     const normalizedTime = phasedMs / this.sweepDurationMs
     materialResult.image = this._image
     materialResult.color = this._color
@@ -115,7 +114,6 @@ export class SatelliteRadarMaterialProperty {
       (other instanceof SatelliteRadarMaterialProperty &&
         this._image === other._image &&
         Cesium.Color.equals(this._color, other._color) &&
-        this.durationMs === other.durationMs &&
         this.sweepDurationMs === other.sweepDurationMs &&
         this.ringCount === other.ringCount &&
         this.repeat === other.repeat &&

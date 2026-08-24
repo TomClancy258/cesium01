@@ -1,4 +1,5 @@
 import * as Cesium from 'cesium'
+import satelliteRadarFabricSource from './satellite-radar-material.fabric.glsl?raw'
 
 const SATELLITE_RADAR_MATERIAL_TYPE = 'SatelliteRadarPrimitive'
 const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
@@ -21,6 +22,8 @@ const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 
 export const SATELLITE_RADAR_DEFAULTS = {
   color: Cesium.Color.CYAN.withAlpha(0.85),
+  /** 单圈从锥顶扫到锥底的行程时间（仿真时钟，ms） */
+  sweepDurationMs: 100_000,
   durationMs: 2200, //一圈扫描动画的周期：2.2 秒（跟仿真时钟走）
   repeat: 30, //径向纹理上重复 30 段，不是 30 个独立在动的圈
   offset: 0, //整体相位偏移（环在径向上平移）
@@ -32,6 +35,7 @@ let isSatelliteRadarMaterialRegistered = false
 export interface SatelliteRadarMaterialOptions {
   color?: Cesium.Color
   durationMs?: number
+  sweepDurationMs?: number
   repeat?: number
   offset?: number
   thickness?: number
@@ -64,65 +68,11 @@ export const registerSatelliteRadarMaterial = (): void => {
         color: SATELLITE_RADAR_DEFAULTS.color,
         time: 0,
         repeat: SATELLITE_RADAR_DEFAULTS.repeat,
+        sweepDurationMs: SATELLITE_RADAR_DEFAULTS.sweepDurationMs,
         offset: SATELLITE_RADAR_DEFAULTS.offset,
         thickness: SATELLITE_RADAR_DEFAULTS.thickness,
       },
-      source: `
-        uniform vec4 color;
-        uniform float time;
-        uniform float repeat;
-        uniform float offset;
-        uniform float thickness;
-
-        //Cesium 每个片元调用一次
-        // materialInput：该片元的 st、法线等
-        // czm_getMaterial 返回 czm_material材质结构体（含默认 diffuse/alpha/specular 等） 给 Cesium 做光照/混合，不是该片元的最终颜色
-        //就是返回该片元的材质结构体
-        czm_material czm_getMaterial(czm_materialInput materialInput) {
-          //material保存可用于照明的材质信息。由所有 czm_getMaterial 函数返回。
-          //拿默认材质（含默认 diffuse/alpha/specular 等），后面只改需要的字段。
-          czm_material material = czm_getDefaultMaterial(materialInput);
-
-          //纹理坐标，st.s、st.t轴的范围是[0,1]
-          //该片元对应的st坐标，比如st.s为.1，st.t为.4
-          vec2 st = materialInput.st;
-
-          //spacing环间距
-          //repeat = 30 → spacing ≈ 0.033
-          // 在径向 [0,1] 上大约分 repeat 段
-          float spacing = 1.0 / repeat;
-
-          //radial:到 ST 中心的距离
-          //算片元 st 到 (0.5, 0.5) 的欧氏距离
-          // 同一距离 → 同一“圈”（在 ST 里是同心圆，贴到锥面上是弯带）
-          float radial = distance(st, vec2(0.5));
-
-          // m:相位 + 动画
-          //部分                  作用
-          // radial              在哪一圈
-          // offset              整体相位
-          // - time              随时间减小 → 环在动
-          // mod(..., spacing)   折回到 [0, spacing)，形成周期重复
-          float m = mod(radial + offset - time, spacing);
-
-          //alpha:环的明暗/透明
-          //step(edge, x)：x >= edge 为 1，否则为 0。
-          //
-          //  （1）spacing * (1.0 - thickness)：每条环里“透明段”的上界
-          //  （2）thickness 大 → 不透明环更宽
-          //  （3）thickness 小 → 环更细、透明缝更多
-          //示意（一个周期内）：
-          // m:     0 --------|████████|-------- spacing
-          //                  ↑ 透明    ↑ 不透明环
-          //            step 阈值 = spacing*(1-thickness)
-          float alpha = step(spacing * (1.0 - thickness), m);
-
-          //写回材质
-          material.diffuse = color.rgb; // 不透明部分用这个颜色，【RGB】
-          material.alpha = alpha * color.a;  // 透明缝 alpha≈0，环上 alpha≈color.a，【环可见、缝透明 → 雷达扫描环效果】
-          return material;
-        }
-      `,
+      source: satelliteRadarFabricSource,
     },
     translucent: () => true,
   })
@@ -140,6 +90,7 @@ export class SatelliteRadarMaterialProperty {
   private readonly _definitionChanged = new Cesium.Event()
   private readonly _color: Cesium.Color
   private readonly durationMs: number
+  private readonly sweepDurationMs: number
   private readonly repeat: number
   private readonly offset: number
   private readonly thickness: number
@@ -148,6 +99,7 @@ export class SatelliteRadarMaterialProperty {
   constructor(options: SatelliteRadarMaterialOptions = {}) {
     this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
     this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
+    this.sweepDurationMs = options.sweepDurationMs ?? SATELLITE_RADAR_DEFAULTS.sweepDurationMs
     this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
     this.offset = options.offset ?? SATELLITE_RADAR_DEFAULTS.offset
     this.thickness = options.thickness ?? SATELLITE_RADAR_DEFAULTS.thickness
@@ -175,7 +127,8 @@ export class SatelliteRadarMaterialProperty {
     const materialResult = result ?? {}
     const elapsedSeconds = Cesium.JulianDate.secondsDifference(time, RADAR_TIME_EPOCH)
     const elapsedMs = elapsedSeconds * 1000
-    const normalizedTime = ((elapsedMs + this.phase * this.durationMs) % this.durationMs) / this.durationMs / 10
+
+    const normalizedTime = ((elapsedMs + this.phase * this.sweepDurationMs) % this.sweepDurationMs) / this.sweepDurationMs
     materialResult.color = this._color
     //只有time在随时间变化，真正驱动动画的只有 time，其它 uniform（即这里的其它参数） 是创建时定死的常量。
     materialResult.time = normalizedTime
@@ -192,6 +145,7 @@ export class SatelliteRadarMaterialProperty {
       (other instanceof SatelliteRadarMaterialProperty &&
         Cesium.Color.equals(this._color, other._color) &&
         this.durationMs === other.durationMs &&
+        this.sweepDurationMs === other.sweepDurationMs &&
         this.repeat === other.repeat &&
         this.offset === other.offset &&
         this.thickness === other.thickness &&

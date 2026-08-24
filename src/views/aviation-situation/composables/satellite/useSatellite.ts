@@ -26,7 +26,7 @@ import {
   registerSatelliteRadarMaterial,
   SATELLITE_RADAR_DEFAULTS,
   SatelliteRadarMaterialProperty
-} from '@/views/aviation-situation/composables/satellite/satellite-radar-material/my-satellite-radar-material.ts'
+} from '@/views/aviation-situation/composables/satellite/satellite-radar-material-mod/satellite-radar-material.ts'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import {
@@ -367,6 +367,7 @@ export function useSatellite(
             thickness: SATELLITE_RADAR_DEFAULTS.thickness,
             durationMs: SATELLITE_RADAR_DEFAULTS.durationMs,
             offset: SATELLITE_RADAR_DEFAULTS.offset,
+            //[0, 1)，多颗卫星各自 Math.random()，雷达环就不会齐刷刷同相位扫，看起来更自然。
             phase: Math.random(),
           }),
           heightReference:Cesium.HeightReference.CLAMP_TO_TERRAIN
