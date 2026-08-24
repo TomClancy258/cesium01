@@ -10,7 +10,9 @@ export const SATELLITE_RADAR_DEFAULTS = {
   color: Cesium.Color.CYAN.withAlpha(0.85),
   durationMs: 2200,
   /** 单圈从锥顶扫到锥底的行程时间（仿真时钟，ms） */
-  sweepDurationMs: 2000,
+  sweepDurationMs: 50_000,
+  /** 径向环数，对应 shader 中 sin 频率；与 time 相乘使 sweepDurationMs = 顶→底 */
+  ringCount: 20,
   repeat: 30,
   offset: 0,
   thickness: 0.12,
@@ -23,6 +25,7 @@ export interface SatelliteRadarMaterialOptions {
   color?: Cesium.Color
   durationMs?: number
   sweepDurationMs?: number
+  ringCount?: number
   repeat?: number
   offset?: number
   thickness?: number
@@ -39,6 +42,7 @@ export const registerSatelliteRadarMaterial = (): void => {
         image: SATELLITE_RADAR_DEFAULTS.image,
         color: SATELLITE_RADAR_DEFAULTS.color,
         time: 0,
+        ringCount: SATELLITE_RADAR_DEFAULTS.ringCount,
         repeat: SATELLITE_RADAR_DEFAULTS.repeat,
         offset: SATELLITE_RADAR_DEFAULTS.offset,
         thickness: SATELLITE_RADAR_DEFAULTS.thickness,
@@ -57,6 +61,7 @@ export class SatelliteRadarMaterialProperty {
   private readonly _color: Cesium.Color
   private readonly durationMs: number
   private readonly sweepDurationMs: number
+  private readonly ringCount: number
   private readonly repeat: number
   private readonly offset: number
   private readonly thickness: number
@@ -67,6 +72,7 @@ export class SatelliteRadarMaterialProperty {
     this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
     this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
     this.sweepDurationMs = options.sweepDurationMs ?? SATELLITE_RADAR_DEFAULTS.sweepDurationMs
+    this.ringCount = options.ringCount ?? SATELLITE_RADAR_DEFAULTS.ringCount
     this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
     this.offset = options.offset ?? SATELLITE_RADAR_DEFAULTS.offset
     this.thickness = options.thickness ?? SATELLITE_RADAR_DEFAULTS.thickness
@@ -96,6 +102,7 @@ export class SatelliteRadarMaterialProperty {
     materialResult.color = this._color
     //normalizedTime：sweepDurationMs 内从 0→1，对应单圈顶→底
     materialResult.time = normalizedTime
+    materialResult.ringCount = this.ringCount
     materialResult.repeat = this.repeat
     materialResult.offset = this.offset
     materialResult.thickness = this.thickness
@@ -110,6 +117,7 @@ export class SatelliteRadarMaterialProperty {
         Cesium.Color.equals(this._color, other._color) &&
         this.durationMs === other.durationMs &&
         this.sweepDurationMs === other.sweepDurationMs &&
+        this.ringCount === other.ringCount &&
         this.repeat === other.repeat &&
         this.offset === other.offset &&
         this.thickness === other.thickness &&

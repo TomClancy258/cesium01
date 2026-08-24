@@ -15,6 +15,7 @@ void main() {
     //            vUv.x
     //    );
 
+    //x<edge1→return 0，x>edge2→return 1，x在[edge1,edge2]则return result(0 到 1 之间的“平滑百分比”)
     //smoothstep(edge1,edge2,x) 比mix、InverseLerp更柔和
     //这只是中间一步 t，不是最终输出
     //t = (x - edge0) / (edge1 - edge0)   // x=0.3 → t=3/8
