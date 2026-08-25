@@ -26,23 +26,16 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     //该片元对应的st坐标，比如st.s为.1，st.t为.4
     vec2 st = materialInput.st;
 
-    //spacing环间距
-    //repeat = 30 → spacing ≈ 0.033
-    // 在径向 [0,1] 上大约分 repeat 段
-    //[0,0.033]
-    float spacing = 1.0 / repeat;
-
     //radial径向:到 ST 中心的距离
     //算片元 st 到 (0.5, 0.5) 的欧氏距离
     // 同一距离 → 同一“圈”（在 ST 里是同心圆，贴到锥面上是弯带）
-    //[0,1]
+    //[0,0.5]
     float radial = distance(st, vec2(0.5));
-
-    //repeat个[0,spacing)的x坐标轴
-    float spacingX=mod(radial-time,spacing);
+    //[0,1.0]
+    float xAxis=remap(radial,0.0,0.5, 0.0,1.0);
 
     //repeat个[0,1)
-    float spacingXAixs=remap(spacingX,0.0,spacing, 0.0,1.0);
+    float spacingXAixs=fract((xAxis-time)*repeat);
     //<(1-thickness)的return 0黑，>=(1-thickness)的return 1白，把光圈置为该端的后面，这样更好理解，别置为前面
     //  float leftEdge=1.0-thickness;
     //  float rightEdge=1.0;
@@ -54,6 +47,16 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 
     //spacingXAixs==1.0处会有很细的光圈
       float aa=max(fwidth(spacingXAixs),0.002);
+
+    //接缝硬切，最容易锯齿
+//    if(min(spacingXAixs, 1.0 - spacingXAixs) < 0.1){
+        //接缝硬切，最容易锯齿
+//        aa=0.0;
+        //接缝若还有残留，略软
+//        aa=0.002;
+        //这俩抗锯齿效果差不多
+//    }
+
     //这样写死可以解决
     //在折回附近，相邻像素 spacingXAixs 从 ~1 变 ~0，fwidth 会 非常大 → aa 巨大 → smoothstep 在接缝处算出 不该有的 alpha → 细亮圈。
     //固定 aa = 0.002 后，折回处不再被放大，细线就没了。但是不能自适应抗锯齿，效果差
@@ -70,6 +73,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     //画个图就知道为啥*了
     float alpha=lower*upper;
 
+    //直接透明，无所谓 AA（推荐这个消除这跟很细的光圈）
     //[0.9,1.0]和[0.0,1.1]的alpha都=0，即去污渍
     //spacingXAixs∈[0,0.1)则zero=0,∈[0.1,1]则zero=1
     float killNearZero =step(0.1,spacingXAixs);

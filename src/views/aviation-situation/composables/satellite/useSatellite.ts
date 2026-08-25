@@ -26,7 +26,7 @@ import {
   registerSatelliteRadarMaterial,
   SATELLITE_RADAR_DEFAULTS,
   SatelliteRadarMaterialProperty
-} from '@/views/aviation-situation/composables/satellite/satellite-radar-material-mod/satellite-radar-material.ts'
+} from '@/views/aviation-situation/composables/satellite/satellite-radar-material-fract/satellite-radar-material.ts'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 import type { Airport } from '@/network/airport/type'
 import {

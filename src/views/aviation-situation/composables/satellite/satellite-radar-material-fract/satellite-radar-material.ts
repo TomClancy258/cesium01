@@ -23,8 +23,9 @@ const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 export const SATELLITE_RADAR_DEFAULTS = {
   color: Cesium.Color.CYAN.withAlpha(0.85),
   /** 单圈从锥顶扫到锥底的行程时间（仿真时钟，ms） */
-  sweepDurationMs: 100_000,
-  repeat: 30, //径向纹理上重复 30 段，不是 30 个独立在动的圈
+  sweepDurationMs: 10_000,
+  durationMs: 2200,
+  repeat: 15, //径向纹理上重复 30 段，不是 30 个独立在动的圈
   offset: 0, //整体相位偏移（环在径向上平移）
   thickness: 0.12, //thickness 越大 → 环越粗,缝越窄，0.5时两者差不多
 }

@@ -18,7 +18,7 @@ import type {
   AviationRenderItem,
 } from '@/views/aviation-situation/types/shared'
 import { useAircraftRoute } from './routes/useAircraftRoute'
-import { useAircraftTrajectory } from './routes/useAircraftTrajectory'
+import { useAircraftTrajectory } from './routes/aircraft-trajectory/useAircraftTrajectory'
 import {
   AIRCRAFT_LABEL_SHOW_DISTANCE,
   airplaneHoveredSvgRawDataUrl,

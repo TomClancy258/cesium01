@@ -13,6 +13,10 @@ import { onUnmounted, watch } from 'vue'
 import { useAircraftStore } from '@/stores/aircraft'
 import {useAviationSelectionStore} from '@/stores/aviation-selection'
 import type {DynamicPolylineState} from "@/views/aviation-situation/types/shared"
+import {
+  AircraftPlannedTrajectoryMaterialProperty,
+  registerAircraftPlannedTrajectoryMaterial,
+} from './aircraft-planned-trajectory-material'
 
 const aircraftStore=useAircraftStore()
 
@@ -27,6 +31,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
   let aircraftPlannedWaypoints: RoutePoint[] = []
 
   const initPlannedTrajectory=():void=>{
+    registerAircraftPlannedTrajectoryMaterial()
     initPlannedWaypoints()
     initPlannedTrajectoryEntity()
 
@@ -55,8 +60,8 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
         type:'aircraft_plannedTrajectory'
       },
       polyline: {
-        width: 3,
-        material: Cesium.Color.fromCssColorString('#1E40AF'),
+        width: 10,
+        material: new AircraftPlannedTrajectoryMaterialProperty(),
         positions: []
       },
     })
