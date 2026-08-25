@@ -1,5 +1,5 @@
 import * as Cesium from 'cesium'
-import satelliteRadarFabricSource from './satellite-radar-material.fabric.glsl?raw'
+import satelliteRadarFabricSource from './satellite-radar-material-circle-middle-position.fabric.glsl?raw'
 
 const SATELLITE_RADAR_MATERIAL_TYPE = 'SatelliteRadarPrimitive'
 const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
@@ -24,7 +24,6 @@ export const SATELLITE_RADAR_DEFAULTS = {
   color: Cesium.Color.CYAN.withAlpha(0.85),
   /** 单圈从锥顶扫到锥底的行程时间（仿真时钟，ms） */
   sweepDurationMs: 100_000,
-  durationMs: 2200, //一圈扫描动画的周期：2.2 秒（跟仿真时钟走）
   repeat: 30, //径向纹理上重复 30 段，不是 30 个独立在动的圈
   offset: 0, //整体相位偏移（环在径向上平移）
   thickness: 0.12, //thickness 越大 → 环越粗,缝越窄，0.5时两者差不多
@@ -34,7 +33,6 @@ let isSatelliteRadarMaterialRegistered = false
 
 export interface SatelliteRadarMaterialOptions {
   color?: Cesium.Color
-  durationMs?: number
   sweepDurationMs?: number
   repeat?: number
   offset?: number
@@ -89,7 +87,6 @@ export const registerSatelliteRadarMaterial = (): void => {
 export class SatelliteRadarMaterialProperty {
   private readonly _definitionChanged = new Cesium.Event()
   private readonly _color: Cesium.Color
-  private readonly durationMs: number
   private readonly sweepDurationMs: number
   private readonly repeat: number
   private readonly offset: number
@@ -98,7 +95,6 @@ export class SatelliteRadarMaterialProperty {
 
   constructor(options: SatelliteRadarMaterialOptions = {}) {
     this._color = options.color?.clone() ?? SATELLITE_RADAR_DEFAULTS.color.clone()
-    this.durationMs = options.durationMs ?? SATELLITE_RADAR_DEFAULTS.durationMs
     this.sweepDurationMs = options.sweepDurationMs ?? SATELLITE_RADAR_DEFAULTS.sweepDurationMs
     this.repeat = options.repeat ?? SATELLITE_RADAR_DEFAULTS.repeat
     this.offset = options.offset ?? SATELLITE_RADAR_DEFAULTS.offset
@@ -144,7 +140,6 @@ export class SatelliteRadarMaterialProperty {
       this === other ||
       (other instanceof SatelliteRadarMaterialProperty &&
         Cesium.Color.equals(this._color, other._color) &&
-        this.durationMs === other.durationMs &&
         this.sweepDurationMs === other.sweepDurationMs &&
         this.repeat === other.repeat &&
         this.offset === other.offset &&

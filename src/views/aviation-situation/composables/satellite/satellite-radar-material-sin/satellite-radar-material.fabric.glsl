@@ -55,6 +55,8 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   //sinVal<0.88则返回0(即透明)，>=0.88则返回1(即才是亮环)，硬切=》相邻像素一个过阈值、一个不过 → 锯齿。
 //  float wave=step(0.88,sinVal);
 
+  //sin绘制y轴占比24%的光圈（在2PI周期内），做不到，因为sinx的值不是线性的
+
   //这三行是在做一件事：别在 sinVal == 0.88 处硬切，而是在[0.88-aa,0.88+aa]之间弄一条[0,1]软过渡带，减轻锯齿。
   float edge = 0.88;
   // 软边宽度：用导数自适应（推荐），或写死一个小数

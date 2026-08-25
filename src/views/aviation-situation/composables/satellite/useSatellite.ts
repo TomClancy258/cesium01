@@ -345,6 +345,8 @@ export function useSatellite(
           disableDepthTestDistance:0
         },
         cylinder: {
+          // outline:true,
+          // outlineColor:Cesium.Color.RED,
           // 在 clock.onTick 里批量更新，避免每个卫星各自 CallbackProperty 调度。
           length: cylinderProps.length,
           // length: CYLINDER_DEFAULTS.minLengthM, //Cesium 内部也会包成 ConstantProperty。

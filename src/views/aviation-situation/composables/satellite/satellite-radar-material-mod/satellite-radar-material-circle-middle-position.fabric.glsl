@@ -53,19 +53,46 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     //  float spacingXAixsRing=step(leftEdge,spacingXAixs);
 
     //spacingXAixs==1.0处会有很细的光圈
-    //  float aa=max(fwidth(spacingXAixs),0.002);
+      float aa=max(fwidth(spacingXAixs),0.002);
     //这样写死可以解决
     //在折回附近，相邻像素 spacingXAixs 从 ~1 变 ~0，fwidth 会 非常大 → aa 巨大 → smoothstep 在接缝处算出 不该有的 alpha → 细亮圈。
     //固定 aa = 0.002 后，折回处不再被放大，细线就没了。但是不能自适应抗锯齿，效果差
     //推荐还是光圈置后面，只做lower即左边的抗锯齿，upper右边不作fade抗锯齿，因为光圈会变细
-    float aa=0.002;
+//    float aa=0.002;
     // 左：缝 → 环
+    //lower在[0,leftEdge-aa)=0,[leftEdge-aa,leftEdge+aa]=[0,1],[leftEdge + aa,1)=1
     float lower = smoothstep(leftEdge - aa, leftEdge + aa, spacingXAixs);
     // 右：环 → 缝（段末 fade out）
     //但如果做了右边fade抗锯齿，则光圈会变细些
+    //upper在[0,rightEdge-aa)=0,[rightEdge-aa,rightEdge+aa]=[0,1],[rightEdge + aa,1)=1
     float upper = 1.0 - smoothstep(rightEdge - aa, rightEdge+aa, spacingXAixs);
 
+    //画个图就知道为啥*了
     float alpha=lower*upper;
+
+    //[0.9,1.0]和[0.0,1.1]的alpha都=0，即去污渍
+    //spacingXAixs∈[0,0.1)则zero=0,∈[0.1,1]则zero=1
+    float killNearZero =step(0.1,spacingXAixs);
+    alpha=mix(0.0,alpha,killNearZero);
+
+    //spacingXAixs<0.9 return 1-0=1; >=0.9 return 1-1=0;
+    float killNearOne =1.0-step(0.9,spacingXAixs);
+    alpha=mix(0.0,alpha,killNearOne);
+
+    //上面俩等价于：
+    // 离 0 或 1 都 < 0.1 → 杀掉
+//    float keep = step(0.1, min(spacingXAixs, 1.0 - spacingXAixs));
+//    alpha *= keep;
+
+    // → [0, 0.1) 和 (0.9, 1] 都算近
+    //min(spacingXAixs, 1.0 - spacingXAixs) < 0.1
+//    if(1.0-spacingXAixs<0.1){
+//        alpha=0.0;
+//    }
+//else if(spacingXAixs<0.1){
+//        alpha=0.0;
+//    }
+
     //写回材质
     material.diffuse = color.rgb; // 不透明部分用这个颜色，【RGB】
     material.alpha = mix(0.0,color.a,alpha);  // 透明缝 alpha≈0，环上 alpha≈color.a，【环可见、缝透明 → 雷达扫描环效果】
