@@ -60,7 +60,7 @@ export function useAircraftTrajectory(viewer, aircraftGraphic: AircraftGraphic) 
         type:'aircraft_plannedTrajectory'
       },
       polyline: {
-        width: 10,
+        width: 3,
         material: new AircraftPlannedTrajectoryMaterialProperty(),
         positions: []
       },
