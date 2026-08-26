@@ -41,6 +41,7 @@ import { useAircraftSync } from './useAircraftSync'
 import {
   useAircraftControlZone
 } from '@/views/aviation-situation/composables/aircraft/useAircraftControlZone'
+import { useAircraftRadar } from '@/views/aviation-situation/composables/aircraft/useAircraftRadar'
 
 export interface UseAircraftOptions {
   onAviationDataUpdated?: () => void
@@ -121,6 +122,10 @@ export function useAircraft(
     dangerControlZoneImageUrl: airplaneDangerControlZoneSvgRawDataUrl,
     warningControlZoneImageUrl: airplaneWarningControlZoneSvgRawDataUrl,
   })
+  const { highlightAircraftByRadar } = useAircraftRadar({
+    renderMap: aircraftRenderMap,
+    radarHighlightImageUrl: airplaneSatelliteConeScanSvgRawDataUrl,
+  })
   const { filterAircrafts } = useAircraftFilter({
     renderMap: aircraftRenderMap,
     aircraftGraphic,
@@ -137,6 +142,7 @@ export function useAircraft(
       ),
     onFinishedSpatialSelection: finishedSpatialSelection,
     onHighlightAircraftByControlZone: highlightAircraftByControlZone,
+    onHighlightAircraftByRadar: highlightAircraftByRadar,
     onAviationDataUpdated: notifyAviationDataUpdated,
   })
   const {
@@ -365,6 +371,7 @@ export function useAircraft(
     flyToAircraftByIcao24,
     refreshSatelliteConeScan,
     highlightAircraftByControlZone,
+    highlightAircraftByRadar,
     aircraftRenderMap,
   }
 }

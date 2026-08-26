@@ -78,8 +78,18 @@ import {
   handleControlZoneHover, handleControlZoneLeftClick
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/control-zone'
 import {
+  handleRadarHover,
+  handleRadarLeave,
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/radar'
+import {
   clearHoveredControlZoneHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
+import {
+  clearHoveredRadarHighlight,
+} from '@/views/aviation-situation/composables/radar/radar-highlight-manager'
+import {
+  isRadarPickId,
+} from '@/views/aviation-situation/composables/radar/radar-highlight-manager'
 import {
   handlePhotogrammetryBuildingHover,
   handlePhotogrammetryBuildingLeftClick,
@@ -418,6 +428,9 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
 
+  const findRadarPicked = (pickedObjects: PickedObjectLike[]) =>
+    pickedObjects.find((obj) => isRadarPickId(obj.id))
+
   const buildLngLatAltFromEntity = (
     entity: Cesium.Entity,
     time: Cesium.JulianDate,
@@ -442,6 +455,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     osmBuildingLeave()
     photogrammetryBuildingLeave()
     controlZoneLeave()
+    radarLeave()
   }
 
   // 鼠标移动（节流）
@@ -592,12 +606,26 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       osmBuildingLeave()
       photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
+      radarLeave()
 
       const entity = controlZoneEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
       const properties: ControlZoneProperties = entity.properties.getValue()
       handleControlZoneHover(properties,movement.endPosition,entity)
+      return
+    }
+
+    const radarPicked = findRadarPicked(pickedObjects)
+    if (radarPicked && isRadarPickId(radarPicked.id)) {
+      aviationBillboardLeave()
+      satelliteLeave()
+      osmBuildingLeave()
+      photogrammetryBuildingLeave()
+      clearHoveredDrawingToolHighlight()
+      controlZoneLeave()
+
+      handleRadarHover(radarPicked.id, movement.endPosition)
       return
     }
 
@@ -629,6 +657,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const controlZoneLeave=()=>{
     clearHoveredControlZoneHighlight()
     emitCesiumEvent('controlZoneLeave');
+  }
+
+  const radarLeave = (): void => {
+    clearHoveredRadarHighlight()
+    handleRadarLeave()
   }
 
   // 销毁事件监听

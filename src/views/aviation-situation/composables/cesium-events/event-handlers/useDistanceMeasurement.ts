@@ -1,4 +1,5 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/useDistanceSurvey.ts
+//距离测绘的总长度 Label，多数项目完成后会常显示；和空间选区不必完全一样。
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import { generateBizUniqueId } from '@/utils/uuid'

@@ -134,6 +134,7 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
         satelliteConeScan: null,
         spatialSelection: null,
         controlZone: null,
+        radar: null,
       },
     } satisfies AircraftBillboardProperties
 
@@ -141,6 +142,7 @@ export function useAircraftRenderer(options: UseAircraftRendererOptions) {
       dataSourceName: new Set<string>(),
       coneScanSatelliteId: new Set<string>(),
       controlZoneId: new Set<string>(),
+      radarId: new Set<string>(),
     }
     //几百架里往往只有一部分高/中危，所以风险等级光圈数组（放三个billboard）不能放到renderItem里
     //应该放到src/views/aviation-situation/composables/useRiskRipple.ts下的rippleMap里

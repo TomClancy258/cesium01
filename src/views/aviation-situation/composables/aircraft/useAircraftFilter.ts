@@ -18,6 +18,7 @@ interface UseAircraftFilterOptions {
   onFinishedSpatialSelection: () => void
   onAviationDataUpdated: () => void
   onHighlightAircraftByControlZone: () => void
+  onHighlightAircraftByRadar: () => void
 }
 
 export function useAircraftFilter(options: UseAircraftFilterOptions) {
@@ -32,6 +33,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     onSyncRiskRipple,
     onFinishedSpatialSelection,
     onHighlightAircraftByControlZone,
+    onHighlightAircraftByRadar,
     onAviationDataUpdated,
   } = options
 
@@ -81,6 +83,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     commitMatchedAircrafts()
     onFinishedSpatialSelection()
     onHighlightAircraftByControlZone()
+    onHighlightAircraftByRadar()
     onAviationDataUpdated()
   }, 300)
 

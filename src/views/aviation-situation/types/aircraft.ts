@@ -28,6 +28,7 @@ export interface AircraftBillboardProperties {
     satelliteConeScan: string | null
     spatialSelection: string | null
     controlZone: string | null
+    radar: string | null
   }
 }
 

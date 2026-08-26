@@ -1,4 +1,5 @@
 // src/views/aviation-situation/composables/cesium-events/event-handlers/spatial-selection/usePolygonSpatialSelection.ts
+//绘制中用 Label 反馈；完成后删中心汇总 Label，汇总改 Tooltip(中心label容易被遮挡)；顶点 Point/Label 默认藏，hover 再显。
 import * as Cesium from 'cesium'
 import { onUnmounted, ShallowRef, watch } from 'vue'
 import {  useSpatialSelectionStore } from '@/stores/spatial-selection'

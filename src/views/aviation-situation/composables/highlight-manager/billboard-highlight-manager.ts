@@ -23,7 +23,7 @@ const getBillboardProperties = (billboard: Cesium.Billboard): BillboardPropertie
 // 工具方法：按统一优先级刷新图片
 const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
 
-  // 优先级：selected > hovered > spatialSelected> controlZone > satelliteConeScan > original
+  // 优先级：selected > hovered > spatialSelected > controlZone > radar > satelliteConeScan > original
   if (billboard === selectedBillboard && selectedHighlightImage) {
     billboard.image = selectedHighlightImage
     return
@@ -39,6 +39,10 @@ const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
   }
   if ('controlZone' in properties.images && properties.images.controlZone) {
     billboard.image = properties.images.controlZone
+    return
+  }
+  if ('radar' in properties.images && properties.images.radar) {
+    billboard.image = properties.images.radar
     return
   }
   if (properties.images.satelliteConeScan) {
@@ -96,6 +100,39 @@ export function clearSpatialSelectedHighlight(
   // 只在最后一个区域移除时才改回原始图片，避免冗余赋值
   if (dataSourceNames.size === 0) {
     properties.images.spatialSelection = null
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
+export function highlightBillboardOnRadar(
+  radarId: string,
+  billboard: Cesium.Billboard,
+  highlightImage: string,
+  sets: AviationAssociationSets,
+): void {
+  const properties = getBillboardProperties(billboard)
+  if (sets.radarId == null || !('radar' in properties.images)) return
+  const radarIdSet = sets.radarId
+  const alreadyTracked = radarIdSet.has(radarId)
+  if (!alreadyTracked) {
+    radarIdSet.add(radarId)
+    properties.images.radar = highlightImage
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
+export function clearRadarHighlight(
+  radarId: string,
+  billboard: Cesium.Billboard,
+  sets: AviationAssociationSets,
+): void {
+  const properties = getBillboardProperties(billboard)
+  if (sets.radarId == null || !('radar' in properties.images)) return
+  const radarIdSet: Set<string> = sets.radarId
+  if (!radarIdSet.has(radarId)) return
+  radarIdSet.delete(radarId)
+  if (radarIdSet.size === 0) {
+    properties.images.radar = null
   }
   applyBillboardImageByPriority(billboard)
 }

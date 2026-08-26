@@ -1,3 +1,4 @@
+//管控区 hover 只显示 Tooltip（业务信息） 就够了，不必像测绘框选那样显示顶点 Point/Label。
 import { onUnmounted, watch } from 'vue'
 import type { ShallowRef } from 'vue'
 import * as Cesium from 'cesium'

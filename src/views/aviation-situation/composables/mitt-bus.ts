@@ -49,6 +49,9 @@ export type CesiumMouseEventName =
   | 'controlZoneLeave'
   | 'controlZoneLeftClick'
 
+  | 'radarHover'
+  | 'radarLeave'
+
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
   | 'airportSpatialSelect'
@@ -99,6 +102,9 @@ export interface EventCallbackMap {
   ) => void;
   controlZoneLeave: () => void;
   controlZoneLeftClick: (properties: ControlZoneProperties, entity: Cesium.Entity) => void;
+
+  radarHover: (pickId: import('@/views/aviation-situation/composables/radar/radar-highlight-manager').RadarPickId, position: Cesium.Cartesian2) => void;
+  radarLeave: () => void;
 
   mouseWheel: (camera: Cesium.Camera) => void;
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

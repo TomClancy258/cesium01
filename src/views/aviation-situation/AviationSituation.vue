@@ -7,6 +7,7 @@ import SatelliteTooltip from './components/tooltip/SatelliteTooltip.vue'
 import OSMBuildingTooltip from './components/tooltip/OSMBuildingTooltip.vue'
 import PhotogrammetryTooltip from './components/tooltip/PhotogrammetryTooltip.vue'
 import ControlZoneTooltip from './components/tooltip/ControlZoneTooltip.vue'
+import RadarTooltip from './components/tooltip/RadarTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
@@ -56,6 +57,7 @@ import { drawGraphicsInTextureByTeacher } from '@/views/aviation-situation/compo
 import { useOSMBuilding } from '@/views/aviation-situation/composables/osm-building/useOSMBuilding'
 import { usePhotogrammetry } from '@/views/aviation-situation/composables/photogrammetry/usePhotogrammetry'
 import { useControlZone } from '@/views/aviation-situation/composables/control-zone/useControlZone'
+import { useRadar } from '@/views/aviation-situation/composables/radar/useRadar'
 import {
   clearAllOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
@@ -90,6 +92,7 @@ const {
     filterAircrafts,
     flyToAircraftByIcao24,
     highlightAircraftByControlZone,
+    highlightAircraftByRadar,
     aircraftRenderMap,
   },
   airport: {
@@ -129,6 +132,10 @@ const {
   onMatchedControlZonesChanged: highlightAircraftByControlZone,
 })
 
+const { initRadars } = useRadar(cesiumViewer, {
+  onMatchedRadarsChanged: highlightAircraftByRadar,
+})
+
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
 const detailDrawerRef = ref(null)
@@ -155,6 +162,7 @@ onMounted(async () => {
   // initBuildings()
   initOSMBuildings()
   initControlZones()
+  initRadars()
 
   initPhotogrammetrys()
 
@@ -283,6 +291,7 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
     <OSMBuildingTooltip :position="tooltipPosition" />
     <PhotogrammetryTooltip :position="tooltipPosition" />
     <ControlZoneTooltip :position="tooltipPosition" />
+    <RadarTooltip :position="tooltipPosition" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />
