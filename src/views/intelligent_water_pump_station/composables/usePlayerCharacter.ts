@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import type CameraControls from 'camera-controls'
 import { onUnmounted, ref, shallowRef, type ShallowRef } from 'vue'
 import {
   createRapierPlayerPhysics,
@@ -62,14 +62,14 @@ function disposeObject3D(object: THREE.Object3D): void {
 /**
  * 第三人称机器人：加载角色 GLB、WASD / 空格、鼠标转视角。
  * 碰撞：Rapier 运动学胶囊 + CharacterController（站模静态 trimesh）。
- * 漫游开启时关闭 OrbitControls；关闭时复位出生点并恢复 Orbit。
- * 角色 tick 须挂 onBeforeRender：否则 OrbitControls.update / 晚一帧跟拍会像盯着原点。
+ * 漫游开启时关闭 CameraControls；关闭时复位出生点并恢复轨道操控。
+ * 角色 tick 须挂 onBeforeRender：否则 CameraControls.update / 晚一帧跟拍会像盯着原点。
  */
 export function usePlayerCharacter(
   scene: ShallowRef<THREE.Scene | null>,
   camera: ShallowRef<THREE.PerspectiveCamera | null>,
   renderer: ShallowRef<THREE.WebGLRenderer | null>,
-  controls: ShallowRef<OrbitControls | null>,
+  controls: ShallowRef<CameraControls | null>,
   modelsGroup: ShallowRef<THREE.Group | null>,
   onBeforeRender: AfterRenderHandle,
 ) {
@@ -153,13 +153,6 @@ export function usePlayerCharacter(
     _lookAt.copy(playerPos)
     _lookAt.y += PLAYER_HEIGHT * 0.65
     camera.value.lookAt(_lookAt)
-  }
-
-  const syncOrbitFromCamera = (): void => {
-    if (!camera.value || !controls.value || !robot.value) return
-    controls.value.target.copy(robot.value.position)
-    controls.value.target.y += 1
-    controls.value.update()
   }
 
   const onKeyDown = (event: KeyboardEvent): void => {
@@ -308,14 +301,20 @@ export function usePlayerCharacter(
       controls.value.enabled = true
       resetToSpawn()
       exitPointerLock()
-      syncOrbitFromCamera()
       if (camera.value && controls.value) {
-        // 退出漫游后回到站点俯视习惯位，避免停在角色身后
+        // 退出漫游后飞回站点俯视习惯位，避免停在角色身后
         const target = robot.value?.position.clone() ?? SPAWN_POSITION.clone()
-        controls.value.target.copy(target)
-        camera.value.position.set(target.x + 70, target.y + 50, target.z + 70)
-        camera.value.lookAt(target)
-        controls.value.update()
+        void controls.value
+          .normalizeRotations()
+          .setLookAt(
+            target.x + 70,
+            target.y + 50,
+            target.z + 70,
+            target.x,
+            target.y,
+            target.z,
+            true,
+          )
       }
     }
   }
@@ -378,7 +377,7 @@ export function usePlayerCharacter(
 
       removeBeforeRender?.()
       timer.reset()
-      // 须在 composer.render 之前更新相机，否则本帧仍被 Orbit 或旧朝向画出去
+      // 须在 composer.render 之前更新相机，否则本帧仍被 CameraControls 或旧朝向画出去
       removeBeforeRender = onBeforeRender(tick)
       bindInput()
     } catch (error) {

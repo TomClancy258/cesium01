@@ -154,7 +154,7 @@ export function useScenePicking(
     pointerDown.set(event.clientX, event.clientY)
   }
 
-  // ≈ Cesium LEFT_CLICK（用位移阈值避开 OrbitControls 拖拽）
+  // ≈ Cesium LEFT_CLICK（用位移阈值避开 CameraControls 拖拽）
   const onPointerUp = (event: PointerEvent): void => {
     if (gazeMode) return
     const dx = event.clientX - pointerDown.x

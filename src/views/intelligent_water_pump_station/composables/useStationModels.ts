@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
-import type { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import type CameraControls from 'camera-controls'
 import { onUnmounted, ref, shallowRef, type ShallowRef } from 'vue'
 import type { EquipmentSource, EquipmentStatus, StationWsPayload } from '../types/station-equipment'
 import {
@@ -240,8 +240,9 @@ function disposeObject3D(object: THREE.Object3D): void {
 function fitCameraToObject(
   object: THREE.Object3D,
   camera: THREE.PerspectiveCamera,
-  controls: OrbitControls | null,
-  offset?:THREE.Vector3
+  controls: CameraControls | null,
+  offset?: THREE.Vector3,
+  enableTransition = false,
 ): void {
   const box = new THREE.Box3().setFromObject(object)
   if (box.isEmpty()) return
@@ -252,21 +253,33 @@ function fitCameraToObject(
   const fitDistance =
     maxSize / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))
 
-  if (offset !== undefined) {
-    camera.position.copy(center).add(offset)
-  }else{
-    camera.position.copy(center).add(new THREE.Vector3(fitDistance, fitDistance * 0.6, fitDistance))
-  }
+  const endPosition =
+    offset !== undefined
+      ? center.clone().add(offset)
+      : center.clone().add(new THREE.Vector3(fitDistance, fitDistance * 0.6, fitDistance))
 
   // camera.near = Math.max(fitDistance / 100, 0.1)
   // camera.far = Math.max(fitDistance * 100, 2000)
   camera.updateProjectionMatrix()
-  camera.lookAt(center)
 
   if (controls) {
-    controls.target.copy(center)
-    controls.update()
+    // v3：先 normalizeRotations，再 setLookAt；enableTransition=true 即飞行动画
+    void controls
+      .normalizeRotations()
+      .setLookAt(
+        endPosition.x,
+        endPosition.y,
+        endPosition.z,
+        center.x,
+        center.y,
+        center.z,
+        enableTransition,
+      )
+    return
   }
+
+  camera.position.copy(endPosition)
+  camera.lookAt(center)
 }
 
 type AfterRenderHandle = (fn: () => void) => () => void
@@ -274,7 +287,7 @@ type AfterRenderHandle = (fn: () => void) => () => void
 export function useStationModels(
   scene: ShallowRef<THREE.Scene | null>,
   camera: ShallowRef<THREE.PerspectiveCamera | null>,
-  controls: ShallowRef<OrbitControls | null>,
+  controls: ShallowRef<CameraControls | null>,
   onAfterRender?: AfterRenderHandle,
 ) {
   /** 整站模型根（加载成功后才有值）；角色物理 / 销毁 / 框选整站共用 */
@@ -508,7 +521,14 @@ export function useStationModels(
       }
 
       if (camera.value) {
-        fitCameraToObject(group, camera.value, controls.value, new THREE.Vector3(70, 50, 70))
+        // 首屏定位：瞬移，不做飞行动画
+        fitCameraToObject(
+          group,
+          camera.value,
+          controls.value,
+          new THREE.Vector3(70, 50, 70),
+          false,
+        )
       }
     } catch (error) {
       console.error('[useStationModels] failed to load models', error)
@@ -551,11 +571,11 @@ export function useStationModels(
     disposeSharedWaterNormal()
   })
 
-  /** 表格「详情」/ 定位：相机飞到指定设备 */
+  /** 表格「详情」/ 定位：相机飞到指定设备（CameraControls setLookAt 过渡） */
   const flyToByName = (name: string, source: EquipmentSource): void => {
     const object = getObjectByName(name, source)
     if (!object || !camera.value) return
-    fitCameraToObject(object, camera.value, controls.value)
+    fitCameraToObject(object, camera.value, controls.value, undefined, true)
   }
 
   return {

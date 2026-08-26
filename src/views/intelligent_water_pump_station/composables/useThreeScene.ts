@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import CameraControls from 'camera-controls'
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js'
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js'
 import { OutlinePass } from 'three/addons/postprocessing/OutlinePass.js'
@@ -7,6 +7,8 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js'
 import Stats from 'stats.js'
 import { useThrottleFn } from '@vueuse/core'
 import { onUnmounted, ref, shallowRef } from 'vue'
+
+CameraControls.install({ THREE })
 
 /** hover / select 描边色（与原先 emissive 高亮区分） */
 const OUTLINE = {
@@ -44,7 +46,7 @@ export function useThreeScene() {
   const scene = shallowRef<THREE.Scene | null>(null)
   const camera = shallowRef<THREE.PerspectiveCamera | null>(null)
   const renderer = shallowRef<THREE.WebGLRenderer | null>(null)
-  const controls = shallowRef<OrbitControls | null>(null)
+  const controls = shallowRef<CameraControls | null>(null)
 
   /** 非响应式：后处理实例只给渲染/描边用 */
   let composer: EffectComposer | null = null
@@ -55,6 +57,9 @@ export function useThreeScene() {
   let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
   let stats: Stats | null = null
+  /** CameraControls.update(delta) 用；与模型动画同一套 Timer API */
+  const controlsTimer = new THREE.Timer()
+  controlsTimer.connect(document)
   /**
    * 本帧 composer.render() 之前执行的回调列表（存的是回调本身，不是 unsubscribe）。
    * 适用：改相机 / 改 uniform / 物理步进等「先改再画」的逻辑；
@@ -115,9 +120,11 @@ export function useThreeScene() {
     // 如此循环，同一时刻只有一个“已预约的下一帧”，不是同步递归堆出无数个。
     animationFrameId = requestAnimationFrame(renderLoop)
     stats?.begin()
-    // 漫游时 controls.enabled=false：仍调用 update() 会按 target 重写相机（像盯着原点）
+    // 漫游时 controls.enabled=false：勿 update，否则会覆盖第三人称跟拍相机
     if (controls.value?.enabled) {
-      controls.value.update()
+      controlsTimer.update()
+      const delta = Math.min(controlsTimer.getDelta(), 0.05)
+      controls.value.update(delta)
     }
     // 渲染前：更新本帧要用的相机 / uniform 等
     for (let i = 0; i < beforeRenderFns.length; i++) {
@@ -266,11 +273,11 @@ export function useThreeScene() {
     threeRenderer.shadowMap.type = THREE.PCFShadowMap
     container.appendChild(threeRenderer.domElement)
 
-    const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
-    orbitControls.enableDamping = true
-    orbitControls.dampingFactor = 0.05
-    orbitControls.target.set(0, 0, 0)
-    orbitControls.update()
+    const cameraControls = new CameraControls(threeCamera, threeRenderer.domElement)
+    // ~0.6s 到目标，接近 Cesium flyTo 的观感（拖拽时用 draggingSmoothTime）
+    cameraControls.smoothTime = 0.6
+    cameraControls.draggingSmoothTime = 0.125
+    void cameraControls.setLookAt(0, 8, 16, 0, 0, 0, false)
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.9)
     const directionalLight = new THREE.DirectionalLight(0xffffff, 1.8)
@@ -318,7 +325,8 @@ export function useThreeScene() {
 
     camera.value = threeCamera
     renderer.value = threeRenderer
-    controls.value = orbitControls
+    controls.value = cameraControls
+    controlsTimer.reset()
 
     stats = new Stats()
     stats.showPanel(0) // 0: fps, 1: ms, 2: mb
@@ -381,6 +389,7 @@ export function useThreeScene() {
 
   onUnmounted(() => {
     destroyScene()
+    controlsTimer.dispose()
   })
 
   return {
