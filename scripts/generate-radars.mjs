@@ -120,17 +120,31 @@ const sites = [
   { region: 'SE', country: 'Hong Kong', name: 'Hong Kong Surveillance', lng: 114.169, lat: 22.319, alt: 18, radius: 75000 },
 ]
 
-const falseDetectIds = new Set([
+/** 20 条 detectAircraft=true（欧洲 11 + 印度 8 + 中东 1），其余 false */
+const trueDetectIds = new Set([
+  // Europe 11
+  'EU-RDR-01',
+  'EU-RDR-02',
+  'EU-RDR-03',
+  'EU-RDR-04',
   'EU-RDR-05',
-  'EU-RDR-18',
-  'ME-RDR-07',
-  'ME-RDR-20',
+  'EU-RDR-06',
+  'EU-RDR-07',
+  'EU-RDR-08',
+  'EU-RDR-09',
+  'EU-RDR-10',
+  'EU-RDR-11',
+  // India 8
+  'IN-RDR-01',
+  'IN-RDR-02',
+  'IN-RDR-03',
   'IN-RDR-04',
-  'IN-RDR-12',
-  'IN-RDR-23',
-  'SE-RDR-01',
-  'SE-RDR-14',
-  'SE-RDR-22',
+  'IN-RDR-05',
+  'IN-RDR-06',
+  'IN-RDR-07',
+  'IN-RDR-08',
+  // Middle East 1
+  'ME-RDR-03',
 ])
 
 const counters = { EU: 0, ME: 0, IN: 0, SE: 0 }
@@ -146,7 +160,7 @@ const radars = sites.map((site) => {
       altitude: site.alt,
     },
     radiusMeters: site.radius,
-    detectAircraft: !falseDetectIds.has(id),
+    detectAircraft: trueDetectIds.has(id),
     country: site.country,
   }
 })
@@ -176,4 +190,7 @@ for (let i = 0; i < radars.length; i++) {
 }
 
 writeFileSync(OUTPUT, `${JSON.stringify(radars, null, 2)}\n`, 'utf8')
-console.log(`Wrote ${radars.length} radars to ${OUTPUT}, high-overlap pairs: ${highOverlap}`)
+const trueCount = radars.filter((r) => r.detectAircraft).length
+console.log(
+  `Wrote ${radars.length} radars to ${OUTPUT}, detectAircraft=true: ${trueCount}, high-overlap pairs: ${highOverlap}`,
+)

@@ -10,10 +10,15 @@ import { createMatchedRadar } from '@/views/aviation-situation/types/radar'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { RADAR_DEFAULT_STYLE } from './radar-constants'
 import { toRadarHoveredProperties } from './radar-property-utils'
-import { computeCircleRingPositions } from './radar-utils'
 import { setRadarHoveredProperties } from './radar-hover-state'
 import {
+  createGroundRadarScanMaterial,
+  registerGroundRadarScanMaterial,
+  updateGroundRadarScanMaterialTime,
+} from './ground-radar-scan-material/ground-radar-scan-material'
+import {
   clearAllRadarHighlight,
+  getAllRadarScanMaterials,
   registerRadarPrimitivePair,
   unregisterRadarPrimitivePair,
   type RadarPickId,
@@ -34,8 +39,7 @@ export interface UseRadarOptions {
   onMatchedRadarsChanged?: () => void
 }
 
-function createRadarGroundPrimitives(
-  viewer: Cesium.Viewer,
+function createRadarGroundPrimitive(
   radar: RadarTable,
 ): RadarPrimitivePair {
   const center = Cesium.Cartesian3.fromDegrees(
@@ -45,13 +49,16 @@ function createRadarGroundPrimitives(
   )
   const pickId: RadarPickId = { sourceType: 'radar', id: radar.id }
   const baseStyle = {
-    fillColor: RADAR_DEFAULT_STYLE.fillColor.clone(),
-    outlineColor: RADAR_DEFAULT_STYLE.outlineColor.clone(),
+    color: RADAR_DEFAULT_STYLE.color.clone(),
+    highlight: RADAR_DEFAULT_STYLE.highlight,
   }
+
+  const scanMaterial = createGroundRadarScanMaterial({
+    color: baseStyle.color,
+  })
 
   const fillPrimitive = new Cesium.GroundPrimitive({
     geometryInstances: new Cesium.GeometryInstance({
-      // GroundPrimitive 需要 Geometry 描述类（含 createShadowVolume），不能传 createGeometry() 的结果
       geometry: new Cesium.CircleGeometry({
         center,
         radius: radar.radiusMeters,
@@ -61,37 +68,16 @@ function createRadarGroundPrimitives(
       id: pickId,
     }),
     appearance: new Cesium.MaterialAppearance({
-      material: Cesium.Material.fromType('Color', {
-        color: baseStyle.fillColor.clone(),
-      }),
+      material: scanMaterial,
       translucent: true,
       flat: true,
     }),
     asynchronous: false,
   })
 
-  const outlinePrimitive = new Cesium.GroundPolylinePrimitive({
-    geometryInstances: new Cesium.GeometryInstance({
-      geometry: new Cesium.GroundPolylineGeometry({
-        positions: computeCircleRingPositions(center, radar.radiusMeters),
-        width: 2.0,
-        loop: true,
-      }),
-    }),
-    appearance: new Cesium.PolylineMaterialAppearance({
-      material: Cesium.Material.fromType('Color', {
-        color: baseStyle.outlineColor.clone(),
-      }),
-    }),
-    asynchronous: false,
-  })
-
-  viewer.scene.groundPrimitives.add(fillPrimitive)
-  viewer.scene.groundPrimitives.add(outlinePrimitive)
-
   return {
     fillPrimitive,
-    outlinePrimitive,
+    scanMaterial,
     baseStyle,
   }
 }
@@ -100,20 +86,25 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
   const radarStore = useRadarStore()
   const radarRenderMap = new Map<string, RadarRenderState>()
 
+  registerGroundRadarScanMaterial()
+
   const hideRadarTooltip = (): void => {
     setRadarHoveredProperties(null)
   }
 
-  const removeRadarPrimitivePair = (pair: RadarPrimitivePair): void => {
+  const removeRadarPrimitivePair = (
+    viewerRef: Cesium.Viewer,
+    pair: RadarPrimitivePair,
+  ): void => {
+    viewerRef.scene.groundPrimitives.remove(pair.fillPrimitive)
     pair.fillPrimitive.destroy()
-    pair.outlinePrimitive.destroy()
   }
 
   const clearRadars = (): void => {
     clearAllRadarHighlight()
     for (const [radarId, { primitives }] of radarRenderMap) {
       unregisterRadarPrimitivePair(radarId)
-      removeRadarPrimitivePair(primitives)
+      removeRadarPrimitivePair(viewer.value, primitives)
     }
     radarRenderMap.clear()
     radarStore.clearMatchedRadars()
@@ -121,7 +112,8 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
 
   const drawRadars = (radars: Radar[]): void => {
     for (const radar of radars) {
-      const primitives = createRadarGroundPrimitives(viewer.value, radar)
+      const primitives = createRadarGroundPrimitive(radar)
+      viewer.value.scene.groundPrimitives.add(primitives.fillPrimitive)
       registerRadarPrimitivePair(radar.id, primitives)
       radarRenderMap.set(radar.id, { data: radar, primitives })
     }
@@ -130,7 +122,6 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
   const loadAndDrawRadars = async (): Promise<void> => {
     try {
       const radars = await getRadars()
-      console.log("radars", radars);
       clearRadars()
       if (radars.length === 0) {
         console.warn('[useRadar] radar list is empty')
@@ -161,7 +152,6 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
         form.visible
 
       primitives.fillPrimitive.show = match
-      primitives.outlinePrimitive.show = match
 
       if (match) {
         radarStore.setMatchedRadar(createMatchedRadar(radar))
@@ -171,6 +161,18 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     radarStore.commitMatchedRadars()
     options.onMatchedRadarsChanged?.()
   }, 300)
+
+  let unsubClockTick: Cesium.Event.RemoveCallback | undefined
+
+  const subscribeRadarScanAnimation = (): void => {
+    const onTick = (): void => {
+      const clockTime = viewer.value.clock.currentTime
+      for (const material of getAllRadarScanMaterials()) {
+        updateGroundRadarScanMaterialTime(material, clockTime)
+      }
+    }
+    unsubClockTick = viewer.value.clock.onTick.addEventListener(onTick)
+  }
 
   let unwatchRadarFilterForm: () => void
   const setupRadarFilterFormWatch = (): void => {
@@ -208,11 +210,13 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
 
   const initRadars = (): void => {
     loadAndDrawRadars()
+    subscribeRadarScanAnimation()
     setupRadarFilterFormWatch()
     subscribeRadarEvents()
   }
 
   onUnmounted(() => {
+    unsubClockTick?.()
     clearRadars()
     unwatchRadarFilterForm?.()
     unsubRadarHover?.()

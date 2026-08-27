@@ -43,9 +43,15 @@ export function useCesiumViewer(containerId = 'cesium-container') {
       Cesium.ScreenSpaceEventType.LEFT_DOUBLE_CLICK,
     )
 
+    // flyToLngLatAlt(viewer,{
+    //   longitude:-98.0,
+    //   latitude:40.0,
+    //   height:6000000,
+    // },0,0)
+
     flyToLngLatAlt(viewer,{
-      longitude:-98.0,
-      latitude:40.0,
+      longitude:25,
+      latitude:48.0,
       height:6000000,
     },0,0)
 

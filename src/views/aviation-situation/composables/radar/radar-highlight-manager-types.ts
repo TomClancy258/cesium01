@@ -8,6 +8,6 @@ export type RadarPickId = {
 
 export type RadarPrimitivePair = {
   fillPrimitive: Cesium.GroundPrimitive
-  outlinePrimitive: Cesium.GroundPolylinePrimitive
+  scanMaterial: Cesium.Material
   baseStyle: RadarHighlightStyle
 }

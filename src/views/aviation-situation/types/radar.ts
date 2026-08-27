@@ -26,8 +26,8 @@ export type RadarHoveredProperties = Radar & {
 }
 
 export interface RadarHighlightStyle {
-  fillColor: import('cesium').Color
-  outlineColor: import('cesium').Color
+  color: import('cesium').Color
+  highlight: number
 }
 
 export interface RadarTableRowOperation {

@@ -20,14 +20,8 @@ export function unregisterRadarPrimitivePair(radarId: string): void {
 }
 
 const applyRadarStyle = (pair: RadarPrimitivePair, style: RadarHighlightStyle): void => {
-  const fillMaterial = pair.fillPrimitive.appearance.material
-  const outlineMaterial = pair.outlinePrimitive.appearance.material
-  if (fillMaterial) {
-    fillMaterial.uniforms.color = style.fillColor
-  }
-  if (outlineMaterial) {
-    outlineMaterial.uniforms.color = style.outlineColor
-  }
+  pair.scanMaterial.uniforms.color = style.color
+  pair.scanMaterial.uniforms.highlight = style.highlight
 }
 
 const restoreBaseStyle = (radarId: string): void => {
@@ -103,4 +97,8 @@ export function isRadarPickId(value: unknown): value is RadarPickId {
     (value as RadarPickId).sourceType === 'radar' &&
     typeof (value as RadarPickId).id === 'string'
   )
+}
+
+export function getAllRadarScanMaterials(): Cesium.Material[] {
+  return [...pairById.values()].map((pair) => pair.scanMaterial)
 }
