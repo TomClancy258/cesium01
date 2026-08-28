@@ -90,5 +90,11 @@ export const updateGroundRadarScanMaterialTime = (
   clockTime: Cesium.JulianDate,
 ): void => {
   const elapsedSeconds = Cesium.JulianDate.secondsDifference(clockTime, RADAR_TIME_EPOCH)
-  material.uniforms.time = elapsedSeconds
+  // 必须在 JS 里先归一化到 [0,1)。直接传「自 1970 起的秒数」(≈1.7e9)
+  // 到 GPU float32 会丢小数精度，shader 里 fract(time * speed) 几乎不变。
+  const speed =
+    Number(material.uniforms.speed) ||
+    toGroundRadarShaderSpeed(GROUND_RADAR_SCAN_DEFAULTS.sweepDurationMs)
+  const head = ((elapsedSeconds * speed) % 1 + 1) % 1
+  material.uniforms.time = head
 }
