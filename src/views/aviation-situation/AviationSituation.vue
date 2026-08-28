@@ -132,7 +132,7 @@ const {
   onMatchedControlZonesChanged: highlightAircraftByControlZone,
 })
 
-const { initRadars } = useRadar(cesiumViewer, {
+const { initRadars, filterRadars, flyToRadarById } = useRadar(cesiumViewer, {
   onMatchedRadarsChanged: highlightAircraftByRadar,
 })
 
@@ -267,6 +267,8 @@ provide('matchedAirportCount', matchedAirportCount)
 provide('flyToAircraftByIcao24', flyToAircraftByIcao24)
 provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
+provide('flyToRadarById', flyToRadarById)
+provide('filterRadars', filterRadars)
 provide('filterOSMBuildings', filterOSMBuildings)
 provide('tooltipPosition', tooltipPosition)
 provide('aircraftRenderMap', aircraftRenderMap)

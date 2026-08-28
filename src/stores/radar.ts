@@ -7,7 +7,9 @@ import { createMatchedRadar } from '@/views/aviation-situation/types/radar'
 export const useRadarStore = defineStore('useRadarStore', () => {
   const radarFilterForm = reactive<RadarFilterForm>({
     id: '',
+    name: '',
     countries: [],
+    detectAircraft: 'all',
     visible: true,
   })
 
@@ -28,7 +30,9 @@ export const useRadarStore = defineStore('useRadarStore', () => {
 
   const resetRadarFilterForm = (): void => {
     radarFilterForm.id = ''
+    radarFilterForm.name = ''
     radarFilterForm.countries = []
+    radarFilterForm.detectAircraft = 'all'
     radarFilterForm.visible = true
   }
 

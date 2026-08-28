@@ -1,9 +1,14 @@
 import type { Radar } from '@/network/radar/type'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
 
+/** 探测能力筛选：全部 / 是 / 否（对标机场风险等级单选，而非管控等级多选） */
+export type RadarDetectAircraftFilter = 'all' | 'yes' | 'no'
+
 export interface RadarFilterForm {
   id: string
+  name: string
   countries: string[]
+  detectAircraft: RadarDetectAircraftFilter
   visible: boolean
 }
 

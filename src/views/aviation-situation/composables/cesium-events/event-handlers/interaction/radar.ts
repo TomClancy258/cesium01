@@ -20,3 +20,7 @@ export const handleRadarHover = (
 export const handleRadarLeave = (): void => {
   emitCesiumEvent('radarLeave')
 }
+
+export const handleRadarLeftClick = (pickId: RadarPickId): void => {
+  emitCesiumEvent('radarLeftClick', pickId)
+}

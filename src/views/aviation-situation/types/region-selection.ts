@@ -6,10 +6,18 @@ export type ControlZoneRegionSelectedData = ControlZoneRawProperties & {
   sourceType: 'controlZone'
 }
 
+/** 雷达选中（底部抽屉「雷达筛选」） */
+export type RadarRegionSelectedData = {
+  sourceType: 'radar'
+  id: string
+  name: string
+}
+
 /**
- * 区域轨选中：测绘框选 / 测距 / 管控区互斥
+ * 区域轨选中：测绘框选 / 测距 / 管控区 / 雷达互斥
  *（对标 aviation-selection 的实体轨）
  */
 export type RegionSelectedData =
   | DrawingToolSelectedData
   | ControlZoneRegionSelectedData
+  | RadarRegionSelectedData

@@ -24,9 +24,13 @@ import {
   type RadarPickId,
   type RadarPrimitivePair,
 } from './radar-highlight-manager'
+import { flyToLngLatAlt } from '@/utils/geoUtils'
+import { selectRadarRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
+import type { RadarTableRowOperation } from '@/views/aviation-situation/types/radar'
 
 type RadarFilterQuery = {
   id?: string
+  name?: string
   countries: Set<string>
 }
 
@@ -140,15 +144,22 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     const form = radarStore.radarFilterForm
     const query: RadarFilterQuery = {
       id: form.id?.trim().toLowerCase(),
+      name: form.name?.trim().toLowerCase(),
       countries: new Set(form.countries),
     }
 
     radarRenderMap.forEach(({ data: radar, primitives }) => {
       const countryMatch =
         query.countries.size === 0 || query.countries.has(radar.country)
+      const detectMatch =
+        form.detectAircraft === 'all' ||
+        (form.detectAircraft === 'yes' && radar.detectAircraft) ||
+        (form.detectAircraft === 'no' && !radar.detectAircraft)
       const match =
         (!query.id || radar.id.toLowerCase().includes(query.id)) &&
+        (!query.name || radar.name.toLowerCase().includes(query.name)) &&
         countryMatch &&
+        detectMatch &&
         form.visible
 
       primitives.fillPrimitive.show = match
@@ -187,6 +198,23 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
 
   let unsubRadarHover: () => void
   let unsubRadarLeave: () => void
+  let unsubRadarLeftClick: () => void
+  let unsubRadarTableOperationClicked: () => void
+
+  const flyToRadarById = (id: string): void => {
+    const renderState = radarRenderMap.get(id)
+    if (!renderState) return
+    const { center, radiusMeters } = renderState.data
+    flyToLngLatAlt(
+      viewer,
+      {
+        longitude: center.longitude,
+        latitude: center.latitude,
+        height: center.height,
+      },
+      Math.max(radiusMeters * 2.5, 50_000),
+    )
+  }
 
   const subscribeRadarEvents = (): void => {
     unsubRadarHover = onCesiumEvent(
@@ -206,6 +234,30 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     unsubRadarLeave = onCesiumEvent('radarLeave', () => {
       hideRadarTooltip()
     })
+
+    unsubRadarLeftClick = onCesiumEvent('radarLeftClick', (pickId: RadarPickId) => {
+      const renderState = radarRenderMap.get(pickId.id)
+      if (!renderState) return
+      selectRadarRegion({
+        sourceType: 'radar',
+        id: renderState.data.id,
+        name: renderState.data.name,
+      })
+    })
+
+    unsubRadarTableOperationClicked = onCesiumEvent(
+      'radarTableOperationClicked',
+      (operation: RadarTableRowOperation) => {
+        const renderState = radarRenderMap.get(operation.id)
+        if (!renderState) return
+        selectRadarRegion({
+          sourceType: 'radar',
+          id: renderState.data.id,
+          name: renderState.data.name,
+        })
+        flyToRadarById(operation.id)
+      },
+    )
   }
 
   const initRadars = (): void => {
@@ -221,12 +273,16 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     unwatchRadarFilterForm?.()
     unsubRadarHover?.()
     unsubRadarLeave?.()
+    unsubRadarLeftClick?.()
+    unsubRadarTableOperationClicked?.()
   })
 
   return {
     initRadars,
     loadAndDrawRadars,
     clearRadars,
+    filterRadars,
+    flyToRadarById,
     radarRenderMap,
   }
 }

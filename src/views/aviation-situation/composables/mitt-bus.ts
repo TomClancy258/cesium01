@@ -20,6 +20,7 @@ import type {
   ControlZoneTableRowOperation,
 } from '@/views/aviation-situation/types/control-zone'
 import type { ControlZoneProperties } from '@/network/control-zone/type'
+import type { RadarTableRowOperation } from '@/views/aviation-situation/types/radar'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -51,6 +52,8 @@ export type CesiumMouseEventName =
 
   | 'radarHover'
   | 'radarLeave'
+  | 'radarLeftClick'
+  | 'radarTableOperationClicked'
 
   | 'mouseWheel'
   | 'aircraftSpatialSelect' // 新增你需要的事件类型
@@ -105,6 +108,8 @@ export interface EventCallbackMap {
 
   radarHover: (pickId: import('@/views/aviation-situation/composables/radar/radar-highlight-manager').RadarPickId, position: Cesium.Cartesian2) => void;
   radarLeave: () => void;
+  radarLeftClick: (pickId: import('@/views/aviation-situation/composables/radar/radar-highlight-manager').RadarPickId) => void;
+  radarTableOperationClicked: (radarTableRowOperation: RadarTableRowOperation) => void;
 
   mouseWheel: (camera: Cesium.Camera) => void;
   aircraftSpatialSelect: (spatialSelectionData:SpatialSelectionData) => void;

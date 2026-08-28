@@ -80,6 +80,7 @@ import {
 import {
   handleRadarHover,
   handleRadarLeave,
+  handleRadarLeftClick,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/radar'
 import {
   clearHoveredControlZoneHighlight
@@ -327,6 +328,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
 
         const properties: ControlZoneProperties = entity.properties.getValue()
         handleControlZoneLeftClick(properties,entity)
+        return
+      }
+
+      const radarPicked = findRadarPicked(pickedObjects)
+      if (radarPicked && isRadarPickId(radarPicked.id)) {
+        handleRadarLeftClick(radarPicked.id)
         return
       }
 
@@ -676,6 +683,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'osmBuildingHover', 'osmBuildingLeave', 'osmBuildingLeftClick',
       'photogrammetryBuildingHover', 'photogrammetryBuildingLeave', 'photogrammetryBuildingLeftClick',
       'controlZoneHover', 'controlZoneLeave', 'controlZoneLeftClick',
+      'radarHover', 'radarLeave', 'radarLeftClick', 'radarTableOperationClicked',
       'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))

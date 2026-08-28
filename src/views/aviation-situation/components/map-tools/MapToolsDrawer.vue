@@ -6,6 +6,7 @@ import SpatialSelection from '@/views/aviation-situation/components/map-tools/pa
 import AircraftFilter from '@/views/aviation-situation/components/map-tools/panels/AircraftFilter.vue'
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue'
+import RadarFilter from '@/views/aviation-situation/components/map-tools/panels/RadarFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
 
@@ -39,7 +40,11 @@ watch(
   (selected) => {
     if (!selected) return
     activeIndex.value =
-      selected.sourceType === 'controlZone' ? 'controlZoneFilter' : 'spatialSelection'
+      selected.sourceType === 'controlZone'
+        ? 'controlZoneFilter'
+        : selected.sourceType === 'radar'
+          ? 'radarFilter'
+          : 'spatialSelection'
     drawer.value = true
   },
 )
@@ -96,6 +101,12 @@ watch(
                 </el-icon>
                 <span>管控地区筛选</span>
               </el-menu-item>
+              <el-menu-item index="radarFilter">
+                <el-icon class="header-icon">
+                  <Filter />
+                </el-icon>
+                <span>雷达筛选</span>
+              </el-menu-item>
               <el-menu-item index="spatialSelection">
                 <el-icon class="header-icon">
                   <PictureRounded />
@@ -115,6 +126,7 @@ watch(
             <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
             <AirportFilter v-show="activeIndex === 'airportFilter'" />
             <ControlZoneFilter v-show="activeIndex === 'controlZoneFilter'" />
+            <RadarFilter v-show="activeIndex === 'radarFilter'" />
             <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
             <CityModel v-show="activeIndex === 'cityModel'" />
