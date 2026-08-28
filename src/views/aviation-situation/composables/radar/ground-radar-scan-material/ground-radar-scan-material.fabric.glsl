@@ -70,8 +70,21 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   vec2 sectorPos=rotate2DCW(czm_pi/2.0-haldAperture)*rotate2DCW(rotationRadius)*uv;
   float distToPie=sdPie(sectorPos,c,0.5);
 
+  //---------------------------------------------------------------
+//  float alpha=mix(1.0,0.0,step(0.0,distToPie)); //用下面的“亮边外侧抗锯齿”代替这行，
+  //---------------------------------------------------------------
+  float aaPie = max(fwidth(distToPie), 0.002);
+  float mask = 1.0 - smoothstep(0.0, aaPie, distToPie);  // 软进出
 
-  float alpha=mix(1.0,0.0,step(0.0,distToPie));
+  float trail = 0.0;
+  if (distToPie <= aaPie && length(sectorPos) >= 1e-5) {
+    float radius = angleBetween(c, sectorPos);
+    trail = 1.0 - clamp(radius / aperture, 0.0, 1.0);
+  }
+
+ float alpha = trail * mask;   // 不要再用 step 那行
+  // 然后：alpha = max(alpha, rim);
+//---------------------------------------------------------------
 
   //法一
 //  vec2 headPos=vec2(0.5,0);
@@ -92,14 +105,33 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 //    alpha=1.0-radiusBetweenHeadNormalized;
 //  }
 
-  //法三
+  //法三：推荐
+  // 扇外根本不算，两路逻辑差很多（一边算、一边不算） 用if
   if (distToPie <= 0.0 && length(sectorPos)>=1e-5) {
     // sectorPos 里扇形已固定，直接量局部角，sectorPos坐标就是sector以y轴正方向对称
     float radius=angleBetween(c,sectorPos);
     alpha=1.0-radius/aperture;
   }
 
-//  alpha=mix(alpha,1.0,step(0.48,uv.t));
+  //distance(vec1,vec2)
+  //length(vec)
+  float r=length(uv);
+  float borderWidth=0.02;
+  float distToBorder=0.5-borderWidth;
+
+  float borderOuterToR=0.005;
+  float borderOuter=0.5-borderOuterToR;//0.495
+  float borderInner=0.5-borderOuterToR-borderWidth;//0.475
+
+  float aa=max(fwidth(distToBorder),0.002);
+
+  float alphaOuter=1.0-smoothstep(borderOuter-aa,borderOuter+aa,r);
+  float alphaInner=smoothstep(borderInner-aa,borderInner+aa,r);
+
+  float rim = alphaOuter * alphaInner;
+  alpha = max(alpha, rim);
+
+//  alpha=mix(alpha,1.0,step(distToBorder,r));
 
   //法三的if->step版本：
 //  float inside = 1.0 - step(0.0, distToPie);
@@ -116,17 +148,17 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   //[-0.5,-0.05]=color,[-0.05,0.5]=yellow
 //  vec3 finalColor=mix(color.rgb,yellow,step(-axisWidth,uv.s));
 //  finalColor=mix(finalColor,color.rgb,step(axisWidth,uv.s));
-//  //x轴
+  //x轴
 //  finalColor=mix(color.rgb,yellow,step(-axisWidth,uv.t));
 //  finalColor=mix(finalColor,color.rgb,step(axisWidth,uv.t));
 
   //上面的改进方法
-  float onYAxis = 1.0 - step(axisWidth, abs(uv.x)); // 竖线：|x| 小
-  float onXAxis = 1.0 - step(axisWidth, abs(uv.y)); // 横线：|y| 小
-  float onAxis = max(onXAxis, onYAxis);
-  vec3 finalColor = mix(color.rgb, yellow, onAxis);
+//  float onYAxis = 1.0 - step(axisWidth, abs(uv.x)); // 竖线：|x| 小
+//  float onXAxis = 1.0 - step(axisWidth, abs(uv.y)); // 横线：|y| 小
+//  float onAxis = max(onXAxis, onYAxis);
+//  vec3 finalColor = mix(color.rgb, yellow, onAxis);
 
-  material.diffuse = finalColor;
+  material.diffuse = color.rgb;
   material.alpha = alpha;
 
 
