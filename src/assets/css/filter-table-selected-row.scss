@@ -1,0 +1,4 @@
+// 筛选面板表格选中行：统一 Element 主色浅底（表格交互态，非业务图层色）
+@mixin filter-table-selected-row-cells {
+  background-color: var(--el-color-primary-light-9) !important;
+}

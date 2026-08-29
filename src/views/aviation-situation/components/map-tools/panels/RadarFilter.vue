@@ -84,7 +84,7 @@ const formatRadiusKm = (meters: number): string => {
       :inline="true"
       size="default"
       ref="radarFilterFormRef"
-      label-width="85px"
+      label-width="70px"
     >
       <el-form-item label="雷达id" prop="id">
         <el-input v-model="radarStore.radarFilterForm.id" clearable />
@@ -103,10 +103,10 @@ const formatRadiusKm = (meters: number): string => {
           :max-collapse-tags="2"
           :render-after-expand="false"
           show-checkbox
-          style="width: 240px"
+          style="width: 300px"
         />
       </el-form-item>
-      <el-form-item label="可探测飞机" prop="detectAircraft">
+      <el-form-item label="可探测飞机" prop="detectAircraft" label-width="85px">
         <el-select
           v-model="radarStore.radarFilterForm.detectAircraft"
           style="width: 160px"
@@ -201,11 +201,10 @@ const formatRadiusKm = (meters: number): string => {
 
 <style scoped lang="scss">
 @use '@/assets/css/pager.scss';
+@use '@/assets/css/filter-table-selected-row.scss' as *;
 .radar-panel {
-  :deep(.is-selected-row) {
-    td.el-table__cell {
-      background-color: rgba(34, 211, 238, 0.18) !important;
-    }
+  :deep(.is-selected-row td.el-table__cell) {
+    @include filter-table-selected-row-cells;
   }
 }
 </style>

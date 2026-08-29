@@ -5,7 +5,7 @@ export const GROUND_RADAR_SCAN_MATERIAL_TYPE = 'GroundRadarScanMaterial'
 const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))
 
 export const GROUND_RADAR_SCAN_DEFAULTS = {
-  color: Cesium.Color.CYAN,
+  color: Cesium.Color.CYAN.withAlpha(0.85),
   /** 扇形绕圆心转一圈的时间（仿真时钟，ms），与卫星 sweepDurationMs 同语义 */
   sweepDurationMs: 8_000,
   /** 扫描扇形角度（度） */

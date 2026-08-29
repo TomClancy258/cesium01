@@ -14,7 +14,6 @@ let selectedRadarId: string | null = null
 
 const applyRadarStyle = (pair: RadarPrimitivePair, style: RadarHighlightStyle): void => {
   pair.scanMaterial.uniforms.color = style.color
-  pair.scanMaterial.uniforms.highlight = style.highlight
 }
 
 const restoreBaseStyle = (radarId: string): void => {

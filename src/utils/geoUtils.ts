@@ -418,9 +418,37 @@ function interpolateGeodesicEdge(
   return points;
 }
 
-export const isInCircle=(lngLatAltArray:LngLatAltArray,center:LngLatAltArray,radius:number)=>{
-  const distance=calculateSurfaceDistance(lngLatAltArray,center)
-  return distance <= radius;
+/** 地表圆内判定；先经纬度粗盒预筛，再算大地线（避免圆外点走 EllipsoidGeodesic） */
+export const isInCircle = (
+  lngLatAltArray: LngLatAltArray,
+  center: LngLatAltArray,
+  radius: number,
+): boolean => {
+  if (!(radius > 0)) return false
+
+  const lon = lngLatAltArray[0]
+  const lat = lngLatAltArray[1]
+  const centerLon = center[0]
+  const centerLat = center[1]
+
+  // 约 111.32 km/°；经度按 cos(lat) 缩放。略放大避免球近似误杀。
+  const metersPerDegLat = 111_320
+  const cosLat = Math.max(Math.abs(Math.cos((centerLat * Math.PI) / 180)), 0.01)
+  const pad = 1.05
+  const dLat = (radius * pad) / metersPerDegLat
+  const dLng = (radius * pad) / (metersPerDegLat * cosLat)
+
+  const latDelta = Math.abs(lat - centerLat)
+  if (latDelta > dLat) return false
+
+  // 最短经差（处理跨日界线）
+  const lonDelta = Math.min(
+    Math.abs(lon - centerLon),
+    360 - Math.abs(lon - centerLon),
+  )
+  if (lonDelta > dLng) return false
+
+  return calculateSurfaceDistance(lngLatAltArray, center) <= radius
 }
 
 export const flyToLngLatAlt = (

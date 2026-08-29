@@ -60,15 +60,15 @@ const onDetail = (row: MatchedSatellite) => {
       :inline="true"
       size="default"
       ref="satelliteFilterFormRef"
-      label-width="100px"
+      label-width="70px"
     >
-      <el-form-item label="卫星id" prop="id">
+      <el-form-item label="卫星id" prop="id" label-width="70px">
         <el-input v-model="satelliteStore.satelliteFilterForm.id" clearable />
       </el-form-item>
-      <el-form-item label="卫星名称" prop="name">
+      <el-form-item label="卫星名称" prop="name" label-width="70px">
         <el-input v-model="satelliteStore.satelliteFilterForm.name" clearable />
       </el-form-item>
-      <el-form-item label="所属国家" prop="originCountries">
+      <el-form-item label="所属国家" prop="originCountries" label-width="70px">
         <el-tree-select
           clearable
           v-model="satelliteStore.satelliteFilterForm.countries"
@@ -76,10 +76,10 @@ const onDetail = (row: MatchedSatellite) => {
           multiple
           collapse-tags
           collapse-tags-tooltip
-          :max-collapse-tags="24"
+          :max-collapse-tags="2"
           :render-after-expand="false"
           show-checkbox
-          style="width: 65vw"
+          style="width: 300px"
         />
       </el-form-item>
       <el-form-item label="显示卫星" prop="visible">

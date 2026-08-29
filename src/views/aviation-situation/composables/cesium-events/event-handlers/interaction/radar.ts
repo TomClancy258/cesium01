@@ -11,7 +11,6 @@ export const handleRadarHover = (
 ): void => {
   highlightRadarOnHover(pickId.id, {
     color: RADAR_INTERACTION_STYLE.hover.color,
-    highlight: RADAR_INTERACTION_STYLE.hover.highlight,
   })
   setTooltipPositionFromWindow(screenPosition.x, screenPosition.y)
   emitCesiumEvent('radarHover', pickId, screenPosition)

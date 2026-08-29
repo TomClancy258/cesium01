@@ -12,7 +12,7 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
   const aircraftFilterForm = reactive<AircraftFilterForm>({
     icao24: '',
     // originCountry: '',
-    originCountries: selectedContinentCountryValues,
+    originCountries: [...selectedContinentCountryValues],
     callsign: '',
     startAirport: '',
     endAirport: '',
@@ -45,7 +45,7 @@ export const useAircraftStore = defineStore('useAircraftStore', () => {
   const resetAircraftFilterForm = () => {
     aircraftFilterForm.icao24 = ''
     // aircraftFilterForm.originCountry = ''
-    aircraftFilterForm.originCountries = selectedContinentCountryValues
+    aircraftFilterForm.originCountries = [...selectedContinentCountryValues]
     aircraftFilterForm.callsign = ''
     aircraftFilterForm.startAirport = ''
     aircraftFilterForm.endAirport = ''

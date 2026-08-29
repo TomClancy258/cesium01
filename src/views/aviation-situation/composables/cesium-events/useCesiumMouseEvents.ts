@@ -89,6 +89,7 @@ import {
   clearHoveredRadarHighlight,
   isRadarPickId,
 } from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
+import type { RadarPickId } from '@/views/aviation-situation/types/radar'
 import {
   handlePhotogrammetryBuildingHover,
   handlePhotogrammetryBuildingLeftClick,
@@ -107,6 +108,8 @@ type PickedObjectLike = {
   id?: unknown
   primitive?: unknown
 }
+
+type RadarPickedObject = PickedObjectLike & { id: RadarPickId }
 
 type BillboardWithProps = Cesium.Billboard & {
   properties?: MapBillboardLabelProperties
@@ -330,7 +333,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       }
 
       const radarPicked = findRadarPicked(pickedObjects)
-      if (radarPicked && isRadarPickId(radarPicked.id)) {
+      if (radarPicked) {
         handleRadarLeftClick(radarPicked.id)
         return
       }
@@ -433,9 +436,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       )
     })
 
-  const findRadarPicked = (pickedObjects: PickedObjectLike[]) =>
-    //雷达「一雷达一 Primitive + 对象 id」和倾斜摄影「一批楼一 Primitive + string id + registry」是两套常见写法，不必强行统一。
-    pickedObjects.find((obj) => isRadarPickId(obj.id))
+  const findRadarPicked = (
+    pickedObjects: PickedObjectLike[],
+  ): RadarPickedObject | undefined =>
+    // 雷达「一雷达一 Primitive + 对象 id」和倾斜摄影「一批楼一 Primitive + string id + registry」是两套常见写法，不必强行统一。
+    pickedObjects.find((obj): obj is RadarPickedObject => isRadarPickId(obj.id))
 
   const buildLngLatAltFromEntity = (
     entity: Cesium.Entity,
@@ -479,6 +484,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       osmBuildingLeave()
       photogrammetryBuildingLeave()
       controlZoneLeave()
+      radarLeave()
 
       const entity = satelliteModelPicked.id
       if (!(entity instanceof Cesium.Entity)) return
@@ -506,6 +512,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       osmBuildingLeave()
       photogrammetryBuildingLeave()
       controlZoneLeave()
+      radarLeave()
 
       const billboard = billboardPicked.primitive as BillboardWithProps
       const properties = billboard.properties
@@ -531,6 +538,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       clearHoveredDrawingToolHighlight()
       photogrammetryBuildingLeave()
       controlZoneLeave()
+      radarLeave()
 
       // const propertyIds = buildingPicked.getPropertyIds();
       // const length = propertyIds.length;
@@ -579,6 +587,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       clearHoveredDrawingToolHighlight()
       osmBuildingLeave()
       controlZoneLeave()
+      radarLeave()
 
       const buildingId = photogrammetryBuildingPicked.id
       if (!hasPhotogrammetryBuilding(buildingId)) return
@@ -596,6 +605,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       osmBuildingLeave()
       photogrammetryBuildingLeave()
       controlZoneLeave()
+      radarLeave()
 
       const entity = drawingToolEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
@@ -623,14 +633,13 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     }
 
     const radarPicked = findRadarPicked(pickedObjects)
-    if (radarPicked && isRadarPickId(radarPicked.id)) {
+    if (radarPicked) {
       aviationBillboardLeave()
       satelliteLeave()
       osmBuildingLeave()
       photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
       controlZoneLeave()
-      console.log("radarPicked", radarPicked);
       handleRadarHover(radarPicked.id, movement.endPosition)
       return
     }

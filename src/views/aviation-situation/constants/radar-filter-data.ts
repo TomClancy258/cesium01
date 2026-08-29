@@ -10,4 +10,7 @@ export const radarDetectAircraftOptions: {
 ]
 
 /** 国家树与卫星筛选共用（含欧洲等雷达常见国家） */
-export { satelliteTreeData as radarCountryTreeData } from '@/views/aviation-situation/constants/satellite-filter-data'
+export {
+  satelliteTreeData as radarCountryTreeData,
+  selectedSatelliteContinentCountryValues as selectedRadarCountryValues,
+} from '@/views/aviation-situation/constants/satellite-filter-data'

@@ -96,10 +96,10 @@ const onDetail = (row: Aircraft) => {
           multiple
           collapse-tags
           collapse-tags-tooltip
-          :max-collapse-tags="24"
+          :max-collapse-tags="2"
           :render-after-expand="false"
           show-checkbox
-          style="width: 65vw"
+          style="width: 300px"
         />
       </el-form-item>
       <el-form-item label="显示飞机图标" prop="visible">

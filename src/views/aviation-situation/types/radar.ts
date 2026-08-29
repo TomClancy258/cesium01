@@ -32,7 +32,6 @@ export type RadarHoveredProperties = Radar & {
 
 export interface RadarHighlightStyle {
   color: import('cesium').Color
-  highlight: number
 }
 
 /** GeometryInstance.id / pick 身份 */

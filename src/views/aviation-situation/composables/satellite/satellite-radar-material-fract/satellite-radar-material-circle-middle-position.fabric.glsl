@@ -99,6 +99,6 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 
     //写回材质
     material.diffuse = color.rgb; // 不透明部分用这个颜色，【RGB】
-    material.alpha = mix(0.0,color.a,alpha);  // 透明缝 alpha≈0，环上 alpha≈color.a，【环可见、缝透明 → 雷达扫描环效果】
+    material.alpha = alpha*color.a;
     return material;
 }

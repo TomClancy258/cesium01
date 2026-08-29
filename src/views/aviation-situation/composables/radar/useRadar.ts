@@ -53,7 +53,6 @@ function createRadarGroundPrimitive(
   const pickId: RadarPickId = { sourceType: 'radar', id: radar.id }
   const baseStyle = {
     color: RADAR_DEFAULT_STYLE.color.clone(),
-    highlight: RADAR_DEFAULT_STYLE.highlight,
   }
 
   const scanMaterial = createGroundRadarScanMaterial({
@@ -145,8 +144,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     }
 
     forEachRadarRenderState(({ data: radar, primitives }) => {
-      const countryMatch =
-        query.countries.size === 0 || query.countries.has(radar.country)
+      const countryMatch = query.countries.has(radar.country)
       const detectMatch =
         form.detectAircraft === 'all' ||
         (form.detectAircraft === 'yes' && radar.detectAircraft) ||
@@ -205,10 +203,10 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
       viewer,
       {
         longitude: center.longitude,
-        latitude: center.latitude,
+        latitude: center.latitude-0.25,
         height: center.height,
       },
-      Math.max(radiusMeters * 2.5, 50_000),
+      Math.max(radiusMeters * 4, 50_000),
     )
   }
 

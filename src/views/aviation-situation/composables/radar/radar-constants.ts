@@ -4,16 +4,15 @@ import { GROUND_RADAR_SCAN_DEFAULTS } from './ground-radar-scan-material/ground-
 /** 地面雷达扫描圆默认样式（青色，与卫星雷达同族） */
 export const RADAR_DEFAULT_STYLE = {
   color: GROUND_RADAR_SCAN_DEFAULTS.color.clone(),
-  highlight: 0,
 } as const
 
 export const RADAR_INTERACTION_STYLE = {
+  /** 浅青：略亮于默认 CYAN */
   hover: {
-    color: Cesium.Color.CYAN.withAlpha(0.95),
-    highlight: 1,
+    color: Cesium.Color.fromCssColorString('#A5F3FC').withAlpha(0.95),
   },
+  /** 深青：明显深于默认 CYAN / hover，与管控区选中同色阶 */
   select: {
-    color: Cesium.Color.fromCssColorString('#22D3EE').withAlpha(0.98),
-    highlight: 1,
+    color: Cesium.Color.fromCssColorString('#06B6D4').withAlpha(1),
   },
 } as const

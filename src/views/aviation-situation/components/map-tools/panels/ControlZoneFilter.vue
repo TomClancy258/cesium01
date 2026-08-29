@@ -220,11 +220,10 @@ const isTypesIndeterminate = computed(() => {
 
 <style scoped lang="scss">
 @use '@/assets/css/pager.scss';
+@use '@/assets/css/filter-table-selected-row.scss' as *;
 .control-zone-panel {
-  :deep(.is-selected-row) {
-    td.el-table__cell {
-      background-color: rgba(245, 158, 11, 0.18) !important;
-    }
+  :deep(.is-selected-row td.el-table__cell) {
+    @include filter-table-selected-row-cells;
   }
 }
 </style>

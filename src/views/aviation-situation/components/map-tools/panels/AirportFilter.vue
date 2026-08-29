@@ -69,13 +69,13 @@ watch(
            label-width="100px"
            :inline="true"
   >
-    <el-form-item label="icao" prop="icao">
+    <el-form-item label="icao" prop="icao" label-width="50px">
       <el-input v-model="airportStore.airportFilterForm.icao" clearable/>
     </el-form-item>
-    <el-form-item label="机场名称" prop="name">
+    <el-form-item label="机场名称" prop="name" label-width="70px">
       <el-input v-model="airportStore.airportFilterForm.name" clearable placeholder="三/四字码"/>
     </el-form-item>
-    <el-form-item label="风险等级" prop="riskLevel">
+    <el-form-item label="风险等级" prop="riskLevel" label-width="70px">
       <el-select
         v-model="airportStore.airportFilterForm.riskLevel"
         style="width: 200px"
@@ -91,7 +91,7 @@ watch(
 <!--    <el-form-item label="机场国家" prop="country">-->
 <!--      <el-input v-model="airportStore.airportFilterForm.country" clearable/>-->
 <!--    </el-form-item>-->
-    <el-form-item label="机场国家" prop="countries">
+    <el-form-item label="机场国家" prop="countries" label-width="70px">
       <el-tree-select
         clearable
         v-model="airportStore.airportFilterForm.countries"
@@ -99,10 +99,10 @@ watch(
         multiple
         collapse-tags
         collapse-tags-tooltip
-        :max-collapse-tags="24"
+        :max-collapse-tags="4"
         :render-after-expand="false"
         show-checkbox
-        style="width: 55vw"
+        style="width: 550px"
       />
     </el-form-item>
 <!--    <el-row>-->

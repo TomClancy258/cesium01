@@ -86,7 +86,6 @@ export const selectRadarRegion = (data: RadarRegionSelectedData): void => {
 
   highlightRadarOnSelect(data.id, {
     color: RADAR_INTERACTION_STYLE.select.color,
-    highlight: RADAR_INTERACTION_STYLE.select.highlight,
   })
 
   const regionSelectionStore = useRegionSelectionStore()

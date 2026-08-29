@@ -1,14 +1,14 @@
 import { defineStore } from 'pinia'
 import { computed, reactive, shallowRef, triggerRef } from 'vue'
 import type { Aircraft } from '@/network/aircraft/types/aircraft'
-import type { MatchedRadar, RadarFilterForm, RadarTable } from '@/views/aviation-situation/types/radar'
-import { createMatchedRadar } from '@/views/aviation-situation/types/radar'
+import type { MatchedRadar, RadarFilterForm } from '@/views/aviation-situation/types/radar'
+import { selectedRadarCountryValues } from '@/views/aviation-situation/constants/radar-filter-data'
 
 export const useRadarStore = defineStore('useRadarStore', () => {
   const radarFilterForm = reactive<RadarFilterForm>({
     id: '',
     name: '',
-    countries: [],
+    countries: [...selectedRadarCountryValues],
     detectAircraft: 'all',
     visible: true,
   })
@@ -31,7 +31,7 @@ export const useRadarStore = defineStore('useRadarStore', () => {
   const resetRadarFilterForm = (): void => {
     radarFilterForm.id = ''
     radarFilterForm.name = ''
-    radarFilterForm.countries = []
+    radarFilterForm.countries = [...selectedRadarCountryValues]
     radarFilterForm.detectAircraft = 'all'
     radarFilterForm.visible = true
   }
