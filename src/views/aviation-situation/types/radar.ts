@@ -35,6 +35,12 @@ export interface RadarHighlightStyle {
   highlight: number
 }
 
+/** GeometryInstance.id / pick 身份 */
+export type RadarPickId = {
+  sourceType: 'radar'
+  id: string
+}
+
 export interface RadarTableRowOperation {
   operationType: 'detail'
   id: string

@@ -5,7 +5,11 @@ import { useDebounceFn } from '@vueuse/core'
 import { getRadars } from '@/network/radar'
 import type { Radar } from '@/network/radar/type'
 import { useRadarStore } from '@/stores/radar'
-import type { RadarTable } from '@/views/aviation-situation/types/radar'
+import type {
+  RadarPickId,
+  RadarTable,
+  RadarTableRowOperation,
+} from '@/views/aviation-situation/types/radar'
 import { createMatchedRadar } from '@/views/aviation-situation/types/radar'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { RADAR_DEFAULT_STYLE } from './radar-constants'
@@ -17,26 +21,21 @@ import {
   updateGroundRadarScanMaterialTime,
 } from './ground-radar-scan-material/ground-radar-scan-material'
 import {
-  clearAllRadarHighlight,
+  clearRadarRegistry,
+  forEachRadarRenderState,
   getAllRadarScanMaterials,
-  registerRadarPrimitivePair,
-  unregisterRadarPrimitivePair,
-  type RadarPickId,
+  getRadarRenderState,
+  registerRadar,
   type RadarPrimitivePair,
-} from './radar-highlight-manager'
+} from './radar-registry'
+import { clearAllRadarHighlight } from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
 import { flyToLngLatAlt } from '@/utils/geoUtils'
 import { selectRadarRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
-import type { RadarTableRowOperation } from '@/views/aviation-situation/types/radar'
 
 type RadarFilterQuery = {
   id?: string
   name?: string
   countries: Set<string>
-}
-
-type RadarRenderState = {
-  data: RadarTable
-  primitives: RadarPrimitivePair
 }
 
 export interface UseRadarOptions {
@@ -88,7 +87,6 @@ function createRadarGroundPrimitive(
 
 export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOptions = {}) {
   const radarStore = useRadarStore()
-  const radarRenderMap = new Map<string, RadarRenderState>()
 
   registerGroundRadarScanMaterial()
 
@@ -106,20 +104,18 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
 
   const clearRadars = (): void => {
     clearAllRadarHighlight()
-    for (const [radarId, { primitives }] of radarRenderMap) {
-      unregisterRadarPrimitivePair(radarId)
+    forEachRadarRenderState(({ primitives }) => {
       removeRadarPrimitivePair(viewer.value, primitives)
-    }
-    radarRenderMap.clear()
+    })
+    clearRadarRegistry()
     radarStore.clearMatchedRadars()
   }
 
   const drawRadars = (radars: Radar[]): void => {
     for (const radar of radars) {
-      const primitives = createRadarGroundPrimitive(radar)
+      const primitives:RadarPrimitivePair = createRadarGroundPrimitive(radar)
       viewer.value.scene.groundPrimitives.add(primitives.fillPrimitive)
-      registerRadarPrimitivePair(radar.id, primitives)
-      radarRenderMap.set(radar.id, { data: radar, primitives })
+      registerRadar(radar.id, { data: radar, primitives })
     }
   }
 
@@ -148,7 +144,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
       countries: new Set(form.countries),
     }
 
-    radarRenderMap.forEach(({ data: radar, primitives }) => {
+    forEachRadarRenderState(({ data: radar, primitives }) => {
       const countryMatch =
         query.countries.size === 0 || query.countries.has(radar.country)
       const detectMatch =
@@ -202,7 +198,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
   let unsubRadarTableOperationClicked: () => void
 
   const flyToRadarById = (id: string): void => {
-    const renderState = radarRenderMap.get(id)
+    const renderState = getRadarRenderState(id)
     if (!renderState) return
     const { center, radiusMeters } = renderState.data
     flyToLngLatAlt(
@@ -220,7 +216,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     unsubRadarHover = onCesiumEvent(
       'radarHover',
       (pickId: RadarPickId, _screenPosition: Cesium.Cartesian2) => {
-        const renderState = radarRenderMap.get(pickId.id)
+        const renderState = getRadarRenderState(pickId.id)
         if (!renderState) return
 
         const matched = radarStore.matchedRadarMap.get(pickId.id)
@@ -236,7 +232,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     })
 
     unsubRadarLeftClick = onCesiumEvent('radarLeftClick', (pickId: RadarPickId) => {
-      const renderState = radarRenderMap.get(pickId.id)
+      const renderState = getRadarRenderState(pickId.id)
       if (!renderState) return
       selectRadarRegion({
         sourceType: 'radar',
@@ -248,7 +244,7 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     unsubRadarTableOperationClicked = onCesiumEvent(
       'radarTableOperationClicked',
       (operation: RadarTableRowOperation) => {
-        const renderState = radarRenderMap.get(operation.id)
+        const renderState = getRadarRenderState(operation.id)
         if (!renderState) return
         selectRadarRegion({
           sourceType: 'radar',
@@ -283,6 +279,5 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     clearRadars,
     filterRadars,
     flyToRadarById,
-    radarRenderMap,
   }
 }

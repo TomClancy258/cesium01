@@ -84,7 +84,7 @@ const formatRadiusKm = (meters: number): string => {
       :inline="true"
       size="default"
       ref="radarFilterFormRef"
-      label-width="100px"
+      label-width="85px"
     >
       <el-form-item label="雷达id" prop="id">
         <el-input v-model="radarStore.radarFilterForm.id" clearable />
@@ -136,9 +136,9 @@ const formatRadiusKm = (meters: number): string => {
       :row-key="getRowKey"
       :row-class-name="rowClassName"
     >
-      <el-table-column prop="radar.id" label="id" min-width="110" />
-      <el-table-column prop="radar.name" label="名称" min-width="140" />
-      <el-table-column prop="radar.country" label="国家" width="100" />
+      <el-table-column prop="radar.id" label="id" />
+      <el-table-column prop="radar.name" label="名称" />
+      <el-table-column prop="radar.country" label="国家" />
       <el-table-column label="经度" width="100">
         <template #default="{ row }">
           {{ formatFixed4(row.radar.center.longitude) }}
@@ -149,9 +149,9 @@ const formatRadiusKm = (meters: number): string => {
           {{ formatFixed4(row.radar.center.latitude) }}
         </template>
       </el-table-column>
-      <el-table-column label="高度" width="90">
+      <el-table-column label="高度" width="100">
         <template #default="{ row }">
-          {{ formatFixed4(row.radar.center.height) }} m
+          {{ row.radar.center.height }} m
         </template>
       </el-table-column>
       <el-table-column label="半径" width="90">
@@ -174,7 +174,7 @@ const formatRadiusKm = (meters: number): string => {
           {{ row.aircraft.aircraftMap.size }}
         </template>
       </el-table-column>
-      <el-table-column label="飞机 icao24" width="200px" align="center">
+      <el-table-column label="飞机 icao24" width="250px" align="center">
         <template #default="{ row }">
           <AircraftIcaoPopover :aircraft-map="row.aircraft.aircraftMap" />
         </template>

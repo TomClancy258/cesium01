@@ -7,11 +7,12 @@ import type {
 import type { AirportBillboardProperties, AirportSelectedData } from '@/views/aviation-situation/types/airport'
 import type { AviationAssociationSets } from '@/views/aviation-situation/types/shared'
 
-// 仅存储Cesium实例（非响应式，模块单例）
-let hoveredBillboard: Cesium.Billboard | null = null
-let selectedBillboard: Cesium.Billboard | null = null
-let hoveredHighlightImage: string | null = null
-let selectedHighlightImage: string | null = null
+// 仅存储 Cesium 实例与对应高亮图（非响应式，模块单例）
+// hover/select 图不写在 properties.images 上，需与实例一并缓存，供 applyBillboardImageByPriority 使用
+let hoveredBillboard: Cesium.Billboard | null = null // 当前 hover 的 Billboard
+let selectedBillboard: Cesium.Billboard | null = null // 当前选中的 Billboard
+let hoveredHighlightImage: string | null = null // hover 高亮图（调用时传入）
+let selectedHighlightImage: string | null = null // 选中高亮图（调用时传入）
 
 type BillboardProperties = AircraftBillboardProperties | AirportBillboardProperties
 

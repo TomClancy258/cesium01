@@ -16,7 +16,7 @@ import { CONTROL_ZONE_INTERACTION_OUTLINE } from '@/views/aviation-situation/com
 import {
   clearSelectedRadarHighlight,
   highlightRadarOnSelect,
-} from '@/views/aviation-situation/composables/radar/radar-highlight-manager'
+} from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
 import { RADAR_INTERACTION_STYLE } from '@/views/aviation-situation/composables/radar/radar-constants'
 
 const isSameDrawingToolSelection = (

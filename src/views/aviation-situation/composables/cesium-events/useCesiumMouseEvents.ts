@@ -87,10 +87,8 @@ import {
 } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
 import {
   clearHoveredRadarHighlight,
-} from '@/views/aviation-situation/composables/radar/radar-highlight-manager'
-import {
   isRadarPickId,
-} from '@/views/aviation-situation/composables/radar/radar-highlight-manager'
+} from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
 import {
   handlePhotogrammetryBuildingHover,
   handlePhotogrammetryBuildingLeftClick,
@@ -436,6 +434,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     })
 
   const findRadarPicked = (pickedObjects: PickedObjectLike[]) =>
+    //雷达「一雷达一 Primitive + 对象 id」和倾斜摄影「一批楼一 Primitive + string id + registry」是两套常见写法，不必强行统一。
     pickedObjects.find((obj) => isRadarPickId(obj.id))
 
   const buildLngLatAltFromEntity = (
@@ -631,7 +630,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
       controlZoneLeave()
-
+      console.log("radarPicked", radarPicked);
       handleRadarHover(radarPicked.id, movement.endPosition)
       return
     }

@@ -1,23 +1,16 @@
-import * as Cesium from 'cesium'
-import type { RadarHighlightStyle } from '@/views/aviation-situation/types/radar'
-import type { RadarPickId, RadarPrimitivePair } from './radar-highlight-manager-types'
+import type {
+  RadarHighlightStyle,
+  RadarPickId,
+} from '@/views/aviation-situation/types/radar'
+import {
+  getRadarRenderState,
+  type RadarPrimitivePair,
+} from '@/views/aviation-situation/composables/radar/radar-registry'
 
-export type { RadarPickId, RadarPrimitivePair } from './radar-highlight-manager-types'
+export type { RadarPrimitivePair }
 
-const pairById = new Map<string, RadarPrimitivePair>()
 let hoveredRadarId: string | null = null
 let selectedRadarId: string | null = null
-
-export function registerRadarPrimitivePair(
-  radarId: string,
-  pair: RadarPrimitivePair,
-): void {
-  pairById.set(radarId, pair)
-}
-
-export function unregisterRadarPrimitivePair(radarId: string): void {
-  pairById.delete(radarId)
-}
 
 const applyRadarStyle = (pair: RadarPrimitivePair, style: RadarHighlightStyle): void => {
   pair.scanMaterial.uniforms.color = style.color
@@ -25,9 +18,9 @@ const applyRadarStyle = (pair: RadarPrimitivePair, style: RadarHighlightStyle): 
 }
 
 const restoreBaseStyle = (radarId: string): void => {
-  const pair = pairById.get(radarId)
-  if (!pair) return
-  applyRadarStyle(pair, pair.baseStyle)
+  const state = getRadarRenderState(radarId)
+  if (!state) return
+  applyRadarStyle(state.primitives, state.primitives.baseStyle)
 }
 
 export function highlightRadarOnHover(radarId: string, style: RadarHighlightStyle): void {
@@ -38,11 +31,11 @@ export function highlightRadarOnHover(radarId: string, style: RadarHighlightStyl
     restoreBaseStyle(hoveredRadarId)
   }
 
-  const pair = pairById.get(radarId)
-  if (!pair) return
+  const state = getRadarRenderState(radarId)
+  if (!state) return
 
   hoveredRadarId = radarId
-  applyRadarStyle(pair, style)
+  applyRadarStyle(state.primitives, style)
 }
 
 export function highlightRadarOnSelect(radarId: string, style: RadarHighlightStyle): void {
@@ -55,11 +48,11 @@ export function highlightRadarOnSelect(radarId: string, style: RadarHighlightSty
     hoveredRadarId = null
   }
 
-  const pair = pairById.get(radarId)
-  if (!pair) return
+  const state = getRadarRenderState(radarId)
+  if (!state) return
 
   selectedRadarId = radarId
-  applyRadarStyle(pair, style)
+  applyRadarStyle(state.primitives, style)
 }
 
 export function clearHoveredRadarHighlight(): void {
@@ -97,8 +90,4 @@ export function isRadarPickId(value: unknown): value is RadarPickId {
     (value as RadarPickId).sourceType === 'radar' &&
     typeof (value as RadarPickId).id === 'string'
   )
-}
-
-export function getAllRadarScanMaterials(): Cesium.Material[] {
-  return [...pairById.values()].map((pair) => pair.scanMaterial)
 }

@@ -20,7 +20,7 @@ import type {
   ControlZoneTableRowOperation,
 } from '@/views/aviation-situation/types/control-zone'
 import type { ControlZoneProperties } from '@/network/control-zone/type'
-import type { RadarTableRowOperation } from '@/views/aviation-situation/types/radar'
+import type { RadarPickId, RadarTableRowOperation } from '@/views/aviation-situation/types/radar'
 
 export type CesiumMouseEventName =
   | 'aircraftHover'
@@ -106,9 +106,9 @@ export interface EventCallbackMap {
   controlZoneLeave: () => void;
   controlZoneLeftClick: (properties: ControlZoneProperties, entity: Cesium.Entity) => void;
 
-  radarHover: (pickId: import('@/views/aviation-situation/composables/radar/radar-highlight-manager').RadarPickId, position: Cesium.Cartesian2) => void;
+  radarHover: (pickId: RadarPickId, position: Cesium.Cartesian2) => void;
   radarLeave: () => void;
-  radarLeftClick: (pickId: import('@/views/aviation-situation/composables/radar/radar-highlight-manager').RadarPickId) => void;
+  radarLeftClick: (pickId: RadarPickId) => void;
   radarTableOperationClicked: (radarTableRowOperation: RadarTableRowOperation) => void;
 
   mouseWheel: (camera: Cesium.Camera) => void;
