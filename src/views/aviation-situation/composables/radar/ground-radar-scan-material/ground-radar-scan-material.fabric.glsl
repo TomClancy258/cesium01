@@ -67,7 +67,8 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   // 不是转扇形，也不是改 uv 变量：
   // 用旋转后的坐标 sectorPos = R * uv 去测「固定的」sdPie
   //顺时针旋转rotationRadius弧度，再顺时针旋转 czm_pi/2.0-haldAperture  弧度
-  vec2 sectorPos=rotate2DCW(czm_pi/2.0-haldAperture)*rotate2DCW(rotationRadius)*uv;
+//  vec2 sectorPos=rotate2DCW(czm_pi/2.0-haldAperture)*rotate2DCW(rotationRadius)*uv;
+  vec2 sectorPos=rotate2DCW(rotationRadius)*uv;
   float distToPie=sdPie(sectorPos,c,0.5);
 
   //---------------------------------------------------------------

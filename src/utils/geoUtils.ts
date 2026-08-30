@@ -418,7 +418,10 @@ function interpolateGeodesicEdge(
   return points;
 }
 
-/** 地表圆内判定；先经纬度粗盒预筛，再算大地线（避免圆外点走 EllipsoidGeodesic） */
+/**
+ * 地表圆内判定。
+ * 预筛：椭球面上两点的 ECEF 弦长 ≤ 地表弧长；弦长 > radius 必在圆外，可跳过 EllipsoidGeodesic。
+ */
 export const isInCircle = (
   lngLatAltArray: LngLatAltArray,
   center: LngLatAltArray,
@@ -426,27 +429,12 @@ export const isInCircle = (
 ): boolean => {
   if (!(radius > 0)) return false
 
-  const lon = lngLatAltArray[0]
-  const lat = lngLatAltArray[1]
-  const centerLon = center[0]
-  const centerLat = center[1]
-
-  // 约 111.32 km/°；经度按 cos(lat) 缩放。略放大避免球近似误杀。
-  const metersPerDegLat = 111_320
-  const cosLat = Math.max(Math.abs(Math.cos((centerLat * Math.PI) / 180)), 0.01)
-  const pad = 1.05
-  const dLat = (radius * pad) / metersPerDegLat
-  const dLng = (radius * pad) / (metersPerDegLat * cosLat)
-
-  const latDelta = Math.abs(lat - centerLat)
-  if (latDelta > dLat) return false
-
-  // 最短经差（处理跨日界线）
-  const lonDelta = Math.min(
-    Math.abs(lon - centerLon),
-    360 - Math.abs(lon - centerLon),
+  // 高度取 0，与地表距离语义一致
+  const chord = calculateDistance(
+    [lngLatAltArray[0], lngLatAltArray[1], 0],
+    [center[0], center[1], 0],
   )
-  if (lonDelta > dLng) return false
+  if (chord > radius) return false
 
   return calculateSurfaceDistance(lngLatAltArray, center) <= radius
 }
