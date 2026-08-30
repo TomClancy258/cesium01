@@ -8,9 +8,8 @@ import AirportFilter from '@/views/aviation-situation/components/map-tools/panel
 import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue'
 import RadarFilter from '@/views/aviation-situation/components/map-tools/panels/RadarFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
-import AircraftTrajectoryOptions from '@/views/aviation-situation/components/map-tools/panels/AircraftTrajectoryOption.vue'
 
-import { Fold, Filter, Share,PictureRounded,OfficeBuilding } from '@element-plus/icons-vue'
+import { Fold, Filter, PictureRounded, OfficeBuilding } from '@element-plus/icons-vue'
 import { useRegionSelectionStore } from '@/stores/region-selection'
 import CityModel
   from '@/views/aviation-situation/components/map-tools/panels/city-model/CityModel.vue'
@@ -77,12 +76,6 @@ watch(
                 </el-icon>
                 <span>飞机筛选</span>
               </el-menu-item>
-              <el-menu-item index="trajectoryOption">
-                <el-icon class="header-icon">
-                  <Share />
-                </el-icon>
-                <span>轨迹选项</span>
-              </el-menu-item>
               <el-menu-item index="airportFilter">
                 <el-icon class="header-icon">
                   <Filter />
@@ -123,7 +116,6 @@ watch(
           </el-col>
           <el-col :span="22" style="padding: 0 5px">
             <AircraftFilter v-show="activeIndex === 'aircraftFilter'" />
-            <AircraftTrajectoryOptions v-show="activeIndex === 'trajectoryOption'" />
             <AirportFilter v-show="activeIndex === 'airportFilter'" />
             <ControlZoneFilter v-show="activeIndex === 'controlZoneFilter'" />
             <RadarFilter v-show="activeIndex === 'radarFilter'" />

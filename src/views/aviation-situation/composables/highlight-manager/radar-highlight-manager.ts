@@ -4,6 +4,7 @@ import type {
 } from '@/views/aviation-situation/types/radar'
 import {
   getRadarRenderState,
+  getRadarScanMaterial,
   type RadarPrimitivePair,
 } from '@/views/aviation-situation/composables/radar/radar-registry'
 
@@ -13,7 +14,7 @@ let hoveredRadarId: string | null = null
 let selectedRadarId: string | null = null
 
 const applyRadarStyle = (pair: RadarPrimitivePair, style: RadarHighlightStyle): void => {
-  pair.scanMaterial.uniforms.color = style.color
+  getRadarScanMaterial(pair).uniforms.color = style.color
 }
 
 const restoreBaseStyle = (radarId: string): void => {

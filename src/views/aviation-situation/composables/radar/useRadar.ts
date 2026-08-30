@@ -52,7 +52,9 @@ function createRadarGroundPrimitive(
   )
   const pickId: RadarPickId = { sourceType: 'radar', id: radar.id }
   const baseStyle = {
-    color: RADAR_DEFAULT_STYLE.color.clone(),
+    color: radar.detectAircraft
+      ? RADAR_DEFAULT_STYLE.color.clone()
+      : RADAR_DEFAULT_STYLE.unDetectColor.clone(),
   }
 
   const scanMaterial = createGroundRadarScanMaterial({
@@ -79,7 +81,6 @@ function createRadarGroundPrimitive(
 
   return {
     fillPrimitive,
-    scanMaterial,
     baseStyle,
   }
 }

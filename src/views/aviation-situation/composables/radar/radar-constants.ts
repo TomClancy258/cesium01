@@ -3,7 +3,9 @@ import { GROUND_RADAR_SCAN_DEFAULTS } from './ground-radar-scan-material/ground-
 
 /** 地面雷达扫描圆默认样式（青色，与卫星雷达同族） */
 export const RADAR_DEFAULT_STYLE = {
+  /** 可探测飞机：实青 CYAN @ 0.85 */
   color: GROUND_RADAR_SCAN_DEFAULTS.color.clone(),
+  unDetectColor: Cesium.Color.fromCssColorString('#38BDF8').withAlpha(0.85),
 } as const
 
 export const RADAR_INTERACTION_STYLE = {

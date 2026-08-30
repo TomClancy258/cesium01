@@ -108,6 +108,16 @@ const onDetail = (row: Aircraft) => {
       <el-form-item label="显示飞机标签" prop="labelVisible">
         <el-checkbox v-model="aircraftStore.aircraftFilterForm.labelVisible" />
       </el-form-item>
+      <el-form-item label="计划轨迹">
+        <el-checkbox
+          v-model="aircraftStore.aircraftTrajectoryOptions.planned.trajectoryVisible"
+        />
+      </el-form-item>
+      <el-form-item label="计划航路点">
+        <el-checkbox
+          v-model="aircraftStore.aircraftTrajectoryOptions.planned.waypointsVisible"
+        />
+      </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="onAircraftSubmit">确认</el-button>
         <el-button @click="resetAircraftForm(aircraftFilterFormRef)">重置</el-button>

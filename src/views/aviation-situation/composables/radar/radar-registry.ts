@@ -4,10 +4,9 @@ import type {
   RadarTable,
 } from '@/views/aviation-situation/types/radar'
 
-/** 单部雷达的 GroundPrimitive + 扫描材质 + 基础样式（高亮还原用） */
+/** 单部雷达的 GroundPrimitive + 基础样式（高亮还原用）；材质从 appearance.material 取 */
 export type RadarPrimitivePair = {
   fillPrimitive: Cesium.GroundPrimitive
-  scanMaterial: Cesium.Material
   baseStyle: RadarHighlightStyle
 }
 
@@ -18,6 +17,12 @@ export type RadarRenderState = {
 }
 
 const radarRenderMap = new Map<string, RadarRenderState>()
+
+export function getRadarScanMaterial(
+  pair: RadarPrimitivePair,
+): Cesium.Material {
+  return (pair.fillPrimitive.appearance as Cesium.MaterialAppearance).material
+}
 
 export function registerRadar(
   radarId: string,
@@ -47,7 +52,7 @@ export function forEachRadarRenderState(
 }
 
 export function getAllRadarScanMaterials(): Cesium.Material[] {
-  return [...radarRenderMap.values()].map(
-    (state) => state.primitives.scanMaterial,
+  return [...radarRenderMap.values()].map((state) =>
+    getRadarScanMaterial(state.primitives),
   )
 }

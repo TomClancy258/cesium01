@@ -118,20 +118,28 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   //length(vec)
   float r=length(uv);
   float borderWidth=0.02;
-  float distToBorder=0.5-borderWidth;
 
-  float borderOuterToR=0.005;
-  float borderOuter=0.5-borderOuterToR;//0.495
-  float borderInner=0.5-borderOuterToR-borderWidth;//0.475
+//  float borderOuterToR=0.005;
+//  float borderOuter=0.5-borderOuterToR;//0.495
+//  float borderInner=0.5-borderOuterToR-borderWidth;//0.475
+//
+//  float aa=max(fwidth(r),0.002);
+//
+//  float alphaOuter=1.0-smoothstep(borderOuter-aa,borderOuter+aa,r);
+//  float alphaInner=smoothstep(borderInner-aa,borderInner+aa,r);
+//
+//  float rim = alphaOuter * alphaInner;
+//  alpha = max(alpha, rim);
 
-  float aa=max(fwidth(distToBorder),0.002);
+  float edge = 0.5;
+  float aa = max(fwidth(r), 0.002);  // 对 r 求 fwidth 更贴切
 
-  float alphaOuter=1.0-smoothstep(borderOuter-aa,borderOuter+aa,r);
-  float alphaInner=smoothstep(borderInner-aa,borderInner+aa,r);
-
+  float alphaOuter = 1.0 - smoothstep(edge - aa, edge, r);           // 贴边，只向内淡
+  float alphaInner = smoothstep(edge - borderWidth - aa, edge - borderWidth, r);
   float rim = alphaOuter * alphaInner;
   alpha = max(alpha, rim);
 
+  float distToBorder=0.5-borderWidth;
 //  alpha=mix(alpha,1.0,step(distToBorder,r));
 
   //法三的if->step版本：
@@ -160,7 +168,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 //  vec3 finalColor = mix(color.rgb, yellow, onAxis);
 
   material.diffuse = color.rgb;
-  material.alpha = alpha;
+  material.alpha = alpha* color.a;
 
 
 
