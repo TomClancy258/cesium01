@@ -8,6 +8,7 @@ import OSMBuildingTooltip from './components/tooltip/OSMBuildingTooltip.vue'
 import PhotogrammetryTooltip from './components/tooltip/PhotogrammetryTooltip.vue'
 import ControlZoneTooltip from './components/tooltip/ControlZoneTooltip.vue'
 import RadarTooltip from './components/tooltip/RadarTooltip.vue'
+import WallTooltip from './components/tooltip/WallTooltip.vue'
 import DistanceSurveyHint from './components/hint/DistanceSurveyHint.vue'
 import AltitudeLegend from './components/hint/AltitudeLegend.vue'
 import { useCesiumViewer } from './composables/useCesiumViewer.ts'
@@ -38,6 +39,7 @@ import { useRegionSelectionStore } from '@/stores/region-selection'
 import { useSatelliteStore } from '@/stores/satellite'
 import { usePhotogrammetryStore } from '@/stores/photogrammetry'
 import { useControlZoneStore } from '@/stores/control-zone'
+import { useWallStore } from '@/stores/wall'
 
 import {drawPolylineGeometry} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson02-polylineGeometry.ts"
 import {drawPolylineGeometryAppearance} from "@/views/aviation-situation/composables/cesium-lessons/intermediate-tutorial/lesson04-polylineGeometry-appearance.ts"
@@ -58,6 +60,7 @@ import { useOSMBuilding } from '@/views/aviation-situation/composables/osm-build
 import { usePhotogrammetry } from '@/views/aviation-situation/composables/photogrammetry/usePhotogrammetry'
 import { useControlZone } from '@/views/aviation-situation/composables/control-zone/useControlZone'
 import { useRadar } from '@/views/aviation-situation/composables/radar/useRadar'
+import { useWall } from '@/views/aviation-situation/composables/wall/useWall'
 import {
   clearAllOSMBuildingHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/osm-building-highlight-manager'
@@ -80,6 +83,7 @@ const osmBuildingStore = useOSMBuildingStore()
 const satelliteStore = useSatelliteStore()
 const photogrammetryStore = usePhotogrammetryStore()
 const controlZoneStore = useControlZoneStore()
+const wallStore = useWallStore()
 
 const {
   mouseEvents: {
@@ -93,6 +97,7 @@ const {
     flyToAircraftByIcao24,
     highlightAircraftByControlZone,
     highlightAircraftByRadar,
+    highlightAircraftByWall,
     aircraftRenderMap,
   },
   airport: {
@@ -136,6 +141,10 @@ const { initRadars, filterRadars, flyToRadarById } = useRadar(cesiumViewer, {
   onMatchedRadarsChanged: highlightAircraftByRadar,
 })
 
+const { initWalls, filterWalls, flyToWallById } = useWall(cesiumViewer, {
+  onMatchedWallsChanged: highlightAircraftByWall,
+})
+
 const { initSpatialSelection } = useSpatialSelection(cesiumViewer)
 
 const detailDrawerRef = ref(null)
@@ -163,6 +172,7 @@ onMounted(async () => {
   initOSMBuildings()
   initControlZones()
   initRadars()
+  initWalls()
 
   initPhotogrammetrys()
 
@@ -217,6 +227,9 @@ onUnmounted(() => {
   controlZoneStore.resetControlZoneFilterForm()
   controlZoneStore.clearMatchedControlZones()
 
+  wallStore.resetWallFilterForm()
+  wallStore.clearMatchedWalls()
+
   drawingToolStore.resetSpatialSelectFilterForm()
   spatialSelectionStore.clearActiveAircraftSpatialSelection()
   spatialSelectionStore.clearActiveAirportSpatialSelection()
@@ -269,6 +282,8 @@ provide('flyToAirportByIcao', flyToAirportByIcao)
 provide('flyToSatelliteById', flyToSatelliteById)
 provide('flyToRadarById', flyToRadarById)
 provide('filterRadars', filterRadars)
+provide('flyToWallById', flyToWallById)
+provide('filterWalls', filterWalls)
 provide('filterOSMBuildings', filterOSMBuildings)
 provide('tooltipPosition', tooltipPosition)
 provide('aircraftRenderMap', aircraftRenderMap)
@@ -294,6 +309,7 @@ provide('removeActivePhotogrammetry', removeActivePhotogrammetry)
     <PhotogrammetryTooltip :position="tooltipPosition" />
     <ControlZoneTooltip :position="tooltipPosition" />
     <RadarTooltip :position="tooltipPosition" />
+    <WallTooltip :position="tooltipPosition" />
     <DetailDrawer />
     <!--    <DetailDrawer ref="detailDrawerRef" @close="clearSelectedBillboardHighlight" />-->
     <MapToolsDrawer />

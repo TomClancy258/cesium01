@@ -83,13 +83,23 @@ import {
   handleRadarLeftClick,
 } from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/radar'
 import {
+  handleWallHover,
+  handleWallLeave,
+  handleWallLeftClick,
+} from '@/views/aviation-situation/composables/cesium-events/event-handlers/interaction/wall'
+import {
   clearHoveredControlZoneHighlight
 } from '@/views/aviation-situation/composables/highlight-manager/control-zone-highlight-manager'
 import {
   clearHoveredRadarHighlight,
   isRadarPickId,
 } from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
+import {
+  clearHoveredWallHighlight,
+  isWallPickId,
+} from '@/views/aviation-situation/composables/highlight-manager/wall-highlight-manager'
 import type { RadarPickId } from '@/views/aviation-situation/types/radar'
+import type { WallPickId } from '@/views/aviation-situation/types/wall'
 import {
   handlePhotogrammetryBuildingHover,
   handlePhotogrammetryBuildingLeftClick,
@@ -110,6 +120,7 @@ type PickedObjectLike = {
 }
 
 type RadarPickedObject = PickedObjectLike & { id: RadarPickId }
+type WallPickedObject = PickedObjectLike & { id: WallPickId }
 
 type BillboardWithProps = Cesium.Billboard & {
   properties?: MapBillboardLabelProperties
@@ -312,6 +323,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
         return
       }
 
+      const wallPicked = findWallPicked(pickedObjects)
+      if (wallPicked) {
+        handleWallLeftClick(wallPicked.id)
+        return
+      }
+
       const drawingToolEntityPicked = findDrawingToolEntityPicked(pickedObjects)
       if (drawingToolEntityPicked) {
         const entity = drawingToolEntityPicked.id
@@ -439,8 +456,12 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
   const findRadarPicked = (
     pickedObjects: PickedObjectLike[],
   ): RadarPickedObject | undefined =>
-    // 雷达「一雷达一 Primitive + 对象 id」和倾斜摄影「一批楼一 Primitive + string id + registry」是两套常见写法，不必强行统一。
     pickedObjects.find((obj): obj is RadarPickedObject => isRadarPickId(obj.id))
+
+  const findWallPicked = (
+    pickedObjects: PickedObjectLike[],
+  ): WallPickedObject | undefined =>
+    pickedObjects.find((obj): obj is WallPickedObject => isWallPickId(obj.id))
 
   const buildLngLatAltFromEntity = (
     entity: Cesium.Entity,
@@ -467,6 +488,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     photogrammetryBuildingLeave()
     controlZoneLeave()
     radarLeave()
+    wallLeave()
   }
 
   // 鼠标移动（节流）
@@ -485,6 +507,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       controlZoneLeave()
       radarLeave()
+      wallLeave()
 
       const entity = satelliteModelPicked.id
       if (!(entity instanceof Cesium.Entity)) return
@@ -513,6 +536,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       controlZoneLeave()
       radarLeave()
+      wallLeave()
 
       const billboard = billboardPicked.primitive as BillboardWithProps
       const properties = billboard.properties
@@ -539,6 +563,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       controlZoneLeave()
       radarLeave()
+      wallLeave()
 
       // const propertyIds = buildingPicked.getPropertyIds();
       // const length = propertyIds.length;
@@ -588,6 +613,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       osmBuildingLeave()
       controlZoneLeave()
       radarLeave()
+      wallLeave()
 
       const buildingId = photogrammetryBuildingPicked.id
       if (!hasPhotogrammetryBuilding(buildingId)) return
@@ -606,12 +632,26 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       controlZoneLeave()
       radarLeave()
+      wallLeave()
 
       const entity = drawingToolEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
 
       const properties: DrawingToolEntityProperties = entity.properties.getValue()
       handleDrawingToolHover(viewer, entity, properties)
+      return
+    }
+
+    const wallPicked = findWallPicked(pickedObjects)
+    if (wallPicked) {
+      aviationBillboardLeave()
+      satelliteLeave()
+      osmBuildingLeave()
+      photogrammetryBuildingLeave()
+      clearHoveredDrawingToolHighlight()
+      controlZoneLeave()
+      radarLeave()
+      handleWallHover(wallPicked.id, movement.endPosition)
       return
     }
 
@@ -623,6 +663,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
       radarLeave()
+      wallLeave()
 
       const entity = controlZoneEntityPicked.id
       if (!(entity instanceof Cesium.Entity) || !entity.properties) return
@@ -640,6 +681,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       photogrammetryBuildingLeave()
       clearHoveredDrawingToolHighlight()
       controlZoneLeave()
+      wallLeave()
       handleRadarHover(radarPicked.id, movement.endPosition)
       return
     }
@@ -679,6 +721,11 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
     handleRadarLeave()
   }
 
+  const wallLeave = (): void => {
+    clearHoveredWallHighlight()
+    handleWallLeave()
+  }
+
   // 销毁事件监听
   const destroyEvents = () => {
     if (handler) handler.destroy()
@@ -692,6 +739,7 @@ export const useCesiumMouseEvents = (viewer: ShallowRef<Cesium.Viewer | null>) =
       'photogrammetryBuildingHover', 'photogrammetryBuildingLeave', 'photogrammetryBuildingLeftClick',
       'controlZoneHover', 'controlZoneLeave', 'controlZoneLeftClick',
       'radarHover', 'radarLeave', 'radarLeftClick', 'radarTableOperationClicked',
+      'wallHover', 'wallLeave', 'wallLeftClick', 'wallTableOperationClicked',
       'mouseWheel'
     ]
     eventNames.forEach(name => mittBus.off(name))

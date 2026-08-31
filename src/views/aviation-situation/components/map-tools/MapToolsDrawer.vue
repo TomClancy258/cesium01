@@ -7,6 +7,7 @@ import AircraftFilter from '@/views/aviation-situation/components/map-tools/pane
 import AirportFilter from '@/views/aviation-situation/components/map-tools/panels/AirportFilter.vue'
 import ControlZoneFilter from '@/views/aviation-situation/components/map-tools/panels/ControlZoneFilter.vue'
 import RadarFilter from '@/views/aviation-situation/components/map-tools/panels/RadarFilter.vue'
+import WallFilter from '@/views/aviation-situation/components/map-tools/panels/WallFilter.vue'
 import SatelliteFilter from '@/views/aviation-situation/components/map-tools/panels/SatelliteFilter.vue'
 
 import { Fold, Filter, PictureRounded, OfficeBuilding } from '@element-plus/icons-vue'
@@ -43,7 +44,9 @@ watch(
         ? 'controlZoneFilter'
         : selected.sourceType === 'radar'
           ? 'radarFilter'
-          : 'spatialSelection'
+          : selected.sourceType === 'wall'
+            ? 'wallFilter'
+            : 'spatialSelection'
     drawer.value = true
   },
 )
@@ -100,6 +103,12 @@ watch(
                 </el-icon>
                 <span>雷达筛选</span>
               </el-menu-item>
+              <el-menu-item index="wallFilter">
+                <el-icon class="header-icon">
+                  <Filter />
+                </el-icon>
+                <span>电子围栏筛选</span>
+              </el-menu-item>
               <el-menu-item index="spatialSelection">
                 <el-icon class="header-icon">
                   <PictureRounded />
@@ -119,6 +128,7 @@ watch(
             <AirportFilter v-show="activeIndex === 'airportFilter'" />
             <ControlZoneFilter v-show="activeIndex === 'controlZoneFilter'" />
             <RadarFilter v-show="activeIndex === 'radarFilter'" />
+            <WallFilter v-show="activeIndex === 'wallFilter'" />
             <SatelliteFilter v-show="activeIndex === 'satelliteFilter'" />
             <SpatialSelection v-show="activeIndex === 'spatialSelection'" />
             <CityModel v-show="activeIndex === 'cityModel'" />

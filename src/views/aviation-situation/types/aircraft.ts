@@ -29,6 +29,7 @@ export interface AircraftBillboardProperties {
     spatialSelection: string | null
     controlZone: string | null
     radar: string | null
+    wall: string | null
   }
 }
 

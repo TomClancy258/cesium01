@@ -75,6 +75,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 //  float alpha=mix(1.0,0.0,step(0.0,distToPie)); //用下面的“亮边外侧抗锯齿”代替这行，
   //---------------------------------------------------------------
   float aaPie = max(fwidth(distToPie), 0.002);
+    //亮边外面 距离[0,aa]的mask=[1,0]
   float mask = 1.0 - smoothstep(0.0, aaPie, distToPie);  // 软进出
 
   float trail = 0.0;

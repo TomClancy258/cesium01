@@ -11,7 +11,6 @@ import {
   controlZoneLevelOptions,
   getControlZoneLevelLabel,
 } from '@/views/aviation-situation/constants/control-zone-filter-data'
-import { formatFixed4 } from '../../../utils/format-detail-value'
 import type { ControlZoneLevel } from '@/network/control-zone/type'
 import { emitCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
 import { useRegionSelectionStore } from '@/stores/region-selection'
@@ -179,12 +178,12 @@ const isTypesIndeterminate = computed(() => {
       </el-table-column>
       <el-table-column label="最低高度">
         <template #default="{ row }">
-          {{ formatFixed4(row.controlZone.minAltitude) }} m
+          {{ row.controlZone.minAltitude }} m
         </template>
       </el-table-column>
       <el-table-column label="最高高度">
         <template #default="{ row }">
-          {{ formatFixed4(row.controlZone.maxAltitude) }} m
+          {{ row.controlZone.maxAltitude }} m
         </template>
       </el-table-column>
       <el-table-column label="飞机数" width="80px" align="center">

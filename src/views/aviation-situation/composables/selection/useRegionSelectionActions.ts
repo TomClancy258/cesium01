@@ -4,6 +4,7 @@ import type { DrawingToolSelectedData } from '@/views/aviation-situation/types/s
 import type {
   ControlZoneRegionSelectedData,
   RadarRegionSelectedData,
+  WallRegionSelectedData,
   RegionSelectedData,
 } from '@/views/aviation-situation/types/region-selection'
 import { clearSelectedDrawingToolHighlight } from '@/views/aviation-situation/composables/highlight-manager/drawing-tool-highlight-manager'
@@ -17,13 +18,24 @@ import {
   clearSelectedRadarHighlight,
   highlightRadarOnSelect,
 } from '@/views/aviation-situation/composables/highlight-manager/radar-highlight-manager'
+import {
+  clearSelectedWallHighlight,
+  highlightWallOnSelect,
+} from '@/views/aviation-situation/composables/highlight-manager/wall-highlight-manager'
 import { RADAR_INTERACTION_STYLE } from '@/views/aviation-situation/composables/radar/radar-constants'
+import { WALL_INTERACTION_STYLE } from '@/views/aviation-situation/composables/wall/wall-constants'
+import { getWallRenderState } from '@/views/aviation-situation/composables/wall/wall-registry'
 
 const isSameDrawingToolSelection = (
   selected: RegionSelectedData | null,
   data: DrawingToolSelectedData,
 ): boolean => {
-  if (!selected || selected.sourceType === 'controlZone' || selected.sourceType === 'radar') {
+  if (
+    !selected ||
+    selected.sourceType === 'controlZone' ||
+    selected.sourceType === 'radar' ||
+    selected.sourceType === 'wall'
+  ) {
     return false
   }
   return selected.dataSourceName === data.dataSourceName && selected.id === data.id
@@ -47,10 +59,18 @@ const isSameRadarSelection = (
   return selected !== null && selected.sourceType === 'radar' && selected.id === data.id
 }
 
-/** 写入测绘框选/测距选中，并清管控区/雷达选中高亮（区域轨互斥） */
+const isSameWallSelection = (
+  selected: RegionSelectedData | null,
+  data: WallRegionSelectedData,
+): boolean => {
+  return selected !== null && selected.sourceType === 'wall' && selected.id === data.id
+}
+
+/** 写入测绘框选/测距选中，并清管控区/雷达/围栏选中高亮（区域轨互斥） */
 export const selectDrawingToolRegion = (data: DrawingToolSelectedData): void => {
   clearSelectedControlZoneHighlight()
   clearSelectedRadarHighlight()
+  clearSelectedWallHighlight()
 
   const regionSelectionStore = useRegionSelectionStore()
   if (!isSameDrawingToolSelection(regionSelectionStore.selected, data)) {
@@ -58,13 +78,14 @@ export const selectDrawingToolRegion = (data: DrawingToolSelectedData): void => 
   }
 }
 
-/** 选中管控区，并清测绘图形/雷达选中高亮（区域轨互斥） */
+/** 选中管控区，并清测绘图形/雷达/围栏选中高亮（区域轨互斥） */
 export const selectControlZoneRegion = (
   entity: Cesium.Entity,
   data: ControlZoneRegionSelectedData,
 ): void => {
   clearSelectedDrawingToolHighlight()
   clearSelectedRadarHighlight()
+  clearSelectedWallHighlight()
 
   const highlightConfig: ControlZoneHighlightConfig = {
     polygon: {
@@ -79,10 +100,11 @@ export const selectControlZoneRegion = (
   }
 }
 
-/** 选中雷达，并清测绘图形/管控区选中高亮（区域轨互斥） */
+/** 选中雷达，并清测绘图形/管控区/围栏选中高亮（区域轨互斥） */
 export const selectRadarRegion = (data: RadarRegionSelectedData): void => {
   clearSelectedDrawingToolHighlight()
   clearSelectedControlZoneHighlight()
+  clearSelectedWallHighlight()
 
   highlightRadarOnSelect(data.id, {
     color: RADAR_INTERACTION_STYLE.select.color,
@@ -90,6 +112,27 @@ export const selectRadarRegion = (data: RadarRegionSelectedData): void => {
 
   const regionSelectionStore = useRegionSelectionStore()
   if (!isSameRadarSelection(regionSelectionStore.selected, data)) {
+    regionSelectionStore.setSelected(data)
+  }
+}
+
+/** 选中电子围栏，并清测绘图形/管控区/雷达选中高亮（区域轨互斥） */
+export const selectWallRegion = (data: WallRegionSelectedData): void => {
+  clearSelectedDrawingToolHighlight()
+  clearSelectedControlZoneHighlight()
+  clearSelectedRadarHighlight()
+
+  const renderState = getWallRenderState(data.id)
+  if (renderState) {
+    const style =
+      renderState.primitives.visualStyle === 'layeredRing'
+        ? WALL_INTERACTION_STYLE.layeredRing.select
+        : WALL_INTERACTION_STYLE.arrowWall.select
+    highlightWallOnSelect(data.id, style)
+  }
+
+  const regionSelectionStore = useRegionSelectionStore()
+  if (!isSameWallSelection(regionSelectionStore.selected, data)) {
     regionSelectionStore.setSelected(data)
   }
 }
@@ -103,6 +146,8 @@ export const clearSelectedRegion = (): void => {
     clearSelectedControlZoneHighlight()
   } else if (selected?.sourceType === 'radar') {
     clearSelectedRadarHighlight()
+  } else if (selected?.sourceType === 'wall') {
+    clearSelectedWallHighlight()
   } else if (
     selected?.sourceType === 'distanceMeasurement' ||
     selected?.sourceType === 'polygonSpatialSelection' ||

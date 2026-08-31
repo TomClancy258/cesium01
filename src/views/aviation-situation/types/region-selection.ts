@@ -13,11 +13,19 @@ export type RadarRegionSelectedData = {
   name: string
 }
 
+/** 电子围栏选中（底部抽屉「电子围栏筛选」） */
+export type WallRegionSelectedData = {
+  sourceType: 'wall'
+  id: string
+  name: string
+}
+
 /**
- * 区域轨选中：测绘框选 / 测距 / 管控区 / 雷达互斥
+ * 区域轨选中：测绘框选 / 测距 / 管控区 / 雷达 / 电子围栏互斥
  *（对标 aviation-selection 的实体轨）
  */
 export type RegionSelectedData =
   | DrawingToolSelectedData
   | ControlZoneRegionSelectedData
   | RadarRegionSelectedData
+  | WallRegionSelectedData

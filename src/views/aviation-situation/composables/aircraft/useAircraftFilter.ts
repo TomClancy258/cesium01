@@ -19,6 +19,7 @@ interface UseAircraftFilterOptions {
   onAviationDataUpdated: () => void
   onHighlightAircraftByControlZone: () => void
   onHighlightAircraftByRadar: () => void
+  onHighlightAircraftByWall: () => void
 }
 
 export function useAircraftFilter(options: UseAircraftFilterOptions) {
@@ -34,6 +35,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     onFinishedSpatialSelection,
     onHighlightAircraftByControlZone,
     onHighlightAircraftByRadar,
+    onHighlightAircraftByWall,
     onAviationDataUpdated,
   } = options
 
@@ -84,6 +86,7 @@ export function useAircraftFilter(options: UseAircraftFilterOptions) {
     onFinishedSpatialSelection()
     onHighlightAircraftByControlZone()
     onHighlightAircraftByRadar()
+    onHighlightAircraftByWall()
     onAviationDataUpdated()
   }, 300)
 

@@ -179,6 +179,7 @@ export interface AviationAssociationSets {
   coneScanSatelliteId: Set<string>
   controlZoneId?: Set<string> // aircraft only
   radarId?: Set<string> // aircraft only
+  wallId?: Set<string> // aircraft only
 }
 
 // 通用 RenderItem（用泛型）

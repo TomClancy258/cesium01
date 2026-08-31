@@ -24,7 +24,7 @@ const getBillboardProperties = (billboard: Cesium.Billboard): BillboardPropertie
 // 工具方法：按统一优先级刷新图片
 const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
 
-  // 优先级：selected > hovered > spatialSelected > controlZone > radar > satelliteConeScan > original
+  // 优先级：selected > hovered > spatialSelected > controlZone > wall > radar > satelliteConeScan > original
   if (billboard === selectedBillboard && selectedHighlightImage) {
     billboard.image = selectedHighlightImage
     return
@@ -40,6 +40,10 @@ const applyBillboardImageByPriority = (billboard: Cesium.Billboard) => {
   }
   if ('controlZone' in properties.images && properties.images.controlZone) {
     billboard.image = properties.images.controlZone
+    return
+  }
+  if ('wall' in properties.images && properties.images.wall) {
+    billboard.image = properties.images.wall
     return
   }
   if ('radar' in properties.images && properties.images.radar) {
@@ -152,6 +156,39 @@ export function clearControlZoneHighlight(
   // 只在最后一个管控区移除时才清掉图片，避免冗余赋值
   if (controlZoneIdSet.size === 0) {
     properties.images.controlZone = null
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
+export function highlightBillboardOnWall(
+  wallId: string,
+  billboard: Cesium.Billboard,
+  highlightImage: string,
+  sets: AviationAssociationSets,
+): void {
+  const properties = getBillboardProperties(billboard)
+  if (sets.wallId == null || !('wall' in properties.images)) return
+  const wallIdSet = sets.wallId
+  const alreadyTracked = wallIdSet.has(wallId)
+  if (!alreadyTracked) {
+    wallIdSet.add(wallId)
+    properties.images.wall = highlightImage
+  }
+  applyBillboardImageByPriority(billboard)
+}
+
+export function clearWallHighlight(
+  wallId: string,
+  billboard: Cesium.Billboard,
+  sets: AviationAssociationSets,
+): void {
+  const properties = getBillboardProperties(billboard)
+  if (sets.wallId == null || !('wall' in properties.images)) return
+  const wallIdSet: Set<string> = sets.wallId
+  if (!wallIdSet.has(wallId)) return
+  wallIdSet.delete(wallId)
+  if (wallIdSet.size === 0) {
+    properties.images.wall = null
   }
   applyBillboardImageByPriority(billboard)
 }
