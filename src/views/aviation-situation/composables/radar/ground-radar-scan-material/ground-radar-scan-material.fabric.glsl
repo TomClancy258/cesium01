@@ -16,6 +16,15 @@ vec3 black=vec3(0.0,0.0,0.0);
 vec3 white=vec3(1.0,1.0,1.0);
 vec3 gray=vec3(0.75,0.75,0.75);
 
+float inverseLerp(float v, float minValue, float maxValue) {
+  return (v - minValue) / (maxValue - minValue);
+}
+
+float remap(float v, float inMin, float inMax, float outMin, float outMax) {
+  float t = inverseLerp(v, inMin, inMax);
+  return mix(outMin, outMax, t);
+}
+
 float sdPie( in vec2 p, in vec2 c, in float r ) {
   p.x = abs(p.x);
   float l = length(p) - r;
@@ -57,17 +66,18 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 
   // glsl 里：每个片元算一次，逻辑集中
   float aperture=sectorWidth* czm_twoPi;
-  //haldAperture=与y轴正方向的夹角,扇形按y轴正方向对称，所以sectorWidth/2.0=45°/2
-  float haldAperture = aperture/2.0;
+  //halfAperture=与y轴正方向的夹角,扇形按y轴正方向对称，所以sectorWidth/2.0=45°/2
+  float halfAperture = aperture/2.0;
   //扇形右边的顶点坐标
-  vec2 c = vec2(sin(haldAperture), cos(haldAperture));
+  vec2 c = vec2(sin(halfAperture), cos(halfAperture));
   //在扇形外部，>0；在扇形边上，=0；在扇形内部，<0，在扇形内部，绝对值 = 到最近边界的距离，最近边界可能是：外圆弧、左径向边、右径向边，不是固定「到对称轴」。
   //即在扇形上，<=0；在扇形外，>0
   float rotationRadius=head*czm_twoPi;
   // 不是转扇形，也不是改 uv 变量：
   // 用旋转后的坐标 sectorPos = R * uv 去测「固定的」sdPie
-  //顺时针旋转rotationRadius弧度，再顺时针旋转 czm_pi/2.0-haldAperture  弧度
-//  vec2 sectorPos=rotate2DCW(czm_pi/2.0-haldAperture)*rotate2DCW(rotationRadius)*uv;
+  //顺时针旋转rotationRadius弧度，再顺时针旋转 czm_pi/2.0-halfAperture  弧度
+//  vec2 sectorPos=rotate2DCW(czm_pi/2.0-halfAperture)*rotate2DCW(rotationRadius)*uv;
+    //sectorPos 是片元在「扇形局部坐标系」里的坐标；在这个坐标系里，参考扇形固定、关于 +Y 对称。
   vec2 sectorPos=rotate2DCW(rotationRadius)*uv;
   float distToPie=sdPie(sectorPos,c,0.5);
 
@@ -75,16 +85,25 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 //  float alpha=mix(1.0,0.0,step(0.0,distToPie)); //用下面的“亮边外侧抗锯齿”代替这行，
   //---------------------------------------------------------------
   float aaPie = max(fwidth(distToPie), 0.002);
+  
     //亮边外面 距离[0,aa]的mask=[1,0]
   float mask = 1.0 - smoothstep(0.0, aaPie, distToPie);  // 软进出
 
-  float trail = 0.0;
-  if (distToPie <= aaPie && length(sectorPos) >= 1e-5) {
-    float radius = angleBetween(c, sectorPos);
-    trail = 1.0 - clamp(radius / aperture, 0.0, 1.0);
+  float alpha=0.0;
+    //接近圆心的坐标做angleBetween(c, sectorPos)会NaN
+  if (distToPie > 0.0&&distToPie <= aaPie && length(sectorPos)>=1e-5) {
+    float radius=angleBetween(c,sectorPos);
+    if(radius<halfAperture){
+      alpha=remap(distToPie,0.0,aaPie,1.0,0.0);
+    }
   }
 
- float alpha = trail * mask;   // 不要再用 step 那行
+//  float trail = 0.0;
+//  if (distToPie <= aaPie && length(sectorPos) >= 1e-5) {
+//    float radius = angleBetween(c, sectorPos);
+//    trail = 1.0 - clamp(radius / aperture, 0.0, 1.0);
+//  }
+// float alpha = trail * mask;   // 不要再用 step 那行
   // 然后：alpha = max(alpha, rim);
 //---------------------------------------------------------------
 

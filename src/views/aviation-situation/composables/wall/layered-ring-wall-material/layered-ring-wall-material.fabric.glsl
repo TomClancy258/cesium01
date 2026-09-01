@@ -20,6 +20,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   float aa=max(fwidth(bandCountT),0.002);
 
   //从下到上：亮边下面[0,0] 亮边抗锯齿[0,1] 亮边到坐标轴1为[1,1]
+  //要「更抗锯齿、边更干净」→ 用 2*aa 跨边；只要「外发光感」→ 才用单侧 aa。
   float bottomAlpha=smoothstep(bottomEdge-aa,bottomEdge+aa,bandCountT);
 
   //中间alpha=1，两边软边

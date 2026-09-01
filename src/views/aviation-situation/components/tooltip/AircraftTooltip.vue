@@ -28,19 +28,23 @@ const tooltipStyle = computed(() => ({
 const associationCounts = computed(() => {
   const hovered = aviationSelectionStore.hovered
   if (hovered?.sourceType !== 'aircraft' || !aircraftRenderMap) {
-    return { scanCount: 0, controlCount: 0, spatialCount: 0 }
+    return {
+      scanCount: 0,
+      controlCount: 0,
+      spatialCount: 0,
+      radarCount: 0,
+      wallCount: 0,
+    }
   }
   const sets = aircraftRenderMap.get(hovered.icao24)?.sets
   return {
     scanCount: sets?.coneScanSatelliteId?.size ?? 0,
     controlCount: sets?.controlZoneId?.size ?? 0,
     spatialCount: sets?.dataSourceName?.size ?? 0,
+    radarCount: sets?.radarId?.size ?? 0,
+    wallCount: sets?.wallId?.size ?? 0,
   }
 })
-
-const scanCount = computed(() => associationCounts.value.scanCount)
-const controlCount = computed(() => associationCounts.value.controlCount)
-const spatialCount = computed(() => associationCounts.value.spatialCount)
 </script>
 <template>
   <div v-show="visible" class="aircraft-tooltip" :style="tooltipStyle">
@@ -53,9 +57,11 @@ const spatialCount = computed(() => associationCounts.value.spatialCount)
       <div>海拔：{{ row.baroAltitude }} m</div>
       <div>航向：{{ row.heading }}°</div>
       <div>危险等级：{{ getAircraftRiskLevelLabel(row.riskLevel) }}</div>
-      <div v-if="scanCount">扫描：{{ scanCount }}</div>
-      <div v-if="controlCount">管控：{{ controlCount }}</div>
-      <div v-if="spatialCount">空间选择：{{ spatialCount }}</div>
+      <div v-if="associationCounts.scanCount">扫描：{{ associationCounts.scanCount }}</div>
+      <div v-if="associationCounts.controlCount">管控：{{ associationCounts.controlCount }}</div>
+      <div v-if="associationCounts.spatialCount">空间选择：{{ associationCounts.spatialCount }}</div>
+      <div v-if="associationCounts.radarCount">雷达：{{ associationCounts.radarCount }}</div>
+      <div v-if="associationCounts.wallCount">电子围栏：{{ associationCounts.wallCount }}</div>
     </template>
   </div>
 </template>
