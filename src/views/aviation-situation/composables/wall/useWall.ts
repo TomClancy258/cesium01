@@ -12,12 +12,14 @@ import type {
 } from '@/views/aviation-situation/types/wall'
 import { createMatchedWall } from '@/views/aviation-situation/types/wall'
 import { onCesiumEvent } from '@/views/aviation-situation/composables/mitt-bus'
+import { useCesiumCameraEvent } from '@/views/aviation-situation/composables/cesium-events/cesium-camera-events'
 import {
   WALL_ARROW_IMAGES,
   WALL_ARROW_WALL_DEFAULTS,
   WALL_INTERACTION_STYLE,
   WALL_LAYERED_RING_DEFAULTS,
   WALL_LEVEL_COLORS,
+  WALL_SHOW_CAMERA_HEIGHT_METERS,
 } from './wall-constants'
 import { toWallHoveredProperties } from './wall-property-utils'
 import { setWallHoveredProperties } from './wall-hover-state'
@@ -41,7 +43,7 @@ import {
   type WallPrimitivePair,
 } from './wall-registry'
 import { clearAllWallHighlight } from '@/views/aviation-situation/composables/highlight-manager/wall-highlight-manager'
-import { flyToLngLatAlt } from '@/utils/geoUtils'
+import { flyToLngLatAlt, getCameraHeight } from '@/utils/geoUtils'
 import { selectWallRegion } from '@/views/aviation-situation/composables/selection/useRegionSelectionActions'
 import {
   buildWallTable,
@@ -143,32 +145,51 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
   registerLayeredRingWallMaterial()
   registerArrowWallMaterial()
 
+  /** 相机总显隐容器；单墙筛选仍用 wallPrimitive.show */
+  let wallPrimitiveContainer: Cesium.PrimitiveCollection | undefined
+
   const hideWallTooltip = (): void => {
     setWallHoveredProperties(null)
   }
 
-  const removeWallPrimitive = (
-    viewerRef: Cesium.Viewer,
-    pair: WallPrimitivePair,
-  ): void => {
-    viewerRef.scene.primitives.remove(pair.wallPrimitive)
-    pair.wallPrimitive.destroy()
+  const setWallsVisible = (isVisible: boolean): void => {
+    if (wallPrimitiveContainer) {
+      wallPrimitiveContainer.show = isVisible
+    }
+  }
+
+  const handleCameraMoveEnd = (camera: Cesium.Camera): void => {
+    const form = wallStore.wallFilterForm
+    if (!form.visible) {
+      setWallsVisible(false)
+      return
+    }
+    const cameraHeight = getCameraHeight(camera)
+    setWallsVisible(cameraHeight <= WALL_SHOW_CAMERA_HEIGHT_METERS)
+  }
+
+  const removeWallPrimitive = (pair: WallPrimitivePair): void => {
+    wallPrimitiveContainer?.remove(pair.wallPrimitive)
+    if (!pair.wallPrimitive.isDestroyed()) {
+      pair.wallPrimitive.destroy()
+    }
   }
 
   const clearWalls = (): void => {
     clearAllWallHighlight()
     forEachWallRenderState(({ primitives }) => {
-      removeWallPrimitive(viewer.value, primitives)
+      removeWallPrimitive(primitives)
     })
     clearWallRegistry()
     wallStore.clearMatchedWalls()
   }
 
   const drawWalls = (walls: Wall[]): void => {
+    if (!wallPrimitiveContainer) return
     for (const wall of walls) {
       const wallTable = buildWallTable(wall)
       const primitives = createWallPrimitive(wallTable)
-      viewer.value.scene.primitives.add(primitives.wallPrimitive)
+      wallPrimitiveContainer.add(primitives.wallPrimitive)
       registerWall(wall.id, { data: wallTable, primitives })
     }
   }
@@ -183,6 +204,7 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
       }
       drawWalls(walls)
       filterWalls()
+      handleCameraMoveEnd(viewer.value.camera)
     } catch (error) {
       console.error('[useWall] failed to load walls', error)
     }
@@ -224,6 +246,7 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
 
   const subscribeWallAnimation = (): void => {
     const onTick = (): void => {
+      if (!wallPrimitiveContainer?.show) return
       const clockTime = viewer.value.clock.currentTime
       for (const state of getAllWallRenderStatesForAnimation()) {
         const material = getWallMaterial(state.primitives)
@@ -251,6 +274,7 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
       () => wallStore.wallFilterForm,
       () => {
         filterWalls()
+        handleCameraMoveEnd(viewer.value.camera)
       },
       { deep: true },
     )
@@ -260,6 +284,8 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
   let unsubWallLeave: () => void
   let unsubWallLeftClick: () => void
   let unsubWallTableOperationClicked: () => void
+  let unsubCameraMoveEnd: (() => void) | undefined
+  let unsubMouseWheel: (() => void) | undefined
 
   const flyToWallById = (id: string): void => {
     const renderState = getWallRenderState(id)
@@ -275,6 +301,10 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
       },
       Math.max(heightSpan * 20, 50_000),
     )
+  }
+
+  const subscribeCameraEvents = (): void => {
+    unsubCameraMoveEnd = useCesiumCameraEvent('cameraMoveEnd', handleCameraMoveEnd)
   }
 
   const subscribeWallEvents = (): void => {
@@ -319,18 +349,36 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
         flyToWallById(operation.id)
       },
     )
+
+    unsubMouseWheel = onCesiumEvent('mouseWheel', (camera: Cesium.Camera) => {
+      handleCameraMoveEnd(camera)
+    })
   }
 
   const initWalls = (): void => {
+    wallPrimitiveContainer = new Cesium.PrimitiveCollection()
+    wallPrimitiveContainer.show = false
+    viewer.value.scene.primitives.add(wallPrimitiveContainer)
+
     loadAndDrawWalls()
     subscribeWallAnimation()
     setupWallFilterFormWatch()
+    subscribeCameraEvents()
     subscribeWallEvents()
   }
 
   onUnmounted(() => {
     unsubClockTick?.()
+    unsubCameraMoveEnd?.()
+    unsubMouseWheel?.()
     clearWalls()
+    if (wallPrimitiveContainer) {
+      viewer.value.scene.primitives.remove(wallPrimitiveContainer)
+      if (!wallPrimitiveContainer.isDestroyed()) {
+        wallPrimitiveContainer.destroy()
+      }
+      wallPrimitiveContainer = undefined
+    }
     unwatchWallFilterForm?.()
     unsubWallHover?.()
     unsubWallLeave?.()

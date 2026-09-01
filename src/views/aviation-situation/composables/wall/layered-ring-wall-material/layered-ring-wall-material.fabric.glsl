@@ -14,6 +14,7 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   //bandCount个[0,1]
   float bandCountT=fract((st.t-time)*bandCount);
 
+  //不是只含第一个 [0,1] 的 0.1，而是每一个 fract 周期里的 0.1
   float bottomEdge=0.1;
   float topEdge=bottomEdge+bandWidth;
 

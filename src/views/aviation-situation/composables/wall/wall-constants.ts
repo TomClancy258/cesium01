@@ -39,6 +39,9 @@ export const WALL_ARROW_WALL_DEFAULTS = {
   scrollDurationMs: 60_000,
 } as const
 
+/** 相机海拔 ≤ 该值（米）时显示电子围栏容器；与机场量级接近 */
+export const WALL_SHOW_CAMERA_HEIGHT_METERS = 400_000
+
 export const WALL_INTERACTION_STYLE = {
   layeredRing: {
     hover: {

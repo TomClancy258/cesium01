@@ -317,6 +317,8 @@ export function useSatellite(
         length: new Cesium.ConstantProperty(CYLINDER_DEFAULTS.minLengthM),
         bottomRadius: new Cesium.ConstantProperty(CYLINDER_DEFAULTS.bottomRadiusM), // 仅当你要动态改
       }
+
+      //Entity 没有 primitiveContainer，对等物是 CustomDataSource。卫星目前按筛选显隐即可，不必为了对称硬加；以后要总开关或干净销毁再包一层 DataSource。
       const entity=viewer.value.entities.add({
         availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
         position: positionProperty,
