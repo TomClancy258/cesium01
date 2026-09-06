@@ -146,7 +146,7 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
   registerArrowWallMaterial()
 
   /** 相机总显隐容器；单墙筛选仍用 wallPrimitive.show */
-  let wallPrimitiveContainer: Cesium.PrimitiveCollection | undefined
+  let wallPrimitiveContainer: Cesium.PrimitiveCollection | null = null
 
   const hideWallTooltip = (): void => {
     setWallHoveredProperties(null)
@@ -169,10 +169,10 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
   }
 
   const removeWallPrimitive = (pair: WallPrimitivePair): void => {
-    wallPrimitiveContainer?.remove(pair.wallPrimitive)
     if (!pair.wallPrimitive.isDestroyed()) {
       pair.wallPrimitive.destroy()
     }
+    wallPrimitiveContainer?.remove(pair.wallPrimitive)
   }
 
   const clearWalls = (): void => {
@@ -371,19 +371,16 @@ export function useWall(viewer: ShallowRef<Cesium.Viewer>, options: UseWallOptio
     unsubClockTick?.()
     unsubCameraMoveEnd?.()
     unsubMouseWheel?.()
-    clearWalls()
-    if (wallPrimitiveContainer) {
-      viewer.value.scene.primitives.remove(wallPrimitiveContainer)
-      if (!wallPrimitiveContainer.isDestroyed()) {
-        wallPrimitiveContainer.destroy()
-      }
-      wallPrimitiveContainer = undefined
-    }
     unwatchWallFilterForm?.()
     unsubWallHover?.()
     unsubWallLeave?.()
     unsubWallLeftClick?.()
     unsubWallTableOperationClicked?.()
+    // Viewer 由 AviationSituation.destroyCesiumViewer 统一销毁；此处勿再 destroy Primitive，否则二次销毁报错
+    clearWallRegistry()
+    clearAllWallHighlight()
+    wallStore.clearMatchedWalls()
+    wallPrimitiveContainer = null
   })
 
   return {

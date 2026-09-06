@@ -98,8 +98,8 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
     viewerRef: Cesium.Viewer,
     pair: RadarPrimitivePair,
   ): void => {
-    viewerRef.scene.groundPrimitives.remove(pair.fillPrimitive)
     pair.fillPrimitive.destroy()
+    viewerRef.scene.groundPrimitives.remove(pair.fillPrimitive)
   }
 
   const clearRadars = (): void => {
@@ -264,12 +264,15 @@ export function useRadar(viewer: ShallowRef<Cesium.Viewer>, options: UseRadarOpt
 
   onUnmounted(() => {
     unsubClockTick?.()
-    clearRadars()
     unwatchRadarFilterForm?.()
     unsubRadarHover?.()
     unsubRadarLeave?.()
     unsubRadarLeftClick?.()
     unsubRadarTableOperationClicked?.()
+    // Viewer 由 AviationSituation.destroyCesiumViewer 统一销毁；此处勿再 destroy GroundPrimitive
+    clearRadarRegistry()
+    clearAllRadarHighlight()
+    radarStore.clearMatchedRadars()
   })
 
   return {

@@ -31,11 +31,13 @@
     "pinia": "^3.0.4",
     "stats.js": "^0.17.0",
     "three": "^0.185.1",
+    "tweakpane": "^4.0.5",
     "vue": "^3.5.26",
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.3",
+    "@tweakpane/core": "^2.0.5",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^24.10.4",
     "@types/stats.js": "^0.17.4",

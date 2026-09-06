@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useThreeScene } from './composables/useThreeScene'
 import { setupVaryingUniformAttribute } from './composables/varying_uniform_attribute/setupVaryingUniformAttribute'
 import { setupTexture } from '@/views/shader/composables/texture/setupTexture.ts'
@@ -8,11 +8,14 @@ import { setupSinCos } from '@/views/shader/composables/sin_cos/setupSinCos.ts'
 import { setupLight } from '@/views/shader/composables/light/setupLight.ts'
 import { setupSimpleTransformations } from '@/views/shader/composables/simple_transformations/setupSimpleTransformations.ts'
 import { setupSimpleShape } from '@/views/shader/composables/simple_shape/setupSimpleShape.ts'
+import { setupCrosshair } from '@/views/shader/composables/godot/crosshair/setupCrosshair.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
 
-onMounted( () => {
+let disposeCrosshair: (() => void) | undefined
+
+onMounted(() => {
   initScene()
   // setupVaryingUniformAttribute(scene)
   // setupTexture(scene)
@@ -20,7 +23,13 @@ onMounted( () => {
   // setupSinCos(scene, onBeforeRender)
   //  loadModel()
   // setupSimpleTransformations(scene, onBeforeRender, onResize)
-  setupSimpleShape(scene, onBeforeRender)
+  // setupSimpleShape(scene, onBeforeRender)
+  disposeCrosshair = setupCrosshair(scene)?.dispose
+})
+
+onUnmounted(() => {
+  disposeCrosshair?.()
+  disposeCrosshair = undefined
 })
 </script>
 
