@@ -9,6 +9,7 @@ import { setupLight } from '@/views/shader/composables/light/setupLight.ts'
 import { setupSimpleTransformations } from '@/views/shader/composables/simple_transformations/setupSimpleTransformations.ts'
 import { setupSimpleShape } from '@/views/shader/composables/simple_shape/setupSimpleShape.ts'
 import { setupCrosshair } from '@/views/shader/composables/godot/crosshair/setupCrosshair.ts'
+import { setupShield } from '@/views/shader/composables/godot/shield/setupShield.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
@@ -24,7 +25,8 @@ onMounted(() => {
   //  loadModel()
   // setupSimpleTransformations(scene, onBeforeRender, onResize)
   // setupSimpleShape(scene, onBeforeRender)
-  disposeCrosshair = setupCrosshair(scene)?.dispose
+  // disposeCrosshair = setupCrosshair(scene)?.dispose
+  disposeCrosshair = setupShield(scene, onBeforeRender)?.dispose
 })
 
 onUnmounted(() => {
