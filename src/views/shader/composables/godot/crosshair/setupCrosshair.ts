@@ -28,6 +28,7 @@ export function setupCrosshair(
     ringOuterDistance: 0.5,
     ringWidth: 0.05,
     gapWidth: 0.2,
+    lineOuterDistToCenter: 0.4,
   }
 
   const material = new THREE.ShaderMaterial({
@@ -37,6 +38,7 @@ export function setupCrosshair(
       u_ringOuterDistance: { value: params.ringOuterDistance },
       u_ringWidth: { value: params.ringWidth },
       u_gapWidth: { value: params.gapWidth },
+      u_lineOuterDistToCenter: { value: params.lineOuterDistToCenter },
     },
     vertexShader,
     fragmentShader,
@@ -94,6 +96,17 @@ export function setupCrosshair(
     })
     .on('change', (ev) => {
       material.uniforms.u_gapWidth.value = ev.value
+    })
+
+  pane
+    .addBinding(params, 'lineOuterDistToCenter', {
+      label: 'lineOuterDistToCenter',
+      min: 0,
+      max: 0.5,
+      step: 0.001,
+    })
+    .on('change', (ev) => {
+      material.uniforms.u_lineOuterDistToCenter.value = ev.value
     })
 
   const dispose = (): void => {
