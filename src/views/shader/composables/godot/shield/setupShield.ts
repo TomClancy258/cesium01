@@ -3,12 +3,16 @@ import type { ShallowRef } from 'vue'
 import { Pane } from 'tweakpane'
 import vertexShader from './shaders/vertex-shader.glsl?raw'
 import fragmentShader from './shaders/fragment-shader.glsl?raw'
-import airplane01Jpg from '@/assets/img/airplane/jpg/airplane01.jpg'
 
 type BeforeRenderHandle = (fn: () => void) => () => void
 
 /** 噪声 UV.x 偏移：每 5s 线性 0→1，然后归零再循环（锯齿波） */
 const NOISE_SCROLL_PERIOD_SEC = 5
+/**
+ * 护盾呼吸周期（秒）：完整一圈 = 初始→最大→初始→最小→初始
+ * breath / breadth：用 BREATH（呼吸），不是 breadth（宽度）
+ */
+const SHIELD_BREATH_PERIOD_SEC = 8
 
 export interface ShieldSetupResult {
   plane: THREE.Mesh
@@ -27,7 +31,7 @@ export function setupShield(
   const timer = new THREE.Timer()
   timer.connect(document)
 
-  // 暂用飞机图当噪声；换真正噪声图时保持 RepeatWrapping
+  // 暂用噪声图；保持 RepeatWrapping 以便 UV 滚动
   const noiseTexture = new THREE.TextureLoader().load('/textures/noise/noise01.png')
   noiseTexture.wrapS = THREE.RepeatWrapping
   noiseTexture.wrapT = THREE.RepeatWrapping
@@ -37,11 +41,12 @@ export function setupShield(
     shieldOuterDistToCenter: 0.5,
     shieldWidth: 0.25,
     intensity: 1.0,
+    /** 相对初始尺度的胀缩幅度，scale = 1 + breathAmplitude * sin(...) */
+    breathAmplitude: 0.05,
     highlightPoint: {
       radius: 0.5,
       angle: Math.PI,
     },
-    vertexPulse: 0.05,
   }
 
   const material = new THREE.ShaderMaterial({
@@ -53,8 +58,6 @@ export function setupShield(
       u_highlightPointAngle: { value: params.highlightPoint.angle },
       u_intensity: { value: params.intensity },
       u_noiseOffsetX: { value: 0 },
-      u_time: { value: 0 },
-      u_vertexPulse: { value: params.vertexPulse },
     },
     vertexShader,
     fragmentShader,
@@ -62,8 +65,6 @@ export function setupShield(
     depthWrite: false,
   })
 
-  // 多分段，顶点径向位移才看得出「呼吸」；1×1 只有四角几乎像整片缩放
-  // const geometry = new THREE.PlaneGeometry(1, 1, 32, 32)
   const geometry = new THREE.PlaneGeometry(1, 1)
   const plane = new THREE.Mesh(geometry, material)
   plane.position.set(0, 0, 0)
@@ -81,11 +82,24 @@ export function setupShield(
     material.uniforms.u_noiseOffsetX.value = noiseOffsetX
   }
 
+  /** 均匀呼吸：完整 sin 周期 = SHIELD_BREATH_PERIOD_SEC 秒 */
+  const setBreathScale = (elapsedSec: number): void => {
+    // const s =
+    //   1 +
+    //   params.breathAmplitude *
+    //     Math.sin((elapsedSec * Math.PI * 2) / SHIELD_BREATH_PERIOD_SEC)
+    const s =
+      1 +
+      params.breathAmplitude *
+        Math.sin((elapsedSec%SHIELD_BREATH_PERIOD_SEC ) / SHIELD_BREATH_PERIOD_SEC * 2 * Math.PI)
+    plane.scale.set(s, s, s)
+  }
+
   const unsubscribeBeforeRender = onBeforeRender(() => {
     timer.update()
     const elapsed = timer.getElapsed()
-    material.uniforms.u_time.value = elapsed
     setNoiseOffsetX(elapsed)
+    setBreathScale(elapsed)
   })
 
   const pane = new Pane({ title: 'Shield' })
@@ -123,14 +137,11 @@ export function setupShield(
     })
 
   pane
-    .addBinding(params, 'vertexPulse', {
-      label: 'vertexPulse',
+    .addBinding(params, 'breathAmplitude', {
+      label: 'breathAmplitude',
       min: 0,
       max: 0.2,
       step: 0.001,
-    })
-    .on('change', (ev) => {
-      material.uniforms.u_vertexPulse.value = ev.value
     })
 
   const highlightFolder = pane.addFolder({ title: 'Highlight' })

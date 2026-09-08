@@ -10,6 +10,25 @@ uniform float u_intensity;
 /** 噪声 UV 横向偏移，JS 每 5s 锯齿波 0→1 循环写入 */
 uniform float u_noiseOffsetX;
 
+const float PI = 3.14159265359;
+
+mat2 rotate2D(float theta){
+  float sinTheta = sin(theta);
+  float cosTheta = cos(theta);
+
+  return mat2(cosTheta, -sinTheta,
+  sinTheta, cosTheta);
+}
+
+float inverseLerp(float v, float minValue, float maxValue) {
+  return (v - minValue) / (maxValue - minValue);
+}
+
+float remap(float v, float inMin, float inMax, float outMin, float outMax) {
+  float t = inverseLerp(v, inMin, inMax);
+  return mix(outMin, outMax, t);
+}
+
 void main() {
   float baseAlpha = 0.0;
 
@@ -25,12 +44,23 @@ void main() {
     u_shieldOuterDistToCenter + distToCenterAA,
     distToCenter
   );
+  float shieldInnerAlpha =
+  smoothstep(
+    shieldInnerDistToCenter - distToCenterAA,
+    shieldInnerDistToCenter + distToCenterAA,
+    distToCenter
+  );
+  //护盾范围，不包含渐变
+  float shieldShape=shieldInnerAlpha*shieldOuterAlpha;
 
   //环从内到外alpha=[0.0,0.5]
   float shieldGradientAlpha=smoothstep(shieldInnerDistToCenter,u_shieldOuterDistToCenter,distToCenter)*0.5;
   //没必要为了那aa范围的[1.0,0.5]而做下面那样复杂
 //  float shieldGradientAlpha=smoothstep(shieldInnerDistToCenter,u_shieldOuterDistToCenter-distToCenterAA,distToCenter);
-  float shieldAlpha=shieldGradientAlpha*shieldOuterAlpha;
+
+  //护盾渐变
+//  float shieldAlpha=shieldGradientAlpha*shieldOuterAlpha;
+  float shieldAlpha=shieldShape*shieldGradientAlpha;
 
   vec2 uvFromCenter=vUv-0.5;
 
@@ -39,7 +69,8 @@ void main() {
   //从高两点向四周，(1.0-distToHighlightPos)=[1.0,0.0]，再*shieldAlpha=[0.0,0.5],且把highlightPointAlphaInShield固定在了环内
 //  float highlightPointAlphaInShield=(1.0-distToHighlightPos)*shieldAlpha;
   //让高光集中于高亮点，但次方越大，高光越暗，因为小数的次方是更小
-  float highlightPointAlphaInShield=pow((1.0-distToHighlightPos),2.0)*shieldAlpha;
+  float highlightPointAlphaInShield=pow((1.0-distToHighlightPos),8.0)*shieldShape;
+//  float highlightPointAlphaInShield=pow((1.0-distToHighlightPos),2.0)*shieldAlpha;
 
   //texture2D(webgl1)/texture(webgl2，推荐)一样的，都是返回 vec4（RGBA）
   //noise图片的RGBA都一样，即灰度值在四个值上都一样
@@ -49,6 +80,8 @@ void main() {
   //即noiseTexture.wrapS = THREE.RepeatWrapping和noiseTexture.wrapT = THREE.RepeatWrapping
   //*3.0是让噪声更拥挤（更多）
   float noiseSampleAlpha=texture(noise,vUv+vec2(u_noiseOffsetX,0.0)).r*3.0;
+//  float rotateRadian=remap(u_noiseOffsetX,0.0,1.0, 0.0, 2.0*PI);
+//  float noiseSampleAlpha=texture(noise,rotate2D(rotateRadian)*uvFromCenter).r*3.0;
 
 //  baseAlpha=shieldAlpha;
 //  baseAlpha=highlightPointAlphaInShield;

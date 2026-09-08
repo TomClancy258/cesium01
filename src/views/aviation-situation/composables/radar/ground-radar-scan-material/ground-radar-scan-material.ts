@@ -1,5 +1,7 @@
 import * as Cesium from 'cesium'
-import groundRadarScanFabricSource from './ground-radar-scan-material.fabric.glsl?raw'
+// import groundRadarScanFabricSource from './ground-radar-scan-if-material.fabric.glsl?raw'
+import groundRadarScanFabricSource from './ground-radar-scan-step-material.fabric.glsl?raw'
+// import groundRadarScanFabricSource from './ground-radar-scan-shape-material.fabric.glsl?raw'
 
 export const GROUND_RADAR_SCAN_MATERIAL_TYPE = 'GroundRadarScanMaterial'
 const RADAR_TIME_EPOCH = Cesium.JulianDate.fromDate(new Date(0))

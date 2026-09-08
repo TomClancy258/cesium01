@@ -86,17 +86,19 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   //---------------------------------------------------------------
   float aaPie = max(fwidth(distToPie), 0.002);
   
-    //亮边外面 距离[0,aa]的mask=[1,0]
-  float mask = 1.0 - smoothstep(0.0, aaPie, distToPie);  // 软进出
+  float sectorPosDistToCenter=length(sectorPos);
+  float isLengthSafe=step(1e-5,sectorPosDistToCenter);
+  float isInPie=step(distToPie,0.0);
+  float isOutofPie=1.0-isInPie;
 
   float alpha=0.0;
     //接近圆心的坐标做angleBetween(c, sectorPos)会NaN
-  if (distToPie > 0.0&&distToPie <= aaPie && length(sectorPos)>=1e-5) {
-    float radius=angleBetween(c,sectorPos);
-    if(radius<halfAperture){
-      alpha=remap(distToPie,0.0,aaPie,1.0,0.0);
-    }
-  }
+//  if (distToPie > 0.0&&distToPie <= aaPie && length(sectorPos)>=1e-5) {
+//    float radius=angleBetween(c,sectorPos);
+//    if(radius<halfAperture){
+//      alpha=remap(distToPie,0.0,aaPie,1.0,0.0);
+//    }
+//  }
 
 //  float trail = 0.0;
 //  if (distToPie <= aaPie && length(sectorPos) >= 1e-5) {
@@ -128,15 +130,26 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 
   //法三：推荐
   // 扇外根本不算，两路逻辑差很多（一边算、一边不算） 用if
-  if (distToPie <= 0.0 && length(sectorPos)>=1e-5) {
-    // sectorPos 里扇形已固定，直接量局部角，sectorPos坐标就是sector以y轴正方向对称
-    float radius=angleBetween(c,sectorPos);
-    alpha=1.0-radius/aperture;
-  }
+//  if (distToPie <= 0.0 && length(sectorPos)>=1e-5) {
+//    // sectorPos 里扇形已固定，直接量局部角，sectorPos坐标就是sector以y轴正方向对称
+//    float radius=angleBetween(c,sectorPos);
+//    alpha=1.0-radius/aperture;
+//  }
+
+//  float radius=angleBetween(c,sectorPos);
+  float radius = mix(0.0, angleBetween(c, sectorPos), isLengthSafe);
+//  float sectorAlpha=mix(0.0,1.0-radius/aperture,isInPie*isLengthSafe);
+  float sectorAlpha=mix(0.0,1.0-radius/aperture,isInPie*isLengthSafe);
+
+  float isRadiusSmallerThanHalfAperture=step(radius,halfAperture);
+  //亮边外面 距离[0,aa]的mask=[1,0]
+  float mask = mix(0.0,1.0 - smoothstep(0.0, aaPie, distToPie),isRadiusSmallerThanHalfAperture*isOutofPie);  // 软进出
+
+
+  //  float pieShape=step(distToPie,0.0);
 
   //distance(vec1,vec2)
   //length(vec)
-  float r=length(uv);
   float borderWidth=0.02;
 
 //  float borderOuterToR=0.005;
@@ -152,12 +165,13 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
 //  alpha = max(alpha, rim);
 
   float edge = 0.5;
-  float aa = max(fwidth(r), 0.002);  // 对 r 求 fwidth 更贴切
+  float aa = max(fwidth(dist), 0.002);  // 对 r 求 fwidth 更贴切
 
-  float alphaOuter = 1.0 - smoothstep(edge - aa, edge, r);           // 贴边，只向内淡
-  float alphaInner = smoothstep(edge - borderWidth - aa, edge - borderWidth, r);
+  float alphaOuter = 1.0 - smoothstep(edge - aa, edge, dist);           // 贴边，只向内淡
+  float alphaInner = smoothstep(edge - borderWidth - aa, edge - borderWidth, dist);
   float rim = alphaOuter * alphaInner;
-  alpha = max(alpha, rim);
+  alpha = max(sectorAlpha, rim);
+  alpha = max(alpha, mask);
 
   float distToBorder=0.5-borderWidth;
 //  alpha=mix(alpha,1.0,step(distToBorder,r));
