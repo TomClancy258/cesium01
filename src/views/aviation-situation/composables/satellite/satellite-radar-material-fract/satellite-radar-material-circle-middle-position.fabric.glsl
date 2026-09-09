@@ -76,11 +76,11 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     //直接透明，无所谓 AA（推荐这个消除这跟很细的光圈）
     //[0.9,1.0]和[0.0,1.1]的alpha都=0，即去污渍
     //spacingXAixs∈[0,0.1)则zero=0,∈[0.1,1]则zero=1
-    float killNearZero =step(0.1,spacingXAixs);
+    float killNearZero =step(aa,spacingXAixs);
     alpha=mix(0.0,alpha,killNearZero);
 
     //spacingXAixs<0.9 return 1-0=1; >=0.9 return 1-1=0;
-    float killNearOne =1.0-step(0.9,spacingXAixs);
+    float killNearOne =1.0-step(1.0-aa,spacingXAixs);
     alpha=mix(0.0,alpha,killNearOne);
 
     //上面俩等价于：
