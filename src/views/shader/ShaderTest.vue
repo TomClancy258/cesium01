@@ -10,13 +10,18 @@ import { setupSimpleTransformations } from '@/views/shader/composables/simple_tr
 import { setupSimpleShape } from '@/views/shader/composables/simple_shape/setupSimpleShape.ts'
 import { setupCrosshair } from '@/views/shader/composables/godot/crosshair/setupCrosshair.ts'
 import { setupShield } from '@/views/shader/composables/godot/shield/setupShield.ts'
+import { setupOutline } from '@/views/shader/composables/godot/outline/setupOutline.ts'
+import { setupPixelate } from '@/views/shader/composables/godot/pixelate/setupPixelate.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
 
 let disposeCrosshair: (() => void) | undefined
+let disposeShield: (() => void) | undefined
+let disposeOutline: (() => void) | undefined
+let disposePixelate: (() => void) | undefined
 
-onMounted(() => {
+onMounted(async () => {
   initScene()
   // setupVaryingUniformAttribute(scene)
   // setupTexture(scene)
@@ -26,12 +31,20 @@ onMounted(() => {
   // setupSimpleTransformations(scene, onBeforeRender, onResize)
   // setupSimpleShape(scene, onBeforeRender)
   // disposeCrosshair = setupCrosshair(scene)?.dispose
-  disposeCrosshair = setupShield(scene, onBeforeRender)?.dispose
+  // disposeShield = setupShield(scene, onBeforeRender)?.dispose
+  // disposeOutline = setupOutline(scene, onBeforeRender)?.dispose
+  disposePixelate = (await setupPixelate(scene, onBeforeRender))?.dispose
 })
 
 onUnmounted(() => {
   disposeCrosshair?.()
   disposeCrosshair = undefined
+  disposeShield?.()
+  disposeShield = undefined
+  disposeOutline?.()
+  disposeOutline = undefined
+  disposePixelate?.()
+  disposePixelate = undefined
 })
 </script>
 

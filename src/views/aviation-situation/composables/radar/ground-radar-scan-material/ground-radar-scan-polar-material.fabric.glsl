@@ -58,24 +58,26 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
   float distToCenter = length(uvFromCenter);
 
   //[-π，π]
-  float oldTheta = atan(uvFromCenter.y, uvFromCenter.x);
-  float isOverPi=step(oldTheta,0.0);
+  float theta = atan(uvFromCenter.y, uvFromCenter.x);
+  float isOverPi=step(theta,0.0);
   //[0,2π]
-  float theta=mix(oldTheta,oldTheta+czm_twoPi,isOverPi);
+  theta=mix(theta,theta+czm_twoPi,isOverPi);
 
   //逆时针运动时，sectorWidth=0.2head=0.15时，
   //若该片元的theta01=0.1，则diff=fract(0.05)=0.05<sectorWidth，则该片元在扇内；
   //若theta01=0.2，则diff=fract(0.15-0.2)=fract(-0.05)=-0.05-floor(-0.05)=-0.05-(-1)=1-0.05=0.95>sectorWidth，则该片元在扇形外面：
-  //若theta01=0.97，则diff=fract(0.15-0.97)=fract(-0.85)=-0.85-floor(-0.85)=-0.85-(-1)=1-0.85=0.15<sectorWidth，则在扇形内；
+  //若theta01=0.97，则diff=fract(0.15-0.97)=fract(-0.82)=-0.82-floor(-0.82)=-0.82-(-1)=1-0.82=0.18<sectorWidth，则在扇形内；
   //若theta01=0.9，则diff=fract(0.15-0.9)=fract(-0.75)=-0.75-floor(-0.75)=-0.75-(-1)=1-0.75=0.25>sectorWidth，则不在扇形内；
 
-  float normalizedTheta=theta/czm_twoPi;
+  //[0,2π]=>[0,1]
+  float theta01=theta/czm_twoPi;
 
   //逆时针旋转
-//  float normalizedHeadAngle=fract(time+phase);
+//  float head01=fract(time+phase);
   //顺时针旋转
-  float normalizedHeadAngle=fract(-time+phase);
-  float distToHead=fract(normalizedHeadAngle-normalizedTheta);
+  float head01=fract(-time+phase);
+  float distToHead=fract(head01-theta01);
+//fract(x) 当x为负数时，返回结果为 -floor(x)-|x|
 
   float distToHeadAA=max(fwidth(distToHead),0.002);
 
