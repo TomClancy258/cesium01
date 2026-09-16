@@ -11,7 +11,7 @@ export interface PixelateSetupResult {
   dispose: () => void
 }
 
-export async function setupPixelate(
+export async function setupColorChange(
   scene: ShallowRef<THREE.Scene | null>,
   onBeforeRender: BeforeRenderHandle,
 ): Promise<PixelateSetupResult | null> {
@@ -24,24 +24,20 @@ export async function setupPixelate(
   timer.connect(document)
 
   const godot2DTexture = await new THREE.TextureLoader().loadAsync(
-    '/textures/godot2D.png',
+    '/textures/blob/blob_raw.png',
   )
   godot2DTexture.wrapS = THREE.RepeatWrapping
   godot2DTexture.wrapT = THREE.RepeatWrapping
   godot2DTexture.colorSpace = THREE.NoColorSpace
 
-  const imageWidth = godot2DTexture.width
-  const imageHeight = godot2DTexture.height
-
   const params={
-    pixelSize:4
+    vibrance:1.0
   }
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
       godot2D: { value: godot2DTexture },
-      u_imageSize: { value: new THREE.Vector2(imageWidth, imageHeight) },
-      u_pixelSize: { value: params.pixelSize },
+      u_vibrance: { value: params.vibrance },
     },
     vertexShader,
     fragmentShader,
@@ -56,21 +52,22 @@ export async function setupPixelate(
   plane.lookAt(1, 0, 1)
   scene.value.add(plane)
 
+
   const unsubscribeBeforeRender = onBeforeRender(() => {
     timer.update()
-    timer.getElapsed()
+    const elapsed = timer.getElapsed()
   })
 
   const pane = new Pane({ title: 'Godot2D' })
   pane
-    .addBinding(params, 'pixelSize', {
-      label: 'pixelSize',
-      min: 1,
-      max: 30,
-      step: 1,
+    .addBinding(params, 'vibrance', {
+      label: 'vibrance',
+      min: 0.0,
+      max: 2.0,
+      step: 0.1,
     })
     .on('change', (ev) => {
-      material.uniforms.u_pixelSize.value = ev.value
+      material.uniforms.u_vibrance.value = ev.value
     })
 
   const dispose = (): void => {

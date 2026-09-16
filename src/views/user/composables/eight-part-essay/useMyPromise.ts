@@ -99,7 +99,7 @@ export function useMyPromise() {
     接收俩回调
     若当前promise对象为成功状态，则执行第一个回调onFulfilled
     若当前promise对象为失败状态，则执行第二个回调onRejected
-    若当前promise对象为成功状态，则暂时保存俩回调
+    若当前promise对象为待定状态，则暂时保存俩回调
 
     then必须返回一新的promise对象p，
     该对象p的状态和结果由回调函数onFulfilled或onRejected的返回值x决定

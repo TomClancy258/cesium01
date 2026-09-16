@@ -6,12 +6,15 @@ import fragmentShader from './shaders/fragment-shader.glsl?raw'
 
 type BeforeRenderHandle = (fn: () => void) => () => void
 
+const EARTH_ORBIT_PERIOD_SEC = 5
+const MOON_ORBIT_PERIOD_SEC = 3
+
 export interface PixelateSetupResult {
   plane: THREE.Mesh
   dispose: () => void
 }
 
-export async function setupPixelate(
+export async function setupOrbit(
   scene: ShallowRef<THREE.Scene | null>,
   onBeforeRender: BeforeRenderHandle,
 ): Promise<PixelateSetupResult | null> {
@@ -23,25 +26,22 @@ export async function setupPixelate(
   const timer = new THREE.Timer()
   timer.connect(document)
 
-  const godot2DTexture = await new THREE.TextureLoader().loadAsync(
-    '/textures/godot2D.png',
+  const attackTexture = await new THREE.TextureLoader().loadAsync(
+    '/textures/attack.png',
   )
-  godot2DTexture.wrapS = THREE.RepeatWrapping
-  godot2DTexture.wrapT = THREE.RepeatWrapping
-  godot2DTexture.colorSpace = THREE.NoColorSpace
-
-  const imageWidth = godot2DTexture.width
-  const imageHeight = godot2DTexture.height
+  attackTexture.wrapS = THREE.RepeatWrapping
+  attackTexture.wrapT = THREE.RepeatWrapping
+  attackTexture.colorSpace = THREE.NoColorSpace
 
   const params={
-    pixelSize:4
+    vibrance:1.0
   }
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      godot2D: { value: godot2DTexture },
-      u_imageSize: { value: new THREE.Vector2(imageWidth, imageHeight) },
-      u_pixelSize: { value: params.pixelSize },
+      attack: { value: attackTexture },
+      u_earthTime: { value: 0.0 },
+      u_moonTime: { value: 0.0 },
     },
     vertexShader,
     fragmentShader,
@@ -56,22 +56,20 @@ export async function setupPixelate(
   plane.lookAt(1, 0, 1)
   scene.value.add(plane)
 
+  const setPlanetRotation = (elapsedSec: number): void => {
+    const earthTime = elapsedSec % EARTH_ORBIT_PERIOD_SEC / EARTH_ORBIT_PERIOD_SEC
+    const moonTime = elapsedSec % MOON_ORBIT_PERIOD_SEC / MOON_ORBIT_PERIOD_SEC
+    material.uniforms.u_earthTime.value = earthTime
+    material.uniforms.u_moonTime.value = moonTime
+  }
+
   const unsubscribeBeforeRender = onBeforeRender(() => {
     timer.update()
-    timer.getElapsed()
+    const elapsed = timer.getElapsed()
+    setPlanetRotation(elapsed)
   })
 
   const pane = new Pane({ title: 'Godot2D' })
-  pane
-    .addBinding(params, 'pixelSize', {
-      label: 'pixelSize',
-      min: 1,
-      max: 30,
-      step: 1,
-    })
-    .on('change', (ev) => {
-      material.uniforms.u_pixelSize.value = ev.value
-    })
 
   const dispose = (): void => {
     unsubscribeBeforeRender()
@@ -79,7 +77,7 @@ export async function setupPixelate(
     scene.value?.remove(plane)
     geometry.dispose()
     material.dispose()
-    godot2DTexture.dispose()
+    attackTexture.dispose()
   }
 
   return { plane, dispose }

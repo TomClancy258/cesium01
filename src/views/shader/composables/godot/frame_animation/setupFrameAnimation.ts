@@ -6,12 +6,16 @@ import fragmentShader from './shaders/fragment-shader.glsl?raw'
 
 type BeforeRenderHandle = (fn: () => void) => () => void
 
+const FRAME_COUNT = 4
+const FRAME_ANIMATION_PERIOD_SEC = 2
+const ONE_FRAME_PERIOD_SEC = FRAME_ANIMATION_PERIOD_SEC / FRAME_COUNT
+
 export interface PixelateSetupResult {
   plane: THREE.Mesh
   dispose: () => void
 }
 
-export async function setupPixelate(
+export async function setupFrameAnimation(
   scene: ShallowRef<THREE.Scene | null>,
   onBeforeRender: BeforeRenderHandle,
 ): Promise<PixelateSetupResult | null> {
@@ -23,25 +27,22 @@ export async function setupPixelate(
   const timer = new THREE.Timer()
   timer.connect(document)
 
-  const godot2DTexture = await new THREE.TextureLoader().loadAsync(
-    '/textures/godot2D.png',
+  const attackTexture = await new THREE.TextureLoader().loadAsync(
+    '/textures/attack.png',
   )
-  godot2DTexture.wrapS = THREE.RepeatWrapping
-  godot2DTexture.wrapT = THREE.RepeatWrapping
-  godot2DTexture.colorSpace = THREE.NoColorSpace
-
-  const imageWidth = godot2DTexture.width
-  const imageHeight = godot2DTexture.height
+  attackTexture.wrapS = THREE.RepeatWrapping
+  attackTexture.wrapT = THREE.RepeatWrapping
+  attackTexture.colorSpace = THREE.NoColorSpace
 
   const params={
-    pixelSize:4
+    vibrance:1.0
   }
 
   const material = new THREE.ShaderMaterial({
     uniforms: {
-      godot2D: { value: godot2DTexture },
-      u_imageSize: { value: new THREE.Vector2(imageWidth, imageHeight) },
-      u_pixelSize: { value: params.pixelSize },
+      attack: { value: attackTexture },
+      u_currentFrame: { value: 0.0 },
+      u_frames: { value: FRAME_COUNT },
     },
     vertexShader,
     fragmentShader,
@@ -56,21 +57,28 @@ export async function setupPixelate(
   plane.lookAt(1, 0, 1)
   scene.value.add(plane)
 
+  const setCurrentFrame = (elapsedSec: number): void => {
+    const t = elapsedSec % FRAME_ANIMATION_PERIOD_SEC
+    const frame = Math.floor(t / ONE_FRAME_PERIOD_SEC) // 0→1→2→3→0…
+    material.uniforms.u_currentFrame.value = frame
+  }
+
   const unsubscribeBeforeRender = onBeforeRender(() => {
     timer.update()
-    timer.getElapsed()
+    const elapsed = timer.getElapsed()
+    setCurrentFrame(elapsed)
   })
 
   const pane = new Pane({ title: 'Godot2D' })
   pane
-    .addBinding(params, 'pixelSize', {
-      label: 'pixelSize',
-      min: 1,
-      max: 30,
-      step: 1,
+    .addBinding(params, 'vibrance', {
+      label: 'vibrance',
+      min: 0.0,
+      max: 2.0,
+      step: 0.1,
     })
     .on('change', (ev) => {
-      material.uniforms.u_pixelSize.value = ev.value
+      material.uniforms.u_vibrance.value = ev.value
     })
 
   const dispose = (): void => {
@@ -79,7 +87,7 @@ export async function setupPixelate(
     scene.value?.remove(plane)
     geometry.dispose()
     material.dispose()
-    godot2DTexture.dispose()
+    attackTexture.dispose()
   }
 
   return { plane, dispose }

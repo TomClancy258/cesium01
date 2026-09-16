@@ -69,6 +69,8 @@ czm_material czm_getMaterial(czm_materialInput materialInput) {
     //但如果做了右边fade抗锯齿，则光圈会变细些
     //upper在[0,rightEdge-aa)=0,[rightEdge-aa,rightEdge+aa]=[0,1],[rightEdge + aa,1)=1
     float upper = 1.0 - smoothstep(rightEdge - aa, rightEdge+aa, spacingXAixs);
+    //等效上面，但不推荐这个写法
+//    float upper = smoothstep( rightEdge+aa, rightEdge - aa,spacingXAixs);
 
     //画个图就知道为啥*了
     float alpha=lower*upper;

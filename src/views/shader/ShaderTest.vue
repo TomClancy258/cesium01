@@ -12,6 +12,11 @@ import { setupCrosshair } from '@/views/shader/composables/godot/crosshair/setup
 import { setupShield } from '@/views/shader/composables/godot/shield/setupShield.ts'
 import { setupOutline } from '@/views/shader/composables/godot/outline/setupOutline.ts'
 import { setupPixelate } from '@/views/shader/composables/godot/pixelate/setupPixelate.ts'
+import { setupDissolve } from '@/views/shader/composables/godot/dissolve/setupDissolve.ts'
+import { setupFire } from '@/views/shader/composables/godot/fire/setupFire.ts'
+import { setupColorChange } from '@/views/shader/composables/godot/color_change/setupColorChange.ts'
+import { setupFrameAnimation } from '@/views/shader/composables/godot/frame_animation/setupFrameAnimation.ts'
+import { setupOrbit } from '@/views/shader/composables/godot/orbit/setupOrbit.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
@@ -20,6 +25,11 @@ let disposeCrosshair: (() => void) | undefined
 let disposeShield: (() => void) | undefined
 let disposeOutline: (() => void) | undefined
 let disposePixelate: (() => void) | undefined
+let disposeDissolve: (() => void) | undefined
+let disposeFire: (() => void) | undefined
+let disposeColorChange: (() => void) | undefined
+let disposeFrameAnimation: (() => void) | undefined
+let disposeOrbit: (() => void) | undefined
 
 onMounted(async () => {
   initScene()
@@ -33,7 +43,12 @@ onMounted(async () => {
   // disposeCrosshair = setupCrosshair(scene)?.dispose
   // disposeShield = setupShield(scene, onBeforeRender)?.dispose
   // disposeOutline = setupOutline(scene, onBeforeRender)?.dispose
-  disposePixelate = (await setupPixelate(scene, onBeforeRender))?.dispose
+  // disposePixelate = (await setupPixelate(scene, onBeforeRender))?.dispose
+  // disposeDissolve = (await setupDissolve(scene, onBeforeRender))?.dispose
+  // disposeFire = (await setupFire(scene, onBeforeRender))?.dispose
+  // disposeColorChange = (await setupColorChange(scene, onBeforeRender))?.dispose
+  // disposeFrameAnimation = (await setupFrameAnimation(scene, onBeforeRender))?.dispose
+  disposeOrbit = (await setupOrbit(scene, onBeforeRender))?.dispose
 })
 
 onUnmounted(() => {
@@ -45,6 +60,16 @@ onUnmounted(() => {
   disposeOutline = undefined
   disposePixelate?.()
   disposePixelate = undefined
+  disposeDissolve?.()
+  disposeDissolve = undefined
+  disposeFire?.()
+  disposeFire = undefined
+  disposeColorChange?.()
+  disposeColorChange = undefined
+  disposeFrameAnimation?.()
+  disposeFrameAnimation = undefined
+  disposeOrbit?.()
+  disposeOrbit = undefined
 })
 </script>
 
