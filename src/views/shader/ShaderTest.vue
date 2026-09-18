@@ -17,6 +17,10 @@ import { setupFire } from '@/views/shader/composables/godot/fire/setupFire.ts'
 import { setupColorChange } from '@/views/shader/composables/godot/color_change/setupColorChange.ts'
 import { setupFrameAnimation } from '@/views/shader/composables/godot/frame_animation/setupFrameAnimation.ts'
 import { setupOrbit } from '@/views/shader/composables/godot/orbit/setupOrbit.ts'
+import { setupShine } from '@/views/shader/composables/godot/shine/setupShine.ts'
+import { setupReload } from '@/views/shader/composables/godot/reload/setupReload.ts'
+import { setupStamina } from '@/views/shader/composables/godot/stamina/setupStamina.ts'
+import { setupLiquid } from '@/views/shader/composables/godot/liquid/setupLiquid.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
@@ -30,6 +34,10 @@ let disposeFire: (() => void) | undefined
 let disposeColorChange: (() => void) | undefined
 let disposeFrameAnimation: (() => void) | undefined
 let disposeOrbit: (() => void) | undefined
+let disposeShine: (() => void) | undefined
+let disposeReload: (() => void) | undefined
+let disposeStamina: (() => void) | undefined
+let disposeLiquid: (() => void) | undefined
 
 onMounted(async () => {
   initScene()
@@ -48,7 +56,11 @@ onMounted(async () => {
   // disposeFire = (await setupFire(scene, onBeforeRender))?.dispose
   // disposeColorChange = (await setupColorChange(scene, onBeforeRender))?.dispose
   // disposeFrameAnimation = (await setupFrameAnimation(scene, onBeforeRender))?.dispose
-  disposeOrbit = (await setupOrbit(scene, onBeforeRender))?.dispose
+  // disposeOrbit = (await setupOrbit(scene, onBeforeRender))?.dispose
+  // disposeShine = (await setupShine(scene, onBeforeRender))?.dispose
+  // disposeReload = (await setupReload(scene, onBeforeRender))?.dispose
+  // disposeStamina = (await setupStamina(scene, onBeforeRender))?.dispose
+  disposeLiquid = (await setupLiquid(scene, onBeforeRender))?.dispose
 })
 
 onUnmounted(() => {
@@ -70,6 +82,14 @@ onUnmounted(() => {
   disposeFrameAnimation = undefined
   disposeOrbit?.()
   disposeOrbit = undefined
+  disposeShine?.()
+  disposeShine = undefined
+  disposeReload?.()
+  disposeReload = undefined
+  disposeStamina?.()
+  disposeStamina = undefined
+  disposeLiquid?.()
+  disposeLiquid = undefined
 })
 </script>
 

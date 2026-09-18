@@ -138,7 +138,7 @@ export function useThreeScene() {
     )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
-    threeCamera.position.set(1, 0, 1)
+    threeCamera.position.set(5, 0, 5)
     threeCamera.lookAt(0, 0, 0)
 
     const threeRenderer = new THREE.WebGLRenderer({
