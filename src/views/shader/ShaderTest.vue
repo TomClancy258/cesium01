@@ -21,6 +21,11 @@ import { setupShine } from '@/views/shader/composables/godot/shine/setupShine.ts
 import { setupReload } from '@/views/shader/composables/godot/reload/setupReload.ts'
 import { setupStamina } from '@/views/shader/composables/godot/stamina/setupStamina.ts'
 import { setupLiquid } from '@/views/shader/composables/godot/liquid/setupLiquid.ts'
+import { setupFlag } from '@/views/shader/composables/godot/flag/setupFlag.ts'
+import { setupFake3D } from '@/views/shader/composables/godot/fake3D/setupFake3D.ts'
+import { setupModelMatrix } from '@/views/shader/composables/godot/model_matrix/setupModelMatrix.ts'
+import { setupDungeon } from '@/views/shader/composables/godot/dungeon/setupDungeon.ts'
+import { setupGrassScene } from '@/views/shader/composables/godot/grass/setupGrassScene.ts'
 
 const { containerRef, scene, onBeforeRender, onResize, initScene } = useThreeScene()
 const { loadModel } = setupLight(scene)//已经执行了setupLight函数，获得了它的return
@@ -38,6 +43,11 @@ let disposeShine: (() => void) | undefined
 let disposeReload: (() => void) | undefined
 let disposeStamina: (() => void) | undefined
 let disposeLiquid: (() => void) | undefined
+let disposeFlag: (() => void) | undefined
+let disposeFake3D: (() => void) | undefined
+let disposeModelMatrix: (() => void) | undefined
+let disposeDungeon: (() => void) | undefined
+let disposeGrass: (() => void) | undefined
 
 onMounted(async () => {
   initScene()
@@ -60,7 +70,12 @@ onMounted(async () => {
   // disposeShine = (await setupShine(scene, onBeforeRender))?.dispose
   // disposeReload = (await setupReload(scene, onBeforeRender))?.dispose
   // disposeStamina = (await setupStamina(scene, onBeforeRender))?.dispose
-  disposeLiquid = (await setupLiquid(scene, onBeforeRender))?.dispose
+  // disposeLiquid = (await setupLiquid(scene, onBeforeRender))?.dispose
+  // disposeFlag = (await setupFlag(scene, onBeforeRender))?.dispose
+  // disposeFake3D = (await setupFake3D(scene, onBeforeRender))?.dispose
+  // disposeModelMatrix = (await setupModelMatrix(scene, onBeforeRender))?.dispose
+  // disposeDungeon = (await setupDungeon(scene, onBeforeRender))?.dispose
+  disposeGrass = (await setupGrassScene(scene, onBeforeRender))?.dispose
 })
 
 onUnmounted(() => {
@@ -90,6 +105,16 @@ onUnmounted(() => {
   disposeStamina = undefined
   disposeLiquid?.()
   disposeLiquid = undefined
+  disposeFlag?.()
+  disposeFlag = undefined
+  disposeFake3D?.()
+  disposeFake3D = undefined
+  disposeModelMatrix?.()
+  disposeModelMatrix = undefined
+  disposeDungeon?.()
+  disposeDungeon = undefined
+  disposeGrass?.()
+  disposeGrass = undefined
 })
 </script>
 

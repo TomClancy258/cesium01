@@ -138,8 +138,8 @@ export function useThreeScene() {
     )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
-    threeCamera.position.set(5, 0, 5)
-    threeCamera.lookAt(0, 0, 0)
+    threeCamera.position.set(5, 5, 10)
+    threeCamera.lookAt(5, 5, 0)
 
     const threeRenderer = new THREE.WebGLRenderer({
       antialias: true,
@@ -154,7 +154,8 @@ export function useThreeScene() {
     const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
     orbitControls.enableDamping = true
     orbitControls.dampingFactor = 0.05
-    orbitControls.target.set(0, 0, 0)
+    // orbitControls.target.set(0, 0, 0)
+    orbitControls.target.set(5, 5, 0)
     orbitControls.update()
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.9)
