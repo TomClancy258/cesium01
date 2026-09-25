@@ -1,5 +1,6 @@
-import * as THREE from 'three'
+import * as THREE from 'three/webgpu'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
+import { Inspector } from 'three/addons/inspector/Inspector.js'
 import { useThrottleFn } from '@vueuse/core'
 import { onUnmounted, ref, shallowRef } from 'vue'
 
@@ -23,10 +24,9 @@ export function useThreeScene() {
   const containerRef = ref<HTMLElement | null>(null)
   const scene = shallowRef<THREE.Scene | null>(null)
   const camera = shallowRef<THREE.PerspectiveCamera | null>(null)
-  const renderer = shallowRef<THREE.WebGLRenderer | null>(null)
+  const renderer = shallowRef<THREE.WebGPURenderer | null>(null)
   const controls = shallowRef<OrbitControls | null>(null)
 
-  let animationFrameId = 0
   let resizeObserver: ResizeObserver | null = null
   let skyCubeTexture: THREE.CubeTexture | null = null
   /** 每帧渲染前回调（如更新 shader uniform）；存的是回调，不是取消函数 */
@@ -38,9 +38,6 @@ export function useThreeScene() {
    * 登记每帧渲染前要跑的回调（subscribe → 返回 unsubscribe）。
    * 用于 setupSinCos 的 setOffset 等，不必 mitt / 构造函数。
    */
-  //形参fn，形参fn后面的()=>void是形参的ts类型，
-    // (() => void) 是onBeforeRender 返回值的类型是个函数即()=>void，但返回值类型必须用()包起来，所以是(() => void)
-    //因为 : 后面若直接写 () => void =>，解析会乱。
   const onBeforeRender = (fn: () => void): (() => void) => {
     beforeRenderFns.push(fn)
     return () => {
@@ -67,25 +64,6 @@ export function useThreeScene() {
     }
   }
 
-  //type Unsubscribe = () => void
-  // 别名，同理
-  // const onBeforeRender = (fn: () => void): Unsubscribe => {
-  //   beforeRenderFns.push(fn)
-  //   return () => { /* 从数组里删掉 fn */ }
-  // }
-
-  const renderLoop = (): void => {
-    if (!renderer.value || !scene.value || !camera.value) return
-    animationFrameId = requestAnimationFrame(renderLoop)
-    if (controls.value?.enabled) {
-      controls.value.update()
-    }
-    for (let i = 0; i < beforeRenderFns.length; i++) {
-      beforeRenderFns[i]()
-    }
-    renderer.value.render(scene.value, camera.value)
-  }
-
   const handleResize = (): void => {
     const container = containerRef.value
     if (!container || !camera.value || !renderer.value) return
@@ -102,9 +80,29 @@ export function useThreeScene() {
     }
   }
 
-  const throttledHandleResize = useThrottleFn(handleResize, RESIZE_THROTTLE_MS, true, true)
+  const throttledHandleResize = useThrottleFn(
+    handleResize,
+    RESIZE_THROTTLE_MS,
+    true,
+    true,
+  )
 
-  const initScene = (): void => {
+  const tick = (): void => {
+    if (!renderer.value || !scene.value || !camera.value) return
+    if (controls.value?.enabled) {
+      controls.value.update()
+    }
+    for (let i = 0; i < beforeRenderFns.length; i++) {
+      beforeRenderFns[i]()
+    }
+    renderer.value.render(scene.value, camera.value)
+  }
+
+  /**
+   * WebGPU 设备申请是异步的，必须 await init() 后再开始渲染 / 读 backend。
+   * setAnimationLoop 也会在首帧前自动 init；这里显式 await，方便立刻 console.log(backend)。
+   */
+  const initScene = async (): Promise<void> => {
     const container = containerRef.value
     if (!container) {
       console.error('[useThreeScene] containerRef is not bound')
@@ -115,7 +113,6 @@ export function useThreeScene() {
     const height = container.clientHeight || window.innerHeight
 
     const threeScene = new THREE.Scene()
-    // 加载前先用深色底，避免白闪
     threeScene.background = new THREE.Color(SCENE_CLEAR_COLOR)
     scene.value = threeScene
 
@@ -133,45 +130,69 @@ export function useThreeScene() {
       },
       undefined,
       (error) => {
-        console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
+        console.error(
+          '[useThreeScene] failed to load skybox',
+          CLOUD_SUNSET_CUBE_URLS,
+          error,
+        )
       },
     )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
-    threeCamera.position.set(5, 5, 10)
-    threeCamera.lookAt(5, 5, 0)
+    // threeCamera.position.set(5, 5, 10)
+    // threeCamera.lookAt(5, 5, 0)
+    // threeCamera.position.set(10, 5, 10)
+    // threeCamera.lookAt(0, 0, 0)
+    threeCamera.position.set(0, 2, 3)
+    threeCamera.lookAt(0, 0.5, 0)
 
-    const threeRenderer = new THREE.WebGLRenderer({
+    const threeRenderer = new THREE.WebGPURenderer({
       antialias: true,
       alpha: false,
     })
     threeRenderer.setClearColor(SCENE_CLEAR_COLOR, 1)
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     threeRenderer.setSize(width, height, false)
+    // WebGPURenderer 继承 Renderer，outputColorSpace 仍可用
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace
+    threeRenderer.shadowMap.enabled = true
+    threeRenderer.shadowMap.type = THREE.PCFShadowMap
+    // Inspector 挂在 renderer 上，开发时看 FPS / 参数 / TSL；业务页可去掉
+    threeRenderer.inspector = new Inspector()
     container.appendChild(threeRenderer.domElement)
 
-    const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
+    await threeRenderer.init()
+    console.log('[useThreeScene] backend', threeRenderer.backend)
+
+    const orbitControls = new OrbitControls(
+      threeCamera,
+      threeRenderer.domElement,
+    )
     orbitControls.enableDamping = true
     orbitControls.dampingFactor = 0.05
-    // orbitControls.target.set(0, 0, 0)
-    orbitControls.target.set(5, 5, 0)
+    orbitControls.target.set(0, 0.5, 0)
     orbitControls.update()
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9)
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2)
-    directionalLight.position.set(50, 80, 50)
+    // 环境光太亮会把阴影冲掉，略压暗以看出 knot 投影
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.35)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5)
+    directionalLight.position.set(5, 8, 3)
+    directionalLight.castShadow = true
+    directionalLight.shadow.mapSize.set(2048, 2048)
+    directionalLight.shadow.camera.near = 0.5
+    directionalLight.shadow.camera.far = 30
+    directionalLight.shadow.camera.left = -8
+    directionalLight.shadow.camera.right = 8
+    directionalLight.shadow.camera.top = 8
+    directionalLight.shadow.camera.bottom = -8
+    directionalLight.shadow.bias = -0.0001
     threeScene.add(ambientLight, directionalLight)
 
-    // 红 X / 绿 Y / 蓝 Z
     const axesHelper = new THREE.AxesHelper(5)
     threeScene.add(axesHelper)
 
     camera.value = threeCamera
     renderer.value = threeRenderer
-
-    console.log(renderer.value.backend)
-
     controls.value = orbitControls
 
     resizeObserver = new ResizeObserver(() => {
@@ -179,12 +200,14 @@ export function useThreeScene() {
     })
     resizeObserver.observe(container)
 
-    renderLoop()
+    // setAnimationLoop 会在首帧前确保已 init；这里已 await，行为与 RAF 等价且便于销毁
+    threeRenderer.setAnimationLoop(tick)
   }
 
   const destroyScene = (): void => {
-    cancelAnimationFrame(animationFrameId)
-    animationFrameId = 0
+    if (renderer.value) {
+      renderer.value.setAnimationLoop(null)
+    }
 
     resizeObserver?.disconnect()
     resizeObserver = null
@@ -195,6 +218,7 @@ export function useThreeScene() {
     controls.value = null
 
     if (renderer.value) {
+      renderer.value.inspector = null
       const canvas = renderer.value.domElement
       canvas.parentElement?.removeChild(canvas)
       renderer.value.dispose()

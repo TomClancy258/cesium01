@@ -5,6 +5,7 @@ const IntelligentWaterPumpStation = () => import('@/views/intelligent_water_pump
 const User = () => import('@/views/user/User.vue')
 const WebGL = () => import('@/views/webgl/WebGL.vue')
 const ShaderTest = () => import('@/views/shader/ShaderTest.vue')
+const WebGPU = () => import('@/views/webgpu-tsl/WebGPU.vue')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -37,6 +38,11 @@ const router = createRouter({
       path: '/ShaderTest',
       name: 'ShaderTest',
       component: ShaderTest,
+    },
+    {
+      path: '/WebGPU',
+      name: 'WebGPU',
+      component: WebGPU,
     },
   ],
 })
