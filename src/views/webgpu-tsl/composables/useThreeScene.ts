@@ -20,6 +20,46 @@ const CLOUD_SUNSET_CUBE_URLS = [
 /** 窗口拖拽中合并 setSize，减轻重建导致的闪白 */
 const RESIZE_THROTTLE_MS = 100
 
+const TONE_MAPPING_LIST = {
+  None: THREE.NoToneMapping,
+  Linear: THREE.LinearToneMapping,
+  Reinhard: THREE.ReinhardToneMapping,
+  Cineon: THREE.CineonToneMapping,
+  ACESFilmic: THREE.ACESFilmicToneMapping,
+  AgX: THREE.AgXToneMapping,
+  Neutral: THREE.NeutralToneMapping,
+} as const
+
+type ToneMappingName = keyof typeof TONE_MAPPING_LIST
+
+/** Inspector 面板：切换 toneMapping / exposure（与 Journey webgpu 示例同套路） */
+const setupToneMappingGui = (threeRenderer: THREE.WebGPURenderer): void => {
+  const toneMapping = {
+    value: 'Cineon' as ToneMappingName,
+  }
+  threeRenderer.toneMapping = TONE_MAPPING_LIST[toneMapping.value]
+  threeRenderer.toneMappingExposure = 1.5
+
+  const inspector = threeRenderer.inspector
+  if (!inspector?.createParameters) return
+
+  const rendererGui = inspector.createParameters('Renderer')
+  rendererGui
+    //监视 toneMapping.value，选项是 ['None','Linear',...] → 画出下拉框。
+    //toneMapping.value=自动更新为所选值
+    .add(toneMapping, 'value', Object.keys(TONE_MAPPING_LIST))
+    //面板上显示的标签名（默认会显示 value，不好看）。
+    .name('toneMapping')
+    //下拉一变，把名字映射成 Three 常量写进 renderer。
+    .onChange((value: ToneMappingName) => {
+      //value属于TONE_MAPPING_LIST的keys
+      threeRenderer.toneMapping = TONE_MAPPING_LIST[value]
+    })
+  //给 Inspector 加一块「色调映射」调试面板，运行时切换算法和曝光。
+  //threeRenderer.toneMappingExposure=float
+  rendererGui.add(threeRenderer, 'toneMappingExposure', 0.1, 10, 0.01)
+}
+
 export function useThreeScene() {
   const containerRef = ref<HTMLElement | null>(null)
   const scene = shallowRef<THREE.Scene | null>(null)
@@ -33,6 +73,12 @@ export function useThreeScene() {
   const beforeRenderFns: Array<() => void> = []
   /** 容器尺寸变化后回调；参数是 canvas CSS 像素，不是 window */
   const resizeFns: Array<(width: number, height: number) => void> = []
+  /** 覆盖默认 renderer.render；后处理时改为 renderPipeline.render() */
+  let frameRender: (() => void) | null = null
+
+  const setFrameRender = (fn: (() => void) | null): void => {
+    frameRender = fn
+  }
 
   /**
    * 登记每帧渲染前要跑的回调（subscribe → 返回 unsubscribe）。
@@ -50,9 +96,7 @@ export function useThreeScene() {
    * 登记 resize 回调，签名与 onBeforeRender 相同：subscribe → unsubscribe。
    * 订阅时立刻用当前容器尺寸调一次（setup 在 initScene 之后，首帧 ResizeObserver 可能已经错过）。
    */
-  const onResize = (
-    fn: (width: number, height: number) => void,
-  ): (() => void) => {
+  const onResize = (fn: (width: number, height: number) => void): (() => void) => {
     resizeFns.push(fn)
     const container = containerRef.value
     if (container && container.clientWidth > 0 && container.clientHeight > 0) {
@@ -80,12 +124,7 @@ export function useThreeScene() {
     }
   }
 
-  const throttledHandleResize = useThrottleFn(
-    handleResize,
-    RESIZE_THROTTLE_MS,
-    true,
-    true,
-  )
+  const throttledHandleResize = useThrottleFn(handleResize, RESIZE_THROTTLE_MS, true, true)
 
   const tick = (): void => {
     if (!renderer.value || !scene.value || !camera.value) return
@@ -95,7 +134,11 @@ export function useThreeScene() {
     for (let i = 0; i < beforeRenderFns.length; i++) {
       beforeRenderFns[i]()
     }
-    renderer.value.render(scene.value, camera.value)
+    if (frameRender) {
+      frameRender()
+    } else {
+      renderer.value.render(scene.value, camera.value)
+    }
   }
 
   /**
@@ -130,21 +173,19 @@ export function useThreeScene() {
       },
       undefined,
       (error) => {
-        console.error(
-          '[useThreeScene] failed to load skybox',
-          CLOUD_SUNSET_CUBE_URLS,
-          error,
-        )
+        console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
       },
     )
 
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     // threeCamera.position.set(5, 5, 10)
     // threeCamera.lookAt(5, 5, 0)
-    // threeCamera.position.set(10, 5, 10)
-    // threeCamera.lookAt(0, 0, 0)
-    threeCamera.position.set(0, 2, 3)
-    threeCamera.lookAt(0, 0.5, 0)
+    // threeCamera.position.set(3, 10, 3)
+    // threeCamera.lookAt(0, 5, 0)
+    threeCamera.position.set(3, 5, 3)
+    threeCamera.lookAt(0, 2.5, 0)
+    // threeCamera.position.set(0, 2, 3)
+    // threeCamera.lookAt(0, 0.5, 0)
 
     const threeRenderer = new THREE.WebGPURenderer({
       antialias: true,
@@ -159,18 +200,16 @@ export function useThreeScene() {
     threeRenderer.shadowMap.type = THREE.PCFShadowMap
     // Inspector 挂在 renderer 上，开发时看 FPS / 参数 / TSL；业务页可去掉
     threeRenderer.inspector = new Inspector()
+    // setupToneMappingGui(threeRenderer)
     container.appendChild(threeRenderer.domElement)
 
     await threeRenderer.init()
     console.log('[useThreeScene] backend', threeRenderer.backend)
 
-    const orbitControls = new OrbitControls(
-      threeCamera,
-      threeRenderer.domElement,
-    )
+    const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
     orbitControls.enableDamping = true
     orbitControls.dampingFactor = 0.05
-    orbitControls.target.set(0, 0.5, 0)
+    orbitControls.target.set(0, 2.5, 0)
     orbitControls.update()
 
     // 环境光太亮会把阴影冲掉，略压暗以看出 knot 投影
@@ -205,6 +244,7 @@ export function useThreeScene() {
   }
 
   const destroyScene = (): void => {
+    // 先停循环，避免 Inspector 在 dispose 后还 begin/finish
     if (renderer.value) {
       renderer.value.setAnimationLoop(null)
     }
@@ -213,12 +253,20 @@ export function useThreeScene() {
     resizeObserver = null
     beforeRenderFns.length = 0
     resizeFns.length = 0
+    frameRender = null
 
     controls.value?.dispose()
     controls.value = null
 
     if (renderer.value) {
-      renderer.value.inspector = null
+      // Renderer.inspector setter 在 value===null 时仍会调用 null.setRenderer(this) 报错
+      // 正确拆法：先 inspector.setRenderer(null)，再清内部引用，不要 renderer.inspector = null
+      const inspector = renderer.value.inspector
+      if (inspector) {
+        inspector.setRenderer(null)
+        inspector.domElement?.remove()
+      }
+
       const canvas = renderer.value.domElement
       canvas.parentElement?.removeChild(canvas)
       renderer.value.dispose()
@@ -247,6 +295,7 @@ export function useThreeScene() {
     controls,
     onBeforeRender,
     onResize,
+    setFrameRender,
     initScene,
     destroyScene,
   }

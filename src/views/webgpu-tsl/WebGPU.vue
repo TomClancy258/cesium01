@@ -3,32 +3,44 @@ import { onMounted, onUnmounted } from 'vue'
 import { useThreeScene } from './composables/useThreeScene'
 import { setupWebgpuBasics } from './composables/setupWebgpuBasics'
 import { setupPatterns } from '@/views/webgpu-tsl/composables/setupPatterns.ts'
+import { setupCoffeSmoke } from '@/views/webgpu-tsl/composables/setupCoffeSmoke.ts'
+import { setupPostProcessing } from '@/views/webgpu-tsl/composables/setupPostProcessing.ts'
 
-const { containerRef, scene, camera, renderer, controls, initScene } =
+const { containerRef, scene, camera, renderer, controls, setFrameRender, initScene } =
   useThreeScene()
 
 let disposeBasics: (() => void) | undefined
 let disposePatterns: (() => void) | undefined
+let disposeCoffeeSmoke: (() => void) | undefined
+let disposePostProcessing: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
-  // disposeBasics = setupWebgpuBasics({
-  //   scene,
-  //   camera,
-  //   renderer,
-  //   controls,
-  // })?.dispose
-  disposePatterns = setupPatterns({
-    scene,
-    camera,
-    renderer,
-    controls,
-  })?.dispose
+  // disposeBasics = setupWebgpuBasics({scene,camera,renderer,controls,})?.dispose
+  // disposePatterns = setupPatterns({ scene, camera, renderer, controls, })?.dispose
+  // disposeCoffeeSmoke = (
+  //   await setupCoffeSmoke({ scene, camera, renderer, controls })
+  // )?.dispose
+  disposePostProcessing = (
+    await setupPostProcessing({
+      scene,
+      camera,
+      renderer,
+      controls,
+      setFrameRender,
+    })
+  )?.dispose
 })
 
 onUnmounted(() => {
   disposeBasics?.()
   disposeBasics = undefined
+  disposePatterns?.()
+  disposePatterns = undefined
+  disposeCoffeeSmoke?.()
+  disposeCoffeeSmoke = undefined
+  disposePostProcessing?.()
+  disposePostProcessing = undefined
 })
 </script>
 
