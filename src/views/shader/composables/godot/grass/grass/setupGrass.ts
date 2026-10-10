@@ -63,6 +63,7 @@ export async function setupGrass(
   const geometry = new THREE.PlaneGeometry(GRASS_WIDTH, GRASS_HEIGHT)
   geometry.translate(0, GRASS_HEIGHT / 2, 0)
 
+  //和mesh.count++没有本质区别，都是 InstancedMesh。 InstancedMesh 生成时草就全在，mesh.count 要按点击增减。
   const mesh = new THREE.InstancedMesh(
     geometry,
     material,

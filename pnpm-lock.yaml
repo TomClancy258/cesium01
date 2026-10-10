@@ -35,6 +35,9 @@ importers:
       element-plus:
         specifier: ^2.13.0
         version: 2.13.0(vue@3.5.26(typescript@5.9.3))
+      gsap:
+        specifier: ^3.15.0
+        version: 3.15.0
       lodash-es:
         specifier: ^4.17.22
         version: 4.17.22
@@ -1871,6 +1874,9 @@ packages:
 
   grapheme-splitter@1.0.4:
     resolution: {integrity: sha512-bzh50DW9kTPM00T8y4o8vQg89Di9oLJVLW/KaOGIXJWP/iqCN6WKYkbNOF04vFLJhwcpYUh9ydh/+5vpOqV4YQ==}
+
+  gsap@3.15.0:
+    resolution: {integrity: sha512-dMW4CWBTUK1AEEDeZc1g4xpPGIrSf9fJF960qbTZmN/QwZIWY5wgliS6JWl9/25fpTGJrMRtSjGtOmPnfjZB+A==}
 
   has-flag@4.0.0:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
@@ -5374,6 +5380,8 @@ snapshots:
   gopd@1.2.0: {}
 
   grapheme-splitter@1.0.4: {}
+
+  gsap@3.15.0: {}
 
   has-flag@4.0.0: {}
 
