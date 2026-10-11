@@ -180,8 +180,12 @@ export function useThreeScene() {
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     // threeCamera.position.set(5, 5, 10)
     // threeCamera.lookAt(5, 5, 0)
-    threeCamera.position.set(5, 4, 5)
-    threeCamera.lookAt(0, 1, 0)
+
+    // threeCamera.position.set(5, 4, 5)
+    // threeCamera.lookAt(0, 1, 0)
+    threeCamera.position.set(1, 2, 10)
+    threeCamera.lookAt(1, 2, 0)
+
     // threeCamera.position.set(3, 5, 3)
     // threeCamera.lookAt(0, 2.5, 0)
     // threeCamera.position.set(0, 2, 3)
@@ -209,7 +213,8 @@ export function useThreeScene() {
     const orbitControls = new OrbitControls(threeCamera, threeRenderer.domElement)
     orbitControls.enableDamping = true
     orbitControls.dampingFactor = 0.05
-    orbitControls.target.set(0, 1, 0)
+    // orbitControls.target.set(0, 1, 0)
+    orbitControls.target.set(1, 2, 0)
     orbitControls.update()
 
     // 环境光太亮会把阴影冲掉，略压暗以看出 knot 投影

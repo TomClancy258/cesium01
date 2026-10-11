@@ -56,6 +56,7 @@ import {
 } from 'three/tsl'
 import * as THREE from 'three/webgpu'
 import type { Texture } from 'three'
+import {randomSphericalPosition} from "@/utils/threejs-utils.ts"
 
 export interface ShieldInstance {
   texture: Texture
@@ -131,24 +132,6 @@ export function createMagicExplosion(options: CreateShieldOptions): ShieldInstan
     //   const position=vec3(radius.mul(cos(angle)),0,radius.mul(sin(angle)))
     //   return position
     // })()
-
-    /**
-     * radius=1是上下最大范围生成，局部坐标为圆心
-     */
-    const randomSphericalPosition = Fn(([ seed = uint(0), radius = float(1) ]) =>
-    {
-      const u = hash(seed)
-      const v = hash(seed.add(123).mul(2))
-      const theta = u.mul(TWO_PI)
-      const phi = v.remap(0, 1, -1, 1).acos()
-      const sinPhi = phi.sin()
-
-      return vec3(
-        theta.sin().mul(sinPhi),
-        phi.cos(),
-        theta.cos().mul(sinPhi)
-      ).mul(radius)
-    }, { seed: 'uint', radius: 'float', return: 'vec3' })
 
     const progress=varying(0)
     galaxy.material.positionNode=Fn(()=>{

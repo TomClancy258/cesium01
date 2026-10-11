@@ -9,6 +9,7 @@ import { setupShied } from '@/views/webgpu-tsl/composables/shield/setupShied.ts'
 import { setupMagicExplosion } from '@/views/webgpu-tsl/composables/magic-explosion/setupMagicExplosion.ts'
 import { setupGalaxy } from '@/views/webgpu-tsl/composables/galaxy/setupGalaxy.ts'
 import { setupAnvil } from '@/views/webgpu-tsl/composables/anvil/setupAnvil.ts'
+import { setupClairObscurTitle } from '@/views/webgpu-tsl/composables/clair-obscur-title/setupClairObscurTitle.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -48,6 +49,7 @@ let disposeShield: (() => void) | undefined
 let disposeMagicExplosion: (() => void) | undefined
 let disposeGalaxy: (() => void) | undefined
 let disposeAnvil: (() => void) | undefined
+let disposeClairObscurTitle: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -81,7 +83,24 @@ onMounted(async () => {
   // disposeShield = shieldApi?.dispose
   // addImpact = shieldApi?.addImpact
 
-  const anvilApi = (await setupAnvil({
+  // const anvilApi = (await setupAnvil({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   // addImpact: (hit: ScenePickHit) => void
+  // } | null
+  // disposeAnvil = anvilApi?.dispose
+  // addAnvilImpact = anvilApi?.addImpact
+
+  const clairObscurTitleApi = (await setupClairObscurTitle({
     scene,
     camera,
     renderer,
@@ -95,8 +114,7 @@ onMounted(async () => {
     dispose: () => void
     // addImpact: (hit: ScenePickHit) => void
   } | null
-  disposeAnvil = anvilApi?.dispose
-  addAnvilImpact = anvilApi?.addImpact
+  disposeClairObscurTitle = clairObscurTitleApi?.dispose
 
   // const explosionApi = (await setupMagicExplosion({
   //   scene,
@@ -150,6 +168,8 @@ onUnmounted(() => {
   disposeAnvil = undefined
   addAnvilImpact?.()
   addAnvilImpact = undefined
+  disposeClairObscurTitle?.()
+  disposeClairObscurTitle = undefined
 })
 </script>
 

@@ -21,6 +21,7 @@ import {
   materialColor,
   add,
   min,
+  addAssign,
   normalize,
   pow,
   instancedArray,
@@ -348,6 +349,8 @@ export async function setupAnvil(
       life.assign(min(life,1))
     })().compute(SPARK_COUNT)
 
+    //Sprite 只要告诉它「中心在哪」，四边形会绕这个点自动展开，不需要加 positionLocal。
+    //Mesh 设「局部顶点positionLocal + 平移」。
     material.positionNode=Fn(()=>{
       return spark.positions.element(instanceIndex)
     })()
