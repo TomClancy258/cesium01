@@ -10,6 +10,7 @@ import { setupMagicExplosion } from '@/views/webgpu-tsl/composables/magic-explos
 import { setupGalaxy } from '@/views/webgpu-tsl/composables/galaxy/setupGalaxy.ts'
 import { setupAnvil } from '@/views/webgpu-tsl/composables/anvil/setupAnvil.ts'
 import { setupClairObscurTitle } from '@/views/webgpu-tsl/composables/clair-obscur-title/setupClairObscurTitle.ts'
+import { setupSphereParticlesPhysics } from '@/views/webgpu-tsl/composables/sphere-particles-physics/setupSphereParticlesPhysics.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -21,6 +22,8 @@ const { containerRef, scene, camera, renderer, controls, setFrameRender, initSce
 let addImpact: ((hit: ScenePickHit) => void) | undefined
 let addAnvilImpact: ((hit: ScenePickHit) => void) | undefined
 let addExplosion: ((hit: ScenePickHit) => void) | undefined
+let updatePetal: ((hit: ScenePickHit) => void) | undefined
+let updateSphereParticles: ((hit: ScenePickHit) => void) | undefined
 
 const {
   registerObject,
@@ -32,12 +35,14 @@ const {
   camera,
   renderer,
   onHover: (hit) => {
-    console.log('[WebGPU] hover', hit?.object.name ?? null, hit?.point ?? null)
+    // console.log('[WebGPU] hover', hit?.object.name ?? null, hit?.point ?? null)
+    // updatePetal(hit)
+    updateSphereParticles(hit)
   },
   onSelect: (hit) => {
     // addImpact?.(hit)
     // addExplosion?.(hit)
-    addAnvilImpact?.(hit)
+    // addAnvilImpact?.(hit)
   },
 })
 
@@ -50,6 +55,7 @@ let disposeMagicExplosion: (() => void) | undefined
 let disposeGalaxy: (() => void) | undefined
 let disposeAnvil: (() => void) | undefined
 let disposeClairObscurTitle: (() => void) | undefined
+let disposeSphereParticlesPhysics: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -100,7 +106,24 @@ onMounted(async () => {
   // disposeAnvil = anvilApi?.dispose
   // addAnvilImpact = anvilApi?.addImpact
 
-  const clairObscurTitleApi = (await setupClairObscurTitle({
+  // const clairObscurTitleApi = (await setupClairObscurTitle({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeClairObscurTitle = clairObscurTitleApi?.dispose
+  // updatePetal = clairObscurTitleApi?.updatePetal
+
+  const sphereParticlesPhysicsApi = (await setupSphereParticlesPhysics({
     scene,
     camera,
     renderer,
@@ -112,9 +135,10 @@ onMounted(async () => {
     onBeforeRender,
   })) as {
     dispose: () => void
-    // addImpact: (hit: ScenePickHit) => void
+    updatePetal: (hit: ScenePickHit) => void
   } | null
-  disposeClairObscurTitle = clairObscurTitleApi?.dispose
+  disposeSphereParticlesPhysics = sphereParticlesPhysicsApi?.dispose
+  updateSphereParticles = sphereParticlesPhysicsApi?.updateSphereParticles
 
   // const explosionApi = (await setupMagicExplosion({
   //   scene,
@@ -150,6 +174,8 @@ onUnmounted(() => {
   unbindPicking()
   addImpact = undefined
   addExplosion = undefined
+  updatePetal = undefined
+  updateSphereParticles = undefined
   disposeBasics?.()
   disposeBasics = undefined
   disposePatterns?.()
@@ -170,6 +196,8 @@ onUnmounted(() => {
   addAnvilImpact = undefined
   disposeClairObscurTitle?.()
   disposeClairObscurTitle = undefined
+  disposeSphereParticlesPhysics?.()
+  disposeSphereParticlesPhysics = undefined
 })
 </script>
 

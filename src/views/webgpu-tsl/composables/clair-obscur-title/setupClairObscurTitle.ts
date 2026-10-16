@@ -115,18 +115,17 @@ export async function setupClairObscurTitle(
   const canvas = threeRenderer.domElement
 
   const root = new THREE.Group()
-  root.position.set(1,1,-1)
+  root.position.set(5,5,5)
   root.name = 'shield-demo'
   threeScene.add(root)
 
   let dracoLoader: DRACOLoader | null = null
   let anvilScene: THREE.Object3D | null = null
-  let floorMesh: THREE.Mesh | null = null
+  let titleMesh: THREE.Mesh | null = null
   let shield: ShieldInstance | null = null
   let transform: TransformControls | null = null
   let renderPipeline: InstanceType<typeof THREE.RenderPipeline> | null = null
   const textureLoader = new THREE.TextureLoader()
-
 
   const createGltfLoader = (): GLTFLoader => {
     dracoLoader ??= new DRACOLoader()
@@ -149,11 +148,12 @@ export async function setupClairObscurTitle(
       // side: THREE.DoubleSide,
     })
 
-    floorMesh = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), floorMaterial)
-    // floorMesh.rotation.x = -Math.PI * 0.5
-    floorMesh.receiveShadow = true
-    floorMesh.renderOrder = -1
-    root.add(floorMesh)
+    titleMesh = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), floorMaterial)
+    // titleMesh.rotation.x = -Math.PI * 0.5
+    titleMesh.receiveShadow = true
+    titleMesh.renderOrder = -1
+    root.add(titleMesh)
+    registerObject?.(titleMesh)
   }
 
   const PETAL_COUNT=3000
@@ -164,7 +164,8 @@ export async function setupClairObscurTitle(
       lives:instancedArray(PETAL_COUNT, 'float'),
       colorA:uniform(color(0xffcda3)),
       colorB:uniform(color(0xff142c)),
-      radius:uniform(1,'float')
+      radius:uniform(1,'float'),
+      spawnPosition:uniform(vec3(0,0,0),'vec3')
     }
   }
   const loadPetal=()=>{
@@ -226,12 +227,12 @@ export async function setupClairObscurTitle(
       const position = petal.uniform.positions.element(instanceIndex)
       const life =petal.uniform.lives.element(instanceIndex)
 
-      life.addAssign(deltaTime.mul(0.1))
+      life.addAssign(deltaTime.mul(0.5))
 
       If(life.greaterThan(1),()=>{
         life.assign(0)
         const spread = randomSphericalPosition(instanceIndex, 1)
-        position.assign(spread.mul(petal.uniform.radius))
+        position.assign(spread.mul(petal.uniform.radius).add(petal.uniform.spawnPosition))
       })
 
       // const wind = mx_noise_vec3(
@@ -269,7 +270,7 @@ export async function setupClairObscurTitle(
 
       // const angle=life.add(time.mul(0.1)).fract().mul(TWO_PI)
       // const angle=hash(instanceIndex.add(2)).add(time.mul(0.1)).fract().mul(TWO_PI)
-      const rotation = instancePosition.add(instanceIndex).mul(10)
+      const rotation = instancePosition.add(instanceIndex).mul(50)
 
       //默认顺序：XYZ → 先绕局部 X，再 Y，再 Z
       // const rotated = rotate(scaled, vec3(angle)) // 按需改轴
@@ -299,6 +300,12 @@ export async function setupClairObscurTitle(
       return mixColor
     })()
 
+  }
+
+  const updatePetal=(hit)=>{
+    const pos=hit.object.worldToLocal(hit.point.clone())
+    pos.z+=1
+    petal.uniform.spawnPosition.value.copy(pos)
   }
 
   loadTitle()
@@ -374,10 +381,10 @@ export async function setupClairObscurTitle(
       shield = null
     }
 
-    if (floorMesh) {
-      root.remove(floorMesh)
-      disposeObject3D(floorMesh)
-      floorMesh = null
+    if (titleMesh) {
+      root.remove(titleMesh)
+      disposeObject3D(titleMesh)
+      titleMesh = null
     }
 
     if (anvilScene) {
@@ -393,5 +400,6 @@ export async function setupClairObscurTitle(
 
   return {
     dispose,
+    updatePetal,
   }
 }

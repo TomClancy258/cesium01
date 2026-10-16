@@ -79,19 +79,31 @@ export function useScenePicking(options: UseScenePickingOptions) {
     }
   }
 
-  const onPointerMove = useThrottleFn(
-    (event: PointerEvent): void => {
+  // const onPointerMove = useThrottleFn(
+  //   (event: PointerEvent): void => {
+  //     if (isBlocked()) return
+  //     const hit = pick(event)
+  //     const next = hit?.object ?? null
+  //     if (next === lastHovered) return
+  //     lastHovered = next
+  //     onHover?.(hit)
+  //   },
+  //   POINTER_MOVE_THROTTLE_MS,
+  //   true,
+  //   true,
+  // )
+
+  const onPointerMove = (event: PointerEvent): void => {
       if (isBlocked()) return
       const hit = pick(event)
       const next = hit?.object ?? null
-      if (next === lastHovered) return
-      lastHovered = next
+    if (next === null) {
+      return
+    }
+      // if (next === lastHovered) return
+      // lastHovered = next
       onHover?.(hit)
-    },
-    POINTER_MOVE_THROTTLE_MS,
-    true,
-    true,
-  )
+    }
 
   const onPointerDown = (event: PointerEvent): void => {
     if (isBlocked()) return
