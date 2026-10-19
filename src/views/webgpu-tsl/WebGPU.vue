@@ -11,6 +11,7 @@ import { setupGalaxy } from '@/views/webgpu-tsl/composables/galaxy/setupGalaxy.t
 import { setupAnvil } from '@/views/webgpu-tsl/composables/anvil/setupAnvil.ts'
 import { setupClairObscurTitle } from '@/views/webgpu-tsl/composables/clair-obscur-title/setupClairObscurTitle.ts'
 import { setupSphereParticlesPhysics } from '@/views/webgpu-tsl/composables/sphere-particles-physics/setupSphereParticlesPhysics.ts'
+import { setupStylizedNatureScene } from '@/views/webgpu-tsl/composables/stylized-nature-scene/setupStylizedNatureScene.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -37,7 +38,7 @@ const {
   onHover: (hit) => {
     // console.log('[WebGPU] hover', hit?.object.name ?? null, hit?.point ?? null)
     // updatePetal(hit)
-    updateSphereParticles(hit)
+    // updateSphereParticles(hit)
   },
   onSelect: (hit) => {
     // addImpact?.(hit)
@@ -56,6 +57,7 @@ let disposeGalaxy: (() => void) | undefined
 let disposeAnvil: (() => void) | undefined
 let disposeClairObscurTitle: (() => void) | undefined
 let disposeSphereParticlesPhysics: (() => void) | undefined
+let disposeStylizedNatureScene: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -123,7 +125,24 @@ onMounted(async () => {
   // disposeClairObscurTitle = clairObscurTitleApi?.dispose
   // updatePetal = clairObscurTitleApi?.updatePetal
 
-  const sphereParticlesPhysicsApi = (await setupSphereParticlesPhysics({
+  // const sphereParticlesPhysicsApi = (await setupSphereParticlesPhysics({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeSphereParticlesPhysics = sphereParticlesPhysicsApi?.dispose
+  // updateSphereParticles = sphereParticlesPhysicsApi?.updateSphereParticles
+
+  const stylizedNatureSceneApi = (await setupStylizedNatureScene({
     scene,
     camera,
     renderer,
@@ -137,8 +156,7 @@ onMounted(async () => {
     dispose: () => void
     updatePetal: (hit: ScenePickHit) => void
   } | null
-  disposeSphereParticlesPhysics = sphereParticlesPhysicsApi?.dispose
-  updateSphereParticles = sphereParticlesPhysicsApi?.updateSphereParticles
+  disposeStylizedNatureScene = stylizedNatureSceneApi?.dispose
 
   // const explosionApi = (await setupMagicExplosion({
   //   scene,
@@ -198,6 +216,8 @@ onUnmounted(() => {
   disposeClairObscurTitle = undefined
   disposeSphereParticlesPhysics?.()
   disposeSphereParticlesPhysics = undefined
+  disposeStylizedNatureScene?.()
+  disposeStylizedNatureScene = undefined
 })
 </script>
 

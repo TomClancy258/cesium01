@@ -218,19 +218,36 @@ export function useThreeScene() {
     orbitControls.update()
 
     // 环境光太亮会把阴影冲掉，略压暗以看出 knot 投影
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.35)
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5)
-    directionalLight.position.set(5, 8, 3)
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.35)
+    // const directionalLight = new THREE.DirectionalLight(0xffffff, 2.5)
+    // directionalLight.position.set(5, 8, 3)
+    // directionalLight.castShadow = true
+    // directionalLight.shadow.mapSize.set(2048, 2048)
+    // directionalLight.shadow.camera.near = 0.5
+    // directionalLight.shadow.camera.far = 30
+    // directionalLight.shadow.camera.left = -8
+    // directionalLight.shadow.camera.right = 8
+    // directionalLight.shadow.camera.top = 8
+    // directionalLight.shadow.camera.bottom = -8
+    // directionalLight.shadow.bias = -0.0001
+
+    const ambientLight = new THREE.AmbientLight(0xb870ff, 2.6)
+    const directionalLight = new THREE.DirectionalLight(0xff9147, 9.2)
     directionalLight.castShadow = true
-    directionalLight.shadow.mapSize.set(2048, 2048)
-    directionalLight.shadow.camera.near = 0.5
-    directionalLight.shadow.camera.far = 30
-    directionalLight.shadow.camera.left = -8
-    directionalLight.shadow.camera.right = 8
-    directionalLight.shadow.camera.top = 8
-    directionalLight.shadow.camera.bottom = -8
-    directionalLight.shadow.bias = -0.0001
+    directionalLight.position.set(2, 1.1, -1.75).normalize().multiplyScalar(10)
+    directionalLight.shadow.camera.top = 10
+    directionalLight.shadow.camera.right = 10
+    directionalLight.shadow.camera.bottom = -10
+    directionalLight.shadow.camera.left = -10
+    directionalLight.shadow.camera.near = 0.01
+    directionalLight.shadow.camera.far = 20
+    directionalLight.shadow.radius = 5
+    directionalLight.shadow.normalBias = 0.1
+
     threeScene.add(ambientLight, directionalLight)
+
+    const directionalLightHelper = new THREE.DirectionalLightHelper( directionalLight, 5 );
+    threeScene.add( directionalLightHelper );
 
     const axesHelper = new THREE.AxesHelper(5)
     threeScene.add(axesHelper)
