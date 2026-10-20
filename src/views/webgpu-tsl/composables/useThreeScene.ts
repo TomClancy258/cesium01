@@ -246,8 +246,8 @@ export function useThreeScene() {
 
     threeScene.add(ambientLight, directionalLight)
 
-    const directionalLightHelper = new THREE.DirectionalLightHelper( directionalLight, 5 );
-    threeScene.add( directionalLightHelper );
+    // const directionalLightHelper = new THREE.DirectionalLightHelper( directionalLight, 5 );
+    // threeScene.add( directionalLightHelper );
 
     const axesHelper = new THREE.AxesHelper(5)
     threeScene.add(axesHelper)
