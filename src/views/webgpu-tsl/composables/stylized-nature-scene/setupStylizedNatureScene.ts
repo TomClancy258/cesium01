@@ -15,12 +15,15 @@ import {
   toVarying,
   textureStore,
   uvec2,
+  cameraFar,
   rotate,
+  linearDepth,
   negate,
   instanceIndex,
   lessThanEqual,
   lessThan,
   positionGeometry,
+  viewportLinearDepth,
   instancedBufferAttribute,
   deltaTime,
   normalLocal,
@@ -31,8 +34,10 @@ import {
   grayscale,
   If,
   materialColor,
+  transformNormalToView,
   add,
   greaterThan,
+  viewportSharedTexture,
   fract,
   min,
   normalize,
@@ -58,12 +63,14 @@ import {
   TWO_PI,
   PI,
   uniform,
+  cameraNear,
   uniformArray,
   vec2,
   vec3 ,
   vec4,
   fwidth,
   smoothstep,
+  step,
   sin,
   length,
   clamp,
@@ -125,6 +132,8 @@ export async function setupStylizedNatureScene(
 
   const root = new THREE.Group()
   root.position.set(-1,-1,-3)
+  // root.rotation.z =- Math.PI / 4
+  // root.rotateZ(Math.PI / 4)
   root.name = 'shield-demo'
   threeScene.add(root)
 
@@ -190,6 +199,8 @@ export async function setupStylizedNatureScene(
       //高度 = 红色通道 × displacementScale + displacementBias
       displacementMap: floorTerrainTexture,
       map: floorTexture,
+      //normalMap要求： (切线方向坡, 副切线方向坡, 表面朝外)
+      // 所以terrainNormalTexture必须为 (坡U, 坡V, 朝外)
       normalMap: terrainNormalTexture
     })
 
@@ -217,7 +228,7 @@ export async function setupStylizedNatureScene(
       // UV
       //uvec2 是 textureStore 的像素坐标类型。它要知道写到第几列、第几行，所以indexUV是两个无符号【整数】
       const indexUV=uvec2(
-        instanceIndex.mod(resolution),
+        instanceIndex.mod(resolution), //instanceIndex来自resolution²，即∈[0,resolution²-1]
         instanceIndex.div(resolution)
       )
 
@@ -232,13 +243,19 @@ export async function setupStylizedNatureScene(
       const yPos=texture(floorTerrainTexture,textureUV.add(vec2(0,texelSize))).r
       const yNeg=texture(floorTerrainTexture,textureUV.sub(vec2(0,texelSize))).r
 
+      //贴图：(坡U, 坡V, 朝外)
       const normal = vec3(
         // xPos.sub(xNeg),
         // yPos.sub(yNeg),
 
-        xNeg.sub(xPos),
-        yNeg.sub(yPos),
+        //假设:左边高度 xNeg = 0,右边高度 xPos = 1
+        //两种减法:
+        //xPos - xNeg = 1 - 0 = +1
+        //xNeg - xPos = 0 - 1 = -1
+        //法线该往哪倾？斜坡右边高时，法线应偏向左边，所以 x 分量应该是负数
 
+        xNeg.sub(xPos), //必须这么写
+        yNeg.sub(yPos),
         1,
       ).normalize()
       //归一化就是把向量缩成「方向不变、长度为 1」。 这样的向量叫单位向量。
@@ -248,9 +265,10 @@ export async function setupStylizedNatureScene(
 
       // Store
       //单位向量的每个分量都∈[-1,1]
-      const _color = vec4(normal.remap(-1, 1), 1)
+      const _color = vec4(normal.remap(-1, 1, 0,1), 1)
       // const _color = vec3(normal.remap(-1, 1))
       //uvec2 是 textureStore 的像素坐标类型。它要知道写到第几列、第几行，所以indexUV是两个无符号【整数】
+      //resolution = 32 时就是算 32×32 = 1024 个法线。
       textureStore(terrainNormalTexture, indexUV, _color).toWriteOnly() //这里在设置terrainNormalTexture
     })().compute(resolution * resolution)
 
@@ -304,11 +322,13 @@ export async function setupStylizedNatureScene(
     const instancePositions = new THREE.InstancedBufferAttribute(instancePositionsArray, 3)
 
     const grassColorVarying=vec3(0).toVarying()
+    const grassNormalVarying=vec3(0).toVarying()
 
     material.positionNode=Fn(()=>{
-      const instancePosition = instancedBufferAttribute(instancePositions) //当前这棵草的 xz
+      //instancePosition：当前该草[三角形底边中心点]位于root的世界坐标，y=0，x、z∈(-5,5)
+      const instancePosition = instancedBufferAttribute(instancePositions)
 
-      //instancePosition[]
+      //terrainUv.x/y∈(0,1)
       const terrainUv = vec2(instancePosition.x,instancePosition.z).div(10).add(0.5)
       // terrainUv.subAssign(vec2(0,1)) 加上这个是错误的
 
@@ -333,7 +353,10 @@ export async function setupStylizedNatureScene(
 
       const scale=range(0.7,1).mul(0.4)
         .mul(terrainScale)
-      const scaled=rotated.mul(scale)
+
+      const visible=step(0.05,scale)
+
+      const scaled=rotated.mul(scale).mul(visible)
 
       const translated = scaled.add(instancePosition)
       translated.y.addAssign(terrainData.r)
@@ -360,6 +383,33 @@ export async function setupStylizedNatureScene(
 
       //该草坐标（三角形底部中点）对应的地面的uv坐标（terrainUv）里的位置，将terrainUv坐标的纹理颜色传递给草的colorNode
       grassColorVarying.assign(texture(floorTexture,terrainUv).rgb)
+      //terrainUv里草的数量(subdivision²)远远大于terrainNormalTexture里法线的数量(resolution²)，是three自动用差值计算的该草对应的地面法线
+      //地面的_color把法线的[-1，1]映射为了[0,1]保存在terrainNormalTexture里，这里就要解构出法线的[-1,1]
+      //(坡U, 坡V, 朝外【这里「朝外」是贴图平面法向，还不是世界 +Y。】)  ≈  (normal.x, normal.y, normal.z)
+      const normal=texture(terrainNormalTexture,terrainUv).rgb.remap(0, 1, -1, 1)
+      //只转 root，地板/草相对 root 不动，法线就仍对
+      //因为floor的位于root 本地 XZ平面内，垂直于root本地y轴，且没有围绕root本地y旋转，
+      // 所以normal.x和root本地x轴方向相同，normal.y和root本地z轴方向相反，normal.z方向和root本地y轴相同。
+      // 若floor没位于root本地zx平面，又或者围绕root本地y轴旋转，则以上不成立
+      normal.assign(vec3(
+        normal.x,
+        normal.z,
+        normal.y.negate()
+      ))
+
+      // 叶片真实法线（绕 Y 转之后）
+      const bladeNormal = rotate(vec3(0, 0, 1), vec3(0, angle, 0))
+
+      //做法	                    法线指向	              观感	                成本
+      // 现在：借地面法线           当地坡度（大致朝上）     草地像地毯，和山坡一体   最低
+      // 每片草用面法线            垂直叶片（大致水平）      卡片感，一侧死黑        低
+      // 折中：朝上 + 一点叶片朝向   介于两者之间            多数游戏用这个          低
+      grassNormalVarying.assign(
+        normal
+          // .mul(0.75)
+          // .add(bladeNormal.mul(0.25))
+          // .normalize()
+      )
 
       return translated
     })()
@@ -367,10 +417,58 @@ export async function setupStylizedNatureScene(
     material.colorNode=Fn(()=>{
       return grassColorVarying
     })()
+    //叶子有多亮、高光在哪
+    //通常每个顶点都要带一个法线，所以三角草一般是 3 个法线值。但三个可以相同
+    material.normalNode=Fn(()=>{
+      return transformNormalToView(grassNormalVarying)
+    })()
   }
+
+  const loadWater=()=>{
+    const geometry = new THREE.PlaneGeometry(10, 10)
+    const material = new THREE.MeshStandardNodeMaterial({ transparent: true })
+
+    const mesh = new THREE.Mesh(geometry, material)
+    mesh.position.y = 0.65
+    mesh.rotation.x = - Math.PI * 0.5
+    mesh.receiveShadow = true
+    root.add(mesh)
+
+    //backdropNode:该片元的颜色来自其背后已渲染的场景,一般要先transparent:true,且背后要先画好
+    //colorNode:该片元的颜色来自其自己
+    material.backdropNode = Fn(() =>
+    {
+      // Water depth
+      //waterDepth 表示：沿着视线，从水面到「水面后面那东西」之间，隔了多厚的
+      //相机射线 ----> 水面 ----------> 水下地面
+      //            ↑                ↑
+      //       linearDepth()   viewportLinearDepth
+      //            |←——  射线长度  ——→|
+      const waterDepth = viewportLinearDepth //射线从相机到 waterMesh 背后最近实体 的线性长度[0,1],camera.near处,其为0.far处其为1
+        .sub(linearDepth()) //linearDepth:射线从相机near处到该waterMesh的线性长度,在far处其线性长度为1
+        .mul(cameraFar.sub(cameraNear)) //沿相机深度方向的水厚（场景单位）
+        .max(0)
+      //解决waterMesh后面没有实体，导致waterDepth 过长
+      If(waterDepth.greaterThan(20), () => { waterDepth.assign(1) })
+      return vec3(waterDepth)
+      // Blur
+      const blurAmount = waterDepth.mul(0.02)
+      const newColor = hashBlur(viewportSharedTexture(), blurAmount, { repeats: 25 })
+
+      // Absorption
+      const absorption = vec3(0.45, 0.07, 0.01)
+      const transmittance = absorption.negate().mul(waterDepth).mul(7).exp()
+      newColor.mulAssign(transmittance)
+
+      return newColor
+    })()
+
+  }
+
   computeFloorNormal()
   loadFloor()
   loadGrass()
+  loadWater()
 
   try {
     await loadAnvilModel()

@@ -176,7 +176,7 @@ export function useThreeScene() {
         console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
       },
     )
-
+    //参数三:camera.near,参数四:camera.far
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     // threeCamera.position.set(5, 5, 10)
     // threeCamera.lookAt(5, 5, 0)
