@@ -134,6 +134,19 @@ export function createMagicExplosion(options: CreateShieldOptions): ShieldInstan
     // })()
 
     const progress=varying(0)
+    //Sprite 不能像Points那样Float32Array + setAttribute('position') 来设置每个精灵的世界坐标
+    // 只能用count或者InstancedBufferAttribute
+
+    //	                                  Points	                        Sprite
+    // 一个对象里有多少「粒子」             geometry 里有多少个顶点，就有多少点      默认只有 1 个广告牌
+    // setAttribute('position', …)     每个顶点 = 一个粒子中心                只是四边形几个角点，不是 N 个精灵中心
+    // 世界坐标怎么定                      顶点 position 数组                  这个 Sprite 的 object.position（或实例数据）
+
+    //	              每个粒子大概
+    // Points         1 个顶点 → 点图元
+    // Sprite（实例）   1 个四边形 ≈ 4 顶点 / 2 三角
+
+    //一个 Sprite + count 实例 比「十万个独立 Sprite」好得多，但仍往往不如同等数量的 Points。
     galaxy.material.positionNode=Fn(()=>{
       const index=instanceIndex.toFloat().mod(3).div(3)//不float就会div(3)=0
       //(1->0]=》[0,1)

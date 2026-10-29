@@ -65,6 +65,7 @@ export function useScenePicking(options: UseScenePickingOptions) {
     const rect = canvas.getBoundingClientRect()
     if (rect.width === 0 || rect.height === 0) return null
 
+    //x、y∈[-1, 1]，原点在屏幕中心
     pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1
     pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1
 
@@ -104,6 +105,22 @@ export function useScenePicking(options: UseScenePickingOptions) {
       // lastHovered = next
       onHover?.(hit)
     }
+
+  // const onPointerMove = useThrottleFn((event: PointerEvent): void => {
+  //     if (isBlocked()) return
+  //     const hit = pick(event)
+  //     const next = hit?.object ?? null
+  //   if (next === null) {
+  //     return
+  //   }
+  //     // if (next === lastHovered) return
+  //     // lastHovered = next
+  //     onHover?.(hit)
+  //   },
+  //   200,
+  //     true,
+  //     true,
+  //   )
 
   const onPointerDown = (event: PointerEvent): void => {
     if (isBlocked()) return

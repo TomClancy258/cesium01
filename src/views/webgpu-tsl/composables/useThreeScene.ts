@@ -231,8 +231,12 @@ export function useThreeScene() {
     // directionalLight.shadow.camera.bottom = -8
     // directionalLight.shadow.bias = -0.0001
 
-    const ambientLight = new THREE.AmbientLight(0xb870ff, 2.6)
-    const directionalLight = new THREE.DirectionalLight(0xff9147, 9.2)
+    // const ambientLight = new THREE.AmbientLight(0xb870ff, 2.6)
+    // const directionalLight = new THREE.DirectionalLight(0xff9147, 9.2)
+
+    //参数2：亮度
+    const ambientLight = new THREE.AmbientLight(0x00aaff, 1.65)
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 2)
     directionalLight.castShadow = true
     directionalLight.position.set(2, 1.1, -1.75).normalize().multiplyScalar(10)
     directionalLight.shadow.camera.top = 10

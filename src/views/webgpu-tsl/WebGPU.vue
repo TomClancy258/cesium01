@@ -12,6 +12,7 @@ import { setupAnvil } from '@/views/webgpu-tsl/composables/anvil/setupAnvil.ts'
 import { setupClairObscurTitle } from '@/views/webgpu-tsl/composables/clair-obscur-title/setupClairObscurTitle.ts'
 import { setupSphereParticlesPhysics } from '@/views/webgpu-tsl/composables/sphere-particles-physics/setupSphereParticlesPhysics.ts'
 import { setupStylizedNatureScene } from '@/views/webgpu-tsl/composables/stylized-nature-scene/setupStylizedNatureScene.ts'
+import { setupSnow } from '@/views/webgpu-tsl/composables/snow/setupSnow.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -35,12 +36,13 @@ const {
 } = useScenePicking({
   camera,
   renderer,
-  onHover: (hit) => {
+  onHover: (_hit) => {
     // console.log('[WebGPU] hover', hit?.object.name ?? null, hit?.point ?? null)
     // updatePetal(hit)
     // updateSphereParticles(hit)
+    // 雪地球体跟随在 setupSnow 内用数学平面求交，不走网格拾取
   },
-  onSelect: (hit) => {
+  onSelect: (_hit) => {
     // addImpact?.(hit)
     // addExplosion?.(hit)
     // addAnvilImpact?.(hit)
@@ -58,6 +60,7 @@ let disposeAnvil: (() => void) | undefined
 let disposeClairObscurTitle: (() => void) | undefined
 let disposeSphereParticlesPhysics: (() => void) | undefined
 let disposeStylizedNatureScene: (() => void) | undefined
+let disposeSnow: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -142,7 +145,23 @@ onMounted(async () => {
   // disposeSphereParticlesPhysics = sphereParticlesPhysicsApi?.dispose
   // updateSphereParticles = sphereParticlesPhysicsApi?.updateSphereParticles
 
-  const stylizedNatureSceneApi = (await setupStylizedNatureScene({
+  // const stylizedNatureSceneApi = (await setupStylizedNatureScene({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeStylizedNatureScene = stylizedNatureSceneApi?.dispose
+
+  const snowApi = (await setupSnow({
     scene,
     camera,
     renderer,
@@ -154,9 +173,8 @@ onMounted(async () => {
     onBeforeRender,
   })) as {
     dispose: () => void
-    updatePetal: (hit: ScenePickHit) => void
   } | null
-  disposeStylizedNatureScene = stylizedNatureSceneApi?.dispose
+  disposeSnow = snowApi?.dispose
 
   // const explosionApi = (await setupMagicExplosion({
   //   scene,
@@ -218,6 +236,8 @@ onUnmounted(() => {
   disposeSphereParticlesPhysics = undefined
   disposeStylizedNatureScene?.()
   disposeStylizedNatureScene = undefined
+  disposeSnow?.()
+  disposeSnow = undefined
 })
 </script>
 

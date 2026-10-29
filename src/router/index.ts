@@ -5,6 +5,7 @@ const IntelligentWaterPumpStation = () => import('@/views/intelligent_water_pump
 const User = () => import('@/views/user/User.vue')
 const WebGL = () => import('@/views/webgl/WebGL.vue')
 const ShaderTest = () => import('@/views/shader/ShaderTest.vue')
+const ThreeJsUltimateTutorial = () => import('@/views/three-js-ultimate-tutorial/ThreeJsUltimateTutorial.vue')
 const WebGPU = () => import('@/views/webgpu-tsl/WebGPU.vue')
 
 const router = createRouter({
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/ShaderTest',
       name: 'ShaderTest',
       component: ShaderTest,
+    },
+    {
+      path: '/ThreeJsUltimateTutorial',
+      name: 'ThreeJsUltimateTutorial',
+      component: ThreeJsUltimateTutorial,
     },
     {
       path: '/WebGPU',

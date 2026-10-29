@@ -13,6 +13,7 @@ import zhCn from 'element-plus/es/locale/lang/zh-cn'
         </div>
         <div class="nav-group nav-group--right">
 <!--          <RouterLink to="/User">User</RouterLink>-->
+          <RouterLink to="/ThreeJsUltimateTutorial">ThreeJsUltimateTutorial</RouterLink>
           <RouterLink to="/WebGPU">WebGPU</RouterLink>
           <RouterLink to="/WebGL">WebGL</RouterLink>
           <RouterLink to="/ShaderTest">/ShaderTest</RouterLink>

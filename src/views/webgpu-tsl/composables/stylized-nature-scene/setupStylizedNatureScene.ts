@@ -5,8 +5,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
 import type { ShallowRef } from 'vue'
-import { createShield, type ShieldInstance } from './anvil'
-import {randomSphericalPosition} from "@/utils/threejs-utils.ts"
+import { hashBlur } from 'three/addons/tsl/display/hashBlur.js'
 
 import {
   materialEmissive, pass, uv,
@@ -445,22 +444,56 @@ export async function setupStylizedNatureScene(
       //       linearDepth()   viewportLinearDepth
       //            |←——  射线长度  ——→|
       const waterDepth = viewportLinearDepth //射线从相机到 waterMesh 背后最近实体 的线性长度[0,1],camera.near处,其为0.far处其为1
-        .sub(linearDepth()) //linearDepth:射线从相机near处到该waterMesh的线性长度,在far处其线性长度为1
+        .sub(linearDepth()) //linearDepth:射线从相机near处到该waterMesh的线性长度,在far处其线性长度为1，他俩的射线范围相同都是从near到far即[0,1]
         .mul(cameraFar.sub(cameraNear)) //沿相机深度方向的水厚（场景单位）
-        .max(0)
+        .max(0) //相减偶尔会得到负数，水厚不能为负
       //解决waterMesh后面没有实体，导致waterDepth 过长
       If(waterDepth.greaterThan(20), () => { waterDepth.assign(1) })
-      return vec3(waterDepth)
+      // return vec3(waterDepth)
       // Blur
       const blurAmount = waterDepth.mul(0.02)
+      /**
+       * 先画好地形、草……，再画透明水面时：读到「水后面那一屏」，即水背后已渲染的颜色，可做玻璃透明特效
+       * 贴图
+       * 模糊量blurAmount：随机偏移有多大 → 糊得有多狠
+       */
       const newColor = hashBlur(viewportSharedTexture(), blurAmount, { repeats: 25 })
+      // return newColor
 
       // Absorption
+      //吸收量：r>g>b
       const absorption = vec3(0.45, 0.07, 0.01)
       const transmittance = absorption.negate().mul(waterDepth).mul(7).exp()
       newColor.mulAssign(transmittance)
 
       return newColor
+    })()
+
+    //colorNode：物体「漆成什么色」再拿去打光
+    // outputNode：打光之后「最后屏幕上显示什么」 vec4
+    // material.outputNode = Fn(()=>{
+
+    //backdropNode（背后画面）掺进最终结果时有多强。类型一般是 float（0～1）
+    //0：几乎不用背后效果， 1：背后效果影响最大
+    material.backdropAlphaNode = Fn(()=>{
+      const terrain=texture(floorTerrainTexture,uv()).r
+      const waterNoise1=texture(floorNoiseTexture,uv().mul(2).add(time.mul(-0.01))).r
+      const waterNoise2=texture(floorNoiseTexture,uv().mul(2).add(time.mul(0.02))).r
+      // const noise=waterNoise1.add(waterNoise2).mul(0.5)
+      const waterNoise=waterNoise1
+        .mul(waterNoise2)
+      // const foamEdge=terrain
+      const foamEdge=terrain.pow(1.5) //增加黑色的宽度
+      // const foamEdge=terrain.remap(0,0.65) //减少黑色的宽度
+      // const foam=step(waterNoise,foamEdge)
+      // return vec3(foam)
+
+      const foam=step(foamEdge,waterNoise)
+
+      //地形r高于0.68的位置就去掉waterMesh的该片元
+      terrain.greaterThan(0.68).discard()
+
+      return foam
     })()
 
   }
