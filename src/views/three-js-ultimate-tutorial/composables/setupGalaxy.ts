@@ -5,6 +5,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import { bloom } from 'three/addons/tsl/display/BloomNode.js'
 import type { ShallowRef } from 'vue'
+import { Pane } from 'tweakpane'
 import { createShield, type ShieldInstance } from './anvil'
 import {randomSphericalPosition} from "@/utils/threejs-utils.ts"
 
@@ -154,9 +155,13 @@ export async function setupGalaxy(
     outerColor:new THREE.Color('#1b3984'),
   }
 
-  let points: THREE.Points | null = null
-
-  const loadPoints = (): void => {
+  let sprite: THREE.Sprite | null = null
+  const generateGalaxy = (): void => {
+    if (sprite) {
+      root.remove(sprite)
+      ;(sprite.material as THREE.Material).dispose() // 够了
+      sprite = null
+    }
     const positions = new Float32Array(galaxy.count * 3)
     const colors = new Float32Array(galaxy.count * 3)
 
@@ -213,11 +218,11 @@ export async function setupGalaxy(
       depthWrite: false,
     })
 
-    const sprite = new THREE.Sprite(material)
+    sprite = new THREE.Sprite(material)
     sprite.count = positionAttribute.count
     root.add(sprite)
   }
-  loadPoints()
+  generateGalaxy()
 
   const timer = new THREE.Timer()
   timer.connect(document)
@@ -241,13 +246,61 @@ export async function setupGalaxy(
     renderPipeline?.render()
   })
 
-  const inspector = threeRenderer.inspector
-  if (inspector?.createParameters) {
-    const bloomGui = inspector.createParameters('Bloom')
-    bloomGui.add(bloomPass.threshold, 'value', 0, 2, 0.01).name('threshold')
-    bloomGui.add(bloomPass.strength, 'value', 0, 2, 0.01).name('strength')
+  const pane = new Pane({ title: 'Galaxy' })
+  const bloomFolder = pane.addFolder({ title: 'Bloom' })
+  bloomFolder.addBinding(bloomPass.threshold, 'value', {
+    label: 'threshold',
+    min: 0,
+    max: 2,
+    step: 0.01,
+  })
+  bloomFolder.addBinding(bloomPass.strength, 'value', {
+    label: 'strength',
+    min: 0,
+    max: 2,
+    step: 0.01,
+  })
 
+  const galaxyFolder = pane.addFolder({ title: 'Galaxy' })
+  const colorParams = {
+    innerColor: `#${galaxy.innerColor.getHexString()}`,
+    outerColor: `#${galaxy.outerColor.getHexString()}`,
   }
+
+  const bindGalaxyNumber = (
+    key: 'count' | 'size' | 'radius' | 'branches' | 'spin' | 'randomness' | 'randomnessPower',
+    opts: { min: number; max: number; step: number },
+  ): void => {
+    galaxyFolder
+      .addBinding(galaxy, key, { label: key, ...opts })
+      .on('change', (ev) => {
+        if (!ev.last) return
+        generateGalaxy()
+      })
+  }
+
+  bindGalaxyNumber('count', { min: 100, max: 1_000_000, step: 100 })
+  bindGalaxyNumber('size', { min: 0.001, max: 0.1, step: 0.001 })
+  bindGalaxyNumber('radius', { min: 0.5, max: 20, step: 0.1 })
+  bindGalaxyNumber('branches', { min: 2, max: 20, step: 1 })
+  bindGalaxyNumber('spin', { min: -5, max: 5, step: 0.01 })
+  bindGalaxyNumber('randomness', { min: 0, max: 2, step: 0.01 })
+  bindGalaxyNumber('randomnessPower', { min: 1, max: 10, step: 0.1 })
+
+  galaxyFolder
+    .addBinding(colorParams, 'innerColor', { label: 'innerColor', view: 'color' })
+    .on('change', (ev) => {
+      galaxy.innerColor.set(ev.value)
+      if (!ev.last) return
+      generateGalaxy()
+    })
+  galaxyFolder
+    .addBinding(colorParams, 'outerColor', { label: 'outerColor', view: 'color' })
+    .on('change', (ev) => {
+      galaxy.outerColor.set(ev.value)
+      if (!ev.last) return
+      generateGalaxy()
+    })
 
   const disposeObject3D = (object: THREE.Object3D): void => {
     object.traverse((child) => {
@@ -270,6 +323,7 @@ export async function setupGalaxy(
     setFrameRender?.(null)
     renderPipeline = null
     unsubscribeBeforeRender()
+    pane.dispose()
     if (shield) {
       unregisterObject?.(shield.mesh)
     }
@@ -293,11 +347,10 @@ export async function setupGalaxy(
       titleMesh = null
     }
 
-    if (points) {
-      root.remove(points)
-      points.geometry.dispose()
-      ;(points.material as THREE.Material).dispose()
-      points = null
+    if (sprite) {
+      root.remove(sprite)
+      ;(sprite.material as THREE.Material).dispose()
+      sprite = null
     }
 
     threeScene.remove(root)

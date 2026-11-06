@@ -21,6 +21,7 @@
     "@element-plus/icons-vue": "^2.3.2",
     "@turf/turf": "^7.3.1",
     "@vueuse/core": "^14.1.0",
+    "ammojs-typed": "^1.1.0",
     "axios": "^1.13.2",
     "camera-controls": "^3.1.2",
     "cesium": "^1.136.0",

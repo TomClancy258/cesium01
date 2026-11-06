@@ -20,6 +20,9 @@ importers:
       '@vueuse/core':
         specifier: ^14.1.0
         version: 14.1.0(vue@3.5.26(typescript@5.9.3))
+      ammojs-typed:
+        specifier: ^1.1.0
+        version: 1.1.0
       axios:
         specifier: ^1.13.2
         version: 1.13.2
@@ -1389,6 +1392,9 @@ packages:
 
   alien-signals@3.1.2:
     resolution: {integrity: sha512-d9dYqZTS90WLiU0I5c6DHj/HcKkF8ZyGN3G5x8wSbslulz70KOxaqCT0hQCo9KOyhVqzqGojvNdJXoTumZOtcw==}
+
+  ammojs-typed@1.1.0:
+    resolution: {integrity: sha512-QagJZZ5vbsxQI5cr9X/o+v9Pu8av26VY3xfQL+M3KTeC4v/43MHaYvsIqbfA+4NA4mJdpbBNDOJQ+Z5MMNCzgg==}
 
   ansi-escapes@7.2.0:
     resolution: {integrity: sha512-g6LhBsl+GBPRWGWsBtutpzBYuIIdBkLEvad5C/va/74Db018+5TZiyA26cZJAr3Rft5lprVqOIPxf5Vid6tqAw==}
@@ -4888,6 +4894,8 @@ snapshots:
       uri-js: 4.4.1
 
   alien-signals@3.1.2: {}
+
+  ammojs-typed@1.1.0: {}
 
   ansi-escapes@7.2.0:
     dependencies:

@@ -1,14 +1,15 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 import { useThreeScene } from './composables/useThreeScene'
-import { setupSphereParticlesPhysics } from '@/views/three-js-ultimate-tutorial/composables/sphere-particles-physics/setupSphereParticlesPhysics.ts'
 import { setupGalaxy } from '@/views/three-js-ultimate-tutorial/composables/setupGalaxy.ts'
+import { setupPhysics01 } from '@/views/three-js-ultimate-tutorial/composables/setupPhysics01.ts'
+// import { setupPhysics02 } from '@/views/three-js-ultimate-tutorial/composables/setupPhysics02.ts'
 import {
   useScenePicking,
   type ScenePickHit,
 } from '@/views/webgpu-tsl/composables/useScenePicking.ts'
 
-const { containerRef, scene, camera, renderer, controls, setFrameRender, initScene,onBeforeRender} =
+const { containerRef, scene, camera, renderer, controls, setFrameRender, initScene, onBeforeRender } =
   useThreeScene()
 
 let addImpact: ((hit: ScenePickHit) => void) | undefined
@@ -33,13 +34,13 @@ const {
   },
 })
 
-let disposeSphereParticlesPhysics: (() => void) | undefined
+let disposePhysics: (() => void) | undefined
 let disposeGalaxy: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
 
-  // const sphereParticlesPhysicsApi = (await setupSphereParticlesPhysics({
+  // const galaxyApi = (await setupGalaxy({
   //   scene,
   //   camera,
   //   renderer,
@@ -53,24 +54,18 @@ onMounted(async () => {
   //   dispose: () => void
   //   updatePetal: (hit: ScenePickHit) => void
   // } | null
-  // disposeSphereParticlesPhysics = sphereParticlesPhysicsApi?.dispose
-  // updateSphereParticles = sphereParticlesPhysicsApi?.updateSphereParticles
+  // disposeGalaxy = galaxyApi?.dispose
 
-  const galaxyApi = (await setupGalaxy({
+  const physicsApi = await setupPhysics01({
     scene,
     camera,
     renderer,
     controls,
     setFrameRender,
-    registerObject,
-    unregisterObject,
     setPickingBlocked: setBlocked,
     onBeforeRender,
-  })) as {
-    dispose: () => void
-    updatePetal: (hit: ScenePickHit) => void
-  } | null
-  disposeGalaxy = galaxyApi?.dispose
+  })
+  disposePhysics = physicsApi?.dispose
 
   bindPicking()
 })
@@ -78,10 +73,10 @@ onMounted(async () => {
 onUnmounted(() => {
   unbindPicking()
   addImpact = undefined
-  disposeSphereParticlesPhysics?.()
-  disposeSphereParticlesPhysics = undefined
   disposeGalaxy?.()
   disposeGalaxy = undefined
+  disposePhysics?.()
+  disposePhysics = undefined
 })
 </script>
 
