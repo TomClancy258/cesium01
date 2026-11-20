@@ -189,6 +189,7 @@ export async function setupSphereParticlesPhysics(
   const loadPetal=()=>{
     //第一个参数是半径 radius = 1（外接球半径约 1），第二个是细分 detail = 2。
     const geometry = new THREE.IcosahedronGeometry(1, 2)
+    //是（Lambert 漫反射）
     const material = new THREE.MeshLambertNodeMaterial({
       // color: 0xffffff,
       color: 0x000000,

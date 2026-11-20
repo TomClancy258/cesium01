@@ -1,6 +1,8 @@
 import * as THREE from 'three/webgpu'
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
 import { useThrottleFn } from '@vueuse/core'
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js'
 import type { ShallowRef } from 'vue'
 import Ammo from 'ammojs-typed'
 
@@ -24,6 +26,9 @@ type PhysicsObject = {
 
 const HIT_SOUND_URL = '/sounds/hit.mp3'
 const IMPACT_IMPULSE_THRESHOLD = 1.5
+
+const DRACO_DECODER_PATH = '/draco/gltf/'
+const ANVIL_MODEL_URL = 'model/others/hamburger.glb'
 
 /**
  * Ammo.js 物理演示：对齐 Journey cannon 课的 createSphere / createBox / reset / 碰撞音效。
@@ -66,6 +71,49 @@ export async function setupPhysics01(
   const root = new THREE.Group()
   root.name = 'physics-demo'
   threeScene.add(root)
+
+  let dracoLoader: DRACOLoader | null = null
+
+  const createGltfLoader = (): GLTFLoader => {
+    dracoLoader ??= new DRACOLoader()
+    dracoLoader.setDecoderPath(DRACO_DECODER_PATH)
+    const loader = new GLTFLoader()
+    loader.setDRACOLoader(dracoLoader)
+    return loader
+  }
+
+  let anvilScene: THREE.Object3D | null = null
+  const loadAnvilModel = async (): Promise<void> => {
+    const gltf = await createGltfLoader().loadAsync(ANVIL_MODEL_URL)
+    gltf.scene.name = 'anvil'
+    gltf.scene.traverse((child) => {
+      if (!(child instanceof THREE.Mesh)) return
+      child.castShadow = true
+      child.receiveShadow = true
+      const materials = Array.isArray(child.material)
+        ? child.material
+        : [child.material]
+      materials.forEach((material) => {
+        if (!material) return
+        if ('emissiveNode' in material) {
+          ;(material as THREE.MeshStandardNodeMaterial).emissiveNode =
+            materialEmissive.add(shield!.junctionNode)
+        }
+        if ('map' in material && material.map instanceof THREE.Texture) {
+          material.map.anisotropy = 8
+        }
+      })
+    })
+    anvilScene = gltf.scene
+    anvilScene.scale.set(0.1,0.1,0.1)
+    root.add(gltf.scene)
+    options.registerObject?.(anvilScene)
+  }
+  try {
+    await loadAnvilModel()
+  } catch (error) {
+    console.error('[setupGalaxy] failed to load anvil', { url: ANVIL_MODEL_URL, error })
+  }
 
   // Floor（视觉）
   const floor = new THREE.Mesh(
@@ -328,6 +376,13 @@ export async function setupPhysics01(
     boxMaterial.dispose()
     floor.geometry.dispose()
     ;(floor.material as THREE.Material).dispose()
+
+    if (anvilScene) {
+      root.remove(anvilScene)
+      disposeObject3D(anvilScene)
+      anvilScene = null
+    }
+
     threeScene.remove(root)
   }
 

@@ -2,8 +2,12 @@
 import { onMounted, onUnmounted } from 'vue'
 import { useThreeScene } from './composables/useThreeScene'
 import { setupGalaxy } from '@/views/three-js-ultimate-tutorial/composables/setupGalaxy.ts'
-import { setupPhysics01 } from '@/views/three-js-ultimate-tutorial/composables/setupPhysics01.ts'
+// import { setupPhysics01 } from '@/views/three-js-ultimate-tutorial/composables/setupPhysics01.ts'
 // import { setupPhysics02 } from '@/views/three-js-ultimate-tutorial/composables/setupPhysics02.ts'
+import { setupEnvironmentMap } from '@/views/three-js-ultimate-tutorial/composables/setupEnvironmentMap.ts'
+import { setupRealisticRender } from '@/views/three-js-ultimate-tutorial/composables/setupRealisticRender.ts'
+import { setupShader } from '@/views/three-js-ultimate-tutorial/composables/shader/setupShader.ts'
+import { setupRagingSea } from '@/views/three-js-ultimate-tutorial/composables/setupRagingSea.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -36,6 +40,10 @@ const {
 
 let disposePhysics: (() => void) | undefined
 let disposeGalaxy: (() => void) | undefined
+let disposeEnvironmentMap: (() => void) | undefined
+let disposeRealisticRender: (() => void) | undefined
+let disposeShader: (() => void) | undefined
+let disposeRagingSea: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -56,16 +64,82 @@ onMounted(async () => {
   // } | null
   // disposeGalaxy = galaxyApi?.dispose
 
-  const physicsApi = await setupPhysics01({
+  // const physicsApi = await setupPhysics01({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  //
+  //   registerObject
+  // })
+  // disposePhysics = physicsApi?.dispose
+
+  // const environmentMapApi = (await setupEnvironmentMap({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeEnvironmentMap = environmentMapApi?.dispose
+
+  // const realisticRenderApi = (await setupRealisticRender({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeRealisticRender = realisticRenderApi?.dispose
+
+  // const shaderApi = (await setupShader({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeShader = shaderApi?.dispose
+
+  const ragingSeaApi = (await setupRagingSea({
     scene,
     camera,
     renderer,
     controls,
     setFrameRender,
+    registerObject,
+    unregisterObject,
     setPickingBlocked: setBlocked,
     onBeforeRender,
-  })
-  disposePhysics = physicsApi?.dispose
+  })) as {
+    dispose: () => void
+    updatePetal: (hit: ScenePickHit) => void
+  } | null
+  disposeRagingSea = ragingSeaApi?.dispose
 
   bindPicking()
 })
@@ -77,6 +151,14 @@ onUnmounted(() => {
   disposeGalaxy = undefined
   disposePhysics?.()
   disposePhysics = undefined
+  disposeEnvironmentMap?.()
+  disposeEnvironmentMap = undefined
+  disposeRealisticRender?.()
+  disposeRealisticRender = undefined
+  disposeShader?.()
+  disposeShader = undefined
+  disposeRagingSea?.()
+  disposeRagingSea = undefined
 })
 </script>
 

@@ -142,6 +142,7 @@ export async function setupShied(
   const loadAnvilModel = async (): Promise<void> => {
     const gltf = await createGltfLoader().loadAsync(ANVIL_MODEL_URL)
     gltf.scene.name = 'anvil'
+    //scene.traverse 只沿着场景图的 .children 往下走，而且每一层都是同样的规则
     gltf.scene.traverse((child) => {
       if (!(child instanceof THREE.Mesh)) return
       child.castShadow = true

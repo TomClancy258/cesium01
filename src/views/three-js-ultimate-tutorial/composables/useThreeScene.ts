@@ -8,13 +8,22 @@ import { onUnmounted, ref, shallowRef } from 'vue'
 const SCENE_CLEAR_COLOR = 0x0b1220
 
 /** public/textures/cloud_sunset：CubeTexture 顺序 px, nx, py, ny, pz, nz */
+// const CLOUD_SUNSET_CUBE_URLS = [
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_2_Left+X.png',
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_3_Right-X.png',
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_4_Up+Y.png',
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_5_Down-Y.png',
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_0_Front+Z.png',
+//   '/textures/cloud_sunset/Cold_Sunset__Cam_1_Back-Z.png',
+// ] as const
+
 const CLOUD_SUNSET_CUBE_URLS = [
-  '/textures/cloud_sunset/Cold_Sunset__Cam_2_Left+X.png',
-  '/textures/cloud_sunset/Cold_Sunset__Cam_3_Right-X.png',
-  '/textures/cloud_sunset/Cold_Sunset__Cam_4_Up+Y.png',
-  '/textures/cloud_sunset/Cold_Sunset__Cam_5_Down-Y.png',
-  '/textures/cloud_sunset/Cold_Sunset__Cam_0_Front+Z.png',
-  '/textures/cloud_sunset/Cold_Sunset__Cam_1_Back-Z.png',
+    '/environmentMaps/0/px.png',
+    '/environmentMaps/0/nx.png',
+    '/environmentMaps/0/py.png',
+    '/environmentMaps/0/ny.png',
+    '/environmentMaps/0/pz.png',
+    '/environmentMaps/0/nz.png'
 ] as const
 
 /** 窗口拖拽中合并 setSize，减轻重建导致的闪白 */
@@ -159,23 +168,25 @@ export function useThreeScene() {
     threeScene.background = new THREE.Color(SCENE_CLEAR_COLOR)
     scene.value = threeScene
 
-    new THREE.CubeTextureLoader().load(
-      [...CLOUD_SUNSET_CUBE_URLS],
-      (cubeTexture) => {
-        if (scene.value !== threeScene) {
-          cubeTexture.dispose()
-          return
-        }
-        cubeTexture.colorSpace = THREE.SRGBColorSpace
-        skyCubeTexture?.dispose()
-        skyCubeTexture = cubeTexture
-        threeScene.background = cubeTexture
-      },
-      undefined,
-      (error) => {
-        console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
-      },
-    )
+    // new THREE.CubeTextureLoader().load(
+    //   [...CLOUD_SUNSET_CUBE_URLS],
+    //   (cubeTexture) => {
+    //     if (scene.value !== threeScene) {
+    //       cubeTexture.dispose()
+    //       return
+    //     }
+    //     cubeTexture.colorSpace = THREE.SRGBColorSpace
+    //     skyCubeTexture?.dispose()
+    //     skyCubeTexture = cubeTexture
+    //     threeScene.background = cubeTexture
+    //     //MeshStandardMaterial / 节点材质用它做 IBL 反射、环境光贡献（金属、光滑表面会「映」出这张立方体贴图）
+    //     threeScene.environment = cubeTexture
+    //   },
+    //   undefined,
+    //   (error) => {
+    //     console.error('[useThreeScene] failed to load skybox', CLOUD_SUNSET_CUBE_URLS, error)
+    //   },
+    // )
     //参数三:camera.near,参数四:camera.far
     const threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 2000)
     // threeCamera.position.set(5, 5, 10)
@@ -196,7 +207,12 @@ export function useThreeScene() {
       alpha: false,
     })
     threeRenderer.setClearColor(SCENE_CLEAR_COLOR, 1)
+    //画布缓冲像素密度。手机 devicePixelRatio 可能是 3，封顶 2 避免分辨率过高太卡
     threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+    //渲染缓冲宽高（CSS 像素）。第三个参数 false：
+    // 不改 canvas 的 inline 样式宽高，
+    // 交给你 CSS（如 width:100%）控制显示尺寸，
+    // 避免和 ResizeObserver 打架
     threeRenderer.setSize(width, height, false)
     // WebGPURenderer 继承 Renderer，outputColorSpace 仍可用
     threeRenderer.outputColorSpace = THREE.SRGBColorSpace

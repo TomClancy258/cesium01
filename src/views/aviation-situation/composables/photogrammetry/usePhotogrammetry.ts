@@ -307,7 +307,9 @@ export function usePhotogrammetry(viewer: ShallowRef<Viewer | null>) {
   }
 
   onUnmounted(() => {
-    unsubPhotogrammetryBuildingHover()
+    if (unsubPhotogrammetryBuildingHover) {
+      unsubPhotogrammetryBuildingHover()
+    }
     unsubPhotogrammetryBuildingLeave()
     unsubPhotogrammetryBuildingLeftClick()
     unsubCameraMoveEnd?.()

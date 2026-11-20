@@ -554,3 +554,5 @@ export async function setupSnow(
 // 真光照、阴影     MeshStandardMaterial / Lambert / Phong
 // 假光照、省性能    MeshMatcapMaterial（matcap 贴图）
 // 完全不受灯        MeshBasicMaterial
+
+//Camera 继承的是 Object3D，不是 Mesh。
