@@ -216,3 +216,10 @@ export function createMagicExplosion(options: CreateShieldOptions): ShieldInstan
     dispose,
   }
 }
+
+//	                Points	                         Sprite + count
+// 粒子从哪来         顶点数量                           实例数量
+// 粒子数            geometry 顶点个数                  sprite.count
+// TSL 里第几颗       一般是 vertexIndex（不是实例）       instanceIndex                 它俩都是uint类型
+// 位置数据           BufferAttribute on geometry      InstancedBufferAttribute
+// 每粒子颜色/大小     同样 BufferAttribute              同样 InstancedBufferAttribute

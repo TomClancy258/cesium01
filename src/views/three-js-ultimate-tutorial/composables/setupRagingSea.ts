@@ -198,6 +198,7 @@ export async function setupRagingSea(
     const elevation = varying(float(0))
     ragingSeaMaterial.positionNode = Fn(() => {
       //positionLocal 是只读属性节点（顶点局部坐标），不是可改的 Vector3。
+      //真实项目里，最常见的是：网格本身就是水平的，谁都不临时转。
       const position = positionLocal.toVar()
       const elevationX = sin(
         position.x

@@ -8,6 +8,7 @@ import { setupEnvironmentMap } from '@/views/three-js-ultimate-tutorial/composab
 import { setupRealisticRender } from '@/views/three-js-ultimate-tutorial/composables/setupRealisticRender.ts'
 import { setupShader } from '@/views/three-js-ultimate-tutorial/composables/shader/setupShader.ts'
 import { setupRagingSea } from '@/views/three-js-ultimate-tutorial/composables/setupRagingSea.ts'
+import { setupAnimatedGalaxy } from '@/views/three-js-ultimate-tutorial/composables/setupAnimatedGalaxy.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -44,6 +45,7 @@ let disposeEnvironmentMap: (() => void) | undefined
 let disposeRealisticRender: (() => void) | undefined
 let disposeShader: (() => void) | undefined
 let disposeRagingSea: (() => void) | undefined
+let disposeAnimatedGalaxy: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -125,7 +127,23 @@ onMounted(async () => {
   // } | null
   // disposeShader = shaderApi?.dispose
 
-  const ragingSeaApi = (await setupRagingSea({
+  // const ragingSeaApi = (await setupRagingSea({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeRagingSea = ragingSeaApi?.dispose
+
+  const animatedGalaxyApi = (await setupAnimatedGalaxy({
     scene,
     camera,
     renderer,
@@ -139,7 +157,7 @@ onMounted(async () => {
     dispose: () => void
     updatePetal: (hit: ScenePickHit) => void
   } | null
-  disposeRagingSea = ragingSeaApi?.dispose
+  disposeAnimatedGalaxy = animatedGalaxyApi?.dispose
 
   bindPicking()
 })
@@ -159,6 +177,8 @@ onUnmounted(() => {
   disposeShader = undefined
   disposeRagingSea?.()
   disposeRagingSea = undefined
+  disposeAnimatedGalaxy?.()
+  disposeAnimatedGalaxy = undefined
 })
 </script>
 

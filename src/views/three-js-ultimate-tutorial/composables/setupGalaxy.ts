@@ -164,12 +164,14 @@ export async function setupGalaxy(
     }
     const positions = new Float32Array(galaxy.count * 3)
     const colors = new Float32Array(galaxy.count * 3)
+    const scales = new Float32Array(galaxy.count)
 
     for (let i = 0; i < galaxy.count; i++) {
       const i3 = i * 3
       const branchAngle =
         ((i % galaxy.branches) / galaxy.branches) * Math.PI * 2
-      const radius = Math.random() * galaxy.radius
+      // const radius = Math.random() * galaxy.radius
+      const radius = i/galaxy.count * galaxy.radius
       const radius01=radius/galaxy.radius
 
       // const spinAngle=galaxy.spin*radius
@@ -196,6 +198,8 @@ export async function setupGalaxy(
       colors[i3]=mixedColor.r
       colors[i3+1]=mixedColor.g
       colors[i3+2]=mixedColor.b
+
+      scales[i]=Math.random()*galaxy.size
     }
 
     //Sprite没有下面这些
@@ -205,18 +209,22 @@ export async function setupGalaxy(
     //要「动起来」，更推荐 TSL；InstancedBufferAttribute 更适合静态或只当种子数据。
     const positionAttribute = new THREE.InstancedBufferAttribute(positions, 3)
     const colorAttribute = new THREE.InstancedBufferAttribute(colors, 3)
+    const aScale = new THREE.InstancedBufferAttribute(scales, 1)
 
     //画「粒子点云」用 PointsNodeMaterial（继承于后者）；普通单个广告牌用 SpriteNodeMaterial
     //SpriteNodeMaterial  →  通用 Sprite（一张朝向相机的图）
     //        ↑
     // PointsNodeMaterial  →  当「有大小的点」用（再加 sizeNode）
     const material = new THREE.PointsNodeMaterial({
-      size: galaxy.size,
+      // size: galaxy.size,
+      sizeNode: instancedBufferAttribute(aScale),
       positionNode: instancedBufferAttribute(positionAttribute),
       colorNode: instancedBufferAttribute(colorAttribute),
       sizeAttenuation: true,
       depthWrite: false,
     })
+
+    // material.sizeNode = instancedBufferAttribute(aScale)
 
     sprite = new THREE.Sprite(material)
     sprite.count = positionAttribute.count
