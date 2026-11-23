@@ -9,6 +9,7 @@ import { setupRealisticRender } from '@/views/three-js-ultimate-tutorial/composa
 import { setupShader } from '@/views/three-js-ultimate-tutorial/composables/shader/setupShader.ts'
 import { setupRagingSea } from '@/views/three-js-ultimate-tutorial/composables/setupRagingSea.ts'
 import { setupAnimatedGalaxy } from '@/views/three-js-ultimate-tutorial/composables/setupAnimatedGalaxy.ts'
+import { setupCoffeeSmoke } from '@/views/three-js-ultimate-tutorial/composables/setupCoffeeSmoke.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -46,6 +47,7 @@ let disposeRealisticRender: (() => void) | undefined
 let disposeShader: (() => void) | undefined
 let disposeRagingSea: (() => void) | undefined
 let disposeAnimatedGalaxy: (() => void) | undefined
+let disposeCoffeeSmoke: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -143,7 +145,23 @@ onMounted(async () => {
   // } | null
   // disposeRagingSea = ragingSeaApi?.dispose
 
-  const animatedGalaxyApi = (await setupAnimatedGalaxy({
+  // const animatedGalaxyApi = (await setupAnimatedGalaxy({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeAnimatedGalaxy = animatedGalaxyApi?.dispose
+
+  const coffeSmokeApi = (await setupCoffeeSmoke({
     scene,
     camera,
     renderer,
@@ -157,7 +175,7 @@ onMounted(async () => {
     dispose: () => void
     updatePetal: (hit: ScenePickHit) => void
   } | null
-  disposeAnimatedGalaxy = animatedGalaxyApi?.dispose
+  disposeCoffeeSmoke = coffeSmokeApi?.dispose
 
   bindPicking()
 })
@@ -179,6 +197,8 @@ onUnmounted(() => {
   disposeRagingSea = undefined
   disposeAnimatedGalaxy?.()
   disposeAnimatedGalaxy = undefined
+  disposeCoffeeSmoke?.()
+  disposeCoffeeSmoke = undefined
 })
 </script>
 
