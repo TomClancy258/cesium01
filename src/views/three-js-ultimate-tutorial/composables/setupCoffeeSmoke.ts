@@ -81,12 +81,15 @@ export async function setupCoffeeSmoke(
     noiseTexture.wrapT = THREE.RepeatWrapping
 
     const geometry = new THREE.PlaneGeometry(1.5, 5, 64, 64)
-    const material = new THREE.MeshStandardMaterial({
+    //2. 正反面颜色不一样
+    // MeshStandardMaterial + DoubleSide：背面法线反向，受光和正面不同，看起来就会一深一浅。
+    //可以换成MeshBasicMaterial
+    const material = new THREE.MeshBasicMaterial({
       side: THREE.DoubleSide,
       transparent:true,
       // wireframe: true,
       wireframe: false,
-      // depthWrite: false,
+      depthWrite: false,
       color: 0x7e583a
     })
     const plane = new THREE.Mesh(geometry, material)
@@ -102,9 +105,10 @@ export async function setupCoffeeSmoke(
         noiseTexture,
         vec2(0.5,uv().y.sub(time.mul(0.1)).mul(0.2))
       )
-      const angle=twistSample.r.mul(15)
+      const angle=twistSample.r.mul(10)
       const rotation=rotate(position.xz,angle)
-      position.xz.addAssign(rotation)
+      // position.xz.addAssign(rotation)
+      position.xz.assign(rotation)
 
       //wind
       const windSample1=texture(
