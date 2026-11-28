@@ -299,6 +299,7 @@ export async function setupAnimatedGalaxy(
         .sub(pow(vRadius01,2).mul(3))
 
       const angle=branchAngle.add(spinAngle)
+      //只有要 GUI 实时改 radius、或不想重建 buffer 时，才用 hash(instanceIndex) 在 positionNode 里现算
       position.x.assign(cos(angle).mul(finalRadius).add(randomX))
       position.y.assign(randomY)
       position.z.assign(sin(angle).mul(finalRadius).add(randomZ))

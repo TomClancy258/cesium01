@@ -10,6 +10,9 @@ import { setupShader } from '@/views/three-js-ultimate-tutorial/composables/shad
 import { setupRagingSea } from '@/views/three-js-ultimate-tutorial/composables/setupRagingSea.ts'
 import { setupAnimatedGalaxy } from '@/views/three-js-ultimate-tutorial/composables/setupAnimatedGalaxy.ts'
 import { setupCoffeeSmoke } from '@/views/three-js-ultimate-tutorial/composables/setupCoffeeSmoke.ts'
+import { setupHologram } from '@/views/three-js-ultimate-tutorial/composables/setupHologram.ts'
+import { setupFireworks } from '@/views/three-js-ultimate-tutorial/composables/setupFireworks.ts'
+import { setupLightsShading } from '@/views/three-js-ultimate-tutorial/composables/setupLightsShading.ts'
 import {
   useScenePicking,
   type ScenePickHit,
@@ -20,6 +23,7 @@ const { containerRef, scene, camera, renderer, controls, setFrameRender, initSce
 
 let addImpact: ((hit: ScenePickHit) => void) | undefined
 let updateSphereParticles: ((hit: ScenePickHit) => void) | undefined
+let addFireworks: ((hit: ScenePickHit) => void) | undefined
 
 const {
   registerObject,
@@ -35,8 +39,9 @@ const {
     // updateSphereParticles(hit)
     // 雪地球体跟随在 setupSnow 内用数学平面求交，不走网格拾取
   },
-  onSelect: (_hit) => {
+  onSelect: (hit) => {
     // addImpact?.(hit)
+    addFireworks(hit)
   },
 })
 
@@ -48,6 +53,9 @@ let disposeShader: (() => void) | undefined
 let disposeRagingSea: (() => void) | undefined
 let disposeAnimatedGalaxy: (() => void) | undefined
 let disposeCoffeeSmoke: (() => void) | undefined
+let disposeHologram: (() => void) | undefined
+let disposeFireworks: (() => void) | undefined
+let disposeLightsShading: (() => void) | undefined
 
 onMounted(async () => {
   await initScene()
@@ -129,21 +137,21 @@ onMounted(async () => {
   // } | null
   // disposeShader = shaderApi?.dispose
 
-  // const ragingSeaApi = (await setupRagingSea({
-  //   scene,
-  //   camera,
-  //   renderer,
-  //   controls,
-  //   setFrameRender,
-  //   registerObject,
-  //   unregisterObject,
-  //   setPickingBlocked: setBlocked,
-  //   onBeforeRender,
-  // })) as {
-  //   dispose: () => void
-  //   updatePetal: (hit: ScenePickHit) => void
-  // } | null
-  // disposeRagingSea = ragingSeaApi?.dispose
+  const ragingSeaApi = (await setupRagingSea({
+    scene,
+    camera,
+    renderer,
+    controls,
+    setFrameRender,
+    registerObject,
+    unregisterObject,
+    setPickingBlocked: setBlocked,
+    onBeforeRender,
+  })) as {
+    dispose: () => void
+    updatePetal: (hit: ScenePickHit) => void
+  } | null
+  disposeRagingSea = ragingSeaApi?.dispose
 
   // const animatedGalaxyApi = (await setupAnimatedGalaxy({
   //   scene,
@@ -161,21 +169,70 @@ onMounted(async () => {
   // } | null
   // disposeAnimatedGalaxy = animatedGalaxyApi?.dispose
 
-  const coffeSmokeApi = (await setupCoffeeSmoke({
-    scene,
-    camera,
-    renderer,
-    controls,
-    setFrameRender,
-    registerObject,
-    unregisterObject,
-    setPickingBlocked: setBlocked,
-    onBeforeRender,
-  })) as {
-    dispose: () => void
-    updatePetal: (hit: ScenePickHit) => void
-  } | null
-  disposeCoffeeSmoke = coffeSmokeApi?.dispose
+  // const coffeeSmokeApi = (await setupCoffeeSmoke({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeCoffeeSmoke = coffeeSmokeApi?.dispose
+
+  // const hologramApi = (await setupHologram({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   updatePetal: (hit: ScenePickHit) => void
+  // } | null
+  // disposeHologram = hologramApi?.dispose
+
+  // const fireworksApi = (await setupFireworks({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   addFireworks: (hit: ScenePickHit) => void
+  // } | null
+  // disposeFireworks = fireworksApi?.dispose
+  // addFireworks = fireworksApi?.addFireworks
+
+  // const lightsShadingApi = (await setupLightsShading({
+  //   scene,
+  //   camera,
+  //   renderer,
+  //   controls,
+  //   setFrameRender,
+  //   registerObject,
+  //   unregisterObject,
+  //   setPickingBlocked: setBlocked,
+  //   onBeforeRender,
+  // })) as {
+  //   dispose: () => void
+  //   addFireworks: (hit: ScenePickHit) => void
+  // } | null
+  // disposeLightsShading = lightsShadingApi?.dispose
 
   bindPicking()
 })
@@ -199,6 +256,12 @@ onUnmounted(() => {
   disposeAnimatedGalaxy = undefined
   disposeCoffeeSmoke?.()
   disposeCoffeeSmoke = undefined
+  disposeHologram?.()
+  disposeHologram = undefined
+  disposeFireworks?.()
+  disposeFireworks = undefined
+  disposeLightsShading?.()
+  disposeLightsShading = undefined
 })
 </script>
 

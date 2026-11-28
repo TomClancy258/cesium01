@@ -226,6 +226,11 @@ export async function setupGalaxy(
 
     // material.sizeNode = instancedBufferAttribute(aScale)
 
+    //Points(只能设置全部粒子大小)+PointsNodeMaterial+BufferAttribute+vertexIndex
+    //Sprite(能单独设置精灵大小)+PointsNodeMaterial+InstancedBufferAttribute+instanceIndex
+
+    //两者需要动画时，分别去掉BufferAttribute、InstancedBufferAttribute，再在positionNode里根据instance的progress做动画
+
     sprite = new THREE.Sprite(material)
     sprite.count = positionAttribute.count
     root.add(sprite)
